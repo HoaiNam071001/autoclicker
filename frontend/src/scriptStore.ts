@@ -9,12 +9,14 @@ type EditorState = {
   script: Script;
   selected: string; // id bước đang chọn trong danh sách
   notice: string; // thông báo ngắn gần nhất (đã thêm điểm, điểm ngoài vùng…)
+  dragA: Point | null; // điểm A (toạ độ màn hình) đã chọn, đang chờ điểm B của kéo thả
 };
 
 let state: EditorState = {
   script: { name: 'Kịch bản 1', region: null, loops: 10, maxMinutes: 0, steps: sampleSteps },
   selected: '3',
   notice: '',
+  dragA: null,
 };
 const listeners = new Set<() => void>();
 
@@ -55,16 +57,33 @@ const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slic
 
 // Bước đang được chọn lại điểm (nút ⌖ trong form); null = điểm mới sẽ thêm thành bước mới.
 let pickTarget: string | null = null;
+// Overlay đang ở công cụ "Kéo thả A → B": điểm mới đi theo cặp A, B thay vì thành bước click.
+let dragMode = false;
 
 export function pickPointFor(stepId: string) {
   pickTarget = stepId;
-  return openOverlay('point');
+  const step = state.script.steps.find((s) => s.id === stepId);
+  return openOverlay(step?.type === 'drag' ? 'drag' : 'point');
 }
 
 export const pickingStep = () => pickTarget;
 
+// Gọi khi đổi công cụ / đóng overlay; luôn bỏ điểm A đang chờ.
+export const setDragMode = (on: boolean) => {
+  dragMode = on;
+  if (state.dragA) set({ dragA: null });
+};
+
+// Esc trên overlay: huỷ điểm A đang chờ. Trả false nếu không có gì để huỷ.
+export const cancelDragA = () => {
+  if (!state.dragA) return false;
+  set({ dragA: null, notice: 'Đã huỷ điểm A' });
+  return true;
+};
+
 export const cancelPick = () => {
   pickTarget = null;
+  setDragMode(false);
 };
 
 // Đặt một điểm (toạ độ màn hình thật) từ click trên overlay hoặc F6:
@@ -77,11 +96,29 @@ export function placePoint(screen: Point): boolean {
     return false;
   }
   const steps = script.steps;
-  if (pickTarget) {
-    const id = pickTarget;
+  const target = pickTarget && steps.find((s) => s.id === pickTarget);
+  const wantsPair = target ? target.type === 'drag' : dragMode;
+
+  // Kéo thả cần 2 điểm: lần đầu chỉ ghi nhớ A.
+  if (wantsPair && !state.dragA) {
+    set({ dragA: screen, notice: `Điểm A: X ${rel.x} Y ${rel.y} – chọn điểm B (Esc để huỷ)` });
+    return true;
+  }
+  const a = wantsPair ? state.dragA! : null;
+  if (a) set({ dragA: null });
+
+  if (target) {
     pickTarget = null;
-    movePoint(id, 0, screen);
+    if (a) movePoint(target.id, 0, a);
+    movePoint(target.id, a ? 1 : 0, screen);
     setWindowMode('main');
+    return true;
+  }
+  if (a) {
+    const relA = toRelative(a, script.region)!;
+    const step = makeStep({ id: newId(), type: 'drag', points: [relA, rel], dragMs: 400, delayAfter: 500 });
+    setSteps([...steps, step]);
+    set({ selected: step.id, notice: `Đã thêm bước ${steps.length + 1}: kéo A ${relA.x},${relA.y} → B ${rel.x},${rel.y}` });
     return true;
   }
   const step = makeStep({ id: newId(), type: 'click', points: [rel], delayAfter: 500 });

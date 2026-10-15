@@ -1,7 +1,9 @@
 // Overlay chọn vùng / điểm – cửa sổ trong suốt phủ màn hình, always-on-top
 import { MouseEvent, useEffect, useRef, useState } from 'react';
 import { MousePos } from '../../wailsjs/go/main/App';
-import { cancelPick, movePoint, pickingStep, placePoint, selectStep, setRegion, toScreen, useEditor } from '../scriptStore';
+import {
+  cancelDragA, cancelPick, movePoint, pickingStep, placePoint, selectStep, setDragMode, setRegion, toScreen, useEditor,
+} from '../scriptStore';
 import { Point, Rect } from '../types';
 import { inWails, OverlayTool, overlayTool, setWindowMode } from '../windowMode';
 
@@ -18,7 +20,7 @@ type Moving = { id: string; index: number; from: Point; moved: boolean };
 
 const TOOLS: { id: OverlayTool; label: string; ready: boolean }[] = [
   { id: 'point', label: 'Đặt điểm', ready: true },
-  { id: 'drag', label: 'Kéo thả A → B', ready: false },
+  { id: 'drag', label: 'Kéo thả A → B', ready: true },
   { id: 'region', label: 'Chọn vùng', ready: true },
 ];
 
@@ -27,7 +29,7 @@ const rectOf = (a: Point, b: Point): Rect => ({
 });
 
 export default function OverlayScreen() {
-  const { script: { region, steps }, selected, notice } = useEditor();
+  const { script: { region, steps }, selected, notice, dragA } = useEditor();
   const [picking] = useState(pickingStep); // id bước đang chọn lại điểm (nút ⌖), null = thêm bước mới
   const [tool, setTool] = useState<OverlayTool>(overlayTool);
   const [cursor, setCursor] = useState<Point>({ x: -100, y: -100 });
@@ -55,7 +57,7 @@ export default function OverlayScreen() {
       // Đang kéo vùng / marker thì Esc chỉ huỷ thao tác đó.
       if (movingRef.current) setMoving(null);
       else if (dragRef.current) setDragFrom(null);
-      else setWindowMode('main');
+      else if (!cancelDragA()) setWindowMode('main');
     };
     window.addEventListener('keydown', onKey);
     return () => {
@@ -64,6 +66,8 @@ export default function OverlayScreen() {
       cancelPick(); // thoát overlay (Esc / Xong) mà chưa chọn lại điểm → huỷ
     };
   }, []);
+
+  useEffect(() => setDragMode(tool === 'drag'), [tool]);
 
   const toClient = (p: Point): Point => ({ x: p.x - offset.x, y: p.y - offset.y });
   const onUI = (e: MouseEvent) => !!(e.target as HTMLElement).closest('[data-ui]');
@@ -106,7 +110,7 @@ export default function OverlayScreen() {
       skipClick.current = false;
       return;
     }
-    if (onUI(e) || tool !== 'point') return;
+    if (onUI(e) || tool === 'region') return;
     const screen = inWails ? await MousePos() : { x: e.clientX + offset.x, y: e.clientY + offset.y };
     placePoint(screen);
   };
@@ -144,7 +148,7 @@ export default function OverlayScreen() {
   const screenCursor = { x: cursor.x + offset.x, y: cursor.y + offset.y };
 
   return (
-    <div className={`fixed inset-0 select-none bg-[rgba(20,24,32,.45)] ${tool !== 'drag' ? 'cursor-crosshair' : ''}`}
+    <div className={`fixed inset-0 select-none bg-[rgba(20,24,32,.45)] cursor-crosshair`}
       onMouseMove={onMove} onMouseDown={onDown} onMouseUp={onUp} onClick={onClick}>
       {shown && (
         <>
@@ -164,6 +168,10 @@ export default function OverlayScreen() {
             <path d="M0 0 10 5 0 10z" fill="#F0913A" />
           </marker>
         </defs>
+        {dragA && (
+          <line x1={toClient(dragA).x} y1={toClient(dragA).y} x2={cursor.x} y2={cursor.y}
+            stroke="#F0913A" strokeWidth={3} strokeDasharray="8 5" markerEnd="url(#ah)" />
+        )}
         {markers.slice(1).map((m, i) => {
           const prev = markers[i];
           const isDrag = prev.drag && m.drag && prev.label.endsWith('A');
@@ -180,6 +188,13 @@ export default function OverlayScreen() {
           {m.label}
         </span>
       ))}
+
+      {dragA && (
+        <span style={{ left: toClient(dragA).x, top: toClient(dragA).y }}
+          className="pointer-events-none absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white bg-drag-marker text-[13px] font-bold text-white shadow-[0_2px_8px_rgba(0,0,0,.35)]">
+          A
+        </span>
+      )}
 
       {/* Crosshair + toạ độ màn hình thật theo chuột */}
       <div className="pointer-events-none absolute" style={{ left: cursor.x, top: cursor.y }}>
@@ -208,6 +223,11 @@ export default function OverlayScreen() {
       <div data-ui className="absolute left-6 top-6 flex max-w-[300px] flex-col gap-0.5 rounded-lg bg-ink/90 px-3 py-2 font-mono text-[13px] text-white">
         <span>{region ? `Vùng X ${region.x} Y ${region.y} · ${region.w} × ${region.h}` : 'Vùng: toàn màn hình'}</span>
         {tool === 'region' && <span className="text-dark-muted">Kéo chuột để chọn vùng</span>}
+        {tool === 'drag' && (
+          <span className="text-dark-muted">
+            {dragA ? 'Click điểm B (nơi thả) · Esc huỷ A' : `Click điểm A (nơi bắt đầu kéo)${picking ? ' – chọn lại cho bước đang chọn' : ''}`}
+          </span>
+        )}
         {tool === 'point' && (
           <span className="text-dark-muted">
             {picking ? 'Click để đặt lại điểm cho bước đang chọn' : 'Click (hoặc fn+F6) để thêm bước click mới'}

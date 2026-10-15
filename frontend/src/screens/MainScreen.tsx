@@ -82,7 +82,7 @@ export default function MainScreen() {
           <button onClick={() => openOverlay('point')} className={btn}><Target />Thêm điểm
             <kbd className="rounded border border-line px-1.5 font-mono text-xs text-muted">F6</kbd>
           </button>
-          <button className={btn}><Drag className="h-4 w-4 text-drag" />Kéo thả</button>
+          <button onClick={() => openOverlay('drag')} className={btn}><Drag className="h-4 w-4 text-drag" />Kéo thả</button>
         </div>
         <button onClick={runSpike} className={btn} title="Spike bước 3">Thử click 500,500</button>
         <button onClick={toggleEngine} className={btn} title="Thử engine bước 7">{running ? 'Dừng engine' : 'Chạy thử engine'}</button>
@@ -193,7 +193,7 @@ export default function MainScreen() {
                     <input defaultValue={cur.points[0]?.[k]} className="w-full font-mono outline-none" />
                   </label>
                 ))}
-                <button aria-label="Chọn lại trên màn hình" title="Chọn lại trên màn hình" disabled={cur.type === 'drag'}
+                <button aria-label="Chọn lại trên màn hình" title="Chọn lại trên màn hình" disabled={cur.type === 'wait'}
                   onClick={() => pickPointFor(cur.id)} className="grid h-10 w-11 place-items-center rounded-lg border border-line disabled:opacity-40"><Target /></button>
               </div>
             </div>
