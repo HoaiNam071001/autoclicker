@@ -6,7 +6,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** bước 11 – Chọn điểm: code xong, **chờ kiểm tra tay**
+- **Đang làm:** chưa chọn – xong bước 11
 - **Tiếp theo:** bước 12 (kéo marker để sửa vị trí), 13 (chọn điểm kéo thả A → B)
 - **Cập nhật lần cuối:** 2026-10-15
 
@@ -100,12 +100,12 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] MainScreen: *Chọn vùng* mở overlay (`openOverlay('region')`), footer hiện vùng + nút về toàn màn hình; danh sách bước đọc từ store
   - [x] Kiểm tra tay: chọn vùng, marker dịch theo vùng, toạ độ crosshair khớp toạ độ thật
   - Giới hạn: độ lệch chỉ là phép tịnh tiến – màn hình scale ≠ 100% (Windows DPI) xử lý ở bước 17
-- [ ] **11. Chọn điểm** – Click trên overlay để đặt điểm, hoặc F6 lưu vị trí chuột hiện tại.
+- [x] **11. Chọn điểm** – Click trên overlay để đặt điểm, hoặc F6 lưu vị trí chuột hiện tại.
   - [x] Overlay công cụ *Đặt điểm*: click → thêm bước click mới (toạ độ lấy từ `MousePos`, tương đối theo vùng; ngoài vùng thì báo, không thêm), ở lại overlay để đặt tiếp
   - [x] F6 toàn cục (`hotkey.go`, emit `hotkey:f6`): thêm điểm tại vị trí chuột, không cần mở overlay; bỏ qua khi đang chạy
   - [x] Nút ⌖ trong form: chọn lại điểm cho bước đang chọn (click / F6 trên overlay) rồi về màn chính; Esc huỷ
   - [x] `scriptStore.ts`: `placePoint`, `pickPointFor`, bước đang chọn + thông báo trong store; *Thêm điểm* mở overlay
-  - [ ] Kiểm tra tay: thêm điểm bằng click và fn+F6 (cả khi app không focus), chọn lại điểm, điểm ngoài vùng bị từ chối
+  - [x] Kiểm tra tay: thêm điểm bằng click và fn+F6 (cả khi app không focus), chọn lại điểm, điểm ngoài vùng bị từ chối
 - [ ] **12. Marker & đường nối** – Marker đánh số, đường nối theo thứ tự; kéo marker để sửa vị trí.
 - [ ] **13. Chọn điểm kéo thả** – Chọn A rồi B, hiển thị mũi tên A→B.
 
@@ -158,3 +158,4 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Commit bước 9 (`c6b8b96`). Bước 10: `scriptStore.ts`, overlay chọn vùng + tự đo lệch toạ độ + marker theo dữ liệu thật. `npm run build` OK, chụp headless kiểm tra overlay / main; chưa kiểm tra tay trong app.
 - **2026-10-15** – Xong bước 10: kiểm tra tay macOS – chọn vùng OK, kể cả trên màn hình thứ 2 (không cần bộ chọn màn hình).
 - **2026-10-15** – Commit bước 10 (`e61c3b6`). Bước 11: đặt điểm trên overlay, F6 toàn cục, chọn lại điểm cho bước. `npm run build`, `go test` OK; chưa kiểm tra tay.
+- **2026-10-15** – Xong bước 11: kiểm tra tay macOS OK. Người dùng hỏi cách xoá điểm → chưa có, thuộc bước 14.
