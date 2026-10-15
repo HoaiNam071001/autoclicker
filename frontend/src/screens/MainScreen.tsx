@@ -1,7 +1,9 @@
 // Phương án A – danh sách bước + form cấu hình
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Drag, Logo, Play, Region, Target } from '../components/icons';
 import { Step, STEP_LABEL, StepType, fmtMs, fmtPos, sampleSteps } from '../types';
+import { SpikeClick, StartSpikeLoop, StopSpikeLoop } from '../../wailsjs/go/main/App';
+import { EventsOn } from '../../wailsjs/runtime/runtime';
 
 const btn = 'flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3.5';
 const field = 'h-10 rounded-lg border border-line px-2.5 font-mono';
@@ -12,6 +14,42 @@ export default function MainScreen() {
   const [selected, setSelected] = useState('3');
   const cur = steps.find((s) => s.id === selected)!;
   const idx = steps.indexOf(cur) + 1;
+  const [spikeMsg, setSpikeMsg] = useState('');
+  const [looping, setLooping] = useState(false);
+
+  // Spike bước 4: vòng lặp click (500, 500) mỗi 500 ms, F8 (macOS: fn+F8) dừng kể cả khi app mất focus.
+  useEffect(() => {
+    if (!('runtime' in window)) return; // xem trên trình duyệt, không có Wails runtime
+    const offs = [
+      EventsOn('spike:state', (running: boolean, clicks: number) => {
+        setLooping(running);
+        setSpikeMsg(running ? `Đang lặp: ${clicks} click – bấm F8 để dừng` : `Đã dừng sau ${clicks} click`);
+      }),
+      EventsOn('hotkey:f8', () => setSpikeMsg((m) => `${m} (F8)`)),
+      EventsOn('hotkey:error', (msg: string) => setSpikeMsg(`Lỗi: ${msg}`)),
+    ];
+    return () => offs.forEach((off) => off());
+  }, []);
+
+  const toggleLoop = () => {
+    if (looping) StopSpikeLoop();
+    else {
+      setLooping(true);
+      setSpikeMsg('Bắt đầu lặp…');
+      StartSpikeLoop(500, 500, 500);
+    }
+  };
+
+  // Spike bước 3: đếm ngược 3 giây (Go chờ) rồi click (500, 500). Bỏ khi có engine.
+  const runSpike = async () => {
+    setSpikeMsg('Click sau 3 giây…');
+    try {
+      const pos = await SpikeClick(500, 500, 3000);
+      setSpikeMsg(`Đã click tại ${pos.x}, ${pos.y}`);
+    } catch (e) {
+      setSpikeMsg(`Lỗi: ${e}`);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-ground">
@@ -29,6 +67,9 @@ export default function MainScreen() {
           </button>
           <button className={btn}><Drag className="h-4 w-4 text-drag" />Kéo thả</button>
         </div>
+        <button onClick={runSpike} className={btn} title="Spike bước 3">Thử click 500,500</button>
+        <button onClick={toggleLoop} className={btn} title="Spike bước 4">{looping ? 'Dừng lặp' : 'Lặp click 500,500'}</button>
+        {spikeMsg && <span className="font-mono text-xs text-muted">{spikeMsg}</span>}
         <button className="flex h-11 items-center gap-2.5 rounded-lg bg-accent px-5 font-semibold text-white">
           <Play />Chạy <span className="font-mono text-xs opacity-85">F8</span>
         </button>
