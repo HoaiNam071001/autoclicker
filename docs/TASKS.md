@@ -6,7 +6,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** bước 14 – Danh sách bước
+- **Đang làm:** bước 14 – Danh sách bước: code xong, **chờ kiểm tra tay**
 - **Tiếp theo:** bước 15 (form cấu hình bước)
 - **Cập nhật lần cuối:** 2026-10-15
 
@@ -120,6 +120,11 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 ### Giao diện
 - [x] **13b. Dựng UI tĩnh từ bản thiết kế** – 4 màn `MainScreen`, `PreviewScreen`, `OverlayScreen`, `MiniBar` trong `frontend/src/screens/`, dữ liệu mẫu, chưa nối Go. Xem thử bằng hash URL: `#preview`, `#overlay`, `#minibar`.
 - [ ] **14. Danh sách bước** – Sắp xếp bằng kéo thả, bật/tắt, nhân bản, xoá.
+  - [x] `components/StepList.tsx` (tách khỏi MainScreen): kéo ⋮⋮ sắp xếp (`@dnd-kit`, kéo ≥ 4 px mới tính), ô tick bật/tắt, nhân bản / xoá hiện khi rê chuột
+  - [x] Xoá có *Hoàn tác*; phím Delete / Backspace xoá bước đang chọn (trừ khi đang gõ trong ô nhập); ô *Bật* trong form hoạt động
+  - [x] *+ Thêm bước*: menu Click / Kéo thả (mở overlay chọn điểm), Chờ / Gõ chữ / Phím tắt (thêm ngay, mặc định giống `NewStep`)
+  - [x] `scriptStore.ts`: `toggleStep`, `duplicateStep`, `removeStep`, `undoDelete`, `moveStep`, `addStep`; màn chính xử lý danh sách trống
+  - [ ] Kiểm tra tay: sắp xếp, bật/tắt, nhân bản, xoá + hoàn tác, Delete, thêm bước qua menu
 - [ ] **15. Form cấu hình bước** – Loại hành động, số click, khoảng cách giữa các click, thời gian giữ, thời gian kéo, nội dung gõ, phím + phím kèm, delay sau bước.
 - [ ] **16. Cài đặt chạy** – Số vòng / vô hạn / thời lượng, đếm ngược 3 giây, thanh trạng thái khi đang chạy.
 
@@ -171,3 +176,4 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Xong bước 12: kiểm tra tay macOS OK.
 - **2026-10-15** – Bước 13: chọn A → B cho kéo thả trên overlay, chọn lại A / B bằng ⌖. `npm run build` OK; chưa kiểm tra tay.
 - **2026-10-15** – Xong bước 13: kiểm tra tay macOS OK.
+- **2026-10-15** – Bước 14: `StepList.tsx` (dnd-kit sắp xếp, bật/tắt, nhân bản, xoá + hoàn tác, menu thêm bước). `npm run build` OK, chụp headless màn chính; chưa kiểm tra tay.

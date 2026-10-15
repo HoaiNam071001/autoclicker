@@ -22,3 +22,9 @@ export const Pause = ({ className = 'h-4 w-4' }: P) => (
 export const Stop = ({ className = 'h-3 w-3' }: P) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden><rect x="3" y="3" width="18" height="18" rx="2" /></svg>
 );
+export const Copy = ({ className = 'h-4 w-4' }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base}><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" /></svg>
+);
+export const Trash = ({ className = 'h-4 w-4' }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base}><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg>
+);

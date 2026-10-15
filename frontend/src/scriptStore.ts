@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
-import { makeStep, Point, Rect, Script, sampleSteps, Step } from './types';
+import { makeStep, Point, Rect, Script, sampleSteps, Step, StepType } from './types';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
 
 // Store kịch bản đang soạn – dùng chung giữa MainScreen và OverlayScreen (hai màn không cùng mount).
@@ -10,6 +10,7 @@ type EditorState = {
   selected: string; // id bước đang chọn trong danh sách
   notice: string; // thông báo ngắn gần nhất (đã thêm điểm, điểm ngoài vùng…)
   dragA: Point | null; // điểm A (toạ độ màn hình) đã chọn, đang chờ điểm B của kéo thả
+  deleted: { step: Step; index: number } | null; // bước vừa xoá – để hoàn tác
 };
 
 let state: EditorState = {
@@ -17,6 +18,7 @@ let state: EditorState = {
   selected: '3',
   notice: '',
   dragA: null,
+  deleted: null,
 };
 const listeners = new Set<() => void>();
 
@@ -38,6 +40,66 @@ export const selectStep = (id: string) => set({ selected: id });
 export const setNotice = (notice: string) => set({ notice });
 
 const setSteps = (steps: Step[]) => updateScript({ steps });
+
+// ---- Danh sách bước (bước 14) ----
+
+const indexOf = (id: string) => state.script.steps.findIndex((s) => s.id === id);
+
+export function toggleStep(id: string) {
+  setSteps(state.script.steps.map((s) => (s.id === id ? { ...s, enabled: !s.enabled } : s)));
+}
+
+// Nhân bản ngay sau bước gốc và chọn bản sao.
+export function duplicateStep(id: string) {
+  const steps = state.script.steps;
+  const i = indexOf(id);
+  if (i < 0) return;
+  const copy: Step = { ...steps[i], id: newId(), points: steps[i].points.map((p) => ({ ...p })), modifiers: [...steps[i].modifiers] };
+  setSteps([...steps.slice(0, i + 1), copy, ...steps.slice(i + 1)]);
+  set({ selected: copy.id, notice: `Đã nhân bản bước ${i + 1} thành bước ${i + 2}` });
+}
+
+// Xoá và chọn bước kế tiếp (hoặc bước trước nếu xoá bước cuối). Giữ lại để hoàn tác.
+export function removeStep(id: string) {
+  const steps = state.script.steps;
+  const i = indexOf(id);
+  if (i < 0) return;
+  const rest = steps.filter((s) => s.id !== id);
+  setSteps(rest);
+  set({
+    selected: rest[Math.min(i, rest.length - 1)]?.id ?? '',
+    notice: `Đã xoá bước ${i + 1}`,
+    deleted: { step: steps[i], index: i },
+  });
+}
+
+export function undoDelete() {
+  const d = state.deleted;
+  if (!d) return;
+  const steps = state.script.steps;
+  setSteps([...steps.slice(0, d.index), d.step, ...steps.slice(d.index)]);
+  set({ selected: d.step.id, notice: `Đã khôi phục bước ${d.index + 1}`, deleted: null });
+}
+
+export function moveStep(from: number, to: number) {
+  const steps = [...state.script.steps];
+  const [s] = steps.splice(from, 1);
+  steps.splice(to, 0, s);
+  setSteps(steps);
+}
+
+// Thêm bước không cần chọn điểm (chờ, gõ chữ, phím tắt) vào cuối – giá trị mặc định giống NewStep (model.go).
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key'>) {
+  const defaults: Record<typeof type, Partial<Step>> = {
+    wait: { clicks: 0, delayAfter: 1000 },
+    type: { clicks: 0, delayAfter: 500 },
+    key: { clicks: 0, key: 'enter', delayAfter: 500 },
+  };
+  const step = makeStep({ id: newId(), type, ...defaults[type] });
+  const steps = state.script.steps;
+  setSteps([...steps, step]);
+  set({ selected: step.id, notice: `Đã thêm bước ${steps.length + 1}` });
+}
 
 // Đổi vùng; toạ độ điểm vẫn tương đối nên các điểm đi theo vùng mới. null = toàn màn hình.
 export const setRegion = (region: Rect | null) => updateScript({ region });

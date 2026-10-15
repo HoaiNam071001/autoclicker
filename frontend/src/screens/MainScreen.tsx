@@ -1,12 +1,13 @@
 // Phương án A – danh sách bước + form cấu hình
 import { useEffect, useState } from 'react';
 import { Drag, Logo, Play, Region, Target } from '../components/icons';
-import { Modifier, STEP_LABEL, StepType, fmtMs, fmtPos, makeStep } from '../types';
+import { Modifier, STEP_LABEL, StepType, makeStep } from '../types';
 import { RunScript, SpikeClick, StopScript } from '../../wailsjs/go/main/App';
 import { main } from '../../wailsjs/go/models';
 import { EventsOn, Quit, WindowMinimise } from '../../wailsjs/runtime/runtime';
 import { inWails, openOverlay, setWindowMode } from '../windowMode';
-import { pickPointFor, selectStep, setRegion, useEditor } from '../scriptStore';
+import { pickPointFor, removeStep, setRegion, toggleStep, useEditor } from '../scriptStore';
+import StepList from '../components/StepList';
 import { setLastError, STOP_REASON, useEngine } from '../engineStore';
 
 const btn = 'flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3.5';
@@ -31,7 +32,7 @@ const engineDemo = main.Script.createFrom({
 
 export default function MainScreen() {
   const { script: { steps, region }, selected, notice } = useEditor();
-  const cur = steps.find((s) => s.id === selected) ?? steps[0];
+  const cur = steps.find((s) => s.id === selected) ?? steps[0]; // undefined khi chưa có bước nào
   const idx = steps.indexOf(cur) + 1;
   const [spikeMsg, setSpikeMsg] = useState('');
   const { running, lastError, stopReason } = useEngine();
@@ -68,6 +69,17 @@ export default function MainScreen() {
     await setWindowMode('main');
   };
 
+  // Delete / Backspace xoá bước đang chọn (trừ khi đang gõ trong ô nhập).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if ((e.key !== 'Delete' && e.key !== 'Backspace') || el.closest('input, textarea, select')) return;
+      if (cur) removeStep(cur.id);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [cur]);
+
   return (
     <div className="flex min-h-screen flex-col bg-ground">
       <header className="drag flex flex-wrap items-center gap-3 border-b border-line bg-white px-5 py-3">
@@ -103,42 +115,20 @@ export default function MainScreen() {
       </header>
 
       <div className="flex flex-1 flex-wrap gap-4 px-5 py-4">
-        <section aria-label="Danh sách bước" className="flex max-w-[420px] flex-[1_1_340px] flex-col rounded-[10px] border border-line bg-white">
-          <div className="flex items-center justify-between border-b border-line px-4 py-3.5">
-            <h2 className="text-[15px] font-semibold">Các bước</h2>
-            <span className="text-muted">{steps.length} bước</span>
-          </div>
-          <ol className="flex flex-col gap-0.5 p-1.5">
-            {steps.map((s, i) => {
-              const ring = s.type === 'drag' ? 'border-drag text-drag' : 'border-accent text-accent';
-              return (
-                <li key={s.id}>
-                  <button
-                    onClick={() => selectStep(s.id)}
-                    className={`flex w-full items-center gap-3 rounded-lg p-2.5 text-left ${s.id === selected ? 'bg-accent-soft' : 'hover:bg-ground'} ${s.enabled ? '' : 'opacity-50'}`}
-                  >
-                    <span className="cursor-grab text-[#9AA2AE]" aria-hidden>⋮⋮</span>
-                    <span className={`grid h-7 w-7 flex-none place-items-center rounded-full border-2 text-[13px] font-semibold ${ring}`}>{i + 1}</span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-semibold">{STEP_LABEL[s.type]}{s.clicks > 1 ? ` ×${s.clicks}` : ''}</span>
-                      <span className="block font-mono text-xs text-muted">{fmtPos(s)}</span>
-                    </span>
-                    <span className="font-mono text-xs text-muted">{fmtMs(s.delayAfter)}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-          <button className="mx-3 mb-3 mt-auto h-11 rounded-lg border border-dashed border-[#B8C0CC] text-[#3F4857]">+ Thêm bước</button>
-        </section>
+        <StepList />
 
+        {!cur ? (
+          <section className="grid flex-[999_1_560px] place-items-center rounded-[10px] border border-line bg-white text-muted">
+            Chọn hoặc thêm một bước để cấu hình
+          </section>
+        ) : (<>
         {/* key: form dùng defaultValue nên vẽ lại khi đổi bước / bước bị sửa (chọn lại điểm, F6) – tới bước 15 sẽ thành form điều khiển */}
         <section key={JSON.stringify(cur)} aria-label={`Cấu hình bước ${idx}`} className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 rounded-[10px] border border-line bg-white px-6 py-5">
           <div className="flex items-center gap-3">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-accent font-bold text-white">{idx}</span>
             <h2 className="text-lg font-semibold">Bước {idx}</h2>
             <label className="ml-auto flex items-center gap-2 text-[#3F4857]">
-              <input type="checkbox" defaultChecked={cur.enabled} className="h-[18px] w-[18px] accent-accent" />Bật
+              <input type="checkbox" checked={cur.enabled} onChange={() => toggleStep(cur.id)} className="h-[18px] w-[18px] accent-accent" />Bật
             </label>
           </div>
 
@@ -218,6 +208,7 @@ export default function MainScreen() {
             </label>
           </div>
         </section>
+        </>)}
       </div>
 
       <footer className="flex flex-wrap gap-5 border-t border-line bg-white px-5 py-2 text-[13px] text-muted">
