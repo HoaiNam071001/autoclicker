@@ -1,31 +1,29 @@
-import {useState} from 'react';
-import {Greet} from "../wailsjs/go/main/App";
+import {ComponentType, useEffect, useState} from 'react';
+import MainScreen from './screens/MainScreen';
+import PreviewScreen from './screens/PreviewScreen';
+import OverlayScreen from './screens/OverlayScreen';
+import MiniBar from './screens/MiniBar';
+
+// Tạm thời: chọn màn bằng hash URL (#preview, #overlay, #minibar) để xem bản thiết kế.
+// Sẽ thay bằng state chế độ cửa sổ (main / overlay / minibar) khi làm spike overlay (bước 5).
+const screens: Record<string, ComponentType> = {
+    main: MainScreen,
+    preview: PreviewScreen,
+    overlay: OverlayScreen,
+    minibar: MiniBar,
+};
 
 function App() {
-    const [result, setResult] = useState("Auto Clicker – project skeleton");
-    const [name, setName] = useState('');
+    const [hash, setHash] = useState(location.hash.slice(1));
 
-    function greet() {
-        Greet(name).then(setResult);
-    }
+    useEffect(() => {
+        const onHash = () => setHash(location.hash.slice(1));
+        window.addEventListener('hashchange', onHash);
+        return () => window.removeEventListener('hashchange', onHash);
+    }, []);
 
-    return (
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6">
-            <h1 className="text-2xl font-bold">Auto Clicker</h1>
-            <p className="text-slate-300">{result}</p>
-            <div className="flex gap-2">
-                <input
-                    className="rounded bg-slate-700 px-3 py-1.5 outline-none focus:ring-2 focus:ring-sky-500"
-                    onChange={e => setName(e.target.value)}
-                    autoComplete="off"
-                    type="text"
-                />
-                <button className="rounded bg-sky-600 px-4 py-1.5 hover:bg-sky-500" onClick={greet}>
-                    Greet
-                </button>
-            </div>
-        </div>
-    )
+    const Screen = screens[hash] ?? MainScreen;
+    return <Screen/>;
 }
 
 export default App

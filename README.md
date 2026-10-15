@@ -1,19 +1,14 @@
-# README
+# Auto Clicker
 
-## About
+Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hình, chọn điểm, nối theo thứ tự, cấu hình thời gian và số lần click, kéo thả giữa 2 điểm.
 
-This is the official Wails React-TS template.
+Stack: Wails v2 (Go) · React + TypeScript · Tailwind v4 · robotgo · gohook.
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+## Chạy
 
-## Live Development
+```bash
+wails dev     # phát triển, hot reload
+wails build   # build ra build/bin/
+```
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
-
-## Building
-
-To build a redistributable, production mode package, use `wails build`.
+Kế hoạch và tiến độ: [docs/TASKS.md](docs/TASKS.md). Hướng dẫn cho Claude Code: [CLAUDE.md](CLAUDE.md).
