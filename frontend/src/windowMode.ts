@@ -14,10 +14,12 @@ export async function setWindowMode(mode: WindowMode) {
 // preview: xem trước kịch bản (con trỏ giả), không sửa điểm
 export type OverlayTool = 'point' | 'drag' | 'region' | 'preview';
 
-// Công cụ được chọn sẵn khi mở overlay (OverlayScreen đọc lúc mount).
+// Công cụ được chọn sẵn khi mở overlay và bước đang xem riêng (null = xem tất cả) – OverlayScreen đọc lúc mount.
 export let overlayTool: OverlayTool = 'region';
+export let overlayFocus: string | null = null;
 
-export function openOverlay(tool: OverlayTool = 'point') {
+export function openOverlay(tool: OverlayTool = 'point', focus: string | null = null) {
   overlayTool = tool;
+  overlayFocus = focus;
   return setWindowMode('overlay');
 }

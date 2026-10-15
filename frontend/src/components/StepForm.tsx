@@ -1,6 +1,7 @@
 // Form cấu hình bước đang chọn – sửa trực tiếp vào store (bước 15)
 import { ReactNode, useEffect, useState } from 'react';
-import { Target } from './icons';
+import { Eye, Target } from './icons';
+import { openOverlay } from '../windowMode';
 import NumInput from './NumInput';
 import {
   changeStepType, endpoints, pickPointFor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
@@ -34,7 +35,13 @@ export default function StepForm({ step: s, index, children }: Props) {
       <div className="flex items-center gap-3">
         <span className="grid h-8 w-8 place-items-center rounded-full bg-accent font-bold text-white">{index}</span>
         <h2 className="text-lg font-semibold">Bước {index}</h2>
-        <label className="ml-auto flex items-center gap-2 text-[#3F4857]">
+        {mouse && (
+          <button onClick={() => openOverlay('point', s.id)} title="Xem / sửa vị trí riêng bước này trên màn hình – các bước khác mờ đi"
+            className="ml-auto flex h-9 items-center gap-2 rounded-lg border border-line px-3 text-[13px] hover:bg-ground">
+            <Eye />Xem trên màn hình
+          </button>
+        )}
+        <label className={`${mouse ? 'ml-3' : 'ml-auto'} flex items-center gap-2 text-[#3F4857]`}>
           <input type="checkbox" checked={s.enabled} onChange={() => toggleStep(s.id)} className="h-[18px] w-[18px] accent-accent" />Bật
         </label>
       </div>

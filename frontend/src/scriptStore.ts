@@ -150,11 +150,25 @@ const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slic
 
 // Bước đang được chọn lại điểm (nút ⌖ trong form); null = điểm mới sẽ thêm thành bước mới.
 let pickTarget: string | null = null;
+let pickStay = false; // chọn lại xong thì ở lại overlay (chế độ xem riêng một bước) thay vì về màn chính
+// Overlay đang xem riêng một bước: click / F6 không tạo bước mới (trừ khi đang chọn lại điểm).
+let focusLock = false;
+export const setFocusLock = (on: boolean) => {
+  focusLock = on;
+};
+
+// Chọn lại điểm ngay trong overlay đang mở (chế độ xem riêng) – không mở lại overlay, xong thì ở lại.
+export function startPick(stepId: string) {
+  pickTarget = stepId;
+  pickStay = true;
+  if (state.dragA) set({ dragA: null });
+}
 // Overlay đang ở công cụ "Kéo thả A → B": điểm mới đi theo cặp A, B thay vì thành bước click.
 let dragMode = false;
 
 export function pickPointFor(stepId: string) {
   pickTarget = stepId;
+  pickStay = false;
   const step = state.script.steps.find((s) => s.id === stepId);
   return openOverlay(step?.type === 'drag' ? 'drag' : 'point');
 }
@@ -176,6 +190,7 @@ export const cancelDragA = () => {
 
 export const cancelPick = () => {
   pickTarget = null;
+  pickStay = false;
   setDragMode(false);
 };
 
@@ -183,6 +198,10 @@ export const cancelPick = () => {
 // đang chọn lại → sửa điểm của bước đó rồi về màn chính; không thì thêm bước click mới.
 export function placePoint(screen: Point): boolean {
   const { script } = state;
+  if (focusLock && !pickTarget) {
+    setNotice('Đang xem riêng một bước – bấm “Chọn lại trên màn hình” để đặt điểm, hoặc “Xem tất cả”');
+    return false;
+  }
   const rel = toRelative(screen, script.region);
   if (!rel) {
     setNotice(`Điểm X ${screen.x} Y ${screen.y} nằm ngoài vùng – chọn trong vùng hoặc đổi về toàn màn hình`);
@@ -205,7 +224,8 @@ export function placePoint(screen: Point): boolean {
     pickTarget = null;
     if (a) movePoint(target.id, 0, a);
     movePoint(target.id, target.type === 'drag' ? 1 : 0, screen);
-    setWindowMode('main');
+    if (pickStay) pickStay = false;
+    else setWindowMode('main');
     return true;
   }
   if (a) {
