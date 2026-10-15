@@ -1,72 +1,32 @@
 // Phương án A – danh sách bước + form cấu hình
 import { useEffect, useState } from 'react';
-import { Drag, Logo, Play, Region, Target } from '../components/icons';
-import { Modifier, makeStep } from '../types';
-import { RunScript, SpikeClick, StopScript } from '../../wailsjs/go/main/App';
-import { main } from '../../wailsjs/go/models';
-import { EventsOn, Quit, WindowMinimise } from '../../wailsjs/runtime/runtime';
-import { inWails, openOverlay, setWindowMode } from '../windowMode';
-import { removeStep, setRegion, useEditor } from '../scriptStore';
+import { Drag, Logo, Play, Region, Stop, Target } from '../components/icons';
+import { MousePos, StopScript } from '../../wailsjs/go/main/App';
+import { Quit, WindowMinimise } from '../../wailsjs/runtime/runtime';
+import { inWails, openOverlay } from '../windowMode';
+import { removeStep, runCurrent, setRegion, useEditor } from '../scriptStore';
 import StepList from '../components/StepList';
 import StepForm from '../components/StepForm';
-import { setLastError, STOP_REASON, useEngine } from '../engineStore';
+import RunSettings from '../components/RunSettings';
+import { STOP_REASON, useEngine } from '../engineStore';
+import { Point } from '../types';
 
 const btn = 'flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3.5';
-const field = 'h-10 rounded-lg border border-line px-2.5 font-mono';
-
-// Thử engine (bước 7): mở TextEdit / Notepad sao cho phủ điểm (500, 500) rồi bấm "Chạy thử engine".
-const cmdKey: Modifier = navigator.platform.startsWith('Mac') ? 'cmd' : 'ctrl';
-const engineDemo = main.Script.createFrom({
-  name: 'Demo engine', region: null, loops: 3, maxMinutes: 0,
-  steps: [
-    makeStep({ id: 'd1', type: 'click', points: [{ x: 500, y: 500 }] }),
-    makeStep({ id: 'd2', type: 'type', text: 'Xin chào – gõ tự động 123' }),
-    makeStep({ id: 'd3', type: 'key', keys: ['enter'] }),
-    makeStep({ id: 'd4', type: 'type', text: 'dòng thứ hai', delayAfter: 800 }),
-    makeStep({ id: 'd5', type: 'double', points: [{ x: 500, y: 500 }], delayAfter: 800 }),
-    makeStep({ id: 'd6', type: 'drag', points: [{ x: 420, y: 500 }, { x: 650, y: 500 }], dragMs: 600, delayAfter: 800 }),
-    makeStep({ id: 'd7', type: 'key', keys: ['a'], modifiers: [cmdKey] }),
-  ],
-});
+const MOUSE_POLL_MS = 250;
 
 export default function MainScreen() {
   const { script: { steps, region }, selected, notice } = useEditor();
   const cur = steps.find((s) => s.id === selected) ?? steps[0]; // undefined khi chưa có bước nào
   const idx = steps.indexOf(cur) + 1;
-  const [spikeMsg, setSpikeMsg] = useState('');
-  const { running, lastError, stopReason } = useEngine();
+  const { running, lastError, stopReason, hotkeyError } = useEngine();
 
+  // Toạ độ chuột thật ở thanh dưới – để đọc nhanh toạ độ khi nhập tay.
+  const [mouse, setMouse] = useState<Point | null>(null);
   useEffect(() => {
     if (!inWails) return;
-    const offs = [
-      EventsOn('hotkey:error', (msg: string) => setSpikeMsg(`Lỗi: ${msg}`)),
-    ];
-    return () => offs.forEach((off) => off());
+    const id = setInterval(() => MousePos().then(setMouse), MOUSE_POLL_MS);
+    return () => clearInterval(id);
   }, []);
-
-  // Spike bước 3: đếm ngược 3 giây (Go chờ) rồi click (500, 500).
-  const runSpike = async () => {
-    setSpikeMsg('Click sau 3 giây…');
-    try {
-      const pos = await SpikeClick(500, 500, 3000);
-      setSpikeMsg(`Đã click tại ${pos.x}, ${pos.y}`);
-    } catch (e) {
-      setSpikeMsg(`Lỗi: ${e}`);
-    }
-  };
-
-  // Thử engine + mini bar (bước 7–8): thu cửa sổ thành mini bar khi chạy, về màn chính khi xong / dừng.
-  const toggleEngine = async () => {
-    if (running) return StopScript();
-    setSpikeMsg('');
-    await setWindowMode('minibar');
-    try {
-      await RunScript(engineDemo);
-    } catch (e) {
-      setLastError(String(e));
-    }
-    await setWindowMode('main');
-  };
 
   // Delete / Backspace xoá bước đang chọn (trừ khi đang gõ trong ô nhập).
   useEffect(() => {
@@ -95,15 +55,10 @@ export default function MainScreen() {
           </button>
           <button onClick={() => openOverlay('drag')} className={btn}><Drag className="h-4 w-4 text-drag" />Kéo thả</button>
         </div>
-        <button onClick={runSpike} className={btn} title="Spike bước 3">Thử click 500,500</button>
-        <button onClick={toggleEngine} className={btn} title="Thử engine bước 7">{running ? 'Dừng engine' : 'Chạy thử engine'}</button>
-        <button onClick={() => setWindowMode('minibar')} className={btn} title="Spike bước 5">Thử mini bar</button>
-        {spikeMsg && <span className="font-mono text-xs text-muted">{spikeMsg}</span>}
-        {lastError && <span className="font-mono text-xs text-danger">Lỗi engine: {lastError}</span>}
-        {notice && <span className="font-mono text-xs text-accent">{notice}</span>}
-        {stopReason && <span className="font-mono text-xs text-muted">{STOP_REASON[stopReason] ?? stopReason}</span>}
-        <button className="flex h-11 items-center gap-2.5 rounded-lg bg-accent px-5 font-semibold text-white">
-          <Play />Chạy <span className="font-mono text-xs opacity-85">F8</span>
+        <button onClick={() => (running ? StopScript() : runCurrent())} disabled={!inWails}
+          title={inWails ? undefined : 'Chỉ chạy được trong app'}
+          className={`flex h-11 items-center gap-2.5 rounded-lg px-5 font-semibold text-white disabled:opacity-50 ${running ? 'bg-danger' : 'bg-accent'}`}>
+          {running ? <><Stop />Dừng</> : <><Play />Chạy</>} <span className="font-mono text-xs opacity-85">F8</span>
         </button>
         {inWails && (
           <div className="flex gap-1">
@@ -122,19 +77,7 @@ export default function MainScreen() {
           </section>
         ) : (<>
         <StepForm step={cur} index={idx}>
-          {/* Lặp kịch bản – chưa nối (bước 16) */}
-          <div className="mt-auto flex flex-wrap items-center gap-5 border-t border-line pt-4">
-            <span className="font-semibold">Lặp kịch bản</span>
-            <div className="flex overflow-hidden rounded-lg border border-line">
-              {['Số vòng', 'Vô hạn', 'Theo thời gian'].map((m, i) => (
-                <button key={m} className={`h-10 px-3.5 ${i === 0 ? 'bg-ink text-white' : 'border-l border-line bg-white'}`}>{m}</button>
-              ))}
-            </div>
-            <input aria-label="Số vòng" defaultValue={10} className={`${field} w-[72px]`} />
-            <label className="flex items-center gap-2 text-[#3F4857]">
-              <input type="checkbox" defaultChecked className="h-[18px] w-[18px] accent-accent" />Đếm ngược 3 giây
-            </label>
-          </div>
+          <RunSettings />
         </StepForm>
         </>)}
       </div>
@@ -144,8 +87,12 @@ export default function MainScreen() {
           ? <><span className="font-mono">X {region.x} Y {region.y} · {region.w} × {region.h}</span>
               <button onClick={() => setRegion(null)} className="ml-2 underline">Toàn màn hình</button></>
           : 'toàn màn hình'}</span>
-        <span>Chuột: <span className="font-mono">X 1204 Y 388</span></span>
-        <span className="ml-auto">Dừng khẩn cấp: rê chuột vào góc màn hình</span>
+        <span>Chuột: <span className="font-mono">{mouse ? `X ${mouse.x} Y ${mouse.y}` : '—'}</span></span>
+        {hotkeyError && <span className="text-danger">{hotkeyError}</span>}
+        {lastError && <span className="text-danger">Lỗi lần chạy trước: {lastError}</span>}
+        {stopReason && <span>{STOP_REASON[stopReason] ?? stopReason}</span>}
+        {notice && <span className="text-accent">{notice}</span>}
+        <span className="ml-auto">Dừng: F8 hoặc rê chuột vào góc màn hình</span>
       </footer>
     </div>
   );

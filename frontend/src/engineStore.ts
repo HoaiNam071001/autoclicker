@@ -1,6 +1,9 @@
 import { useSyncExternalStore } from 'react';
+import { RunScript, ValidateScript } from '../wailsjs/go/main/App';
+import { main } from '../wailsjs/go/models';
 import { EventsOn } from '../wailsjs/runtime/runtime';
-import { inWails } from './windowMode';
+import { Script } from './types';
+import { inWails, setWindowMode } from './windowMode';
 
 // Khớp struct Progress trong engine.go (chỉ đi qua event nên Wails không sinh type).
 export type Progress = {
@@ -21,10 +24,14 @@ type EngineState = {
   receivedAt: number;
   lastError: string;
   stopReason: string;
+  countdown: number; // giây còn lại trước khi chạy, 0 = không đếm ngược
+  hotkeyError: string; // Go không nghe được phím toàn cục (thiếu quyền)
 };
 
 // Store chung nghe event từ Go ngay khi load, để màn mở sau (mini bar) vẫn có dữ liệu mới nhất.
-let state: EngineState = { running: false, progress: null, receivedAt: 0, lastError: '', stopReason: '' };
+let state: EngineState = {
+  running: false, progress: null, receivedAt: 0, lastError: '', stopReason: '', countdown: 0, hotkeyError: '',
+};
 const listeners = new Set<() => void>();
 const set = (patch: Partial<EngineState>) => {
   state = { ...state, ...patch };
@@ -32,12 +39,36 @@ const set = (patch: Partial<EngineState>) => {
 };
 
 if (inWails) {
-  EventsOn('engine:state', (running: boolean) => set(running ? { running, progress: null, lastError: '', stopReason: '' } : { running }));
+  EventsOn('engine:state', (running: boolean) => set(running ? { running, progress: null, lastError: '', stopReason: '' } : { running, countdown: 0 }));
+  EventsOn('engine:countdown', (countdown: number) => set({ countdown }));
+  EventsOn('hotkey:error', (hotkeyError: string) => set({ hotkeyError }));
   EventsOn('engine:stopped', (stopReason: string) => set({ stopReason }));
   EventsOn('engine:progress', (progress: Progress) => set({ progress, receivedAt: Date.now() }));
 }
 
 export const setLastError = (lastError: string) => set({ lastError });
+
+const COUNTDOWN_SEC = 3;
+
+// Chạy kịch bản: kiểm tra trước (lỗi thì ở lại màn chính), thu cửa sổ thành mini bar,
+// chạy tới khi xong / dừng, rồi về màn chính.
+export async function runScript(script: Script, countdown: boolean) {
+  if (state.running || !inWails) return;
+  const sc = main.Script.createFrom(script);
+  try {
+    await ValidateScript(sc);
+  } catch (e) {
+    set({ lastError: String(e), stopReason: '' });
+    return;
+  }
+  await setWindowMode('minibar');
+  try {
+    await RunScript(sc, countdown ? COUNTDOWN_SEC : 0);
+  } catch (e) {
+    set({ lastError: String(e) });
+  }
+  await setWindowMode('main');
+}
 
 const subscribe = (l: () => void) => {
   listeners.add(l);

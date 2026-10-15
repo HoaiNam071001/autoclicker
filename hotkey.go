@@ -7,7 +7,7 @@ import (
 )
 
 // startHotkeys nghe phím toàn cục (kể cả khi app không được focus). Gọi trong startup.
-//   - F8: dừng kịch bản đang chạy
+//   - F8: đang chạy → dừng; không chạy → emit "hotkey:f8start" để frontend chạy kịch bản đang soạn
 //   - F6: lưu vị trí chuột hiện tại thành điểm mới – emit "hotkey:f6" (Point); bỏ qua khi đang chạy
 //
 // macOS: cần quyền Accessibility; F6 / F8 mặc định là phím media nên phải bấm kèm fn.
@@ -21,7 +21,11 @@ func (a *App) startHotkeys() {
 			case ev.Kind == hook.HookDisabled:
 				runtime.EventsEmit(a.ctx, "hotkey:error", "Không nghe được phím toàn cục – kiểm tra quyền Accessibility")
 			case ev.Kind == hook.KeyDown && ev.Rawcode == f8:
-				a.stopWith(StopByF8)
+				if a.current() != nil {
+					a.stopWith(StopByF8)
+				} else {
+					runtime.EventsEmit(a.ctx, "hotkey:f8start")
+				}
 			case ev.Kind == hook.KeyDown && ev.Rawcode == f6 && a.current() == nil:
 				x, y := robotgo.Location()
 				runtime.EventsEmit(a.ctx, "hotkey:f6", Point{X: x, Y: y})

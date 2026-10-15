@@ -19,10 +19,19 @@ type runHandle struct {
 	eng    *engine
 }
 
-// RunScript chạy kịch bản và chỉ trả về khi chạy xong / bị dừng (StopScript, F8) / lỗi.
-// Bị dừng không tính là lỗi. Emit "engine:state" (true khi bắt đầu, false khi kết thúc)
+// ValidateScript kiểm tra kịch bản trước khi chạy (frontend gọi trước khi thu cửa sổ thành mini bar).
+func (a *App) ValidateScript(sc Script) error {
+	return validateScript(sc)
+}
+
+// RunScript đếm ngược countdown giây rồi chạy kịch bản; chỉ trả về khi chạy xong / bị dừng
+// (StopScript, F8, góc màn hình – kể cả lúc đang đếm ngược) / lỗi. Bị dừng không tính là lỗi.
+// Emit "engine:state" (true khi bắt đầu, false khi kết thúc), "engine:countdown" (số giây còn lại)
 // và "engine:progress" (Progress) trong lúc chạy.
-func (a *App) RunScript(sc Script) error {
+func (a *App) RunScript(sc Script, countdown int) error {
+	if err := validateScript(sc); err != nil {
+		return err
+	}
 	a.mu.Lock()
 	if a.run != nil {
 		a.mu.Unlock()
@@ -47,6 +56,14 @@ func (a *App) RunScript(sc Script) error {
 		runtime.EventsEmit(a.ctx, "engine:state", false)
 	}()
 	runtime.EventsEmit(a.ctx, "engine:state", true)
+
+	for n := countdown; n > 0; n-- {
+		runtime.EventsEmit(a.ctx, "engine:countdown", n)
+		if sleep(ctx, 1000) != nil {
+			return nil // dừng khi đang đếm ngược
+		}
+	}
+	runtime.EventsEmit(a.ctx, "engine:countdown", 0)
 
 	sw, sh := robotgo.GetScreenSize()
 	go watchCorners(ctx, robotgo.Location, sw, sh, in, func() { a.stopWith(StopByCorner) })

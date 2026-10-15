@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { makeStep, Point, Rect, Script, sampleSteps, Step, StepType } from './types';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
+import { runScript } from './engineStore';
 
 // Store kịch bản đang soạn – dùng chung giữa MainScreen và OverlayScreen (hai màn không cùng mount).
 // Chưa lưu xuống đĩa (bước 21).
@@ -11,6 +12,7 @@ type EditorState = {
   notice: string; // thông báo ngắn gần nhất (đã thêm điểm, điểm ngoài vùng…)
   dragA: Point | null; // điểm A (toạ độ màn hình) đã chọn, đang chờ điểm B của kéo thả
   deleted: { step: Step; index: number } | null; // bước vừa xoá – để hoàn tác
+  countdown: boolean; // đếm ngược 3 giây trước khi chạy
 };
 
 let state: EditorState = {
@@ -19,6 +21,7 @@ let state: EditorState = {
   notice: '',
   dragA: null,
   deleted: null,
+  countdown: true,
 };
 const listeners = new Set<() => void>();
 
@@ -38,6 +41,10 @@ export const useScript = () => useEditor().script;
 export const updateScript = (patch: Partial<Script>) => set({ script: { ...state.script, ...patch } });
 export const selectStep = (id: string) => set({ selected: id });
 export const setNotice = (notice: string) => set({ notice });
+export const setCountdown = (countdown: boolean) => set({ countdown });
+
+// Chạy kịch bản đang soạn (nút Chạy, F8 khi chưa chạy).
+export const runCurrent = () => runScript(state.script, state.countdown);
 
 const setSteps = (steps: Step[]) => updateScript({ steps });
 
@@ -233,4 +240,5 @@ export function movePoint(id: string, index: number, screen: Point): boolean {
 // F6 (Go nghe phím toàn cục) gửi vị trí chuột hiện tại.
 if (inWails) {
   EventsOn('hotkey:f6', (p: Point) => placePoint(p));
+  EventsOn('hotkey:f8start', () => runCurrent());
 }

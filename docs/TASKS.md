@@ -6,7 +6,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** bước 16 – Cài đặt chạy
+- **Đang làm:** bước 17 – DPI & đa màn hình
 - **Tiếp theo:** bước 17 (DPI & đa màn hình), 18 (build & thử máy sạch)
 - **Cập nhật lần cuối:** 2026-10-15
 
@@ -131,7 +131,14 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] Đổi loại bước (`changeStepType`) tự bổ sung điểm (kéo thả thêm B lệch A 100 px) và giá trị mặc định
   - [x] Phím tắt nhiều phím chính (theo yêu cầu): model `key` → `keys` + `keyMode` (chord / sequence); engine `pressKeys` dùng `KeyToggle` (phím chính mang cờ phím kèm khi nhấn, thả không kèm để phím kèm vẫn giữ), luôn nhả hết kể cả khi huỷ; form ô phím nhận "c, t" + chọn cách bấm; test `TestKeyChordAndSequence`, `TestKeyCancelReleasesAll`
   - [x] Kiểm tra tay: sửa từng loại bước, đổi loại, giá trị lưu khi chuyển bước / mở overlay
-- [ ] **16. Cài đặt chạy** – Số vòng / vô hạn / thời lượng, đếm ngược 3 giây, thanh trạng thái khi đang chạy.
+- [x] **16. Cài đặt chạy** – Số vòng / vô hạn / thời lượng, đếm ngược 3 giây, thanh trạng thái khi đang chạy.
+  - [x] Nút *Chạy* / F8 (khi chưa chạy, emit `hotkey:f8start`) chạy kịch bản đang soạn: `ValidateScript` trước (lỗi thì ở lại màn chính, hiện ở thanh dưới) → mini bar → `RunScript(sc, countdown)` → về main; đang chạy thì nút thành *Dừng*
+  - [x] Đếm ngược 3 giây trong Go (huỷ được bằng F8 / Dừng), emit `engine:countdown`, mini bar hiện "Bắt đầu sau N giây…"
+  - [x] `components/RunSettings.tsx`: Số vòng / Vô hạn / Theo thời gian (suy ra từ `loops` + `maxMinutes`), ô số vòng / số phút, bật/tắt đếm ngược; `components/NumInput.tsx` dùng chung
+  - [x] Thanh dưới: toạ độ chuột thật (250 ms), lỗi phím toàn cục, lỗi lần chạy trước, lý do dừng, thông báo soạn
+  - [x] Dọn Phase 0: bỏ `spike.go`, nút *Thử click / Chạy thử engine / Thử mini bar* và kịch bản demo; `MousePos` trả `Point`
+  - [x] Sửa lỗi (người dùng báo): app ở màn A mà overlay chọn vùng / điểm mở sang màn B – `SetWindowMode` phóng to trước khi dời nên cửa sổ tràn sang màn bên cạnh; đổi thành dời về góc trước rồi mới phóng to
+  - [x] Kiểm tra tay: chạy kịch bản tự soạn (Số vòng / Vô hạn / Theo thời gian), đếm ngược, F8 bắt đầu / dừng, Ctrl+C+T, capslock
 
 ### Hoàn thiện
 - [ ] **17. DPI & đa màn hình** – Test toạ độ ở scaling 100%, 125%, 150% và với 2 màn hình.
@@ -186,3 +193,6 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Bước 15: `StepForm.tsx` form sửa bước theo loại, `updateStep` / `changeStepType`, `KEY_NAMES` + `isValidKey`. `npm run build` OK, chụp headless form click / kéo thả / phím tắt; chưa kiểm tra tay, chưa commit.
 - **2026-10-15** – Bước 15 (tiếp): phím tắt nhiều phím chính + chọn cách bấm (chord / sequence) theo yêu cầu người dùng. `go test -race` 10/10, `npm run build` OK; chưa kiểm tra tay, chưa commit.
 - **2026-10-15** – Xong bước 15: người dùng test form OK, commit.
+- **2026-10-15** – Commit bước 15 (`2a9e42f`). Bước 16: nút Chạy / F8 chạy kịch bản đang soạn, đếm ngược trong Go, `RunSettings.tsx`, toạ độ chuột ở thanh dưới, dọn code thử Phase 0. `go test`, `npm run build` OK, chụp headless; chưa kiểm tra tay, chưa commit.
+- **2026-10-15** – Sửa lỗi overlay mở nhầm màn hình khi có 2 màn (`window.go`: đặt vị trí trước khi phóng to). `go build` OK; chờ người dùng kiểm tra.
+- **2026-10-15** – Xong bước 16 (kể cả sửa overlay mở nhầm màn): người dùng kiểm tra tay OK, commit.

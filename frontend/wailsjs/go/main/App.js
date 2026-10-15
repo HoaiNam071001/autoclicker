@@ -26,18 +26,18 @@ export function ResumeScript() {
   return window['go']['main']['App']['ResumeScript']();
 }
 
-export function RunScript(arg1) {
-  return window['go']['main']['App']['RunScript'](arg1);
+export function RunScript(arg1, arg2) {
+  return window['go']['main']['App']['RunScript'](arg1, arg2);
 }
 
 export function SetWindowMode(arg1) {
   return window['go']['main']['App']['SetWindowMode'](arg1);
 }
 
-export function SpikeClick(arg1, arg2, arg3) {
-  return window['go']['main']['App']['SpikeClick'](arg1, arg2, arg3);
-}
-
 export function StopScript() {
   return window['go']['main']['App']['StopScript']();
+}
+
+export function ValidateScript(arg1) {
+  return window['go']['main']['App']['ValidateScript'](arg1);
 }

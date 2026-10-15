@@ -47,9 +47,12 @@ func (a *App) SetWindowMode(mode string) error {
 		}
 		runtime.WindowSetAlwaysOnTop(a.ctx, true)
 		if mode == ModeOverlay {
-			// macOS: vị trí tính từ vùng hiển thị (dưới menu bar) → overlay có thể lệch so với toạ độ thật.
-			runtime.WindowSetSize(a.ctx, sw, sh)
+			// Dời về góc màn hiện tại TRƯỚC rồi mới phóng to: Wails lấy "màn hiện tại" là màn chứa phần lớn
+			// cửa sổ, phóng to trước thì cửa sổ có thể tràn sang màn bên cạnh và overlay mở nhầm màn.
+			// SetSize giữ nguyên mép trên nên cửa sổ vẫn ở góc màn này.
+			// macOS: vị trí tính từ vùng hiển thị (dưới menu bar) → overlay tự đo độ lệch toạ độ.
 			runtime.WindowSetPosition(a.ctx, 0, 0)
+			runtime.WindowSetSize(a.ctx, sw, sh)
 		} else {
 			runtime.WindowSetSize(a.ctx, miniBarW, miniBarH)
 			runtime.WindowSetPosition(a.ctx, (sw-miniBarW)/2, 16)
@@ -82,7 +85,7 @@ func (a *App) currentScreenSize() (int, int, error) {
 
 // MousePos trả vị trí chuột theo robotgo (toạ độ màn hình thật).
 // Overlay so với clientX/Y để đo độ lệch giữa toạ độ trong cửa sổ và toạ độ click.
-func (a *App) MousePos() SpikeResult {
+func (a *App) MousePos() Point {
 	x, y := robotgo.Location()
-	return SpikeResult{X: x, Y: y}
+	return Point{X: x, Y: y}
 }

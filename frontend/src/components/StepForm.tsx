@@ -1,6 +1,7 @@
 // Form cấu hình bước đang chọn – sửa trực tiếp vào store (bước 15)
 import { ReactNode, useEffect, useState } from 'react';
 import { Target } from './icons';
+import NumInput from './NumInput';
 import { changeStepType, pickPointFor, toggleStep, updateStep, useScript } from '../scriptStore';
 import { fmtKey, isValidKey, KEY_NAMES, KeyMode, Modifier, MouseButton, Point, Step, STEP_LABEL, StepType } from '../types';
 
@@ -16,7 +17,6 @@ const KEY_MODES: { id: KeyMode; label: string; hint: string }[] = [
   { id: 'chord', label: 'Nhấn giữ cùng lúc', hint: 'Đè phím kèm và mọi phím, rồi nhả – vd Ctrl+C+T' },
   { id: 'sequence', label: 'Giữ phím kèm, gõ lần lượt', hint: 'Đè phím kèm, gõ C rồi T, rồi nhả phím kèm' },
 ];
-const box = 'flex h-10 items-center rounded-lg border border-line px-2.5 font-normal focus-within:border-accent';
 
 type Props = { step: Step; index: number; children?: ReactNode };
 
@@ -183,26 +183,4 @@ function KeysField({ step: s, onChange }: { step: Step; onChange: (keys: string[
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return <label className="flex flex-col gap-1.5 font-semibold">{label}{children}</label>;
-}
-
-// Ô số nguyên ≥ min. Giữ bản nháp khi đang gõ (cho phép xoá trắng), chỉ ghi vào store khi hợp lệ;
-// rời ô thì hiện lại giá trị thật.
-function NumInput({ value, onChange, min = 0, unit, prefix, className = '' }: {
-  value: number; onChange: (v: number) => void; min?: number; unit?: string; prefix?: string; className?: string;
-}) {
-  const [draft, setDraft] = useState(String(value));
-  useEffect(() => setDraft(String(value)), [value]);
-  return (
-    <span className={`${box} gap-1.5 ${className}`}>
-      {prefix && <span className="text-muted">{prefix}</span>}
-      <input inputMode="numeric" value={draft} className="w-full min-w-0 flex-1 font-mono outline-none"
-        onChange={(e) => {
-          const v = e.target.value;
-          setDraft(v);
-          if (/^\d+$/.test(v)) onChange(Math.max(min, Number(v)));
-        }}
-        onBlur={() => setDraft(String(value))} />
-      {unit && <span className="text-muted">{unit}</span>}
-    </span>
-  );
 }

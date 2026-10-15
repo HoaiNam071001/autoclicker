@@ -52,6 +52,13 @@ func (t *trackingInput) movedByEngine(x, y int) bool {
 	return t.hasLast && abs(x-t.lastX) <= engineMoveTol && abs(y-t.lastY) <= engineMoveTol
 }
 
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
 // watchCorners đọc vị trí chuột định kỳ tới khi ctx bị huỷ; gọi onHit (một lần) khi chuột
 // ở góc màn hình (w × h) mà không phải do engine đưa tới.
 func watchCorners(ctx context.Context, location func() (int, int), w, h int, t *trackingInput, onHit func()) {

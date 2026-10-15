@@ -4,7 +4,7 @@ import {main} from '../models';
 
 export function Greet(arg1:string):Promise<string>;
 
-export function MousePos():Promise<main.SpikeResult>;
+export function MousePos():Promise<main.Point>;
 
 export function NewScript():Promise<main.Script>;
 
@@ -14,10 +14,10 @@ export function PauseScript():Promise<boolean>;
 
 export function ResumeScript():Promise<boolean>;
 
-export function RunScript(arg1:main.Script):Promise<void>;
+export function RunScript(arg1:main.Script,arg2:number):Promise<void>;
 
 export function SetWindowMode(arg1:string):Promise<void>;
 
-export function SpikeClick(arg1:number,arg2:number,arg3:number):Promise<main.SpikeResult>;
-
 export function StopScript():Promise<void>;
+
+export function ValidateScript(arg1:main.Script):Promise<void>;

@@ -34,16 +34,19 @@ export default function MiniBar() {
 
   return (
     <div className="drag relative flex h-[76px] w-[460px] items-center gap-3.5 overflow-hidden rounded-[14px] bg-dark-bg pl-4 pr-3 text-dark-text">
-      <span className={`h-2.5 w-2.5 flex-none rounded-full ${!running ? 'bg-dark-muted' : paused ? 'bg-drag-light' : 'bg-ok'}`} />
+      <span className={`h-2.5 w-2.5 flex-none rounded-full ${!running ? 'bg-dark-muted' : paused || engine.countdown > 0 ? 'bg-drag-light' : 'bg-ok'}`} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="font-semibold">
-          {!running ? 'Chưa chạy' : !p ? 'Đang bắt đầu…' : `${paused ? 'Tạm dừng ở' : 'Đang chạy'} bước ${p.step} / ${p.total}`}
+          {!running ? 'Chưa chạy'
+            : engine.countdown > 0 ? `Bắt đầu sau ${engine.countdown} giây…`
+            : !p ? 'Đang bắt đầu…'
+            : `${paused ? 'Tạm dừng ở' : 'Đang chạy'} bước ${p.step} / ${p.total}`}
         </span>
         <span className="whitespace-pre font-mono text-xs text-dark-muted">
           Vòng {p?.loop ?? 0} / {p && p.loops > 0 ? p.loops : '∞'}   {p?.clicks ?? 0} click   {fmtElapsed(elapsed)}
         </span>
       </div>
-      <button aria-label={paused ? 'Tiếp tục' : 'Tạm dừng'} disabled={!running}
+      <button aria-label={paused ? 'Tiếp tục' : 'Tạm dừng'} disabled={!running || engine.countdown > 0}
         onClick={() => (paused ? ResumeScript() : PauseScript())}
         className="grid h-11 w-11 place-items-center rounded-[10px] bg-dark-field disabled:opacity-40">
         {paused ? <Play /> : <Pause />}
