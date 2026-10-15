@@ -21,8 +21,8 @@ Xem riêng từng màn trong `wails dev` / trình duyệt: thêm hash `#preview`
 ## Cấu trúc
 
 - `main.go`, `app.go` – Wails app; method public của `App` được bind sang frontend (`frontend/wailsjs/go/main/App`, file tự sinh – không sửa tay).
-- `deps.go` – import rỗng robotgo/gohook để giữ trong go.mod; xoá khi đã dùng thật.
-- `frontend/src/screens/` – các màn UI; `components/icons.tsx` – icon SVG; `types.ts` – model `Step` (phải khớp struct Go trong `docs/TASKS.md`).
+- `model.go` – model kịch bản (`Step`, `Script`); `window.go` – chế độ cửa sổ main / overlay / minibar; `hotkey.go` – phím toàn cục (gohook); `spike.go` – code thử Phase 0, bỏ khi có engine.
+- `frontend/src/screens/` – các màn UI; `components/icons.tsx` – icon SVG; `types.ts` – model `Step` (phải khớp struct Go trong `model.go`; tsc tự kiểm tra).
 - `frontend/src/style.css` – Tailwind v4 + token thiết kế trong `@theme`.
 - `autoclicker-ui/` – bản thiết kế gốc (Tailwind v3, chỉ để tham khảo, không build).
 

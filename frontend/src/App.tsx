@@ -4,8 +4,8 @@ import PreviewScreen from './screens/PreviewScreen';
 import OverlayScreen from './screens/OverlayScreen';
 import MiniBar from './screens/MiniBar';
 
-// Tạm thời: chọn màn bằng hash URL (#preview, #overlay, #minibar) để xem bản thiết kế.
-// Sẽ thay bằng state chế độ cửa sổ (main / overlay / minibar) khi làm spike overlay (bước 5).
+// Chọn màn theo hash URL (#preview, #overlay, #minibar). setWindowMode() (windowMode.ts) đổi
+// kích thước cửa sổ bên Go rồi đổi hash; trên trình duyệt đổi hash tay để xem từng màn.
 const screens: Record<string, ComponentType> = {
     main: MainScreen,
     preview: PreviewScreen,

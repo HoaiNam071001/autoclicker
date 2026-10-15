@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** chưa chọn – bước 4 xong
-- **Tiếp theo:** bước 5 (overlay) – cũng là nền cho chọn vùng và hiệu ứng click
+- **Đang làm:** chưa chọn – xong bước 6. Còn đo độ lệch toạ độ overlay trên macOS (ô đo ở góc trên trái overlay)
+- **Tiếp theo:** bước 7 (engine chạy bước, gồm cả gõ chữ / phím tắt)
 - **Cập nhật lần cuối:** 2026-10-15
 
 ## Quyết định đã chốt
@@ -16,6 +16,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - **Tailwind v4** (`@tailwindcss/vite`), token màu/font khai báo trong `@theme` ở `frontend/src/style.css` – không dùng `tailwind.config.js`.
 - Font **Be Vietnam Pro** + **IBM Plex Mono** cài local qua `@fontsource/*` (app phải chạy được offline).
 - UI theo **phương án A (MainScreen)** cho MVP. Phương án B (PreviewScreen) giữ làm tham khảo.
+- **Gõ chữ / phím tắt đưa vào MVP** (loại bước `type`, `key`) thay vì Phase 2, để model, engine, form làm một lần.
+- Cửa sổ luôn **frameless + nền trong suốt** (Wails v2 không đổi được lúc chạy); MainScreen tự vẽ thanh kéo và nút thu nhỏ / đóng.
 - Wails v2 chỉ có **một cửa sổ** → overlay và mini bar là các *chế độ* của cửa sổ chính (resize / fullscreen / trong suốt / always-on-top), không phải cửa sổ riêng.
 
 ## Stack
@@ -40,32 +42,11 @@ wails dev
 
 > Windows: robotgo dùng cgo, cần MinGW-w64 (gcc) trong PATH.
 
-## Data model (bản nháp)
+## Data model
 
-```go
-type Point struct{ X, Y int }
+Nguồn chuẩn: **`model.go`** (`Point`, `Rect`, `Step`, `Script`, hằng loại bước, `NewStep` / `NewScript` cho giá trị mặc định). Wails sinh class TS vào `frontend/wailsjs/go/models.ts`; `frontend/src/types.ts` giữ interface `Step` với union type chặt hơn và có kiểm tra lúc type-check rằng field khớp struct Go.
 
-type Step struct {
-    ID            string  `json:"id"`
-    Type          string  `json:"type"`          // click | double | hold | drag | wait
-    Points        []Point `json:"points"`        // drag dùng points[0] -> points[1]
-    Button        string  `json:"button"`        // left | right | center
-    Clicks        int     `json:"clicks"`
-    ClickInterval int     `json:"clickInterval"` // ms
-    HoldMs        int     `json:"holdMs"`
-    DragMs        int     `json:"dragMs"`
-    DelayAfter    int     `json:"delayAfter"`    // ms, sang bước kế tiếp
-    Enabled       bool    `json:"enabled"`
-}
-
-type Script struct {
-    Name      string `json:"name"`
-    Region    *Rect  `json:"region"`    // nil = toàn màn hình; toạ độ điểm tương đối theo vùng
-    Loops     int    `json:"loops"`     // 0 = vô hạn
-    MaxMinutes int   `json:"maxMinutes"`
-    Steps     []Step `json:"steps"`
-}
-```
+Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]) · `wait` · `type` (gõ `text`) · `key` (bấm `key` kèm `modifiers`: cmd / ctrl / alt / shift).
 
 ---
 
@@ -82,13 +63,17 @@ type Script struct {
   - [x] `StartSpikeLoop` / `StopSpikeLoop` trong `spike.go`: click (500, 500) mỗi 500 ms, huỷ bằng `context`, tối đa 50 click; emit `spike:state`
   - [x] Nút *Lặp click 500,500* / *Dừng lặp* trên MainScreen
   - [x] Kiểm tra tay: đang lặp, focus app khác, bấm F8 (macOS: fn+F8) → dừng
-- [ ] **5. Spike overlay** – Cửa sổ trong suốt, frameless, phủ toàn màn hình, luôn ở trên. Rủi ro nhất; nếu Wails không đáp ứng thì cân nhắc overlay viết riêng bằng Go.
+- [x] **5. Spike overlay** – Cửa sổ trong suốt, frameless, phủ toàn màn hình, luôn ở trên. Rủi ro nhất; nếu Wails không đáp ứng thì cân nhắc overlay viết riêng bằng Go.
+  - [x] Cửa sổ luôn frameless + webview trong suốt (`main.go`); MainScreen có thanh kéo (`.drag`) và nút thu nhỏ / đóng
+  - [x] `App.SetWindowMode(main|overlay|minibar)` trong `window.go`: lưu/khôi phục khung main, overlay = cỡ màn hình + always-on-top, mini bar 460×76 giữa trên
+  - [x] `windowMode.ts`: gọi Go rồi đổi hash → App đổi màn. Overlay: crosshair theo chuột, Esc / *Xong* thoát, click hiện toạ độ cửa sổ vs robotgo (độ lệch)
+  - [x] Kiểm tra tay: nhìn xuyên được, phủ màn hình, nằm trên app khác, độ lệch toạ độ (macOS dự đoán lệch Y = chiều cao menu bar)
 
 ## Phase 1 – MVP
 
 ### Engine (Go)
-- [ ] **6. Định nghĩa model** – `Step`, `Script`; Wails tự sinh type TS.
-- [ ] **7. Engine chạy bước** – Click trái/phải/giữa, double, giữ N ms, kéo thả A→B, chờ. Lặp N vòng / vô hạn / X phút; huỷ bằng `context`.
+- [x] **6. Định nghĩa model** – `Step`, `Script`; Wails tự sinh type TS. Thêm loại `type` (gõ chữ) và `key` (phím / tổ hợp phím).
+- [ ] **7. Engine chạy bước** – Click trái/phải/giữa, double, giữ N ms, kéo thả A→B, chờ, gõ chữ (`robotgo.TypeStr`, thử với bộ gõ tiếng Việt; dự phòng dán qua clipboard), phím tắt (`robotgo.KeyTap`). Lặp N vòng / vô hạn / X phút; huỷ bằng `context`.
 - [ ] **8. Pause / Resume / Stop** – Emit event tiến độ (bước, vòng, số click) sang frontend.
 - [ ] **9. Dừng khẩn cấp** – Dừng ngay khi chuột chạm góc màn hình.
 
@@ -101,7 +86,7 @@ type Script struct {
 ### Giao diện
 - [x] **13b. Dựng UI tĩnh từ bản thiết kế** – 4 màn `MainScreen`, `PreviewScreen`, `OverlayScreen`, `MiniBar` trong `frontend/src/screens/`, dữ liệu mẫu, chưa nối Go. Xem thử bằng hash URL: `#preview`, `#overlay`, `#minibar`.
 - [ ] **14. Danh sách bước** – Sắp xếp bằng kéo thả, bật/tắt, nhân bản, xoá.
-- [ ] **15. Form cấu hình bước** – Loại hành động, số click, khoảng cách giữa các click, thời gian giữ, thời gian kéo, delay sau bước.
+- [ ] **15. Form cấu hình bước** – Loại hành động, số click, khoảng cách giữa các click, thời gian giữ, thời gian kéo, nội dung gõ, phím + phím kèm, delay sau bước.
 - [ ] **16. Cài đặt chạy** – Số vòng / vô hạn / thời lượng, đếm ngược 3 giây, thanh trạng thái khi đang chạy.
 
 ### Hoàn thiện
@@ -114,7 +99,7 @@ type Script struct {
 - [ ] **20. Nhóm bước** – Lặp riêng một nhóm N lần trong kịch bản.
 - [ ] **21. Profile** – Lưu/tải kịch bản JSON qua hộp thoại file, danh sách mở gần đây.
 - [ ] **22. Hẹn giờ** – Tự chạy lúc HH:mm.
-- [ ] **23. Thêm hành động** – Cuộn chuột, gõ phím, tổ hợp phím.
+- [ ] **23. Thêm hành động** – Cuộn chuột. *(gõ phím, tổ hợp phím đã chuyển vào MVP – bước 6, 7)*
 
 ## Phase 3 – Nâng cao
 
@@ -131,3 +116,7 @@ type Script struct {
 - **2026-10-15** – Xong bước 3: sau khi cấp quyền Accessibility, bấm *Thử click 500,500* trong `wails dev` → 3 giây sau cửa sổ khác ở (500, 500) được focus, click ra ngoài app OK.
 - **2026-10-15** – Bước 4: thêm `hotkey.go` (gohook, F8), vòng lặp click thử trong `spike.go`, xoá `deps.go`, thêm `OnShutdown`. `go vet` + `go build` + `npm run build` OK; chưa kiểm tra tay F8.
 - **2026-10-15** – Xong bước 4: kiểm tra tay trong `wails dev` – đang lặp click, app mất focus, bấm fn+F8 → vòng lặp dừng.
+- **2026-10-15** – Commit bước 3–4 (`0fbbb57`). Bước 5: thêm `window.go` (`SetWindowMode`, `MousePos`), cửa sổ frameless trong suốt, `windowMode.ts`, overlay đo toạ độ. Ghi chú: Wails macOS `WindowSetPosition` tính từ `visibleFrame` (dưới menu bar). `go vet` + `go build` + `npm run build` OK; chưa kiểm tra tay.
+- **2026-10-15** – Xong bước 5 (kiểm tra tay macOS): overlay trong suốt, nằm trên app khác, crosshair theo chuột OK. Vấn đề: overlay bị đẩy xuống dưới menu bar nên đáy tràn khỏi màn hình (ô đo toạ độ ở đáy bị khuất → chuyển lên góc trên). Cần xử lý độ lệch toạ độ ở bước 10–11 / 17.
+- **2026-10-15** – Kiểm tra tay mini bar: hiện giữa phía trên, kéo được, *Dừng* về màn chính OK.
+- **2026-10-15** – Xong bước 6: `model.go` (Step, Script, Rect, `NewStep`, `NewScript`), thêm loại bước `type` / `key` theo yêu cầu; `types.ts` khớp struct Go (kiểm tra lúc tsc – đã thử thêm field thừa thì tsc báo lỗi); form MainScreen có ô nội dung gõ / phím + phím kèm. `go vet` + `npm run build` OK.

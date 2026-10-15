@@ -1,13 +1,15 @@
 // Phương án A – danh sách bước + form cấu hình
 import { useEffect, useState } from 'react';
 import { Drag, Logo, Play, Region, Target } from '../components/icons';
-import { Step, STEP_LABEL, StepType, fmtMs, fmtPos, sampleSteps } from '../types';
+import { Modifier, Step, STEP_LABEL, StepType, fmtMs, fmtPos, sampleSteps } from '../types';
 import { SpikeClick, StartSpikeLoop, StopSpikeLoop } from '../../wailsjs/go/main/App';
-import { EventsOn } from '../../wailsjs/runtime/runtime';
+import { EventsOn, Quit, WindowMinimise } from '../../wailsjs/runtime/runtime';
+import { inWails, setWindowMode } from '../windowMode';
 
 const btn = 'flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3.5';
 const field = 'h-10 rounded-lg border border-line px-2.5 font-mono';
-const types: StepType[] = ['click', 'double', 'hold', 'drag', 'wait'];
+const types: StepType[] = ['click', 'double', 'hold', 'drag', 'wait', 'type', 'key'];
+const modifiers: Modifier[] = ['cmd', 'ctrl', 'alt', 'shift'];
 
 export default function MainScreen() {
   const [steps] = useState<Step[]>(sampleSteps);
@@ -19,7 +21,7 @@ export default function MainScreen() {
 
   // Spike bước 4: vòng lặp click (500, 500) mỗi 500 ms, F8 (macOS: fn+F8) dừng kể cả khi app mất focus.
   useEffect(() => {
-    if (!('runtime' in window)) return; // xem trên trình duyệt, không có Wails runtime
+    if (!inWails) return;
     const offs = [
       EventsOn('spike:state', (running: boolean, clicks: number) => {
         setLooping(running);
@@ -53,7 +55,7 @@ export default function MainScreen() {
 
   return (
     <div className="flex min-h-screen flex-col bg-ground">
-      <header className="flex flex-wrap items-center gap-3 border-b border-line bg-white px-5 py-3">
+      <header className="drag flex flex-wrap items-center gap-3 border-b border-line bg-white px-5 py-3">
         <div className="mr-3 flex items-center gap-2.5 text-accent">
           <Logo /><span className="text-base font-bold text-ink">Auto Clicker</span>
         </div>
@@ -69,10 +71,18 @@ export default function MainScreen() {
         </div>
         <button onClick={runSpike} className={btn} title="Spike bước 3">Thử click 500,500</button>
         <button onClick={toggleLoop} className={btn} title="Spike bước 4">{looping ? 'Dừng lặp' : 'Lặp click 500,500'}</button>
+        <button onClick={() => setWindowMode('overlay')} className={btn} title="Spike bước 5">Thử overlay</button>
+        <button onClick={() => setWindowMode('minibar')} className={btn} title="Spike bước 5">Thử mini bar</button>
         {spikeMsg && <span className="font-mono text-xs text-muted">{spikeMsg}</span>}
         <button className="flex h-11 items-center gap-2.5 rounded-lg bg-accent px-5 font-semibold text-white">
           <Play />Chạy <span className="font-mono text-xs opacity-85">F8</span>
         </button>
+        {inWails && (
+          <div className="flex gap-1">
+            <button aria-label="Thu nhỏ" onClick={WindowMinimise} className="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-ground">–</button>
+            <button aria-label="Đóng" onClick={Quit} className="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-danger hover:text-white">✕</button>
+          </div>
+        )}
       </header>
 
       <div className="flex flex-1 flex-wrap gap-4 px-5 py-4">
@@ -126,6 +136,31 @@ export default function MainScreen() {
           </fieldset>
 
           <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+            {cur.type === 'type' && (
+              <label className="col-span-2 flex flex-col gap-1.5 font-semibold">Nội dung gõ
+                <textarea defaultValue={cur.text} rows={3} className="rounded-lg border border-line px-2.5 py-2 font-mono font-normal" />
+                <span className="text-xs font-normal text-muted">Gõ vào ô đang focus – thường đặt sau một bước click. Tắt bộ gõ tiếng Việt khi chạy.</span>
+              </label>
+            )}
+            {cur.type === 'key' && (
+              <>
+                <label className="flex flex-col gap-1.5 font-semibold">Phím
+                  <input defaultValue={cur.key} placeholder="enter, tab, a, f5…" className={`${field} font-normal`} />
+                </label>
+                <fieldset className="flex flex-col gap-1.5">
+                  <legend className="mb-1.5 font-semibold">Kèm phím</legend>
+                  <div className="flex flex-wrap gap-1.5">
+                    {modifiers.map((m) => (
+                      <label key={m} className="flex h-10 items-center gap-1.5 rounded-lg border border-line px-3">
+                        <input type="checkbox" defaultChecked={cur.modifiers.includes(m)} className="accent-accent" />
+                        <span className="font-mono capitalize">{m}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              </>
+            )}
+            {cur.type !== 'type' && cur.type !== 'key' && (<>
             <label className="flex flex-col gap-1.5 font-semibold">Nút chuột
               <select defaultValue={cur.button} className="h-10 rounded-lg border border-line bg-white px-2.5 font-normal">
                 <option value="left">Trái</option><option value="right">Phải</option><option value="center">Giữa</option>
@@ -147,6 +182,7 @@ export default function MainScreen() {
               <input defaultValue={cur.clicks} className={`${field} font-normal`} />
             </label>
             <MsField label="Giữa các click" value={cur.clickInterval} />
+            </>)}
             <MsField label="Chờ trước bước tiếp theo" value={cur.delayAfter} />
           </div>
 

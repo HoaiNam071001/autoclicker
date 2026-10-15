@@ -1,14 +1,36 @@
 // Overlay chọn điểm – chạy trong cửa sổ trong suốt, full screen, always-on-top
+import { MouseEvent, useEffect, useState } from 'react';
+import { MousePos } from '../../wailsjs/go/main/App';
+import { inWails, setWindowMode } from '../windowMode';
+import { Point } from '../types';
+
 const pts = [
   { label: '1', x: 380, y: 260 }, { label: '2', x: 600, y: 260 }, { label: '3', x: 760, y: 450 },
   { label: '4A', x: 330, y: 600, drag: true }, { label: '4B', x: 880, y: 600, drag: true }, { label: '5', x: 1010, y: 520 },
 ];
 const region = { x: 180, y: 150, w: 1040, h: 600 };
-const cursor = { x: 1100, y: 360 };
 
 export default function OverlayScreen() {
+  const [cursor, setCursor] = useState<Point>({ x: 1100, y: 360 });
+  // Spike bước 5: so toạ độ trong cửa sổ (client) với toạ độ màn hình thật (robotgo) để đo độ lệch.
+  const [probe, setProbe] = useState<{ client: Point; screen: Point } | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setWindowMode('main');
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const onClick = async (e: MouseEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    const client = { x: e.clientX, y: e.clientY };
+    const screen = inWails ? await MousePos() : client;
+    setProbe({ client, screen });
+  };
+
   return (
-    <div className="fixed inset-0 select-none bg-[rgba(20,24,32,.45)]">
+    <div className="fixed inset-0 select-none bg-[rgba(20,24,32,.45)]"
+      onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })} onClick={onClick}>
       <div className="absolute border-2 border-dashed border-white bg-white/5"
         style={{ left: region.x, top: region.y, width: region.w, height: region.h }} />
       <span className="absolute rounded bg-accent px-2 py-0.5 font-mono text-[13px] text-white"
@@ -50,7 +72,17 @@ export default function OverlayScreen() {
         <span className="flex items-center gap-1.5 px-1.5 text-[13px] text-muted">
           <kbd className="rounded border border-line px-1.5 font-mono text-ink">F6</kbd>lưu vị trí chuột
         </span>
-        <button className="h-11 rounded-lg bg-ink px-4 font-semibold text-white">Xong <span className="font-mono text-xs opacity-70">Esc</span></button>
+        <button onClick={() => setWindowMode('main')} className="h-11 rounded-lg bg-ink px-4 font-semibold text-white">Xong <span className="font-mono text-xs opacity-70">Esc</span></button>
+      </div>
+
+      <div className="absolute left-6 top-6 rounded-lg bg-ink/90 px-3 py-2 font-mono text-[13px] text-white">
+        {probe ? (
+          <>
+            <div>Cửa sổ  X {probe.client.x}  Y {probe.client.y}</div>
+            <div>Màn hình X {probe.screen.x}  Y {probe.screen.y}</div>
+            <div className="text-accent-light">Lệch    X {probe.screen.x - probe.client.x}  Y {probe.screen.y - probe.client.y}</div>
+          </>
+        ) : 'Click vào vùng tối để đo toạ độ'}
       </div>
     </div>
   );

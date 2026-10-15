@@ -10,13 +10,15 @@ import (
 type App struct {
 	ctx context.Context
 
-	mu    sync.Mutex
-	spike *spikeRun // khác nil khi vòng lặp click thử đang chạy
+	mu       sync.Mutex
+	spike    *spikeRun // khác nil khi vòng lặp click thử đang chạy
+	mode     string    // chế độ cửa sổ hiện tại, xem window.go
+	mainRect winRect   // vị trí/kích thước main để khôi phục
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	return &App{}
+	return &App{mode: ModeMain}
 }
 
 // startup is called when the app starts. The context is saved

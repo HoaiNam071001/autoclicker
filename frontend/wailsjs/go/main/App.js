@@ -6,6 +6,22 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function MousePos() {
+  return window['go']['main']['App']['MousePos']();
+}
+
+export function NewScript() {
+  return window['go']['main']['App']['NewScript']();
+}
+
+export function NewStep(arg1) {
+  return window['go']['main']['App']['NewStep'](arg1);
+}
+
+export function SetWindowMode(arg1) {
+  return window['go']['main']['App']['SetWindowMode'](arg1);
+}
+
 export function SpikeClick(arg1, arg2, arg3) {
   return window['go']['main']['App']['SpikeClick'](arg1, arg2, arg3);
 }

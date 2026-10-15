@@ -34,3 +34,11 @@
 body {
   @apply m-0 font-sans text-sm text-ink;
 }
+
+/* Cửa sổ frameless: vùng có class .drag kéo được cửa sổ; nút / ô nhập bên trong vẫn bấm được. */
+.drag {
+  --wails-draggable: drag;
+}
+.drag :is(button, input, select, kbd, a) {
+  --wails-draggable: no-drag;
+}
