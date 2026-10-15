@@ -6,7 +6,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** bước 12 – Marker & đường nối: code xong, **chờ kiểm tra tay**
+- **Đang làm:** bước 13 – Chọn điểm kéo thả
 - **Tiếp theo:** bước 13 (chọn điểm kéo thả A → B), rồi 14 (danh sách bước: xoá, nhân bản, bật/tắt, sắp xếp)
 - **Cập nhật lần cuối:** 2026-10-15
 
@@ -106,11 +106,11 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] Nút ⌖ trong form: chọn lại điểm cho bước đang chọn (click / F6 trên overlay) rồi về màn chính; Esc huỷ
   - [x] `scriptStore.ts`: `placePoint`, `pickPointFor`, bước đang chọn + thông báo trong store; *Thêm điểm* mở overlay
   - [x] Kiểm tra tay: thêm điểm bằng click và fn+F6 (cả khi app không focus), chọn lại điểm, điểm ngoài vùng bị từ chối
-- [ ] **12. Marker & đường nối** – Marker đánh số, đường nối theo thứ tự; kéo marker để sửa vị trí.
+- [x] **12. Marker & đường nối** – Marker đánh số, đường nối theo thứ tự; kéo marker để sửa vị trí.
   - [x] Marker đánh số theo danh sách bước + đường nối + mũi tên kéo thả vẽ từ store (làm ở bước 10)
   - [x] Kéo marker (cả A / B) để dời điểm – toạ độ lấy từ `MousePos` lúc thả, ngoài vùng thì báo và giữ chỗ cũ, Esc huỷ; `movePoint` trong `scriptStore.ts`
   - [x] Click marker (không kéo) → chọn bước, marker bước đang chọn có viền nét đứt; click marker không tạo điểm mới
-  - [ ] Kiểm tra tay: kéo marker trong app, toạ độ cập nhật ở form màn chính
+  - [x] Kiểm tra tay: kéo marker trong app, toạ độ cập nhật ở form màn chính
 - [ ] **13. Chọn điểm kéo thả** – Chọn A rồi B, hiển thị mũi tên A→B.
 
 ### Giao diện
@@ -164,3 +164,4 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Commit bước 10 (`e61c3b6`). Bước 11: đặt điểm trên overlay, F6 toàn cục, chọn lại điểm cho bước. `npm run build`, `go test` OK; chưa kiểm tra tay.
 - **2026-10-15** – Xong bước 11: kiểm tra tay macOS OK. Người dùng hỏi cách xoá điểm → chưa có, thuộc bước 14.
 - **2026-10-15** – Bước 12: kéo marker để dời điểm, click marker chọn bước. `npm run build` OK, chụp headless overlay; chưa kiểm tra tay.
+- **2026-10-15** – Xong bước 12: kiểm tra tay macOS OK.
