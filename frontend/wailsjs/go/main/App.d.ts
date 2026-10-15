@@ -10,6 +10,10 @@ export function NewScript():Promise<main.Script>;
 
 export function NewStep(arg1:string):Promise<main.Step>;
 
+export function PauseScript():Promise<boolean>;
+
+export function ResumeScript():Promise<boolean>;
+
 export function RunScript(arg1:main.Script):Promise<void>;
 
 export function SetWindowMode(arg1:string):Promise<void>;

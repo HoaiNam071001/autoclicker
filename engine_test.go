@@ -62,7 +62,7 @@ func TestRunClickLoopsAndRegion(t *testing.T) {
 			step(StepClick, func(s *Step) { s.Enabled = false }),
 		},
 	}
-	if err := runScript(context.Background(), in, sc); err != nil {
+	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	one := []string{"move 110,70", "click left false", "move 110,70", "click left false", "move 101,52", "click right true"}
@@ -77,7 +77,7 @@ func TestRunDrag(t *testing.T) {
 	sc := Script{Loops: 1, Steps: []Step{
 		step(StepDrag, func(s *Step) { s.Points = []Point{{0, 0}, {100, 40}}; s.DragMs = 40 }),
 	}}
-	if err := runScript(context.Background(), in, sc); err != nil {
+	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	got := in.lines()
@@ -93,7 +93,7 @@ func TestRunTypeAndKey(t *testing.T) {
 		step(StepText, func(s *Step) { s.Text = "Gõ" }),
 		step(StepKey, func(s *Step) { s.Key = "v"; s.Modifiers = []string{"cmd", "shift"} }),
 	}}
-	if err := runScript(context.Background(), in, sc); err != nil {
+	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	want := []string{"type G", "type õ", "key cmd+shift v"}
@@ -109,7 +109,7 @@ func TestStopInfiniteLoopReleasesButton(t *testing.T) {
 	}}
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error)
-	go func() { done <- runScript(ctx, in, sc) }()
+	go func() { done <- newEngine(in, sc, nil).run(ctx) }()
 	time.Sleep(30 * time.Millisecond)
 	cancel()
 
@@ -140,5 +140,50 @@ func TestValidateScript(t *testing.T) {
 		if err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("muốn lỗi chứa %q, nhận %v", want, err)
 		}
+	}
+}
+
+func TestPauseResumeAndProgress(t *testing.T) {
+	in := &fakeInput{}
+	sc := Script{Loops: 2, Steps: []Step{
+		step(StepClick, func(s *Step) { s.Points = []Point{{1, 1}}; s.Clicks = 3; s.ClickInterval = 20 }),
+		step(StepWait, func(s *Step) { s.DelayAfter = 10 }),
+	}}
+	var mu sync.Mutex
+	var progs []Progress
+	eng := newEngine(in, sc, func(p Progress) { mu.Lock(); progs = append(progs, p); mu.Unlock() })
+
+	done := make(chan error)
+	go func() { done <- eng.run(context.Background()) }()
+	time.Sleep(30 * time.Millisecond) // đang giữa các click của vòng 1
+	if !eng.Pause() || eng.Pause() {
+		t.Fatal("Pause lần 1 phải true, lần 2 false")
+	}
+	time.Sleep(20 * time.Millisecond) // chờ lần click đang dở (nếu có) xong
+	n := len(in.lines())
+	time.Sleep(100 * time.Millisecond)
+	if got := len(in.lines()); got != n {
+		t.Fatalf("vẫn chạy khi tạm dừng: %d → %d lệnh", n, got)
+	}
+	if p := eng.Snapshot(); !p.Paused || p.ElapsedMs > 80 {
+		t.Errorf("snapshot khi dừng = %+v (elapsed không được tính lúc tạm dừng)", p)
+	}
+	eng.Resume()
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+
+	last := eng.Snapshot()
+	if last.Clicks != 6 || last.Loop != 2 || last.Step != 2 || last.Total != 2 || last.Paused {
+		t.Errorf("tiến độ cuối = %+v", last)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	sawPaused := false
+	for _, p := range progs {
+		sawPaused = sawPaused || p.Paused
+	}
+	if !sawPaused {
+		t.Error("không báo tiến độ khi tạm dừng")
 	}
 }

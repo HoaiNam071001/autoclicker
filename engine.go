@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -46,9 +47,42 @@ func validateScript(sc Script) error {
 	return nil
 }
 
-// runScript chạy kịch bản tới khi đủ số vòng, hết MaxMinutes hoặc ctx bị huỷ.
+// Progress – tiến độ gửi sang frontend (event "engine:progress").
+type Progress struct {
+	Loop      int   `json:"loop"`  // vòng hiện tại, từ 1
+	Loops     int   `json:"loops"` // 0 = vô hạn
+	Step      int   `json:"step"`  // thứ tự bước hiện tại trong các bước đang bật, từ 1
+	Total     int   `json:"total"` // số bước đang bật
+	Clicks    int   `json:"clicks"`
+	ElapsedMs int64 `json:"elapsedMs"` // không tính thời gian tạm dừng
+	Paused    bool  `json:"paused"`
+}
+
+// progressEvery – giãn cách tối thiểu giữa 2 lần báo tiến độ trong cùng một bước (tránh dội event).
+const progressEvery = 100 * time.Millisecond
+
+// engine chạy một kịch bản. Tạo mới cho mỗi lần chạy.
+type engine struct {
+	in         Input
+	sc         Script
+	gate       pauseGate
+	onProgress func(Progress) // có thể nil
+
+	mu       sync.Mutex
+	prog     Progress
+	start    time.Time
+	lastEmit time.Time
+}
+
+func newEngine(in Input, sc Script, onProgress func(Progress)) *engine {
+	return &engine{in: in, sc: sc, onProgress: onProgress}
+}
+
+// run chạy tới khi đủ số vòng, hết MaxMinutes hoặc ctx bị huỷ.
 // Hết thời gian là kết thúc bình thường (nil); bị huỷ trả ctx.Err().
-func runScript(ctx context.Context, in Input, sc Script) error {
+// MaxMinutes tính theo đồng hồ thật, kể cả lúc tạm dừng.
+func (e *engine) run(ctx context.Context) error {
+	sc := e.sc
 	if err := validateScript(sc); err != nil {
 		return err
 	}
@@ -59,12 +93,29 @@ func runScript(ctx context.Context, in Input, sc Script) error {
 		defer cancel()
 	}
 
+	total := 0
+	for _, s := range sc.Steps {
+		if s.Enabled {
+			total++
+		}
+	}
+	e.mu.Lock()
+	e.start = time.Now()
+	e.prog = Progress{Loops: sc.Loops, Total: total}
+	e.mu.Unlock()
+
 	for loop := 1; sc.Loops == 0 || loop <= sc.Loops; loop++ {
+		n := 0
 		for i, s := range sc.Steps {
 			if !s.Enabled {
 				continue
 			}
-			err := runStep(runCtx, in, sc.Region, s)
+			n++
+			err := e.gate.wait(runCtx)
+			if err == nil {
+				e.update(true, func(p *Progress) { p.Loop, p.Step = loop, n })
+				err = e.runStep(runCtx, s)
+			}
 			if err == nil {
 				err = sleep(runCtx, s.DelayAfter)
 			}
@@ -82,11 +133,68 @@ func runScript(ctx context.Context, in Input, sc Script) error {
 	return nil
 }
 
-func runStep(ctx context.Context, in Input, region *Rect, s Step) error {
+// update sửa tiến độ rồi báo sang frontend (force = báo ngay, không giãn cách).
+func (e *engine) update(force bool, f func(*Progress)) {
+	e.mu.Lock()
+	f(&e.prog)
+	now := time.Now()
+	if !force && now.Sub(e.lastEmit) < progressEvery {
+		e.mu.Unlock()
+		return
+	}
+	e.lastEmit = now
+	p := e.snapshotLocked()
+	e.mu.Unlock()
+	if e.onProgress != nil {
+		e.onProgress(p)
+	}
+}
+
+// Snapshot trả tiến độ hiện tại (kèm thời gian đã chạy và trạng thái tạm dừng).
+func (e *engine) Snapshot() Progress {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.snapshotLocked()
+}
+
+func (e *engine) snapshotLocked() Progress {
+	p := e.prog
+	p.ElapsedMs = e.gate.activeSince(e.start).Milliseconds()
+	p.Paused = e.gate.paused()
+	return p
+}
+
+// Pause / Resume: trả false nếu trạng thái không đổi. Có hiệu lực trước bước / lần click kế tiếp.
+func (e *engine) Pause() bool {
+	if !e.gate.pause() {
+		return false
+	}
+	e.update(true, func(*Progress) {})
+	return true
+}
+
+func (e *engine) Resume() bool {
+	if !e.gate.resume() {
+		return false
+	}
+	e.update(true, func(*Progress) {})
+	return true
+}
+
+func (e *engine) click(button string, double bool) error {
+	if err := e.in.Click(button, double); err != nil {
+		return err
+	}
+	e.update(false, func(p *Progress) { p.Clicks++ })
+	return nil
+}
+
+func (e *engine) runStep(ctx context.Context, s Step) error {
+	in := e.in
 	pt := func(i int) (int, int) {
 		p := s.Points[i]
-		if region != nil {
-			return region.X + p.X, region.Y + p.Y
+		if r := e.sc.Region; r != nil {
+			return r.X + p.X, r.Y + p.Y
 		}
 		return p.X, p.Y
 	}
@@ -96,13 +204,13 @@ func runStep(ctx context.Context, in Input, region *Rect, s Step) error {
 		x, y := pt(0)
 		n := max(s.Clicks, 1)
 		for i := 0; i < n; i++ {
-			if err := ctx.Err(); err != nil {
+			if err := e.gate.wait(ctx); err != nil {
 				return err
 			}
 			if err := in.Move(x, y); err != nil {
 				return err
 			}
-			if err := in.Click(s.Button, false); err != nil {
+			if err := e.click(s.Button, false); err != nil {
 				return err
 			}
 			if i < n-1 {
@@ -116,7 +224,7 @@ func runStep(ctx context.Context, in Input, region *Rect, s Step) error {
 		if err := in.Move(x, y); err != nil {
 			return err
 		}
-		return in.Click(s.Button, true)
+		return e.click(s.Button, true)
 	case StepHold:
 		x, y := pt(0)
 		if err := in.Move(x, y); err != nil {
@@ -132,9 +240,9 @@ func runStep(ctx context.Context, in Input, region *Rect, s Step) error {
 	case StepWait:
 		// chỉ chờ DelayAfter
 	case StepText:
-		// Gõ từng ký tự để dừng được giữa chừng với chuỗi dài.
+		// Gõ từng ký tự để dừng / tạm dừng được giữa chừng với chuỗi dài.
 		for _, r := range s.Text {
-			if err := ctx.Err(); err != nil {
+			if err := e.gate.wait(ctx); err != nil {
 				return err
 			}
 			if err := in.TypeStr(string(r)); err != nil {
@@ -186,4 +294,68 @@ func sleep(ctx context.Context, ms int) error {
 	case <-t.C:
 		return nil
 	}
+}
+
+// pauseGate – cổng tạm dừng: wait() chặn khi đang tạm dừng, tới khi resume hoặc ctx bị huỷ.
+// Ghi lại tổng thời gian tạm dừng để tính thời gian chạy thật.
+type pauseGate struct {
+	mu        sync.Mutex
+	ch        chan struct{} // khác nil khi đang tạm dừng; đóng khi resume
+	since     time.Time     // lúc bắt đầu lần tạm dừng hiện tại
+	pausedFor time.Duration // tổng thời gian đã tạm dừng (không tính lần đang dừng)
+}
+
+func (g *pauseGate) pause() bool {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.ch != nil {
+		return false
+	}
+	g.ch = make(chan struct{})
+	g.since = time.Now()
+	return true
+}
+
+func (g *pauseGate) resume() bool {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.ch == nil {
+		return false
+	}
+	close(g.ch)
+	g.ch = nil
+	g.pausedFor += time.Since(g.since)
+	return true
+}
+
+func (g *pauseGate) paused() bool {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.ch != nil
+}
+
+func (g *pauseGate) wait(ctx context.Context) error {
+	g.mu.Lock()
+	ch := g.ch
+	g.mu.Unlock()
+	if ch == nil {
+		return ctx.Err()
+	}
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-ch:
+		return nil
+	}
+}
+
+// activeSince – thời gian từ start, trừ các khoảng tạm dừng.
+func (g *pauseGate) activeSince(start time.Time) time.Duration {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	d := time.Since(start) - g.pausedFor
+	if g.ch != nil {
+		d -= time.Since(g.since)
+	}
+	return d
 }

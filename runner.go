@@ -7,10 +7,14 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-type runHandle struct{ cancel context.CancelFunc }
+type runHandle struct {
+	cancel context.CancelFunc
+	eng    *engine
+}
 
 // RunScript chạy kịch bản và chỉ trả về khi chạy xong / bị dừng (StopScript, F8) / lỗi.
-// Bị dừng không tính là lỗi. Emit "engine:state" (true khi bắt đầu, false khi kết thúc).
+// Bị dừng không tính là lỗi. Emit "engine:state" (true khi bắt đầu, false khi kết thúc)
+// và "engine:progress" (Progress) trong lúc chạy.
 func (a *App) RunScript(sc Script) error {
 	a.mu.Lock()
 	if a.run != nil {
@@ -18,7 +22,10 @@ func (a *App) RunScript(sc Script) error {
 		return errors.New("kịch bản đang chạy")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	h := &runHandle{cancel: cancel}
+	eng := newEngine(robotgoInput{}, sc, func(p Progress) {
+		runtime.EventsEmit(a.ctx, "engine:progress", p)
+	})
+	h := &runHandle{cancel: cancel, eng: eng}
 	a.run = h
 	a.mu.Unlock()
 
@@ -33,7 +40,7 @@ func (a *App) RunScript(sc Script) error {
 	}()
 	runtime.EventsEmit(a.ctx, "engine:state", true)
 
-	err := runScript(ctx, robotgoInput{}, sc)
+	err := eng.run(ctx)
 	if errors.Is(err, context.Canceled) {
 		return nil
 	}
@@ -48,4 +55,26 @@ func (a *App) StopScript() {
 		a.run.cancel()
 		a.run = nil
 	}
+}
+
+// PauseScript tạm dừng trước bước / lần click kế tiếp. Trả false nếu không có gì để tạm dừng.
+func (a *App) PauseScript() bool {
+	if h := a.current(); h != nil {
+		return h.eng.Pause()
+	}
+	return false
+}
+
+// ResumeScript chạy tiếp sau khi tạm dừng.
+func (a *App) ResumeScript() bool {
+	if h := a.current(); h != nil {
+		return h.eng.Resume()
+	}
+	return false
+}
+
+func (a *App) current() *runHandle {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.run
 }

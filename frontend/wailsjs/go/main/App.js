@@ -18,6 +18,14 @@ export function NewStep(arg1) {
   return window['go']['main']['App']['NewStep'](arg1);
 }
 
+export function PauseScript() {
+  return window['go']['main']['App']['PauseScript']();
+}
+
+export function ResumeScript() {
+  return window['go']['main']['App']['ResumeScript']();
+}
+
 export function RunScript(arg1) {
   return window['go']['main']['App']['RunScript'](arg1);
 }

@@ -6,6 +6,7 @@ import { RunScript, SpikeClick, StopScript } from '../../wailsjs/go/main/App';
 import { main } from '../../wailsjs/go/models';
 import { EventsOn, Quit, WindowMinimise } from '../../wailsjs/runtime/runtime';
 import { inWails, setWindowMode } from '../windowMode';
+import { setLastError, useEngine } from '../engineStore';
 
 const btn = 'flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3.5';
 const field = 'h-10 rounded-lg border border-line px-2.5 font-mono';
@@ -15,7 +16,7 @@ const modifiers: Modifier[] = ['cmd', 'ctrl', 'alt', 'shift'];
 // Thử engine (bước 7): mở TextEdit / Notepad sao cho phủ điểm (500, 500) rồi bấm "Chạy thử engine".
 const cmdKey: Modifier = navigator.platform.startsWith('Mac') ? 'cmd' : 'ctrl';
 const engineDemo = main.Script.createFrom({
-  name: 'Demo engine', region: null, loops: 1, maxMinutes: 0,
+  name: 'Demo engine', region: null, loops: 3, maxMinutes: 0,
   steps: [
     makeStep({ id: 'd1', type: 'click', points: [{ x: 500, y: 500 }] }),
     makeStep({ id: 'd2', type: 'type', text: 'Xin chào – gõ tự động 123' }),
@@ -33,12 +34,11 @@ export default function MainScreen() {
   const cur = steps.find((s) => s.id === selected)!;
   const idx = steps.indexOf(cur) + 1;
   const [spikeMsg, setSpikeMsg] = useState('');
-  const [running, setRunning] = useState(false);
+  const { running, lastError } = useEngine();
 
   useEffect(() => {
     if (!inWails) return;
     const offs = [
-      EventsOn('engine:state', (on: boolean) => setRunning(on)),
       EventsOn('hotkey:f8', () => setSpikeMsg('Đã dừng bằng F8')),
       EventsOn('hotkey:error', (msg: string) => setSpikeMsg(`Lỗi: ${msg}`)),
     ];
@@ -56,15 +56,17 @@ export default function MainScreen() {
     }
   };
 
+  // Thử engine + mini bar (bước 7–8): thu cửa sổ thành mini bar khi chạy, về màn chính khi xong / dừng.
   const toggleEngine = async () => {
     if (running) return StopScript();
-    setSpikeMsg('Engine đang chạy – F8 để dừng');
+    setSpikeMsg('');
+    await setWindowMode('minibar');
     try {
       await RunScript(engineDemo);
-      setSpikeMsg((m) => (m === 'Đã dừng bằng F8' ? m : 'Engine chạy xong'));
     } catch (e) {
-      setSpikeMsg(`Lỗi: ${e}`);
+      setLastError(String(e));
     }
+    await setWindowMode('main');
   };
 
   return (
@@ -88,6 +90,7 @@ export default function MainScreen() {
         <button onClick={() => setWindowMode('overlay')} className={btn} title="Spike bước 5">Thử overlay</button>
         <button onClick={() => setWindowMode('minibar')} className={btn} title="Spike bước 5">Thử mini bar</button>
         {spikeMsg && <span className="font-mono text-xs text-muted">{spikeMsg}</span>}
+        {lastError && <span className="font-mono text-xs text-danger">Lỗi engine: {lastError}</span>}
         <button className="flex h-11 items-center gap-2.5 rounded-lg bg-accent px-5 font-semibold text-white">
           <Play />Chạy <span className="font-mono text-xs opacity-85">F8</span>
         </button>
