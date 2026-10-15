@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"sync"
 	"time"
 )
@@ -14,11 +15,15 @@ const dragStepMs = 10
 // validateScript kiểm tra kịch bản trước khi chạy để không dừng giữa chừng vì dữ liệu sai.
 func validateScript(sc Script) error {
 	enabled := 0
+	hasPrevPoint := false // đã có bước chuột (để lại vị trí chuột) phía trước chưa
 	for i, s := range sc.Steps {
 		if !s.Enabled {
 			continue
 		}
 		enabled++
+		if s.Type == StepDrag && s.DragFromPrev && !hasPrevPoint {
+			return fmt.Errorf("bước %d: kéo từ điểm trước đó nhưng phía trước không có bước chuột nào", i+1)
+		}
 		need := 0
 		switch s.Type {
 		case StepClick, StepDouble, StepHold:
@@ -40,6 +45,7 @@ func validateScript(sc Script) error {
 		if len(s.Points) < need {
 			return fmt.Errorf("bước %d: cần %d điểm, mới có %d", i+1, need, len(s.Points))
 		}
+		hasPrevPoint = hasPrevPoint || need > 0
 	}
 	if enabled == 0 {
 		return errors.New("kịch bản không có bước nào được bật")
@@ -66,7 +72,11 @@ type engine struct {
 	in         Input
 	sc         Script
 	gate       pauseGate
-	onProgress func(Progress) // có thể nil
+	onProgress func(Progress)  // có thể nil
+	intN       func(n int) int // số ngẫu nhiên [0, n) – test thay bằng hàm cố định
+
+	last    Point // chỗ engine vừa đưa chuột tới – cho bước kéo "từ điểm trước đó"
+	hasLast bool
 
 	mu       sync.Mutex
 	prog     Progress
@@ -75,8 +85,19 @@ type engine struct {
 }
 
 func newEngine(in Input, sc Script, onProgress func(Progress)) *engine {
-	return &engine{in: in, sc: sc, onProgress: onProgress}
+	return &engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN}
 }
+
+// jitter trả v lệch ngẫu nhiên đều trong [v-j, v+j]; j ≤ 0 → v. Dùng cho toạ độ (có thể âm ở màn phụ).
+func (e *engine) jitter(v, j int) int {
+	if j <= 0 {
+		return v
+	}
+	return v + e.intN(2*j+1) - j
+}
+
+// jitterMs như jitter nhưng không âm – dùng cho thời gian chờ.
+func (e *engine) jitterMs(v, j int) int { return max(e.jitter(v, j), 0) }
 
 // run chạy tới khi đủ số vòng, hết MaxMinutes hoặc ctx bị huỷ.
 // Hết thời gian là kết thúc bình thường (nil); bị huỷ trả ctx.Err().
@@ -117,7 +138,7 @@ func (e *engine) run(ctx context.Context) error {
 				err = e.runStep(runCtx, s)
 			}
 			if err == nil {
-				err = sleep(runCtx, s.DelayAfter)
+				err = sleep(runCtx, e.jitterMs(s.DelayAfter, s.JitterMs))
 			}
 			if err != nil {
 				if ctx.Err() == nil && errors.Is(err, context.DeadlineExceeded) {
@@ -189,45 +210,53 @@ func (e *engine) click(button string, double bool) error {
 	return nil
 }
 
+// move đưa chuột tới (x, y) và nhớ lại vị trí đó.
+func (e *engine) move(x, y int) error {
+	e.last, e.hasLast = Point{x, y}, true
+	return e.in.Move(x, y)
+}
+
 func (e *engine) runStep(ctx context.Context, s Step) error {
 	in := e.in
+	// pt: toạ độ màn hình của điểm i, mỗi lần gọi lệch ngẫu nhiên ± JitterPx.
 	pt := func(i int) (int, int) {
 		p := s.Points[i]
+		x, y := p.X, p.Y
 		if r := e.sc.Region; r != nil {
-			return r.X + p.X, r.Y + p.Y
+			x, y = r.X+x, r.Y+y
 		}
-		return p.X, p.Y
+		return e.jitter(x, s.JitterPx), e.jitter(y, s.JitterPx)
 	}
 
 	switch s.Type {
 	case StepClick:
-		x, y := pt(0)
 		n := max(s.Clicks, 1)
 		for i := 0; i < n; i++ {
 			if err := e.gate.wait(ctx); err != nil {
 				return err
 			}
-			if err := in.Move(x, y); err != nil {
+			x, y := pt(0) // mỗi click lệch riêng
+			if err := e.move(x, y); err != nil {
 				return err
 			}
 			if err := e.click(s.Button, false); err != nil {
 				return err
 			}
 			if i < n-1 {
-				if err := sleep(ctx, s.ClickInterval); err != nil {
+				if err := sleep(ctx, e.jitterMs(s.ClickInterval, s.JitterMs)); err != nil {
 					return err
 				}
 			}
 		}
 	case StepDouble:
 		x, y := pt(0)
-		if err := in.Move(x, y); err != nil {
+		if err := e.move(x, y); err != nil {
 			return err
 		}
 		return e.click(s.Button, true)
 	case StepHold:
 		x, y := pt(0)
-		if err := in.Move(x, y); err != nil {
+		if err := e.move(x, y); err != nil {
 			return err
 		}
 		if err := in.Toggle(s.Button, true); err != nil {
@@ -236,7 +265,7 @@ func (e *engine) runStep(ctx context.Context, s Step) error {
 		defer in.Toggle(s.Button, false) // luôn nhả chuột, kể cả khi bị huỷ giữa chừng
 		return sleep(ctx, s.HoldMs)
 	case StepDrag:
-		return drag(ctx, in, s, pt)
+		return e.drag(ctx, s, pt)
 	case StepWait:
 		// chỉ chờ DelayAfter
 	case StepText:
@@ -309,10 +338,20 @@ func pressKeys(ctx context.Context, in Input, s Step) error {
 }
 
 // drag giữ nút tại A, di dần tới B trong DragMs, rồi nhả.
-func drag(ctx context.Context, in Input, s Step, pt func(int) (int, int)) error {
+// A: points[0] hoặc chỗ chuột dừng ở bước trước (DragFromPrev);
+// B: points[1] hoặc A + points[1] (DragRelative) – cả hai đều lệch ngẫu nhiên ± JitterPx.
+func (e *engine) drag(ctx context.Context, s Step, pt func(int) (int, int)) error {
+	in := e.in
 	ax, ay := pt(0)
+	if s.DragFromPrev && e.hasLast {
+		ax, ay = e.last.X, e.last.Y
+	}
 	bx, by := pt(1)
-	if err := in.Move(ax, ay); err != nil {
+	if s.DragRelative {
+		d := s.Points[1]
+		bx, by = e.jitter(ax+d.X, s.JitterPx), e.jitter(ay+d.Y, s.JitterPx)
+	}
+	if err := e.move(ax, ay); err != nil {
 		return err
 	}
 	if err := in.Toggle(s.Button, true); err != nil {
@@ -330,6 +369,7 @@ func drag(ctx context.Context, in Input, s Step, pt func(int) (int, int)) error 
 		if err := in.Drag(x, y, s.Button); err != nil {
 			return err
 		}
+		e.last = Point{x, y}
 	}
 	return nil
 }

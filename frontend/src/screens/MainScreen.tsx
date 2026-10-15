@@ -1,6 +1,6 @@
 // Phương án A – danh sách bước + form cấu hình
 import { useEffect, useState } from 'react';
-import { Drag, Logo, Play, Region, Stop, Target } from '../components/icons';
+import { Drag, Eye, Logo, Play, Region, Stop, Target } from '../components/icons';
 import { MousePos, StopScript } from '../../wailsjs/go/main/App';
 import { Quit, WindowMinimise } from '../../wailsjs/runtime/runtime';
 import { inWails, openOverlay } from '../windowMode';
@@ -55,6 +55,9 @@ export default function MainScreen() {
           </button>
           <button onClick={() => openOverlay('drag')} className={btn}><Drag className="h-4 w-4 text-drag" />Kéo thả</button>
         </div>
+        <button onClick={() => openOverlay('preview')} className={btn} title="Xem đường đi các bước bằng con trỏ giả, không click thật">
+          <Eye />Xem trước
+        </button>
         <button onClick={() => (running ? StopScript() : runCurrent())} disabled={!inWails}
           title={inWails ? undefined : 'Chỉ chạy được trong app'}
           className={`flex h-11 items-center gap-2.5 rounded-lg px-5 font-semibold text-white disabled:opacity-50 ${running ? 'bg-danger' : 'bg-accent'}`}>

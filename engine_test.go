@@ -228,3 +228,90 @@ func TestKeyCancelReleasesAll(t *testing.T) {
 		t.Errorf("got %q\nwant %q", got, want)
 	}
 }
+
+func TestJitter(t *testing.T) {
+	e := newEngine(&fakeInput{}, Script{}, nil)
+	e.intN = func(n int) int { return 0 } // lệch nhỏ nhất
+	if got := e.jitter(100, 5); got != 95 {
+		t.Errorf("jitter min = %d, muốn 95", got)
+	}
+	if got := e.jitter(-1500, 5); got != -1505 {
+		t.Errorf("toạ độ âm (màn phụ) = %d, muốn -1505", got)
+	}
+	if got := e.jitterMs(3, 10); got != 0 {
+		t.Errorf("jitterMs không được âm: %d", got)
+	}
+	e.intN = func(n int) int { return n - 1 } // lệch lớn nhất
+	if got := e.jitter(100, 5); got != 105 {
+		t.Errorf("jitter max = %d, muốn 105", got)
+	}
+	if got := e.jitter(100, 0); got != 100 {
+		t.Errorf("jitter 0 phải giữ nguyên: %d", got)
+	}
+}
+
+func TestRunJitterPositionsInBounds(t *testing.T) {
+	in := &fakeInput{}
+	sc := Script{Loops: 1, Steps: []Step{
+		step(StepClick, func(s *Step) { s.Points = []Point{{500, 300}}; s.Clicks = 200; s.JitterPx = 4 }),
+	}}
+	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	seen := map[string]bool{}
+	for _, l := range in.lines() {
+		var x, y int
+		if _, err := fmt.Sscanf(l, "move %d,%d", &x, &y); err != nil {
+			continue
+		}
+		if x < 496 || x > 504 || y < 296 || y > 304 {
+			t.Fatalf("điểm %d,%d ngoài ±4 px", x, y)
+		}
+		seen[l] = true
+	}
+	if len(seen) < 10 {
+		t.Errorf("200 click mà chỉ có %d vị trí khác nhau – có ngẫu nhiên không?", len(seen))
+	}
+}
+
+func TestDragFromPrevAndRelative(t *testing.T) {
+	in := &fakeInput{}
+	sc := Script{Loops: 1, Region: &Rect{X: 1000, Y: 0}, Steps: []Step{
+		step(StepClick, func(s *Step) { s.Points = []Point{{100, 100}} }),
+		// kéo từ chỗ vừa click, sang phải 40, lên 20
+		step(StepDrag, func(s *Step) {
+			s.Points = []Point{{0, 0}, {40, -20}}
+			s.DragFromPrev, s.DragRelative, s.DragMs = true, true, 20
+		}),
+		// kéo tiếp từ điểm thả vừa rồi tới điểm cố định (trong vùng)
+		step(StepDrag, func(s *Step) {
+			s.Points = []Point{{0, 0}, {10, 10}}
+			s.DragFromPrev, s.DragMs = true, 10
+		}),
+	}}
+	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{
+		"move 1100,100", "click left false",
+		"move 1100,100", "toggle left true", "drag 1120,90 left", "drag 1140,80 left", "toggle left false",
+		"move 1140,80", "toggle left true", "drag 1010,10 left", "toggle left false",
+	}
+	if got := in.lines(); !reflect.DeepEqual(got, want) {
+		t.Errorf("got %q\nwant %q", got, want)
+	}
+}
+
+func TestValidateDragFromPrevNeedsPrevPoint(t *testing.T) {
+	sc := Script{Steps: []Step{
+		step(StepKey, nil),
+		step(StepDrag, func(s *Step) { s.DragFromPrev = true }),
+	}}
+	if err := validateScript(sc); err == nil || !strings.Contains(err.Error(), "bước 2: kéo từ điểm trước đó") {
+		t.Errorf("muốn lỗi thiếu điểm trước, nhận %v", err)
+	}
+	sc.Steps[0] = step(StepClick, nil) // có bước click phía trước → hợp lệ
+	if err := validateScript(sc); err != nil {
+		t.Errorf("không muốn lỗi: %v", err)
+	}
+}

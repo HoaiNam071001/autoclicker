@@ -11,7 +11,8 @@ export async function setWindowMode(mode: WindowMode) {
   location.hash = mode === 'main' ? '' : mode;
 }
 
-export type OverlayTool = 'point' | 'drag' | 'region';
+// preview: xem trước kịch bản (con trỏ giả), không sửa điểm
+export type OverlayTool = 'point' | 'drag' | 'region' | 'preview';
 
 // Công cụ được chọn sẵn khi mở overlay (OverlayScreen đọc lúc mount).
 export let overlayTool: OverlayTool = 'region';

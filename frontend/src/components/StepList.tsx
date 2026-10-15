@@ -94,7 +94,7 @@ function Row({ step: s, index: i, selected }: { step: Step; index: number; selec
           <span className="block font-semibold">{STEP_LABEL[s.type]}{s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}</span>
           <span className="block truncate font-mono text-xs text-muted">{fmtPos(s)}</span>
         </span>
-        <span className="font-mono text-xs text-muted group-hover:hidden">{fmtMs(s.delayAfter)}</span>
+        <span className="font-mono text-xs text-muted group-hover:hidden">{fmtMs(s.delayAfter)}{s.jitterMs > 0 && ` ±${s.jitterMs}`}</span>
       </button>
       {/* hiện khi rê chuột vào dòng (che chỗ thời gian chờ) */}
       <span className="hidden gap-0.5 group-hover:flex">

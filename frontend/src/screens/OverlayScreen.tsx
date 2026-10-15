@@ -2,11 +2,14 @@
 import { MouseEvent, useEffect, useRef, useState } from 'react';
 import { MousePos } from '../../wailsjs/go/main/App';
 import {
-  cancelDragA, cancelPick, movePoint, pickingStep, placePoint, selectStep, setDragMode, setRegion, toScreen, useEditor,
+  cancelDragA, cancelPick, endpoints, movePoint, pickingStep, placePoint, selectStep, setDragMode, setRegion, useEditor,
 } from '../scriptStore';
 import { Point, Rect } from '../types';
 import { inWails, OverlayTool, overlayTool, setWindowMode } from '../windowMode';
 import { addSample, currentMapping, isMeasured, resetSamples, toClientPt, toScreenPt } from '../coordMap';
+import { SimulationLayer, useSimulation } from '../components/Simulation';
+
+const SPEEDS = [1, 2, 4];
 
 const CALIBRATE_MS = 150; // chuột đứng yên bao lâu thì lấy mẫu đo toạ độ (coordMap.ts)
 const MIN_REGION = 10; // px – kéo nhỏ hơn coi như click nhầm
@@ -44,6 +47,11 @@ export default function OverlayScreen() {
     movingRef.current = m;
     setMovingState(m);
   };
+  const preview = tool === 'preview';
+  const [speed, setSpeed] = useState(1);
+  const { sim, start: startSim, stop: stopSim } = useSimulation(steps, region, speed);
+  const simRef = useRef({ running: false, stop: stopSim });
+  simRef.current = { running: sim.running, stop: stopSim };
   const skipClick = useRef(false); // click sinh ra sau khi thả marker không được tính là đặt điểm
   const cursorRef = useRef(cursor);
   const timer = useRef<number | undefined>(undefined);
@@ -53,7 +61,8 @@ export default function OverlayScreen() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       // Đang kéo vùng / marker thì Esc chỉ huỷ thao tác đó.
-      if (movingRef.current) setMoving(null);
+      if (simRef.current.running) simRef.current.stop(); // xem trước đang chạy → Esc chỉ dừng
+      else if (movingRef.current) setMoving(null);
       else if (dragRef.current) setDragFrom(null);
       else if (!cancelDragA()) setWindowMode('main');
     };
@@ -107,7 +116,7 @@ export default function OverlayScreen() {
       skipClick.current = false;
       return;
     }
-    if (onUI(e) || tool === 'region') return;
+    if (onUI(e) || tool === 'region' || preview) return;
     const screen = inWails ? await MousePos() : toScreenFromClient({ x: e.clientX, y: e.clientY });
     placePoint(screen);
   };
@@ -137,19 +146,27 @@ export default function OverlayScreen() {
 
   // Marker của các bước đang bật, đánh số giống danh sách bước; kéo thả có A và B.
   // Marker đang kéo vẽ theo con trỏ; đường nối cũng đi theo.
-  const markers: { id: string; index: number; label: string; at: Point; drag: boolean }[] = [];
+  // ghost: điểm A của bước kéo "từ điểm trước" – trùng marker bước trước nên không vẽ, chỉ dùng cho đường nối.
+  const markers: { id: string; index: number; label: string; at: Point; drag: boolean; jitter: number; ghost: boolean }[] = [];
+  const ends = endpoints(steps, region);
   steps.forEach((s, i) => {
-    if (!s.enabled) return;
-    s.points.slice(0, s.type === 'drag' ? 2 : 1).forEach((p, j) => {
+    const e = ends.get(s.id);
+    if (!e) return;
+    const pts = s.type === 'drag' ? [e.start, e.end] : [e.start];
+    pts.forEach((p, j) => {
+      if (!p) return;
       const label = s.type === 'drag' ? `${i + 1}${j === 0 ? 'A' : 'B'}` : `${i + 1}`;
       const dragging = moving?.moved && moving.id === s.id && moving.index === j;
-      markers.push({ id: s.id, index: j, label, at: dragging ? cursor : toClient(toScreen(p, region)), drag: s.type === 'drag' });
+      markers.push({
+        id: s.id, index: j, label, at: dragging ? cursor : toClient(p), drag: s.type === 'drag',
+        jitter: s.jitterPx, ghost: s.type === 'drag' && j === 0 && s.dragFromPrev,
+      });
     });
   });
   const screenCursor = toScreenFromClient(cursor);
 
   return (
-    <div className={`fixed inset-0 select-none bg-[rgba(20,24,32,.45)] cursor-crosshair`}
+    <div className={`fixed inset-0 select-none bg-[rgba(20,24,32,.45)] ${preview ? '' : 'cursor-crosshair'}`}
       onMouseMove={onMove} onMouseDown={onDown} onMouseUp={onUp} onClick={onClick}>
       {shown && (
         <>
@@ -182,10 +199,17 @@ export default function OverlayScreen() {
         })}
       </svg>
 
-      {markers.map((m) => (
+      {/* Ô ngẫu nhiên vị trí (± px, bước 19) quanh marker */}
+      {markers.filter((m) => m.jitter > 0 && !m.ghost).map((m) => (
+        <span key={`j${m.label}`} aria-hidden
+          className={`pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 border border-dashed ${m.drag ? 'border-drag-light bg-drag-light/15' : 'border-accent-light bg-accent-light/15'}`}
+          style={{ left: m.at.x, top: m.at.y, width: (2 * m.jitter + 1) / map.kx, height: (2 * m.jitter + 1) / map.ky }} />
+      ))}
+
+      {markers.filter((m) => !m.ghost).map((m) => (
         <span key={m.label} style={{ left: m.at.x, top: m.at.y }} title="Kéo để dời điểm, click để chọn bước"
           onMouseDown={(e) => onMarkerDown(e, m.id, m.index)}
-          className={`absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white text-[13px] font-bold text-white shadow-[0_2px_8px_rgba(0,0,0,.35)] ${m.drag ? 'bg-drag-marker' : 'bg-accent'} ${moving ? 'cursor-grabbing' : 'cursor-grab'} ${m.id === selected ? 'outline-[3px] outline-offset-2 outline-white outline-dashed' : ''}`}>
+          className={`${preview ? 'pointer-events-none opacity-70' : ''} absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white text-[13px] font-bold text-white shadow-[0_2px_8px_rgba(0,0,0,.35)] ${m.drag ? 'bg-drag-marker' : 'bg-accent'} ${moving ? 'cursor-grabbing' : 'cursor-grab'} ${m.id === selected ? 'outline-[3px] outline-offset-2 outline-white outline-dashed' : ''}`}>
           {m.label}
         </span>
       ))}
@@ -197,27 +221,51 @@ export default function OverlayScreen() {
         </span>
       )}
 
-      {/* Crosshair + toạ độ màn hình thật theo chuột */}
-      <div className="pointer-events-none absolute" style={{ left: cursor.x, top: cursor.y }}>
+      {preview && <SimulationLayer sim={sim} toClient={toClient} />}
+
+      {/* Crosshair + toạ độ màn hình thật theo chuột (ẩn khi xem trước) */}
+      <div className={`pointer-events-none absolute ${preview ? 'hidden' : ''}`} style={{ left: cursor.x, top: cursor.y }}>
         <div className="absolute -top-10 h-20 w-px bg-white" />
         <div className="absolute -left-10 h-px w-20 bg-white" />
         <span className="absolute left-3.5 top-3 whitespace-nowrap rounded bg-ink px-2 py-1 font-mono text-[13px] text-white">X {screenCursor.x}  Y {screenCursor.y}</span>
       </div>
 
       <div data-ui className="absolute left-1/2 top-6 flex -translate-x-1/2 items-center gap-1.5 rounded-xl bg-white p-1.5 shadow-[0_6px_24px_rgba(0,0,0,.25)]">
-        {TOOLS.map((t) => (
-          <button key={t.id} disabled={!t.ready} title={t.ready ? undefined : 'Sắp có'} onClick={() => setTool(t.id)}
-            className={`h-11 rounded-lg px-3.5 disabled:opacity-40 ${tool === t.id ? 'bg-accent font-semibold text-white' : ''}`}>
-            {t.label}
-          </button>
-        ))}
-        {tool === 'region' && region && (
-          <button onClick={() => setRegion(null)} className="h-11 rounded-lg border border-line px-3.5">Toàn màn hình</button>
+        {preview ? (
+          <>
+            <button onClick={() => (sim.running ? stopSim() : startSim())}
+              className={`h-11 rounded-lg px-4 font-semibold text-white ${sim.running ? 'bg-danger' : 'bg-accent'}`}>
+              {sim.running ? '■ Dừng' : '▶ Chạy thử'}
+            </button>
+            <div className="flex overflow-hidden rounded-lg border border-line" role="radiogroup" aria-label="Tốc độ xem trước">
+              {SPEEDS.map((v, i) => (
+                <button key={v} role="radio" aria-checked={speed === v} onClick={() => setSpeed(v)}
+                  className={`h-11 px-3 font-mono ${i > 0 ? 'border-l border-line' : ''} ${speed === v ? 'bg-ink text-white' : 'hover:bg-ground'}`}>
+                  {v}×
+                </button>
+              ))}
+            </div>
+            <span className="mx-1.5 h-7 w-px bg-line" />
+            <button onClick={() => { stopSim(); setTool('point'); }} className="h-11 rounded-lg px-3.5">Sửa điểm</button>
+          </>
+        ) : (
+          <>
+            {TOOLS.map((t) => (
+              <button key={t.id} disabled={!t.ready} title={t.ready ? undefined : 'Sắp có'} onClick={() => setTool(t.id)}
+                className={`h-11 rounded-lg px-3.5 disabled:opacity-40 ${tool === t.id ? 'bg-accent font-semibold text-white' : ''}`}>
+                {t.label}
+              </button>
+            ))}
+            {tool === 'region' && region && (
+              <button onClick={() => setRegion(null)} className="h-11 rounded-lg border border-line px-3.5">Toàn màn hình</button>
+            )}
+            <span className="mx-1.5 h-7 w-px bg-line" />
+            <span className="flex items-center gap-1.5 px-1.5 text-[13px] text-muted">
+              <kbd className="rounded border border-line px-1.5 font-mono text-ink">F6</kbd>lưu vị trí chuột
+            </span>
+            <button onClick={() => setTool('preview')} className="h-11 rounded-lg px-3.5">Xem trước</button>
+          </>
         )}
-        <span className="mx-1.5 h-7 w-px bg-line" />
-        <span className="flex items-center gap-1.5 px-1.5 text-[13px] text-muted">
-          <kbd className="rounded border border-line px-1.5 font-mono text-ink">F6</kbd>lưu vị trí chuột
-        </span>
         <button onClick={() => setWindowMode('main')} className="h-11 rounded-lg bg-ink px-4 font-semibold text-white">Xong <span className="font-mono text-xs opacity-70">Esc</span></button>
       </div>
 
@@ -234,7 +282,18 @@ export default function OverlayScreen() {
             {picking ? 'Click để đặt lại điểm cho bước đang chọn' : 'Click (hoặc fn+F6) để thêm bước click mới'}
           </span>
         )}
-        <span className="text-dark-muted">Kéo marker: dời điểm · click: chọn bước</span>
+        {preview ? (
+          <>
+            <span className="text-dark-muted">Xem trước 1 vòng – con trỏ giả, không điều khiển chuột thật</span>
+            {sim.label && (
+              <span className="text-[#FF8CC6]">
+                {sim.step && sim.running ? `Bước ${sim.step}/${steps.length} · ` : ''}{sim.label}
+              </span>
+            )}
+          </>
+        ) : (
+          <span className="text-dark-muted">Kéo marker: dời điểm · click: chọn bước</span>
+        )}
         {notice && <span className="text-ok">{notice}</span>}
         {inWails && (
           <span className="text-accent-light">

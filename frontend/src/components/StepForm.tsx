@@ -2,7 +2,9 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Target } from './icons';
 import NumInput from './NumInput';
-import { changeStepType, pickPointFor, toggleStep, updateStep, useScript } from '../scriptStore';
+import {
+  changeStepType, endpoints, pickPointFor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
+} from '../scriptStore';
 import { fmtKey, isValidKey, KEY_NAMES, KeyMode, Modifier, MouseButton, Point, Step, STEP_LABEL, StepType } from '../types';
 
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'wait', 'type', 'key'];
@@ -59,24 +61,20 @@ export default function StepForm({ step: s, index, children }: Props) {
           </label>
         )}
 
-        {mouse && s.points.slice(0, s.type === 'drag' ? 2 : 1).map((p, i) => (
-          <div key={i} className={`flex flex-col gap-1.5 ${s.type === 'drag' && i === 0 ? 'col-start-1' : ''}`}>
+        {mouse && s.type !== 'drag' && s.points[0] && (
+          <div className="flex flex-col gap-1.5">
             <span className="font-semibold">
-              {s.type === 'drag' ? (i === 0 ? 'Điểm A – bắt đầu kéo' : 'Điểm B – thả') : 'Vị trí'}
-              {region && <span className="ml-1.5 text-xs font-normal text-muted">(trong vùng)</span>}
+              Vị trí{region && <span className="ml-1.5 text-xs font-normal text-muted">(trong vùng)</span>}
             </span>
             <div className="flex gap-2">
               {(['x', 'y'] as const).map((k) => (
-                <NumInput key={k} prefix={k.toUpperCase()} value={p[k]} onChange={(v) => setPoint(i, { [k]: v })} className="flex-1" />
+                <NumInput key={k} prefix={k.toUpperCase()} value={s.points[0][k]} onChange={(v) => setPoint(0, { [k]: v })} className="flex-1" />
               ))}
-              {i === 0 && (
-                <button aria-label="Chọn lại trên màn hình" onClick={() => pickPointFor(s.id)}
-                  title={s.type === 'drag' ? 'Chọn lại A rồi B trên màn hình' : 'Chọn lại trên màn hình'}
-                  className="grid h-10 w-11 flex-none place-items-center rounded-lg border border-line hover:bg-ground"><Target /></button>
-              )}
+              <PickButton step={s} />
             </div>
           </div>
-        ))}
+        )}
+        {s.type === 'drag' && s.points.length >= 2 && <DragPoints step={s} setPoint={setPoint} />}
 
         {s.type === 'click' && (
           <>
@@ -143,6 +141,24 @@ export default function StepForm({ step: s, index, children }: Props) {
         <Field label={s.type === 'wait' ? 'Thời gian chờ' : 'Chờ trước bước tiếp theo'}>
           <NumInput value={s.delayAfter} unit="ms" onChange={(v) => set({ delayAfter: v })} />
         </Field>
+
+        {/* Ngẫu nhiên hoá (bước 19) – thao tác giống người thật hơn */}
+        <Field label="Ngẫu nhiên thời gian">
+          <NumInput prefix="±" value={s.jitterMs} unit="ms" onChange={(v) => set({ jitterMs: v })} />
+          <span className="text-xs font-normal text-muted">
+            {s.jitterMs > 0
+              ? `Chờ ${Math.max(s.delayAfter - s.jitterMs, 0)}–${s.delayAfter + s.jitterMs} ms${s.type === 'click' && s.clicks > 1 ? ', giữa các click cũng lệch' : ''}`
+              : 'Tắt (0)'}
+          </span>
+        </Field>
+        {mouse && (
+          <Field label="Ngẫu nhiên vị trí">
+            <NumInput prefix="±" value={s.jitterPx} unit="px" onChange={(v) => set({ jitterPx: v })} />
+            <span className="text-xs font-normal text-muted">
+              {s.jitterPx > 0 ? `Mỗi lần ${s.type === 'drag' ? 'kéo, A và B' : 'click'} lệch trong ô ${2 * s.jitterPx + 1}×${2 * s.jitterPx + 1} px` : 'Tắt (0)'}
+            </span>
+          </Field>
+        )}
       </div>
 
       {children}
@@ -178,6 +194,73 @@ function KeysField({ step: s, onChange }: { step: Step; onChange: (keys: string[
           : `Sẽ bấm: ${fmtKey(s)}`}
       </span>
     </label>
+  );
+}
+
+function PickButton({ step: s, title = 'Chọn lại trên màn hình' }: { step: Step; title?: string }) {
+  return (
+    <button aria-label={title} title={title} onClick={() => pickPointFor(s.id)}
+      className="grid h-10 w-11 flex-none place-items-center rounded-lg border border-line hover:bg-ground"><Target /></button>
+  );
+}
+
+function Segmented<T extends string>({ value, options, onChange }: {
+  value: T; options: { id: T; label: string }[]; onChange: (v: T) => void;
+}) {
+  return (
+    <div className="flex w-fit overflow-hidden rounded-lg border border-line text-[13px] font-normal" role="radiogroup">
+      {options.map((o, i) => (
+        <button key={o.id} role="radio" aria-checked={value === o.id} onClick={() => onChange(o.id)}
+          className={`h-8 px-3 ${i > 0 ? 'border-l border-line' : ''} ${value === o.id ? 'bg-ink text-white' : 'bg-white hover:bg-ground'}`}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Điểm A / B của bước kéo thả: A = vị trí hoặc "từ điểm trước"; B = vị trí hoặc lệch so với A.
+function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: Partial<Point>) => void }) {
+  const { steps, region } = useScript();
+  const ends = endpoints(steps, region).get(s.id);
+  const inRegion = region && <span className="ml-1.5 text-xs font-normal text-muted">(trong vùng)</span>;
+  return (
+    <>
+      <div className="col-start-1 flex flex-col gap-1.5">
+        <span className="font-semibold">Điểm A – bắt đầu kéo{!s.dragFromPrev && inRegion}</span>
+        <Segmented value={s.dragFromPrev ? 'prev' : 'pos'} onChange={(v) => setDragFromPrev(s.id, v === 'prev')}
+          options={[{ id: 'pos', label: 'Vị trí' }, { id: 'prev', label: 'Từ điểm trước' }]} />
+        {s.dragFromPrev ? (
+          <span className={`flex h-10 items-center text-[13px] ${ends?.start ? 'text-muted' : 'text-danger'}`}>
+            {ends?.start
+              ? `Chỗ chuột dừng ở bước ${ends.prevStep} (X ${ends.start.x} Y ${ends.start.y})`
+              : 'Phía trước không có bước chuột nào – chạy sẽ báo lỗi'}
+          </span>
+        ) : (
+          <div className="flex gap-2">
+            {(['x', 'y'] as const).map((k) => (
+              <NumInput key={k} prefix={k.toUpperCase()} value={s.points[0][k]} onChange={(v) => setPoint(0, { [k]: v })} className="flex-1" />
+            ))}
+            <PickButton step={s} title="Chọn lại A rồi B trên màn hình" />
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <span className="font-semibold">Điểm B – thả{!s.dragRelative && inRegion}</span>
+        <Segmented value={s.dragRelative ? 'rel' : 'pos'} onChange={(v) => setDragRelative(s.id, v === 'rel')}
+          options={[{ id: 'pos', label: 'Vị trí' }, { id: 'rel', label: 'Lệch so với A' }]} />
+        <div className="flex gap-2">
+          {(['x', 'y'] as const).map((k) => (
+            <NumInput key={k} signed={s.dragRelative} prefix={s.dragRelative ? `Δ${k.toUpperCase()}` : k.toUpperCase()}
+              value={s.points[1][k]} onChange={(v) => setPoint(1, { [k]: v })} className="flex-1" />
+          ))}
+          {s.dragFromPrev && <PickButton step={s} title="Chọn lại B trên màn hình" />}
+        </div>
+        {s.dragRelative && ends?.end && (
+          <span className="text-xs font-normal text-muted">Thả tại X {ends.end.x} Y {ends.end.y}</span>
+        )}
+      </div>
+    </>
   );
 }
 

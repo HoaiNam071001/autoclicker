@@ -42,3 +42,19 @@ body {
 .drag :is(button, input, select, kbd, a) {
   --wails-draggable: no-drag;
 }
+
+/* Xem trước (Simulation.tsx): gợn khi click, vòng lớn dần khi giữ chuột */
+@keyframes sim-ripple {
+  from { transform: scale(0.3); opacity: 1; }
+  to { transform: scale(1.6); opacity: 0; }
+}
+.sim-ripple {
+  animation: sim-ripple 700ms ease-out forwards;
+}
+@keyframes sim-hold {
+  from { transform: scale(0.3); opacity: 0.9; }
+  to { transform: scale(1.4); opacity: 0.6; }
+}
+.sim-hold {
+  animation: sim-hold linear forwards;
+}

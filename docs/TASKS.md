@@ -6,7 +6,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** bước 19 – Ngẫu nhiên hoá. Bước 17–18 tạm hoãn: chưa có máy Windows
+- **Đang làm:** bước 19 – Ngẫu nhiên hoá: code xong, **chờ kiểm tra tay**. Bước 17–18 tạm hoãn: chưa có máy Windows
 - **Tiếp theo:** bước 20 (nhóm bước), 21 (lưu / tải kịch bản). Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-15
 
@@ -115,6 +115,8 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] Overlay công cụ *Kéo thả A → B*: click A (marker A + mũi tên nét đứt theo chuột) rồi click B → thêm bước kéo thả; Esc huỷ A; F6 cũng chọn được A / B
   - [x] Nút *Kéo thả* ở màn chính mở overlay công cụ này; nút ⌖ của bước kéo thả chọn lại cả A và B (tắt cho bước *Chờ*)
   - [x] `scriptStore.ts`: `dragA` trong store, `setDragMode`, `cancelDragA`; `placePoint` gom cặp A, B
+  - [x] Bổ sung (người dùng yêu cầu, 2026-10-15): A = vị trí **hoặc từ điểm trước** (chỗ chuột dừng ở bước chuột bật gần nhất phía trước – click / giữ / điểm thả B), B = vị trí **hoặc lệch so với A** (ΔX, ΔY có thể âm). Model `dragFromPrev`, `dragRelative`; engine nhớ vị trí chuột thật (kể cả ngẫu nhiên); kiểm tra báo lỗi nếu không có điểm trước; store `endpoints()` tính toạ độ đầu / cuối như engine cho overlay + kéo marker; đổi chế độ giữ nguyên chỗ trên màn hình; test `TestDragFromPrevAndRelative`, `TestValidateDragFromPrevNeedsPrevPoint`
+  - [ ] Kiểm tra tay phần bổ sung: kéo từ điểm click trước, kéo nối tiếp từ điểm thả trước, B lệch ΔX/ΔY, kéo marker B khi đang ở chế độ lệch
   - [x] Kiểm tra tay: thêm bước kéo thả, chọn lại A / B, Esc huỷ A
 
 ### Giao diện
@@ -153,6 +155,16 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 ## Phase 2 – Tiện ích
 
 - [ ] **19. Ngẫu nhiên hoá** – Delay ±ms và vị trí ±px cho từng bước.
+  - [x] Model: `jitterMs` (± ms cho `delayAfter` và `clickInterval`), `jitterPx` (± px cho mỗi lần di chuột tới điểm, A / B kéo thả lệch riêng)
+  - [x] Engine: `jitter` (toạ độ, cho phép âm – màn phụ) / `jitterMs` (không âm), phân bố đều; nguồn ngẫu nhiên `intN` thay được trong test; mỗi click lệch riêng
+  - [x] Form: ô "Ngẫu nhiên thời gian" / "Ngẫu nhiên vị trí" kèm giải thích khoảng thực tế; danh sách hiện "±ms"; overlay vẽ ô vùng lệch quanh marker
+  - [x] Test `TestJitter`, `TestRunJitterPositionsInBounds`
+  - [ ] Kiểm tra tay: chạy kịch bản có ± ms / ± px, thấy click lệch trong vùng và thời gian thay đổi
+- [ ] **19b. Xem trước kịch bản** *(người dùng yêu cầu, 2026-10-15)* – Nút *Xem trước* mở overlay chế độ `preview`: con trỏ giả màu hồng chạy 1 vòng theo thứ tự + thời gian thật của các bước, không điều khiển chuột thật.
+  - [x] `components/Simulation.tsx`: `useSimulation` (huỷ bằng token, tốc độ 1× / 2× / 4×) + `SimulationLayer` (vệt đường đi hồng nét đứt / cam khi kéo, gợn click, vòng lớn dần khi giữ, bong bóng chờ / gõ chữ / phím tắt); vị trí lấy từ `endpoints()` nên khớp "từ điểm trước" / "lệch so với A"
+  - [x] Overlay: tool `preview` – marker không sửa được, ẩn crosshair, thanh công cụ Chạy thử / Dừng / tốc độ / Sửa điểm, Esc dừng mô phỏng trước; từ chế độ sửa có nút *Xem trước*
+  - [x] Khung hình dùng `setTimeout` thay `requestAnimationFrame` (rAF không chạy ở Chrome headless khi thử); đã chụp headless thấy chạy hết 1 vòng
+  - [ ] Kiểm tra tay trong app
 - [ ] **20. Nhóm bước** – Lặp riêng một nhóm N lần trong kịch bản.
 - [ ] **21. Profile** – Lưu/tải kịch bản JSON qua hộp thoại file, danh sách mở gần đây.
 - [ ] **22. Hẹn giờ** – Tự chạy lúc HH:mm.
@@ -201,3 +213,7 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Xong bước 16 (kể cả sửa overlay mở nhầm màn): người dùng kiểm tra tay OK, commit.
 - **2026-10-15** – Commit bước 16 (`aadc204`). Bước 17: dừng khẩn cấp mọi màn hình (góc cứng), overlay đo tỷ lệ + độ lệch (`coordMap.ts`). `go test -race` OK (thêm `TestHardCorners`), `npm run build` OK; chưa kiểm tra tay, chưa commit; phần Windows chờ máy.
 - **2026-10-15** – Commit phần bước 17 làm được trên macOS (chưa kiểm tra tay); hoãn phần Windows của 17 và bước 18 vì chưa có máy Windows. Chuyển sang bước 19.
+- **2026-10-15** – Bước 19: ngẫu nhiên hoá thời gian / vị trí (model, engine, form, overlay). `go test -race` OK, `npm run build` OK, chụp headless form / overlay; chưa kiểm tra tay, chưa commit.
+- **2026-10-15** – Kéo thả: thêm “từ điểm trước” và “điểm cuối lệch so với A” theo yêu cầu (model, engine, store `endpoints`, form, overlay). `go test -race` OK, `npm run build` OK, chụp headless; chưa kiểm tra tay, chưa commit (chung với bước 19).
+- **2026-10-15** – Thêm *Xem trước kịch bản* (19b) theo yêu cầu: con trỏ giả chạy 1 vòng trên overlay. `npm run build` OK, chụp headless (thời gian ảo) thấy chạy hết vòng; chưa kiểm tra tay, chưa commit.
+- **2026-10-15** – Commit theo yêu cầu: bước 19 (ngẫu nhiên hoá), kéo thả từ điểm trước / lệch so với A, 19b (xem trước) – chưa xác nhận kiểm tra tay. Bắt đầu: xem / sửa vị trí riêng một bước trên overlay.

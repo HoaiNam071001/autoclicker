@@ -17,11 +17,15 @@ export interface Step {
   clickInterval: number; // ms
   holdMs: number;
   dragMs: number;
+  dragFromPrev: boolean; // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
+  dragRelative: boolean; // drag: points[1] là độ lệch (dx, dy) so với điểm bắt đầu
   text: string; // type: chuỗi cần gõ
   keys: string[]; // key: phím chính theo tên robotgo (enter, tab, a, f5…)
   keyMode: KeyMode; // key: chỉ khác nhau khi có ≥ 2 phím chính
   modifiers: Modifier[]; // key: tổ hợp, vd ['cmd'] + 'v'
   delayAfter: number; // ms
+  jitterMs: number; // ngẫu nhiên ± ms cho delayAfter và clickInterval
+  jitterPx: number; // ngẫu nhiên ± px cho mỗi lần di chuột tới điểm
   enabled: boolean;
 }
 
@@ -44,8 +48,8 @@ void scriptMatchesGo;
 
 // Tạo bước với giá trị trống, ghi đè bằng p (dùng cho dữ liệu mẫu / demo).
 export const makeStep = (p: Partial<Step> & Pick<Step, 'id' | 'type'>): Step => ({
-  points: [], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0,
-  text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, enabled: true, ...p,
+  points: [], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false,
+  text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true, ...p,
 });
 
 export const STEP_LABEL: Record<StepType, string> = {
@@ -76,20 +80,22 @@ export const fmtKey = (s: Step) => {
 };
 
 export const sampleSteps: Step[] = [
-  { id: '1', type: 'click', points: [{ x: 412, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, enabled: true },
-  { id: '2', type: 'double', points: [{ x: 640, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, enabled: true },
-  { id: '3', type: 'click', points: [{ x: 812, y: 436 }], button: 'left', clicks: 5, clickInterval: 120, holdMs: 0, dragMs: 0, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 800, enabled: true },
-  { id: '4', type: 'drag', points: [{ x: 300, y: 600 }, { x: 900, y: 600 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 400, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 1000, enabled: true },
-  { id: '5', type: 'wait', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 2000, enabled: false },
-  { id: '6', type: 'click', points: [{ x: 1100, y: 520 }], button: 'right', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, enabled: true },
-  { id: '7', type: 'type', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, text: 'xin chao 123', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, enabled: true },
-  { id: '8', type: 'key', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', keys: ['enter'], keyMode: 'chord', modifiers: [], delayAfter: 500, enabled: true },
+  { id: '1', type: 'click', points: [{ x: 412, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '2', type: 'double', points: [{ x: 640, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '3', type: 'click', points: [{ x: 812, y: 436 }], button: 'left', clicks: 5, clickInterval: 120, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 800, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '4', type: 'drag', points: [{ x: 300, y: 600 }, { x: 900, y: 600 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 400, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 1000, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '5', type: 'wait', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 2000, jitterMs: 0, jitterPx: 0, enabled: false },
+  { id: '6', type: 'click', points: [{ x: 1100, y: 520 }], button: 'right', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '7', type: 'type', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: 'xin chao 123', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '8', type: 'key', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: ['enter'], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
 ];
 
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);
+const fmtSigned = (v: number) => (v > 0 ? `+${v}` : `${v}`);
 export const fmtPos = (s: Step) =>
   s.type === 'drag'
-    ? `A ${s.points[0].x},${s.points[0].y} → B ${s.points[1].x},${s.points[1].y}`
+    ? `${s.dragFromPrev ? 'Từ điểm trước' : `A ${s.points[0].x},${s.points[0].y}`} → ${
+      s.dragRelative ? `Δ ${fmtSigned(s.points[1].x)},${fmtSigned(s.points[1].y)}` : `B ${s.points[1].x},${s.points[1].y}`}`
     : s.type === 'type' ? `"${s.text}"`
     : s.type === 'key' ? fmtKey(s)
     : s.points[0] ? `X ${s.points[0].x}  Y ${s.points[0].y}` : '—';

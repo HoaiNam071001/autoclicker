@@ -41,11 +41,15 @@ export namespace main {
 	    clickInterval: number;
 	    holdMs: number;
 	    dragMs: number;
+	    dragFromPrev: boolean;
+	    dragRelative: boolean;
 	    text: string;
 	    keys: string[];
 	    keyMode: string;
 	    modifiers: string[];
 	    delayAfter: number;
+	    jitterMs: number;
+	    jitterPx: number;
 	    enabled: boolean;
 	
 	    static createFrom(source: any = {}) {
@@ -62,11 +66,15 @@ export namespace main {
 	        this.clickInterval = source["clickInterval"];
 	        this.holdMs = source["holdMs"];
 	        this.dragMs = source["dragMs"];
+	        this.dragFromPrev = source["dragFromPrev"];
+	        this.dragRelative = source["dragRelative"];
 	        this.text = source["text"];
 	        this.keys = source["keys"];
 	        this.keyMode = source["keyMode"];
 	        this.modifiers = source["modifiers"];
 	        this.delayAfter = source["delayAfter"];
+	        this.jitterMs = source["jitterMs"];
+	        this.jitterPx = source["jitterPx"];
 	        this.enabled = source["enabled"];
 	    }
 	

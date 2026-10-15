@@ -190,7 +190,8 @@ export function placePoint(screen: Point): boolean {
   }
   const steps = script.steps;
   const target = pickTarget && steps.find((s) => s.id === pickTarget);
-  const wantsPair = target ? target.type === 'drag' : dragMode;
+  // Kéo thả cần 2 điểm – trừ khi bước đang chọn lại bắt đầu "từ điểm trước đó" (chỉ cần B).
+  const wantsPair = target ? target.type === 'drag' && !target.dragFromPrev : dragMode;
 
   // Kéo thả cần 2 điểm: lần đầu chỉ ghi nhớ A.
   if (wantsPair && !state.dragA) {
@@ -203,7 +204,7 @@ export function placePoint(screen: Point): boolean {
   if (target) {
     pickTarget = null;
     if (a) movePoint(target.id, 0, a);
-    movePoint(target.id, a ? 1 : 0, screen);
+    movePoint(target.id, target.type === 'drag' ? 1 : 0, screen);
     setWindowMode('main');
     return true;
   }
@@ -231,10 +232,81 @@ export function movePoint(id: string, index: number, screen: Point): boolean {
     setNotice(`Điểm X ${screen.x} Y ${screen.y} nằm ngoài vùng – giữ vị trí cũ`);
     return false;
   }
-  const label = steps[idx].type === 'drag' ? `${idx + 1}${index === 0 ? 'A' : 'B'}` : `${idx + 1}`;
-  setSteps(steps.map((s) => (s.id === id ? { ...s, points: s.points.map((p, i) => (i === index ? rel : p)) } : s)));
+  const step = steps[idx];
+  const label = step.type === 'drag' ? `${idx + 1}${index === 0 ? 'A' : 'B'}` : `${idx + 1}`;
+  let value = rel;
+  // Điểm B lưu dạng lệch so với điểm bắt đầu: đổi toạ độ màn hình sang (dx, dy).
+  if (step.type === 'drag' && index === 1 && step.dragRelative) {
+    const start = endpoints(steps, region).get(id)?.start;
+    if (!start) {
+      setNotice(`Bước ${idx + 1}: chưa xác định được điểm bắt đầu – giữ vị trí cũ`);
+      return false;
+    }
+    value = { x: screen.x - start.x, y: screen.y - start.y };
+  }
+  setSteps(steps.map((s) => (s.id === id ? { ...s, points: s.points.map((p, i) => (i === index ? value : p)) } : s)));
   set({ selected: id, notice: `Đã đặt điểm ${label}: X ${rel.x} Y ${rel.y}` });
   return true;
+}
+
+// ---- Kéo thả: từ điểm trước / điểm cuối tương đối ----
+
+type Ends = { start: Point | null; end: Point | null; prevStep: number | null };
+
+// Toạ độ màn hình (danh nghĩa, chưa tính ngẫu nhiên) điểm đầu / cuối của các bước chuột đang bật,
+// lần theo thứ tự như engine: "điểm trước" = chỗ chuột dừng ở bước chuột bật gần nhất phía trước.
+// prevStep: số thứ tự (từ 1) của bước cung cấp điểm trước cho bước kéo "từ điểm trước".
+export function endpoints(steps: Step[], region: Rect | null): Map<string, Ends> {
+  const out = new Map<string, Ends>();
+  let last: Point | null = null;
+  let lastStep: number | null = null;
+  steps.forEach((s, i) => {
+    if (!s.enabled || !s.points.length) return;
+    if (s.type === 'click' || s.type === 'double' || s.type === 'hold') {
+      const p = toScreen(s.points[0], region);
+      out.set(s.id, { start: p, end: p, prevStep: null });
+      last = p;
+      lastStep = i + 1;
+    } else if (s.type === 'drag' && s.points.length >= 2) {
+      const start = s.dragFromPrev ? last : toScreen(s.points[0], region);
+      const d = s.points[1];
+      const end = s.dragRelative ? (start && { x: start.x + d.x, y: start.y + d.y }) : toScreen(d, region);
+      out.set(s.id, { start, end, prevStep: s.dragFromPrev ? lastStep : null });
+      if (end) {
+        last = end;
+        lastStep = i + 1;
+      }
+    }
+  });
+  return out;
+}
+
+// Bật/tắt "từ điểm trước": giữ nguyên chỗ trên màn hình – tắt thì A lấy đúng điểm trước đó.
+export function setDragFromPrev(id: string, on: boolean) {
+  const { steps, region } = state.script;
+  const s = steps.find((x) => x.id === id);
+  if (!s || s.type !== 'drag') return;
+  const ends = endpoints(steps, region).get(id);
+  const patch: Partial<Step> = { dragFromPrev: on };
+  if (!on && ends?.start) {
+    patch.points = [toRelative(ends.start, region) ?? s.points[0], s.points[1]];
+  }
+  updateStep(id, patch);
+}
+
+// Bật/tắt "điểm cuối tương đối": đổi points[1] giữa toạ độ và độ lệch, giữ nguyên chỗ trên màn hình.
+export function setDragRelative(id: string, on: boolean) {
+  const { steps, region } = state.script;
+  const s = steps.find((x) => x.id === id);
+  if (!s || s.type !== 'drag' || s.dragRelative === on) return;
+  const ends = endpoints(steps, region).get(id);
+  let b = s.points[1];
+  if (ends?.start && ends.end) {
+    b = on
+      ? { x: ends.end.x - ends.start.x, y: ends.end.y - ends.start.y }
+      : region ? { x: ends.end.x - region.x, y: ends.end.y - region.y } : ends.end;
+  }
+  updateStep(id, { dragRelative: on, points: [s.points[0], b] });
 }
 
 // F6 (Go nghe phím toàn cục) gửi vị trí chuột hiện tại.
