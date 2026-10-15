@@ -7,8 +7,32 @@ import (
 	"time"
 )
 
+func TestHardCorners(t *testing.T) {
+	// A 1440×900 bên trái, B 1920×1080 bên phải, mép trên thẳng hàng.
+	ds := []Rect{{0, 0, 1440, 900}, {1440, 0, 1920, 1080}}
+	got := map[Point]bool{}
+	for _, c := range hardCorners(ds) {
+		got[c] = true
+	}
+	want := []Point{{0, 0}, {0, 899}, {3359, 0}, {3359, 1079}, {1440, 1079}}
+	for _, p := range want {
+		if !got[p] {
+			t.Errorf("thiếu góc %v", p)
+		}
+	}
+	// Góc tiếp giáp 2 màn: chuột đi xuyên qua được → không tính.
+	for _, p := range []Point{{1439, 0}, {1440, 0}, {1439, 899}} {
+		if got[p] {
+			t.Errorf("góc tiếp giáp %v không được tính", p)
+		}
+	}
+	if len(got) != len(want) {
+		t.Errorf("có %d góc, muốn %d: %v", len(got), len(want), got)
+	}
+}
+
 func TestInCorner(t *testing.T) {
-	const w, h = 1440, 900
+	corners := hardCorners([]Rect{{0, 0, 1440, 900}})
 	cases := []struct {
 		x, y int
 		want bool
@@ -17,7 +41,7 @@ func TestInCorner(t *testing.T) {
 		{3, 0, false}, {0, 3, false}, {720, 0, false}, {0, 450, false}, {720, 450, false},
 	}
 	for _, c := range cases {
-		if got := inCorner(c.x, c.y, w, h); got != c.want {
+		if got := inCorner(c.x, c.y, corners); got != c.want {
 			t.Errorf("inCorner(%d, %d) = %v, muốn %v", c.x, c.y, got, c.want)
 		}
 	}
@@ -42,7 +66,7 @@ func TestWatchCorners(t *testing.T) {
 	mouse := &fakeMouse{x: 500, y: 500}
 	tin := &trackingInput{Input: &fakeInput{}}
 	hit := make(chan struct{}, 1)
-	go watchCorners(ctx, mouse.loc, 1440, 900, tin, func() { hit <- struct{}{} })
+	go watchCorners(ctx, mouse.loc, hardCorners([]Rect{{0, 0, 1440, 900}}), tin, func() { hit <- struct{}{} })
 
 	// Engine tự đưa chuột tới góc (điểm của kịch bản) → không dừng.
 	tin.Move(0, 0)

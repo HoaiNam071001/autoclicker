@@ -1,6 +1,10 @@
 package main
 
-import "github.com/go-vgo/robotgo"
+import (
+	goruntime "runtime"
+
+	"github.com/go-vgo/robotgo"
+)
 
 // Input – thao tác chuột / bàn phím mà engine dùng. Tách interface để test engine bằng input giả.
 type Input interface {
@@ -43,4 +47,21 @@ func (robotgoInput) KeyToggle(key string, down bool, modifiers []string) error {
 		return robotgo.KeyToggle(key, "down")
 	}
 	return robotgo.KeyToggle(key, "down", modifiers)
+}
+
+// displays trả khung các màn hình theo hệ toạ độ của robotgo.Location / Move.
+// Windows: robotgo nhân toạ độ chuột với tỷ lệ DPI màn chính (ScaleF) nên khung màn hình cũng phải nhân theo.
+func displays() []Rect {
+	f := 1.0
+	if goruntime.GOOS == "windows" {
+		f = robotgo.ScaleF()
+	}
+	sc := func(v int) int { return int(float64(v) * f) }
+	n := robotgo.DisplaysNum()
+	out := make([]Rect, 0, n)
+	for i := 0; i < n; i++ {
+		x, y, w, h := robotgo.GetDisplayBounds(i)
+		out = append(out, Rect{sc(x), sc(y), sc(w), sc(h)})
+	}
+	return out
 }

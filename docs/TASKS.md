@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** bước 17 – DPI & đa màn hình
-- **Tiếp theo:** bước 17 (DPI & đa màn hình), 18 (build & thử máy sạch)
+- **Đang làm:** bước 19 – Ngẫu nhiên hoá. Bước 17–18 tạm hoãn: chưa có máy Windows
+- **Tiếp theo:** bước 20 (nhóm bước), 21 (lưu / tải kịch bản). Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-15
 
 ## Quyết định đã chốt
@@ -143,8 +143,11 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 ### Hoàn thiện
 - [ ] **17. DPI & đa màn hình** – Test toạ độ ở scaling 100%, 125%, 150% và với 2 màn hình.
   - Đã chốt: không làm bộ chọn màn hình – overlay mở trên màn chứa cửa sổ app, toạ độ dùng hệ toạ độ chung (đã thử chọn vùng trên màn thứ 2 OK, 2026-10-15)
-  - [ ] Dừng khẩn cấp nhận góc của mọi màn hình (hiện chỉ màn chính)
-  - [ ] Hai màn khác scale (Windows mixed DPI)
+  - [x] Dừng khẩn cấp nhận góc của mọi màn hình: `displays()` (`input.go`, Windows nhân `robotgo.ScaleF` cho cùng hệ toạ độ với `robotgo.Location`), `hardCorners` bỏ góc tiếp giáp màn khác; test `TestHardCorners`. Máy dev: màn ngoài 1920×1080 + MacBook 1512×982 tại (1920, 406) → 6 góc cứng
+  - [x] Overlay đo **tỷ lệ + độ lệch** (`coordMap.ts`, bình phương nhỏ nhất trên các mẫu chuột đứng yên) thay vì chỉ độ lệch – để scale ≠ 100% trên Windows vẽ vùng / marker đúng chỗ; điểm đặt / kéo marker vẫn lấy thẳng từ `MousePos`
+  - Ghi chú: robotgo trên Windows tự nhân toạ độ chuột với scale màn chính (`Location`) và chia lại khi `Move` → lấy toạ độ bằng robotgo rồi click lại luôn khớp; chỉ phép đổi sang px trong cửa sổ mới cần tỷ lệ
+  - [ ] Kiểm tra tay macOS: dừng khẩn cấp ở góc màn phụ, góc tiếp giáp 2 màn không dừng nhầm; overlay hiện "tỷ lệ 1.00"
+  - [ ] Kiểm tra trên Windows ở scale 100% / 125% / 150% và 2 màn khác scale (cần máy Windows – làm cùng bước 18)
 - [ ] **18. Build & thử máy sạch** – `wails build` ra .exe, chạy trên máy chưa cài Go/Node.
 
 ## Phase 2 – Tiện ích
@@ -196,3 +199,5 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Commit bước 15 (`2a9e42f`). Bước 16: nút Chạy / F8 chạy kịch bản đang soạn, đếm ngược trong Go, `RunSettings.tsx`, toạ độ chuột ở thanh dưới, dọn code thử Phase 0. `go test`, `npm run build` OK, chụp headless; chưa kiểm tra tay, chưa commit.
 - **2026-10-15** – Sửa lỗi overlay mở nhầm màn hình khi có 2 màn (`window.go`: đặt vị trí trước khi phóng to). `go build` OK; chờ người dùng kiểm tra.
 - **2026-10-15** – Xong bước 16 (kể cả sửa overlay mở nhầm màn): người dùng kiểm tra tay OK, commit.
+- **2026-10-15** – Commit bước 16 (`aadc204`). Bước 17: dừng khẩn cấp mọi màn hình (góc cứng), overlay đo tỷ lệ + độ lệch (`coordMap.ts`). `go test -race` OK (thêm `TestHardCorners`), `npm run build` OK; chưa kiểm tra tay, chưa commit; phần Windows chờ máy.
+- **2026-10-15** – Commit phần bước 17 làm được trên macOS (chưa kiểm tra tay); hoãn phần Windows của 17 và bước 18 vì chưa có máy Windows. Chuyển sang bước 19.

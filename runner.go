@@ -65,8 +65,7 @@ func (a *App) RunScript(sc Script, countdown int) error {
 	}
 	runtime.EventsEmit(a.ctx, "engine:countdown", 0)
 
-	sw, sh := robotgo.GetScreenSize()
-	go watchCorners(ctx, robotgo.Location, sw, sh, in, func() { a.stopWith(StopByCorner) })
+	go watchCorners(ctx, robotgo.Location, hardCorners(displays()), in, func() { a.stopWith(StopByCorner) })
 
 	err := eng.run(ctx)
 	if errors.Is(err, context.Canceled) {

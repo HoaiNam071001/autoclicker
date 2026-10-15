@@ -6,17 +6,47 @@ import (
 	"time"
 )
 
-// Dừng khẩn cấp (bước 9): người dùng rê chuột vào một góc màn hình chính thì dừng kịch bản.
+// Dừng khẩn cấp (bước 9, 17): người dùng rê chuột vào một góc "cứng" của bất kỳ màn hình nào thì dừng.
 const (
-	cornerSize    = 3                     // cách mép ≤ cornerSize-1 px theo cả 2 chiều = chạm góc
+	cornerSize    = 3                     // cách góc < cornerSize px theo cả 2 chiều = chạm góc
 	engineMoveTol = 2                     // lệch ≤ tol px so với điểm engine vừa đưa tới = do engine
 	failsafeEvery = 50 * time.Millisecond // chu kỳ đọc vị trí chuột
 )
 
-func inCorner(x, y, w, h int) bool {
-	nearX := x < cornerSize || x >= w-cornerSize
-	nearY := y < cornerSize || y >= h-cornerSize
-	return nearX && nearY
+// hardCorners trả các góc màn hình mà chuột bị chặn lại – bỏ góc tiếp giáp màn khác (chuột đi xuyên
+// qua được, tính vào sẽ dừng nhầm khi rê chuột giữa 2 màn).
+func hardCorners(displays []Rect) []Point {
+	inAny := func(x, y int) bool {
+		for _, d := range displays {
+			if x >= d.X && x < d.X+d.W && y >= d.Y && y < d.Y+d.H {
+				return true
+			}
+		}
+		return false
+	}
+	var out []Point
+	for _, d := range displays {
+		for _, c := range []struct{ x, y, dx, dy int }{
+			{d.X, d.Y, -1, -1},
+			{d.X + d.W - 1, d.Y, 1, -1},
+			{d.X, d.Y + d.H - 1, -1, 1},
+			{d.X + d.W - 1, d.Y + d.H - 1, 1, 1},
+		} {
+			if !inAny(c.x+c.dx, c.y) && !inAny(c.x, c.y+c.dy) && !inAny(c.x+c.dx, c.y+c.dy) {
+				out = append(out, Point{c.x, c.y})
+			}
+		}
+	}
+	return out
+}
+
+func inCorner(x, y int, corners []Point) bool {
+	for _, c := range corners {
+		if abs(x-c.X) < cornerSize && abs(y-c.Y) < cornerSize {
+			return true
+		}
+	}
+	return false
 }
 
 // trackingInput bọc Input, ghi lại điểm engine vừa đưa chuột tới – để kịch bản có điểm ở góc
@@ -60,8 +90,8 @@ func abs(n int) int {
 }
 
 // watchCorners đọc vị trí chuột định kỳ tới khi ctx bị huỷ; gọi onHit (một lần) khi chuột
-// ở góc màn hình (w × h) mà không phải do engine đưa tới.
-func watchCorners(ctx context.Context, location func() (int, int), w, h int, t *trackingInput, onHit func()) {
+// ở một trong các góc corners mà không phải do engine đưa tới.
+func watchCorners(ctx context.Context, location func() (int, int), corners []Point, t *trackingInput, onHit func()) {
 	tick := time.NewTicker(failsafeEvery)
 	defer tick.Stop()
 	for {
@@ -71,7 +101,7 @@ func watchCorners(ctx context.Context, location func() (int, int), w, h int, t *
 		case <-tick.C:
 		}
 		x, y := location()
-		if inCorner(x, y, w, h) && !t.movedByEngine(x, y) {
+		if inCorner(x, y, corners) && !t.movedByEngine(x, y) {
 			onHit()
 			return
 		}

@@ -6,12 +6,9 @@ import {
 } from '../scriptStore';
 import { Point, Rect } from '../types';
 import { inWails, OverlayTool, overlayTool, setWindowMode } from '../windowMode';
+import { addSample, currentMapping, isMeasured, resetSamples, toClientPt, toScreenPt } from '../coordMap';
 
-// Độ lệch toạ độ màn hình (robotgo) − toạ độ trong cửa sổ. Trên macOS cửa sổ bắt đầu dưới menu bar
-// nên Y lệch; đo lại mỗi khi chuột đứng yên, nhớ giữa các lần mở overlay.
-let lastOffset: Point = { x: 0, y: 0 };
-let measured = false;
-const CALIBRATE_MS = 150;
+const CALIBRATE_MS = 150; // chuột đứng yên bao lâu thì lấy mẫu đo toạ độ (coordMap.ts)
 const MIN_REGION = 10; // px – kéo nhỏ hơn coi như click nhầm
 const MIN_MOVE = 3; // px – kéo marker ít hơn coi như click (chọn bước)
 
@@ -33,8 +30,8 @@ export default function OverlayScreen() {
   const [picking] = useState(pickingStep); // id bước đang chọn lại điểm (nút ⌖), null = thêm bước mới
   const [tool, setTool] = useState<OverlayTool>(overlayTool);
   const [cursor, setCursor] = useState<Point>({ x: -100, y: -100 });
-  const [offset, setOffset] = useState(lastOffset);
-  const [isMeasured, setMeasured] = useState(measured);
+  const [map, setMap] = useState(currentMapping);
+  const [measured, setMeasured] = useState(isMeasured);
   const [dragFrom, setDragFromState] = useState<Point | null>(null); // toạ độ cửa sổ
   const dragRef = useRef<Point | null>(null);
   const setDragFrom = (p: Point | null) => {
@@ -52,6 +49,7 @@ export default function OverlayScreen() {
   const timer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
+    resetSamples(); // overlay có thể đang mở trên màn khác lần trước
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       // Đang kéo vùng / marker thì Esc chỉ huỷ thao tác đó.
@@ -69,7 +67,8 @@ export default function OverlayScreen() {
 
   useEffect(() => setDragMode(tool === 'drag'), [tool]);
 
-  const toClient = (p: Point): Point => ({ x: p.x - offset.x, y: p.y - offset.y });
+  const toClient = (p: Point): Point => toClientPt(map, p);
+  const toScreenFromClient = (p: Point): Point => toScreenPt(map, p);
   const onUI = (e: MouseEvent) => !!(e.target as HTMLElement).closest('[data-ui]');
 
   const onMove = (e: MouseEvent) => {
@@ -84,9 +83,7 @@ export default function OverlayScreen() {
       const s = await MousePos();
       const now = cursorRef.current;
       if (now.x !== c.x || now.y !== c.y) return; // chuột đã đi tiếp → bỏ mẫu này
-      lastOffset = { x: s.x - c.x, y: s.y - c.y };
-      measured = true;
-      setOffset(lastOffset);
+      setMap(addSample(c, s));
       setMeasured(true);
     }, CALIBRATE_MS);
   };
@@ -111,7 +108,7 @@ export default function OverlayScreen() {
       return;
     }
     if (onUI(e) || tool === 'region') return;
-    const screen = inWails ? await MousePos() : { x: e.clientX + offset.x, y: e.clientY + offset.y };
+    const screen = inWails ? await MousePos() : toScreenFromClient({ x: e.clientX, y: e.clientY });
     placePoint(screen);
   };
 
@@ -120,7 +117,7 @@ export default function OverlayScreen() {
     if (m) {
       setMoving(null);
       if (!m.moved) return selectStep(m.id);
-      const screen = inWails ? await MousePos() : { x: e.clientX + offset.x, y: e.clientY + offset.y };
+      const screen = inWails ? await MousePos() : toScreenFromClient({ x: e.clientX, y: e.clientY });
       movePoint(m.id, m.index, screen);
       return;
     }
@@ -128,11 +125,15 @@ export default function OverlayScreen() {
     const r = rectOf(dragFrom, { x: e.clientX, y: e.clientY });
     setDragFrom(null);
     if (r.w < MIN_REGION || r.h < MIN_REGION) return;
-    setRegion({ x: r.x + offset.x, y: r.y + offset.y, w: r.w, h: r.h });
+    const tl = toScreenFromClient(r);
+    setRegion({ ...tl, w: Math.round(r.w * map.kx), h: Math.round(r.h * map.ky) });
   };
 
   // Vùng hiển thị: đang kéo → vùng tạm; đã chọn → đổi sang toạ độ cửa sổ; null = toàn màn hình (không vẽ).
-  const shown = dragFrom ? rectOf(dragFrom, cursor) : region && { ...region, ...toClient(region) };
+  const shown = dragFrom ? rectOf(dragFrom, cursor)
+    : region && { ...toClient(region), w: region.w / map.kx, h: region.h / map.ky };
+  // Nhãn kích thước vùng theo toạ độ thật (robotgo), không phải px trong cửa sổ.
+  const shownSize = dragFrom && shown ? { w: Math.round(shown.w * map.kx), h: Math.round(shown.h * map.ky) } : region;
 
   // Marker của các bước đang bật, đánh số giống danh sách bước; kéo thả có A và B.
   // Marker đang kéo vẽ theo con trỏ; đường nối cũng đi theo.
@@ -145,7 +146,7 @@ export default function OverlayScreen() {
       markers.push({ id: s.id, index: j, label, at: dragging ? cursor : toClient(toScreen(p, region)), drag: s.type === 'drag' });
     });
   });
-  const screenCursor = { x: cursor.x + offset.x, y: cursor.y + offset.y };
+  const screenCursor = toScreenFromClient(cursor);
 
   return (
     <div className={`fixed inset-0 select-none bg-[rgba(20,24,32,.45)] cursor-crosshair`}
@@ -155,7 +156,7 @@ export default function OverlayScreen() {
           <div className="absolute border-2 border-dashed border-white bg-white/5"
             style={{ left: shown.x, top: shown.y, width: shown.w, height: shown.h }} />
           <span className="absolute rounded bg-accent px-2 py-0.5 font-mono text-[13px] text-white"
-            style={{ left: shown.x, top: shown.y - 30 }}>Vùng {shown.w} × {shown.h}</span>
+            style={{ left: shown.x, top: shown.y - 30 }}>Vùng {shownSize?.w} × {shownSize?.h}</span>
           {[[shown.x, shown.y], [shown.x + shown.w, shown.y + shown.h]].map(([x, y], i) => (
             <span key={i} className="absolute h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 border-2 border-accent bg-white" style={{ left: x, top: y }} />
           ))}
@@ -237,7 +238,9 @@ export default function OverlayScreen() {
         {notice && <span className="text-ok">{notice}</span>}
         {inWails && (
           <span className="text-accent-light">
-            {isMeasured ? `Lệch toạ độ X ${offset.x}  Y ${offset.y}` : 'Đang đo lệch toạ độ – rê chuột rồi dừng lại'}
+            {measured
+              ? `Đo toạ độ: tỷ lệ ${map.kx.toFixed(2)}${Math.abs(map.kx - map.ky) > 0.01 ? `/${map.ky.toFixed(2)}` : ''} · lệch X ${Math.round(map.bx)} Y ${Math.round(map.by)}`
+              : 'Đang đo toạ độ – rê chuột rồi dừng lại'}
           </span>
         )}
       </div>
