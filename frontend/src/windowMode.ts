@@ -10,3 +10,13 @@ export async function setWindowMode(mode: WindowMode) {
   if (inWails) await SetWindowMode(mode);
   location.hash = mode === 'main' ? '' : mode;
 }
+
+export type OverlayTool = 'point' | 'drag' | 'region';
+
+// Công cụ được chọn sẵn khi mở overlay (OverlayScreen đọc lúc mount).
+export let overlayTool: OverlayTool = 'region';
+
+export function openOverlay(tool: OverlayTool) {
+  overlayTool = tool;
+  return setWindowMode('overlay');
+}

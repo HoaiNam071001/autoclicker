@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** chưa chọn – xong bước 9 (engine 6–9 xong). Còn tồn: đo độ lệch toạ độ overlay trên macOS
-- **Tiếp theo:** bước 10–13 (chọn vùng / điểm trên overlay – cần số đo độ lệch toạ độ trước)
+- **Đang làm:** bước 11 – Chọn điểm
+- **Tiếp theo:** bước 11 (chọn điểm trên overlay / F6)
 - **Cập nhật lần cuối:** 2026-10-15
 
 ## Quyết định đã chốt
@@ -17,6 +17,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - Font **Be Vietnam Pro** + **IBM Plex Mono** cài local qua `@fontsource/*` (app phải chạy được offline).
 - UI theo **phương án A (MainScreen)** cho MVP. Phương án B (PreviewScreen) giữ làm tham khảo.
 - **Gõ chữ / phím tắt đưa vào MVP** (loại bước `type`, `key`) thay vì Phase 2, để model, engine, form làm một lần.
+- Toạ độ lưu theo **toạ độ màn hình thật (robotgo)**. Overlay tự đo độ lệch cửa sổ ↔ màn hình (so `clientX/Y` với `robotgo.Location` khi chuột đứng yên) thay vì tính từ vị trí cửa sổ – Wails macOS đặt cửa sổ dưới menu bar.
 - Cửa sổ luôn **frameless + nền trong suốt** (Wails v2 không đổi được lúc chạy); MainScreen tự vẽ thanh kéo và nút thu nhỏ / đóng.
 - Wails v2 chỉ có **một cửa sổ** → overlay và mini bar là các *chế độ* của cửa sổ chính (resize / fullscreen / trong suốt / always-on-top), không phải cửa sổ riêng.
 
@@ -93,7 +94,12 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - Giới hạn: chỉ màn hình chính; nếu kịch bản di chuột liên tục (click dày) thì khó chạm góc kịp giữa 2 lần engine kéo chuột đi – khi đó dùng F8
 
 ### Chọn vùng & điểm
-- [ ] **10. Chọn vùng** – Mặc định toàn màn hình; kéo chọn hình chữ nhật trên overlay. Điểm lưu toạ độ tương đối theo vùng.
+- [x] **10. Chọn vùng** – Mặc định toàn màn hình; kéo chọn hình chữ nhật trên overlay. Điểm lưu toạ độ tương đối theo vùng.
+  - [x] `scriptStore.ts`: store kịch bản dùng chung MainScreen ↔ Overlay (`useScript`, `setRegion`, `toScreen`); `types.ts` thêm `Rect`, `Script` (khớp Go)
+  - [x] Overlay: kéo chuột vẽ vùng (< 10 px bỏ qua, Esc huỷ khi đang kéo), nút *Toàn màn hình*; tự đo lệch toạ độ; crosshair hiện toạ độ màn hình thật; marker + đường nối vẽ từ các bước trong store
+  - [x] MainScreen: *Chọn vùng* mở overlay (`openOverlay('region')`), footer hiện vùng + nút về toàn màn hình; danh sách bước đọc từ store
+  - [x] Kiểm tra tay: chọn vùng, marker dịch theo vùng, toạ độ crosshair khớp toạ độ thật
+  - Giới hạn: độ lệch chỉ là phép tịnh tiến – màn hình scale ≠ 100% (Windows DPI) xử lý ở bước 17
 - [ ] **11. Chọn điểm** – Click trên overlay để đặt điểm, hoặc F6 lưu vị trí chuột hiện tại.
 - [ ] **12. Marker & đường nối** – Marker đánh số, đường nối theo thứ tự; kéo marker để sửa vị trí.
 - [ ] **13. Chọn điểm kéo thả** – Chọn A rồi B, hiển thị mũi tên A→B.
@@ -106,6 +112,9 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 
 ### Hoàn thiện
 - [ ] **17. DPI & đa màn hình** – Test toạ độ ở scaling 100%, 125%, 150% và với 2 màn hình.
+  - Đã chốt: không làm bộ chọn màn hình – overlay mở trên màn chứa cửa sổ app, toạ độ dùng hệ toạ độ chung (đã thử chọn vùng trên màn thứ 2 OK, 2026-10-15)
+  - [ ] Dừng khẩn cấp nhận góc của mọi màn hình (hiện chỉ màn chính)
+  - [ ] Hai màn khác scale (Windows mixed DPI)
 - [ ] **18. Build & thử máy sạch** – `wails build` ra .exe, chạy trên máy chưa cài Go/Node.
 
 ## Phase 2 – Tiện ích
@@ -141,3 +150,5 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Xong bước 8: kiểm tra tay macOS – mini bar hiện tiến độ, tạm dừng / tiếp tục, Dừng / F8 về main OK.
 - **2026-10-15** – Commit bước 8 (`a3d3058`). Bước 9: `failsafe.go` (dừng khi chuột chạm góc, bỏ qua khi do engine đưa tới), event `engine:stopped` + lý do. `go test -race` 8/8, `npm run build` OK; chưa kiểm tra tay.
 - **2026-10-15** – Xong bước 9: kiểm tra tay macOS – rê chuột vào góc khi đang chạy → dừng, về main OK.
+- **2026-10-15** – Commit bước 9 (`c6b8b96`). Bước 10: `scriptStore.ts`, overlay chọn vùng + tự đo lệch toạ độ + marker theo dữ liệu thật. `npm run build` OK, chụp headless kiểm tra overlay / main; chưa kiểm tra tay trong app.
+- **2026-10-15** – Xong bước 10: kiểm tra tay macOS – chọn vùng OK, kể cả trên màn hình thứ 2 (không cần bộ chọn màn hình).

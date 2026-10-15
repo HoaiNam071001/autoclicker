@@ -1,11 +1,12 @@
 // Phương án A – danh sách bước + form cấu hình
 import { useEffect, useState } from 'react';
 import { Drag, Logo, Play, Region, Target } from '../components/icons';
-import { Modifier, Step, STEP_LABEL, StepType, fmtMs, fmtPos, makeStep, sampleSteps } from '../types';
+import { Modifier, STEP_LABEL, StepType, fmtMs, fmtPos, makeStep } from '../types';
 import { RunScript, SpikeClick, StopScript } from '../../wailsjs/go/main/App';
 import { main } from '../../wailsjs/go/models';
 import { EventsOn, Quit, WindowMinimise } from '../../wailsjs/runtime/runtime';
-import { inWails, setWindowMode } from '../windowMode';
+import { inWails, openOverlay, setWindowMode } from '../windowMode';
+import { setRegion, useScript } from '../scriptStore';
 import { setLastError, STOP_REASON, useEngine } from '../engineStore';
 
 const btn = 'flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3.5';
@@ -29,7 +30,7 @@ const engineDemo = main.Script.createFrom({
 });
 
 export default function MainScreen() {
-  const [steps] = useState<Step[]>(sampleSteps);
+  const { steps, region } = useScript();
   const [selected, setSelected] = useState('3');
   const cur = steps.find((s) => s.id === selected)!;
   const idx = steps.indexOf(cur) + 1;
@@ -78,7 +79,7 @@ export default function MainScreen() {
           <span className="text-muted">Kịch bản</span><span className="font-semibold">Kịch bản 1</span>
         </div>
         <div className="flex flex-1 flex-wrap gap-2">
-          <button className={btn}><Region />Chọn vùng</button>
+          <button onClick={() => openOverlay('region')} className={btn}><Region />Chọn vùng</button>
           <button className={btn}><Target />Thêm điểm
             <kbd className="rounded border border-line px-1.5 font-mono text-xs text-muted">F6</kbd>
           </button>
@@ -86,7 +87,6 @@ export default function MainScreen() {
         </div>
         <button onClick={runSpike} className={btn} title="Spike bước 3">Thử click 500,500</button>
         <button onClick={toggleEngine} className={btn} title="Thử engine bước 7">{running ? 'Dừng engine' : 'Chạy thử engine'}</button>
-        <button onClick={() => setWindowMode('overlay')} className={btn} title="Spike bước 5">Thử overlay</button>
         <button onClick={() => setWindowMode('minibar')} className={btn} title="Spike bước 5">Thử mini bar</button>
         {spikeMsg && <span className="font-mono text-xs text-muted">{spikeMsg}</span>}
         {lastError && <span className="font-mono text-xs text-danger">Lỗi engine: {lastError}</span>}
@@ -219,7 +219,10 @@ export default function MainScreen() {
       </div>
 
       <footer className="flex flex-wrap gap-5 border-t border-line bg-white px-5 py-2 text-[13px] text-muted">
-        <span>Vùng: toàn màn hình <span className="font-mono">1920 × 1080</span></span>
+        <span>Vùng: {region
+          ? <><span className="font-mono">X {region.x} Y {region.y} · {region.w} × {region.h}</span>
+              <button onClick={() => setRegion(null)} className="ml-2 underline">Toàn màn hình</button></>
+          : 'toàn màn hình'}</span>
         <span>Chuột: <span className="font-mono">X 1204 Y 388</span></span>
         <span className="ml-auto">Dừng khẩn cấp: rê chuột vào góc màn hình</span>
       </footer>

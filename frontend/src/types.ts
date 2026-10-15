@@ -1,6 +1,7 @@
 import { main } from '../wailsjs/go/models';
 
 export type Point = { x: number; y: number };
+export type Rect = { x: number; y: number; w: number; h: number };
 export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key';
 export type MouseButton = 'left' | 'right' | 'center';
 export type Modifier = 'cmd' | 'ctrl' | 'alt' | 'shift';
@@ -26,6 +27,17 @@ type Fields<T> = { [K in keyof T as T[K] extends Function ? never : K]: T[K] };
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const stepMatchesGo: [Step extends Fields<main.Step> ? true : false, Same<keyof Step, keyof Fields<main.Step>>] = [true, true];
 void stepMatchesGo;
+
+// Kịch bản – khớp struct Script trong model.go. Toạ độ điểm tương đối theo region (null = toàn màn hình).
+export interface Script {
+  name: string;
+  region: Rect | null; // toạ độ màn hình thật (robotgo)
+  loops: number; // 0 = vô hạn
+  maxMinutes: number; // 0 = không giới hạn
+  steps: Step[];
+}
+const scriptMatchesGo: Same<keyof Script, keyof Fields<main.Script>> = true;
+void scriptMatchesGo;
 
 // Tạo bước với giá trị trống, ghi đè bằng p (dùng cho dữ liệu mẫu / demo).
 export const makeStep = (p: Partial<Step> & Pick<Step, 'id' | 'type'>): Step => ({
