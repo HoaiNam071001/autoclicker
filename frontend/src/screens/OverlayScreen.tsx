@@ -1,7 +1,7 @@
 // Overlay chọn vùng / điểm – cửa sổ trong suốt phủ màn hình, always-on-top
 import { MouseEvent, useEffect, useRef, useState } from 'react';
 import { MousePos } from '../../wailsjs/go/main/App';
-import { cancelPick, pickingStep, placePoint, setRegion, toScreen, useEditor } from '../scriptStore';
+import { cancelPick, movePoint, pickingStep, placePoint, selectStep, setRegion, toScreen, useEditor } from '../scriptStore';
 import { Point, Rect } from '../types';
 import { inWails, OverlayTool, overlayTool, setWindowMode } from '../windowMode';
 
@@ -11,6 +11,10 @@ let lastOffset: Point = { x: 0, y: 0 };
 let measured = false;
 const CALIBRATE_MS = 150;
 const MIN_REGION = 10; // px – kéo nhỏ hơn coi như click nhầm
+const MIN_MOVE = 3; // px – kéo marker ít hơn coi như click (chọn bước)
+
+// Marker đang được kéo: bước, điểm thứ mấy, vị trí bấm xuống (toạ độ cửa sổ), đã kéo đủ xa chưa.
+type Moving = { id: string; index: number; from: Point; moved: boolean };
 
 const TOOLS: { id: OverlayTool; label: string; ready: boolean }[] = [
   { id: 'point', label: 'Đặt điểm', ready: true },
@@ -23,7 +27,7 @@ const rectOf = (a: Point, b: Point): Rect => ({
 });
 
 export default function OverlayScreen() {
-  const { script: { region, steps }, notice } = useEditor();
+  const { script: { region, steps }, selected, notice } = useEditor();
   const [picking] = useState(pickingStep); // id bước đang chọn lại điểm (nút ⌖), null = thêm bước mới
   const [tool, setTool] = useState<OverlayTool>(overlayTool);
   const [cursor, setCursor] = useState<Point>({ x: -100, y: -100 });
@@ -35,13 +39,22 @@ export default function OverlayScreen() {
     dragRef.current = p;
     setDragFromState(p);
   };
+  const [moving, setMovingState] = useState<Moving | null>(null);
+  const movingRef = useRef<Moving | null>(null);
+  const setMoving = (m: Moving | null) => {
+    movingRef.current = m;
+    setMovingState(m);
+  };
+  const skipClick = useRef(false); // click sinh ra sau khi thả marker không được tính là đặt điểm
   const cursorRef = useRef(cursor);
   const timer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
-      if (dragRef.current) setDragFrom(null); // đang kéo thì Esc chỉ huỷ vùng đang kéo
+      // Đang kéo vùng / marker thì Esc chỉ huỷ thao tác đó.
+      if (movingRef.current) setMoving(null);
+      else if (dragRef.current) setDragFrom(null);
       else setWindowMode('main');
     };
     window.addEventListener('keydown', onKey);
@@ -59,6 +72,8 @@ export default function OverlayScreen() {
     const c = { x: e.clientX, y: e.clientY };
     setCursor(c);
     cursorRef.current = c;
+    const m = movingRef.current;
+    if (m && !m.moved && Math.hypot(c.x - m.from.x, c.y - m.from.y) >= MIN_MOVE) setMoving({ ...m, moved: true });
     if (!inWails) return;
     clearTimeout(timer.current);
     timer.current = window.setTimeout(async () => {
@@ -73,18 +88,38 @@ export default function OverlayScreen() {
   };
 
   const onDown = (e: MouseEvent) => {
+    skipClick.current = false; // bấm ngoài marker (marker chặn sự kiện này)
     if (onUI(e) || e.button !== 0 || tool !== 'region') return;
     setDragFrom({ x: e.clientX, y: e.clientY });
   };
 
+  const onMarkerDown = (e: MouseEvent, id: string, index: number) => {
+    if (e.button !== 0) return;
+    e.stopPropagation(); // không bắt đầu kéo vùng
+    skipClick.current = true;
+    setMoving({ id, index, from: { x: e.clientX, y: e.clientY }, moved: false });
+  };
+
   // Đặt điểm: lấy vị trí chuột thật từ Go (không phụ thuộc độ lệch đã đo hay chưa).
   const onClick = async (e: MouseEvent) => {
+    if (skipClick.current) {
+      skipClick.current = false;
+      return;
+    }
     if (onUI(e) || tool !== 'point') return;
     const screen = inWails ? await MousePos() : { x: e.clientX + offset.x, y: e.clientY + offset.y };
     placePoint(screen);
   };
 
-  const onUp = (e: MouseEvent) => {
+  const onUp = async (e: MouseEvent) => {
+    const m = movingRef.current;
+    if (m) {
+      setMoving(null);
+      if (!m.moved) return selectStep(m.id);
+      const screen = inWails ? await MousePos() : { x: e.clientX + offset.x, y: e.clientY + offset.y };
+      movePoint(m.id, m.index, screen);
+      return;
+    }
     if (!dragFrom) return;
     const r = rectOf(dragFrom, { x: e.clientX, y: e.clientY });
     setDragFrom(null);
@@ -96,12 +131,14 @@ export default function OverlayScreen() {
   const shown = dragFrom ? rectOf(dragFrom, cursor) : region && { ...region, ...toClient(region) };
 
   // Marker của các bước đang bật, đánh số giống danh sách bước; kéo thả có A và B.
-  const markers: { label: string; at: Point; drag: boolean }[] = [];
+  // Marker đang kéo vẽ theo con trỏ; đường nối cũng đi theo.
+  const markers: { id: string; index: number; label: string; at: Point; drag: boolean }[] = [];
   steps.forEach((s, i) => {
     if (!s.enabled) return;
     s.points.slice(0, s.type === 'drag' ? 2 : 1).forEach((p, j) => {
       const label = s.type === 'drag' ? `${i + 1}${j === 0 ? 'A' : 'B'}` : `${i + 1}`;
-      markers.push({ label, at: toClient(toScreen(p, region)), drag: s.type === 'drag' });
+      const dragging = moving?.moved && moving.id === s.id && moving.index === j;
+      markers.push({ id: s.id, index: j, label, at: dragging ? cursor : toClient(toScreen(p, region)), drag: s.type === 'drag' });
     });
   });
   const screenCursor = { x: cursor.x + offset.x, y: cursor.y + offset.y };
@@ -137,8 +174,9 @@ export default function OverlayScreen() {
       </svg>
 
       {markers.map((m) => (
-        <span key={m.label} style={{ left: m.at.x, top: m.at.y }}
-          className={`pointer-events-none absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white text-[13px] font-bold text-white shadow-[0_2px_8px_rgba(0,0,0,.35)] ${m.drag ? 'bg-drag-marker' : 'bg-accent'}`}>
+        <span key={m.label} style={{ left: m.at.x, top: m.at.y }} title="Kéo để dời điểm, click để chọn bước"
+          onMouseDown={(e) => onMarkerDown(e, m.id, m.index)}
+          className={`absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white text-[13px] font-bold text-white shadow-[0_2px_8px_rgba(0,0,0,.35)] ${m.drag ? 'bg-drag-marker' : 'bg-accent'} ${moving ? 'cursor-grabbing' : 'cursor-grab'} ${m.id === selected ? 'outline-[3px] outline-offset-2 outline-white outline-dashed' : ''}`}>
           {m.label}
         </span>
       ))}
@@ -167,7 +205,7 @@ export default function OverlayScreen() {
         <button onClick={() => setWindowMode('main')} className="h-11 rounded-lg bg-ink px-4 font-semibold text-white">Xong <span className="font-mono text-xs opacity-70">Esc</span></button>
       </div>
 
-      <div data-ui className="absolute left-6 top-6 flex flex-col gap-0.5 rounded-lg bg-ink/90 px-3 py-2 font-mono text-[13px] text-white">
+      <div data-ui className="absolute left-6 top-6 flex max-w-[300px] flex-col gap-0.5 rounded-lg bg-ink/90 px-3 py-2 font-mono text-[13px] text-white">
         <span>{region ? `Vùng X ${region.x} Y ${region.y} · ${region.w} × ${region.h}` : 'Vùng: toàn màn hình'}</span>
         {tool === 'region' && <span className="text-dark-muted">Kéo chuột để chọn vùng</span>}
         {tool === 'point' && (
@@ -175,7 +213,8 @@ export default function OverlayScreen() {
             {picking ? 'Click để đặt lại điểm cho bước đang chọn' : 'Click (hoặc fn+F6) để thêm bước click mới'}
           </span>
         )}
-        {notice && <span className="max-w-[420px] whitespace-normal text-ok">{notice}</span>}
+        <span className="text-dark-muted">Kéo marker: dời điểm · click: chọn bước</span>
+        {notice && <span className="text-ok">{notice}</span>}
         {inWails && (
           <span className="text-accent-light">
             {isMeasured ? `Lệch toạ độ X ${offset.x}  Y ${offset.y}` : 'Đang đo lệch toạ độ – rê chuột rồi dừng lại'}

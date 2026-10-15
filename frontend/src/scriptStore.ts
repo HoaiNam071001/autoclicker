@@ -80,17 +80,30 @@ export function placePoint(screen: Point): boolean {
   if (pickTarget) {
     const id = pickTarget;
     pickTarget = null;
-    const idx = steps.findIndex((s) => s.id === id);
-    if (idx >= 0) {
-      setSteps(steps.map((s) => (s.id === id ? { ...s, points: [rel, ...s.points.slice(1)] } : s)));
-      set({ selected: id, notice: `Đã đặt lại điểm bước ${idx + 1}: X ${rel.x} Y ${rel.y}` });
-    }
+    movePoint(id, 0, screen);
     setWindowMode('main');
     return true;
   }
   const step = makeStep({ id: newId(), type: 'click', points: [rel], delayAfter: 500 });
   setSteps([...steps, step]);
   set({ selected: step.id, notice: `Đã thêm bước ${steps.length + 1}: click X ${rel.x} Y ${rel.y}` });
+  return true;
+}
+
+// Dời điểm thứ index của bước id tới toạ độ màn hình screen (kéo marker, chọn lại điểm).
+// Ngoài vùng → báo và giữ nguyên.
+export function movePoint(id: string, index: number, screen: Point): boolean {
+  const { steps, region } = state.script;
+  const idx = steps.findIndex((s) => s.id === id);
+  const rel = toRelative(screen, region);
+  if (idx < 0) return false;
+  if (!rel) {
+    setNotice(`Điểm X ${screen.x} Y ${screen.y} nằm ngoài vùng – giữ vị trí cũ`);
+    return false;
+  }
+  const label = steps[idx].type === 'drag' ? `${idx + 1}${index === 0 ? 'A' : 'B'}` : `${idx + 1}`;
+  setSteps(steps.map((s) => (s.id === id ? { ...s, points: s.points.map((p, i) => (i === index ? rel : p)) } : s)));
+  set({ selected: id, notice: `Đã đặt điểm ${label}: X ${rel.x} Y ${rel.y}` });
   return true;
 }
 
