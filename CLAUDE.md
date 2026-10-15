@@ -21,7 +21,7 @@ Xem riêng từng màn trong `wails dev` / trình duyệt: thêm hash `#preview`
 ## Cấu trúc
 
 - `main.go`, `app.go` – Wails app; method public của `App` được bind sang frontend (`frontend/wailsjs/go/main/App`, file tự sinh – không sửa tay).
-- `model.go` – model kịch bản (`Step`, `Script`); `window.go` – chế độ cửa sổ main / overlay / minibar; `hotkey.go` – phím toàn cục (gohook); `engine.go` – chạy kịch bản qua interface `Input` (`input.go` = robotgo, test dùng input giả – `go test ./...`); `runner.go` – `RunScript` / `StopScript`; `spike.go` – code thử bước 3.
+- `model.go` – model kịch bản (`Step`, `Script`); `window.go` – chế độ cửa sổ main / overlay / minibar; `hotkey.go` – phím toàn cục (gohook); `engine.go` – chạy kịch bản qua interface `Input` (`input.go` = robotgo, test dùng input giả – `go test ./...`); `runner.go` – `RunScript` / `StopScript` / `PauseScript` / `ResumeScript`; `failsafe.go` – dừng khẩn cấp khi chuột chạm góc màn hình; `spike.go` – code thử bước 3.
 - `frontend/src/engineStore.ts` – store trạng thái engine (event `engine:state` / `engine:progress`); `windowMode.ts` – `setWindowMode` đổi cửa sổ + màn.
 - `frontend/src/screens/` – các màn UI; `components/icons.tsx` – icon SVG; `types.ts` – model `Step` (phải khớp struct Go trong `model.go`; tsc tự kiểm tra).
 - `frontend/src/style.css` – Tailwind v4 + token thiết kế trong `@theme`.

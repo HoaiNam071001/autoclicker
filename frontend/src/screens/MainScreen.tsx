@@ -6,7 +6,7 @@ import { RunScript, SpikeClick, StopScript } from '../../wailsjs/go/main/App';
 import { main } from '../../wailsjs/go/models';
 import { EventsOn, Quit, WindowMinimise } from '../../wailsjs/runtime/runtime';
 import { inWails, setWindowMode } from '../windowMode';
-import { setLastError, useEngine } from '../engineStore';
+import { setLastError, STOP_REASON, useEngine } from '../engineStore';
 
 const btn = 'flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3.5';
 const field = 'h-10 rounded-lg border border-line px-2.5 font-mono';
@@ -34,12 +34,11 @@ export default function MainScreen() {
   const cur = steps.find((s) => s.id === selected)!;
   const idx = steps.indexOf(cur) + 1;
   const [spikeMsg, setSpikeMsg] = useState('');
-  const { running, lastError } = useEngine();
+  const { running, lastError, stopReason } = useEngine();
 
   useEffect(() => {
     if (!inWails) return;
     const offs = [
-      EventsOn('hotkey:f8', () => setSpikeMsg('Đã dừng bằng F8')),
       EventsOn('hotkey:error', (msg: string) => setSpikeMsg(`Lỗi: ${msg}`)),
     ];
     return () => offs.forEach((off) => off());
@@ -91,6 +90,7 @@ export default function MainScreen() {
         <button onClick={() => setWindowMode('minibar')} className={btn} title="Spike bước 5">Thử mini bar</button>
         {spikeMsg && <span className="font-mono text-xs text-muted">{spikeMsg}</span>}
         {lastError && <span className="font-mono text-xs text-danger">Lỗi engine: {lastError}</span>}
+        {stopReason && <span className="font-mono text-xs text-muted">{STOP_REASON[stopReason] ?? stopReason}</span>}
         <button className="flex h-11 items-center gap-2.5 rounded-lg bg-accent px-5 font-semibold text-white">
           <Play />Chạy <span className="font-mono text-xs opacity-85">F8</span>
         </button>

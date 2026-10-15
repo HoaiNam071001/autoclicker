@@ -14,10 +14,17 @@ export type Progress = {
 };
 
 // lastError: lỗi của lần chạy gần nhất – giữ ở store vì màn gọi RunScript bị gỡ khi chuyển sang mini bar.
-type EngineState = { running: boolean; progress: Progress | null; receivedAt: number; lastError: string };
+// stopReason: lý do lần dừng gần nhất ('f8' | 'corner'), '' nếu chạy hết / dừng bằng nút.
+type EngineState = {
+  running: boolean;
+  progress: Progress | null;
+  receivedAt: number;
+  lastError: string;
+  stopReason: string;
+};
 
 // Store chung nghe event từ Go ngay khi load, để màn mở sau (mini bar) vẫn có dữ liệu mới nhất.
-let state: EngineState = { running: false, progress: null, receivedAt: 0, lastError: '' };
+let state: EngineState = { running: false, progress: null, receivedAt: 0, lastError: '', stopReason: '' };
 const listeners = new Set<() => void>();
 const set = (patch: Partial<EngineState>) => {
   state = { ...state, ...patch };
@@ -25,7 +32,8 @@ const set = (patch: Partial<EngineState>) => {
 };
 
 if (inWails) {
-  EventsOn('engine:state', (running: boolean) => set(running ? { running, progress: null, lastError: '' } : { running }));
+  EventsOn('engine:state', (running: boolean) => set(running ? { running, progress: null, lastError: '', stopReason: '' } : { running }));
+  EventsOn('engine:stopped', (stopReason: string) => set({ stopReason }));
   EventsOn('engine:progress', (progress: Progress) => set({ progress, receivedAt: Date.now() }));
 }
 
@@ -47,4 +55,9 @@ export const fmtElapsed = (ms: number) => {
   const mm = String(Math.floor(s / 60) % 60).padStart(2, '0');
   const ss = String(s % 60).padStart(2, '0');
   return s >= 3600 ? `${Math.floor(s / 3600)}:${mm}:${ss}` : `${mm}:${ss}`;
+};
+
+export const STOP_REASON: Record<string, string> = {
+  f8: 'Đã dừng bằng F8',
+  corner: 'Dừng khẩn cấp: chuột chạm góc màn hình',
 };

@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** bước 9 – Dừng khẩn cấp. Còn tồn: đo độ lệch toạ độ overlay trên macOS
-- **Tiếp theo:** bước 9 (dừng khẩn cấp khi chuột chạm góc màn hình)
+- **Đang làm:** chưa chọn – xong bước 9 (engine 6–9 xong). Còn tồn: đo độ lệch toạ độ overlay trên macOS
+- **Tiếp theo:** bước 10–13 (chọn vùng / điểm trên overlay – cần số đo độ lệch toạ độ trước)
 - **Cập nhật lần cuối:** 2026-10-15
 
 ## Quyết định đã chốt
@@ -85,7 +85,12 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] `engineStore.ts`: store chung nghe event (mini bar mở sau vẫn có dữ liệu); MiniBar hiện số thật, ⏸ / ▶ hoạt động, *Dừng* = StopScript + về main
   - [x] Test `TestPauseResumeAndProgress`; `go test -race` 6/6 PASS
   - [x] Kiểm tra tay: *Chạy thử engine* (3 vòng) → cửa sổ thành mini bar, số chạy, tạm dừng / tiếp tục, Dừng hoặc F8 → về main
-- [ ] **9. Dừng khẩn cấp** – Dừng ngay khi chuột chạm góc màn hình.
+- [x] **9. Dừng khẩn cấp** – Dừng ngay khi chuột chạm góc màn hình.
+  - [x] `failsafe.go`: đọc vị trí chuột mỗi 50 ms khi đang chạy; chạm 1 trong 4 góc màn hình chính (≤ 2 px) → dừng. `trackingInput` nhớ điểm engine vừa đưa chuột tới để kịch bản có điểm ở góc không tự kích hoạt
+  - [x] Event `engine:stopped` kèm lý do (`f8` / `corner`), màn chính hiện lý do dừng; thay event `hotkey:f8`
+  - [x] Test `TestInCorner`, `TestWatchCorners`; `go test -race` 8/8 PASS
+  - [x] Kiểm tra tay: đang *Chạy thử engine*, rê chuột vào góc màn hình → dừng, về main, hiện "Dừng khẩn cấp…"
+  - Giới hạn: chỉ màn hình chính; nếu kịch bản di chuột liên tục (click dày) thì khó chạm góc kịp giữa 2 lần engine kéo chuột đi – khi đó dùng F8
 
 ### Chọn vùng & điểm
 - [ ] **10. Chọn vùng** – Mặc định toàn màn hình; kéo chọn hình chữ nhật trên overlay. Điểm lưu toạ độ tương đối theo vùng.
@@ -134,3 +139,5 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Xong bước 7: kiểm tra tay với TextEdit trên macOS – người dùng xác nhận chạy đúng như kỳ vọng.
 - **2026-10-15** – Bước 8: pause / resume (`pauseGate`), event tiến độ, `engineStore.ts`, MiniBar dữ liệu thật; demo engine chạy 3 vòng trong mini bar. Ghi chú: `maxMinutes` tính theo đồng hồ thật (kể cả lúc tạm dừng). `go test -race` 6/6, `npm run build` OK; chưa kiểm tra tay.
 - **2026-10-15** – Xong bước 8: kiểm tra tay macOS – mini bar hiện tiến độ, tạm dừng / tiếp tục, Dừng / F8 về main OK.
+- **2026-10-15** – Commit bước 8 (`a3d3058`). Bước 9: `failsafe.go` (dừng khi chuột chạm góc, bỏ qua khi do engine đưa tới), event `engine:stopped` + lý do. `go test -race` 8/8, `npm run build` OK; chưa kiểm tra tay.
+- **2026-10-15** – Xong bước 9: kiểm tra tay macOS – rê chuột vào góc khi đang chạy → dừng, về main OK.

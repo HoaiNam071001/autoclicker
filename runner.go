@@ -4,7 +4,14 @@ import (
 	"context"
 	"errors"
 
+	"github.com/go-vgo/robotgo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+)
+
+// Lý do dừng gửi kèm event "engine:stopped".
+const (
+	StopByF8     = "f8"
+	StopByCorner = "corner"
 )
 
 type runHandle struct {
@@ -22,7 +29,8 @@ func (a *App) RunScript(sc Script) error {
 		return errors.New("kịch bản đang chạy")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	eng := newEngine(robotgoInput{}, sc, func(p Progress) {
+	in := &trackingInput{Input: robotgoInput{}}
+	eng := newEngine(in, sc, func(p Progress) {
 		runtime.EventsEmit(a.ctx, "engine:progress", p)
 	})
 	h := &runHandle{cancel: cancel, eng: eng}
@@ -40,11 +48,23 @@ func (a *App) RunScript(sc Script) error {
 	}()
 	runtime.EventsEmit(a.ctx, "engine:state", true)
 
+	sw, sh := robotgo.GetScreenSize()
+	go watchCorners(ctx, robotgo.Location, sw, sh, in, func() { a.stopWith(StopByCorner) })
+
 	err := eng.run(ctx)
 	if errors.Is(err, context.Canceled) {
 		return nil
 	}
 	return err
+}
+
+// stopWith dừng kịch bản đang chạy và emit "engine:stopped" kèm lý do (F8, góc màn hình).
+func (a *App) stopWith(reason string) {
+	if a.current() == nil {
+		return
+	}
+	runtime.EventsEmit(a.ctx, "engine:stopped", reason)
+	a.StopScript()
 }
 
 // StopScript dừng kịch bản đang chạy (không làm gì nếu đang không chạy).
