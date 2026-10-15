@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** bước 13 – Chọn điểm kéo thả: code xong, **chờ kiểm tra tay**
-- **Tiếp theo:** bước 14 (danh sách bước: xoá, nhân bản, bật/tắt, sắp xếp)
+- **Đang làm:** bước 14 – Danh sách bước
+- **Tiếp theo:** bước 15 (form cấu hình bước)
 - **Cập nhật lần cuối:** 2026-10-15
 
 ## Quyết định đã chốt
@@ -111,11 +111,11 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] Kéo marker (cả A / B) để dời điểm – toạ độ lấy từ `MousePos` lúc thả, ngoài vùng thì báo và giữ chỗ cũ, Esc huỷ; `movePoint` trong `scriptStore.ts`
   - [x] Click marker (không kéo) → chọn bước, marker bước đang chọn có viền nét đứt; click marker không tạo điểm mới
   - [x] Kiểm tra tay: kéo marker trong app, toạ độ cập nhật ở form màn chính
-- [ ] **13. Chọn điểm kéo thả** – Chọn A rồi B, hiển thị mũi tên A→B.
+- [x] **13. Chọn điểm kéo thả** – Chọn A rồi B, hiển thị mũi tên A→B.
   - [x] Overlay công cụ *Kéo thả A → B*: click A (marker A + mũi tên nét đứt theo chuột) rồi click B → thêm bước kéo thả; Esc huỷ A; F6 cũng chọn được A / B
   - [x] Nút *Kéo thả* ở màn chính mở overlay công cụ này; nút ⌖ của bước kéo thả chọn lại cả A và B (tắt cho bước *Chờ*)
   - [x] `scriptStore.ts`: `dragA` trong store, `setDragMode`, `cancelDragA`; `placePoint` gom cặp A, B
-  - [ ] Kiểm tra tay: thêm bước kéo thả, chọn lại A / B, Esc huỷ A
+  - [x] Kiểm tra tay: thêm bước kéo thả, chọn lại A / B, Esc huỷ A
 
 ### Giao diện
 - [x] **13b. Dựng UI tĩnh từ bản thiết kế** – 4 màn `MainScreen`, `PreviewScreen`, `OverlayScreen`, `MiniBar` trong `frontend/src/screens/`, dữ liệu mẫu, chưa nối Go. Xem thử bằng hash URL: `#preview`, `#overlay`, `#minibar`.
@@ -170,3 +170,4 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Bước 12: kéo marker để dời điểm, click marker chọn bước. `npm run build` OK, chụp headless overlay; chưa kiểm tra tay.
 - **2026-10-15** – Xong bước 12: kiểm tra tay macOS OK.
 - **2026-10-15** – Bước 13: chọn A → B cho kéo thả trên overlay, chọn lại A / B bằng ⌖. `npm run build` OK; chưa kiểm tra tay.
+- **2026-10-15** – Xong bước 13: kiểm tra tay macOS OK.
