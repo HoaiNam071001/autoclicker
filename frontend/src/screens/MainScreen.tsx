@@ -1,8 +1,9 @@
 // Phương án A – danh sách bước + form cấu hình
 import { useEffect, useState } from 'react';
 import { Drag, Logo, Play, Region, Target } from '../components/icons';
-import { Modifier, Step, STEP_LABEL, StepType, fmtMs, fmtPos, sampleSteps } from '../types';
-import { SpikeClick, StartSpikeLoop, StopSpikeLoop } from '../../wailsjs/go/main/App';
+import { Modifier, Step, STEP_LABEL, StepType, fmtMs, fmtPos, makeStep, sampleSteps } from '../types';
+import { RunScript, SpikeClick, StopScript } from '../../wailsjs/go/main/App';
+import { main } from '../../wailsjs/go/models';
 import { EventsOn, Quit, WindowMinimise } from '../../wailsjs/runtime/runtime';
 import { inWails, setWindowMode } from '../windowMode';
 
@@ -11,43 +12,56 @@ const field = 'h-10 rounded-lg border border-line px-2.5 font-mono';
 const types: StepType[] = ['click', 'double', 'hold', 'drag', 'wait', 'type', 'key'];
 const modifiers: Modifier[] = ['cmd', 'ctrl', 'alt', 'shift'];
 
+// Thử engine (bước 7): mở TextEdit / Notepad sao cho phủ điểm (500, 500) rồi bấm "Chạy thử engine".
+const cmdKey: Modifier = navigator.platform.startsWith('Mac') ? 'cmd' : 'ctrl';
+const engineDemo = main.Script.createFrom({
+  name: 'Demo engine', region: null, loops: 1, maxMinutes: 0,
+  steps: [
+    makeStep({ id: 'd1', type: 'click', points: [{ x: 500, y: 500 }] }),
+    makeStep({ id: 'd2', type: 'type', text: 'Xin chào – gõ tự động 123' }),
+    makeStep({ id: 'd3', type: 'key', key: 'enter' }),
+    makeStep({ id: 'd4', type: 'type', text: 'dòng thứ hai', delayAfter: 800 }),
+    makeStep({ id: 'd5', type: 'double', points: [{ x: 500, y: 500 }], delayAfter: 800 }),
+    makeStep({ id: 'd6', type: 'drag', points: [{ x: 420, y: 500 }, { x: 650, y: 500 }], dragMs: 600, delayAfter: 800 }),
+    makeStep({ id: 'd7', type: 'key', key: 'a', modifiers: [cmdKey] }),
+  ],
+});
+
 export default function MainScreen() {
   const [steps] = useState<Step[]>(sampleSteps);
   const [selected, setSelected] = useState('3');
   const cur = steps.find((s) => s.id === selected)!;
   const idx = steps.indexOf(cur) + 1;
   const [spikeMsg, setSpikeMsg] = useState('');
-  const [looping, setLooping] = useState(false);
+  const [running, setRunning] = useState(false);
 
-  // Spike bước 4: vòng lặp click (500, 500) mỗi 500 ms, F8 (macOS: fn+F8) dừng kể cả khi app mất focus.
   useEffect(() => {
     if (!inWails) return;
     const offs = [
-      EventsOn('spike:state', (running: boolean, clicks: number) => {
-        setLooping(running);
-        setSpikeMsg(running ? `Đang lặp: ${clicks} click – bấm F8 để dừng` : `Đã dừng sau ${clicks} click`);
-      }),
-      EventsOn('hotkey:f8', () => setSpikeMsg((m) => `${m} (F8)`)),
+      EventsOn('engine:state', (on: boolean) => setRunning(on)),
+      EventsOn('hotkey:f8', () => setSpikeMsg('Đã dừng bằng F8')),
       EventsOn('hotkey:error', (msg: string) => setSpikeMsg(`Lỗi: ${msg}`)),
     ];
     return () => offs.forEach((off) => off());
   }, []);
 
-  const toggleLoop = () => {
-    if (looping) StopSpikeLoop();
-    else {
-      setLooping(true);
-      setSpikeMsg('Bắt đầu lặp…');
-      StartSpikeLoop(500, 500, 500);
-    }
-  };
-
-  // Spike bước 3: đếm ngược 3 giây (Go chờ) rồi click (500, 500). Bỏ khi có engine.
+  // Spike bước 3: đếm ngược 3 giây (Go chờ) rồi click (500, 500).
   const runSpike = async () => {
     setSpikeMsg('Click sau 3 giây…');
     try {
       const pos = await SpikeClick(500, 500, 3000);
       setSpikeMsg(`Đã click tại ${pos.x}, ${pos.y}`);
+    } catch (e) {
+      setSpikeMsg(`Lỗi: ${e}`);
+    }
+  };
+
+  const toggleEngine = async () => {
+    if (running) return StopScript();
+    setSpikeMsg('Engine đang chạy – F8 để dừng');
+    try {
+      await RunScript(engineDemo);
+      setSpikeMsg((m) => (m === 'Đã dừng bằng F8' ? m : 'Engine chạy xong'));
     } catch (e) {
       setSpikeMsg(`Lỗi: ${e}`);
     }
@@ -70,7 +84,7 @@ export default function MainScreen() {
           <button className={btn}><Drag className="h-4 w-4 text-drag" />Kéo thả</button>
         </div>
         <button onClick={runSpike} className={btn} title="Spike bước 3">Thử click 500,500</button>
-        <button onClick={toggleLoop} className={btn} title="Spike bước 4">{looping ? 'Dừng lặp' : 'Lặp click 500,500'}</button>
+        <button onClick={toggleEngine} className={btn} title="Thử engine bước 7">{running ? 'Dừng engine' : 'Chạy thử engine'}</button>
         <button onClick={() => setWindowMode('overlay')} className={btn} title="Spike bước 5">Thử overlay</button>
         <button onClick={() => setWindowMode('minibar')} className={btn} title="Spike bước 5">Thử mini bar</button>
         {spikeMsg && <span className="font-mono text-xs text-muted">{spikeMsg}</span>}

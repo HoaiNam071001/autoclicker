@@ -17,7 +17,7 @@ func (a *App) startHotkeys() {
 				runtime.EventsEmit(a.ctx, "hotkey:error", "Không nghe được phím toàn cục – kiểm tra quyền Accessibility")
 			case ev.Kind == hook.KeyDown && ev.Rawcode == f8:
 				runtime.EventsEmit(a.ctx, "hotkey:f8")
-				a.StopSpikeLoop()
+				a.StopScript()
 			}
 		}
 	}()

@@ -18,6 +18,10 @@ export function NewStep(arg1) {
   return window['go']['main']['App']['NewStep'](arg1);
 }
 
+export function RunScript(arg1) {
+  return window['go']['main']['App']['RunScript'](arg1);
+}
+
 export function SetWindowMode(arg1) {
   return window['go']['main']['App']['SetWindowMode'](arg1);
 }
@@ -26,10 +30,6 @@ export function SpikeClick(arg1, arg2, arg3) {
   return window['go']['main']['App']['SpikeClick'](arg1, arg2, arg3);
 }
 
-export function StartSpikeLoop(arg1, arg2, arg3) {
-  return window['go']['main']['App']['StartSpikeLoop'](arg1, arg2, arg3);
-}
-
-export function StopSpikeLoop() {
-  return window['go']['main']['App']['StopSpikeLoop']();
+export function StopScript() {
+  return window['go']['main']['App']['StopScript']();
 }

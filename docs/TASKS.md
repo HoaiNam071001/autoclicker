@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** chưa chọn – xong bước 6. Còn đo độ lệch toạ độ overlay trên macOS (ô đo ở góc trên trái overlay)
-- **Tiếp theo:** bước 7 (engine chạy bước, gồm cả gõ chữ / phím tắt)
+- **Đang làm:** chưa chọn – xong bước 7. Còn tồn: đo độ lệch toạ độ overlay trên macOS
+- **Tiếp theo:** bước 8 (pause / resume / event tiến độ)
 - **Cập nhật lần cuối:** 2026-10-15
 
 ## Quyết định đã chốt
@@ -73,7 +73,12 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 
 ### Engine (Go)
 - [x] **6. Định nghĩa model** – `Step`, `Script`; Wails tự sinh type TS. Thêm loại `type` (gõ chữ) và `key` (phím / tổ hợp phím).
-- [ ] **7. Engine chạy bước** – Click trái/phải/giữa, double, giữ N ms, kéo thả A→B, chờ, gõ chữ (`robotgo.TypeStr`, thử với bộ gõ tiếng Việt; dự phòng dán qua clipboard), phím tắt (`robotgo.KeyTap`). Lặp N vòng / vô hạn / X phút; huỷ bằng `context`.
+- [x] **7. Engine chạy bước** – Click trái/phải/giữa, double, giữ N ms, kéo thả A→B, chờ, gõ chữ (`robotgo.TypeStr`, thử với bộ gõ tiếng Việt; dự phòng dán qua clipboard), phím tắt (`robotgo.KeyTap`). Lặp N vòng / vô hạn / X phút; huỷ bằng `context`.
+  - [x] `engine.go`: `validateScript` + `runScript(ctx, Input, Script)` – lặp N vòng / vô hạn (`loops = 0`) / `maxMinutes`, toạ độ cộng gốc vùng, giữ / kéo luôn nhả chuột khi bị huỷ, gõ từng ký tự để dừng được giữa chừng
+  - [x] `input.go`: interface `Input` + `robotgoInput` (kéo dùng `robotgo.Drag` vì `Move` trên macOS không gửi sự kiện kéo)
+  - [x] `runner.go`: `App.RunScript` (chạy tới khi xong / dừng), `StopScript`; F8 gọi `StopScript`; emit `engine:state`
+  - [x] `engine_test.go`: 5 test với input giả (click + vùng + vòng lặp, kéo, gõ / phím, huỷ vô hạn có nhả chuột, validate)
+  - [x] Kiểm tra tay: nút *Chạy thử engine* với TextEdit – click, gõ tiếng Việt (có / không bật bộ gõ), Enter, double click, kéo chọn, Cmd+A; F8 dừng giữa chừng
 - [ ] **8. Pause / Resume / Stop** – Emit event tiến độ (bước, vòng, số click) sang frontend.
 - [ ] **9. Dừng khẩn cấp** – Dừng ngay khi chuột chạm góc màn hình.
 
@@ -120,3 +125,5 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Xong bước 5 (kiểm tra tay macOS): overlay trong suốt, nằm trên app khác, crosshair theo chuột OK. Vấn đề: overlay bị đẩy xuống dưới menu bar nên đáy tràn khỏi màn hình (ô đo toạ độ ở đáy bị khuất → chuyển lên góc trên). Cần xử lý độ lệch toạ độ ở bước 10–11 / 17.
 - **2026-10-15** – Kiểm tra tay mini bar: hiện giữa phía trên, kéo được, *Dừng* về màn chính OK.
 - **2026-10-15** – Xong bước 6: `model.go` (Step, Script, Rect, `NewStep`, `NewScript`), thêm loại bước `type` / `key` theo yêu cầu; `types.ts` khớp struct Go (kiểm tra lúc tsc – đã thử thêm field thừa thì tsc báo lỗi); form MainScreen có ô nội dung gõ / phím + phím kèm. `go vet` + `npm run build` OK.
+- **2026-10-15** – Bước 7: engine (`engine.go`, `input.go`, `runner.go`), bỏ vòng lặp click thử của bước 4 (F8 giờ dừng engine), nút *Chạy thử engine* chạy kịch bản demo. `go test` 5/5 PASS, `go vet` + `npm run build` OK; chưa kiểm tra tay.
+- **2026-10-15** – Xong bước 7: kiểm tra tay với TextEdit trên macOS – người dùng xác nhận chạy đúng như kỳ vọng.

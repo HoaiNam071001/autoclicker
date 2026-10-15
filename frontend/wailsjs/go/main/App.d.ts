@@ -10,10 +10,10 @@ export function NewScript():Promise<main.Script>;
 
 export function NewStep(arg1:string):Promise<main.Step>;
 
+export function RunScript(arg1:main.Script):Promise<void>;
+
 export function SetWindowMode(arg1:string):Promise<void>;
 
 export function SpikeClick(arg1:number,arg2:number,arg3:number):Promise<main.SpikeResult>;
 
-export function StartSpikeLoop(arg1:number,arg2:number,arg3:number):Promise<void>;
-
-export function StopSpikeLoop():Promise<void>;
+export function StopScript():Promise<void>;

@@ -11,9 +11,9 @@ type App struct {
 	ctx context.Context
 
 	mu       sync.Mutex
-	spike    *spikeRun // khác nil khi vòng lặp click thử đang chạy
-	mode     string    // chế độ cửa sổ hiện tại, xem window.go
-	mainRect winRect   // vị trí/kích thước main để khôi phục
+	run      *runHandle // khác nil khi kịch bản đang chạy
+	mode     string     // chế độ cửa sổ hiện tại, xem window.go
+	mainRect winRect    // vị trí/kích thước main để khôi phục
 }
 
 // NewApp creates a new App application struct
@@ -30,7 +30,7 @@ func (a *App) startup(ctx context.Context) {
 
 // shutdown is called when the app is closing.
 func (a *App) shutdown(ctx context.Context) {
-	a.StopSpikeLoop()
+	a.StopScript()
 	a.stopHotkeys()
 }
 

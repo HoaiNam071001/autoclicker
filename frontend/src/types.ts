@@ -27,6 +27,12 @@ type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const stepMatchesGo: [Step extends Fields<main.Step> ? true : false, Same<keyof Step, keyof Fields<main.Step>>] = [true, true];
 void stepMatchesGo;
 
+// Tạo bước với giá trị trống, ghi đè bằng p (dùng cho dữ liệu mẫu / demo).
+export const makeStep = (p: Partial<Step> & Pick<Step, 'id' | 'type'>): Step => ({
+  points: [], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0,
+  text: '', key: '', modifiers: [], delayAfter: 300, enabled: true, ...p,
+});
+
 export const STEP_LABEL: Record<StepType, string> = {
   click: 'Click',
   double: 'Double click',

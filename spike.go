@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/go-vgo/robotgo"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // SpikeResult – kết quả spike click (bước 3), trả về cho frontend.
@@ -43,59 +41,4 @@ func abs(n int) int {
 		return -n
 	}
 	return n
-}
-
-// spikeMaxClicks – giới hạn an toàn cho vòng lặp thử, phòng khi F8 không hoạt động.
-const spikeMaxClicks = 50
-
-type spikeRun struct{ cancel context.CancelFunc }
-
-// StartSpikeLoop click trái liên tục tại (x, y), mỗi intervalMs một lần, cho tới khi
-// StopSpikeLoop / F8 hoặc đủ spikeMaxClicks. Emit "spike:state" sau mỗi click. Spike bước 4.
-func (a *App) StartSpikeLoop(x, y, intervalMs int) {
-	a.mu.Lock()
-	if a.spike != nil {
-		a.mu.Unlock()
-		return
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	run := &spikeRun{cancel: cancel}
-	a.spike = run
-	a.mu.Unlock()
-
-	go func() {
-		clicks := 0
-		defer func() {
-			cancel()
-			a.mu.Lock()
-			if a.spike == run {
-				a.spike = nil
-			}
-			a.mu.Unlock()
-			runtime.EventsEmit(a.ctx, "spike:state", false, clicks)
-		}()
-		ticker := time.NewTicker(time.Duration(intervalMs) * time.Millisecond)
-		defer ticker.Stop()
-		for clicks < spikeMaxClicks {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-			}
-			robotgo.Move(x, y)
-			robotgo.Click("left")
-			clicks++
-			runtime.EventsEmit(a.ctx, "spike:state", true, clicks)
-		}
-	}()
-}
-
-// StopSpikeLoop dừng vòng lặp click thử (không làm gì nếu đang không chạy).
-func (a *App) StopSpikeLoop() {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	if a.spike != nil {
-		a.spike.cancel()
-		a.spike = nil
-	}
 }
