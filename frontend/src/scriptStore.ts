@@ -54,7 +54,7 @@ export function duplicateStep(id: string) {
   const steps = state.script.steps;
   const i = indexOf(id);
   if (i < 0) return;
-  const copy: Step = { ...steps[i], id: newId(), points: steps[i].points.map((p) => ({ ...p })), modifiers: [...steps[i].modifiers] };
+  const copy: Step = { ...steps[i], id: newId(), points: steps[i].points.map((p) => ({ ...p })), modifiers: [...steps[i].modifiers], keys: [...steps[i].keys] };
   setSteps([...steps.slice(0, i + 1), copy, ...steps.slice(i + 1)]);
   set({ selected: copy.id, notice: `Đã nhân bản bước ${i + 1} thành bước ${i + 2}` });
 }
@@ -88,12 +88,36 @@ export function moveStep(from: number, to: number) {
   setSteps(steps);
 }
 
+// ---- Form cấu hình bước (bước 15) ----
+
+export function updateStep(id: string, patch: Partial<Step>) {
+  setSteps(state.script.steps.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+}
+
+// Đổi loại bước, bổ sung dữ liệu loại mới cần: điểm (click/double/hold 1, kéo thả 2 – B lệch A 100 px), số click ≥ 1.
+export function changeStepType(id: string, type: StepType) {
+  const s = state.script.steps.find((x) => x.id === id);
+  if (!s || s.type === type) return;
+  const points = s.points.map((p) => ({ ...p }));
+  const need = type === 'drag' ? 2 : type === 'click' || type === 'double' || type === 'hold' ? 1 : 0;
+  if (need >= 1 && points.length === 0) points.push({ x: 0, y: 0 });
+  if (need === 2 && points.length === 1) points.push({ x: points[0].x + 100, y: points[0].y });
+  updateStep(id, {
+    type,
+    points,
+    clicks: Math.max(s.clicks, 1),
+    holdMs: type === 'hold' && !s.holdMs ? 1000 : s.holdMs,
+    dragMs: type === 'drag' && !s.dragMs ? 400 : s.dragMs,
+    keys: type === 'key' && s.keys.length === 0 ? ['enter'] : s.keys,
+  });
+}
+
 // Thêm bước không cần chọn điểm (chờ, gõ chữ, phím tắt) vào cuối – giá trị mặc định giống NewStep (model.go).
 export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key'>) {
   const defaults: Record<typeof type, Partial<Step>> = {
     wait: { clicks: 0, delayAfter: 1000 },
     type: { clicks: 0, delayAfter: 500 },
-    key: { clicks: 0, key: 'enter', delayAfter: 500 },
+    key: { clicks: 0, keys: ['enter'], delayAfter: 500 },
   };
   const step = makeStep({ id: newId(), type, ...defaults[type] });
   const steps = state.script.steps;

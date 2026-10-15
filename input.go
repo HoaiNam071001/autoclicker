@@ -9,7 +9,9 @@ type Input interface {
 	Toggle(button string, down bool) error
 	Click(button string, double bool) error
 	TypeStr(s string) error
-	KeyTap(key string, modifiers []string) error
+	// KeyToggle nhấn (down) hoặc thả một phím. modifiers: cờ phím kèm gửi cùng sự kiện nhấn
+	// (macOS cần cờ này mới hiểu là tổ hợp); phím kèm được nhấn / thả riêng bằng chính KeyToggle.
+	KeyToggle(key string, down bool, modifiers []string) error
 }
 
 // robotgoInput – Input thật qua robotgo.
@@ -32,9 +34,13 @@ func (robotgoInput) Click(button string, double bool) error { return robotgo.Cli
 
 func (robotgoInput) TypeStr(s string) error { return robotgo.TypeStr(s) }
 
-func (robotgoInput) KeyTap(key string, modifiers []string) error {
-	if len(modifiers) == 0 {
-		return robotgo.KeyTap(key)
+func (robotgoInput) KeyToggle(key string, down bool, modifiers []string) error {
+	if !down {
+		// Không truyền modifiers khi thả: robotgo sẽ nhả luôn các phím kèm đang giữ.
+		return robotgo.KeyToggle(key, "up")
 	}
-	return robotgo.KeyTap(key, modifiers)
+	if len(modifiers) == 0 {
+		return robotgo.KeyToggle(key, "down")
+	}
+	return robotgo.KeyToggle(key, "down", modifiers)
 }

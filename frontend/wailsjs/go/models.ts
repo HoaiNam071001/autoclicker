@@ -42,7 +42,8 @@ export namespace main {
 	    holdMs: number;
 	    dragMs: number;
 	    text: string;
-	    key: string;
+	    keys: string[];
+	    keyMode: string;
 	    modifiers: string[];
 	    delayAfter: number;
 	    enabled: boolean;
@@ -62,7 +63,8 @@ export namespace main {
 	        this.holdMs = source["holdMs"];
 	        this.dragMs = source["dragMs"];
 	        this.text = source["text"];
-	        this.key = source["key"];
+	        this.keys = source["keys"];
+	        this.keyMode = source["keyMode"];
 	        this.modifiers = source["modifiers"];
 	        this.delayAfter = source["delayAfter"];
 	        this.enabled = source["enabled"];

@@ -5,6 +5,8 @@ export type Rect = { x: number; y: number; w: number; h: number };
 export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key';
 export type MouseButton = 'left' | 'right' | 'center';
 export type Modifier = 'cmd' | 'ctrl' | 'alt' | 'shift';
+// chord: nhấn giữ cùng lúc (Ctrl+C+T) · sequence: giữ phím kèm, gõ lần lượt từng phím chính
+export type KeyMode = 'chord' | 'sequence';
 
 export interface Step {
   id: string;
@@ -16,7 +18,8 @@ export interface Step {
   holdMs: number;
   dragMs: number;
   text: string; // type: chuỗi cần gõ
-  key: string; // key: tên phím robotgo (enter, tab, a, f5…)
+  keys: string[]; // key: phím chính theo tên robotgo (enter, tab, a, f5…)
+  keyMode: KeyMode; // key: chỉ khác nhau khi có ≥ 2 phím chính
   modifiers: Modifier[]; // key: tổ hợp, vd ['cmd'] + 'v'
   delayAfter: number; // ms
   enabled: boolean;
@@ -42,7 +45,7 @@ void scriptMatchesGo;
 // Tạo bước với giá trị trống, ghi đè bằng p (dùng cho dữ liệu mẫu / demo).
 export const makeStep = (p: Partial<Step> & Pick<Step, 'id' | 'type'>): Step => ({
   points: [], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0,
-  text: '', key: '', modifiers: [], delayAfter: 300, enabled: true, ...p,
+  text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, enabled: true, ...p,
 });
 
 export const STEP_LABEL: Record<StepType, string> = {
@@ -55,17 +58,32 @@ export const STEP_LABEL: Record<StepType, string> = {
   key: 'Phím tắt',
 };
 
-export const fmtKey = (s: Step) => [...s.modifiers, s.key].map((k) => k[0].toUpperCase() + k.slice(1)).join(' + ');
+// Tên phím robotgo hỗ trợ (ngoài các ký tự đơn như a, 1, /) – gợi ý trong form và kiểm tra.
+export const KEY_NAMES = [
+  'enter', 'tab', 'esc', 'space', 'backspace', 'delete', 'up', 'down', 'left', 'right',
+  'home', 'end', 'pageup', 'pagedown', 'insert', 'capslock', 'printscreen', 'menu',
+  ...Array.from({ length: 24 }, (_, i) => `f${i + 1}`),
+  'num0', 'num1', 'num2', 'num3', 'num4', 'num5', 'num6', 'num7', 'num8', 'num9', 'num_enter',
+  'audio_mute', 'audio_vol_down', 'audio_vol_up', 'audio_play', 'audio_next', 'audio_prev',
+];
+export const isValidKey = (k: string) => [...k].length === 1 || KEY_NAMES.includes(k);
+
+const cap = (k: string) => k[0].toUpperCase() + k.slice(1);
+// chord: "Ctrl + C + T" · sequence: "Ctrl + C → T"
+export const fmtKey = (s: Step) => {
+  const keys = s.keys.map(cap).join(s.keyMode === 'sequence' ? ' → ' : ' + ');
+  return [...s.modifiers.map(cap), keys].filter(Boolean).join(' + ') || '—';
+};
 
 export const sampleSteps: Step[] = [
-  { id: '1', type: 'click', points: [{ x: 412, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', key: '', modifiers: [], delayAfter: 500, enabled: true },
-  { id: '2', type: 'double', points: [{ x: 640, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', key: '', modifiers: [], delayAfter: 300, enabled: true },
-  { id: '3', type: 'click', points: [{ x: 812, y: 436 }], button: 'left', clicks: 5, clickInterval: 120, holdMs: 0, dragMs: 0, text: '', key: '', modifiers: [], delayAfter: 800, enabled: true },
-  { id: '4', type: 'drag', points: [{ x: 300, y: 600 }, { x: 900, y: 600 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 400, text: '', key: '', modifiers: [], delayAfter: 1000, enabled: true },
-  { id: '5', type: 'wait', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', key: '', modifiers: [], delayAfter: 2000, enabled: false },
-  { id: '6', type: 'click', points: [{ x: 1100, y: 520 }], button: 'right', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', key: '', modifiers: [], delayAfter: 500, enabled: true },
-  { id: '7', type: 'type', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, text: 'xin chao 123', key: '', modifiers: [], delayAfter: 300, enabled: true },
-  { id: '8', type: 'key', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', key: 'enter', modifiers: [], delayAfter: 500, enabled: true },
+  { id: '1', type: 'click', points: [{ x: 412, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, enabled: true },
+  { id: '2', type: 'double', points: [{ x: 640, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, enabled: true },
+  { id: '3', type: 'click', points: [{ x: 812, y: 436 }], button: 'left', clicks: 5, clickInterval: 120, holdMs: 0, dragMs: 0, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 800, enabled: true },
+  { id: '4', type: 'drag', points: [{ x: 300, y: 600 }, { x: 900, y: 600 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 400, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 1000, enabled: true },
+  { id: '5', type: 'wait', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 2000, enabled: false },
+  { id: '6', type: 'click', points: [{ x: 1100, y: 520 }], button: 'right', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, enabled: true },
+  { id: '7', type: 'type', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, text: 'xin chao 123', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, enabled: true },
+  { id: '8', type: 'key', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, text: '', keys: ['enter'], keyMode: 'chord', modifiers: [], delayAfter: 500, enabled: true },
 ];
 
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);

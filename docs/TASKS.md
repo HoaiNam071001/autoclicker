@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** bước 14 – Danh sách bước: code xong, **chờ kiểm tra tay**
-- **Tiếp theo:** bước 15 (form cấu hình bước)
+- **Đang làm:** bước 16 – Cài đặt chạy
+- **Tiếp theo:** bước 17 (DPI & đa màn hình), 18 (build & thử máy sạch)
 - **Cập nhật lần cuối:** 2026-10-15
 
 ## Quyết định đã chốt
@@ -47,7 +47,7 @@ wails dev
 
 Nguồn chuẩn: **`model.go`** (`Point`, `Rect`, `Step`, `Script`, hằng loại bước, `NewStep` / `NewScript` cho giá trị mặc định). Wails sinh class TS vào `frontend/wailsjs/go/models.ts`; `frontend/src/types.ts` giữ interface `Step` với union type chặt hơn và có kiểm tra lúc type-check rằng field khớp struct Go.
 
-Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]) · `wait` · `type` (gõ `text`) · `key` (bấm `key` kèm `modifiers`: cmd / ctrl / alt / shift).
+Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]) · `wait` · `type` (gõ `text`) · `key` (bấm `keys` – một hay nhiều phím chính – kèm `modifiers`: cmd / ctrl / alt / shift; `keyMode`: `chord` nhấn giữ cùng lúc, vd Ctrl+C+T, hoặc `sequence` giữ phím kèm rồi gõ lần lượt).
 
 ---
 
@@ -119,13 +119,18 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 
 ### Giao diện
 - [x] **13b. Dựng UI tĩnh từ bản thiết kế** – 4 màn `MainScreen`, `PreviewScreen`, `OverlayScreen`, `MiniBar` trong `frontend/src/screens/`, dữ liệu mẫu, chưa nối Go. Xem thử bằng hash URL: `#preview`, `#overlay`, `#minibar`.
-- [ ] **14. Danh sách bước** – Sắp xếp bằng kéo thả, bật/tắt, nhân bản, xoá.
+- [x] **14. Danh sách bước** – Sắp xếp bằng kéo thả, bật/tắt, nhân bản, xoá.
   - [x] `components/StepList.tsx` (tách khỏi MainScreen): kéo ⋮⋮ sắp xếp (`@dnd-kit`, kéo ≥ 4 px mới tính), ô tick bật/tắt, nhân bản / xoá hiện khi rê chuột
   - [x] Xoá có *Hoàn tác*; phím Delete / Backspace xoá bước đang chọn (trừ khi đang gõ trong ô nhập); ô *Bật* trong form hoạt động
   - [x] *+ Thêm bước*: menu Click / Kéo thả (mở overlay chọn điểm), Chờ / Gõ chữ / Phím tắt (thêm ngay, mặc định giống `NewStep`)
   - [x] `scriptStore.ts`: `toggleStep`, `duplicateStep`, `removeStep`, `undoDelete`, `moveStep`, `addStep`; màn chính xử lý danh sách trống
-  - [ ] Kiểm tra tay: sắp xếp, bật/tắt, nhân bản, xoá + hoàn tác, Delete, thêm bước qua menu
-- [ ] **15. Form cấu hình bước** – Loại hành động, số click, khoảng cách giữa các click, thời gian giữ, thời gian kéo, nội dung gõ, phím + phím kèm, delay sau bước.
+  - [x] Kiểm tra tay: sắp xếp, bật/tắt, nhân bản, xoá + hoàn tác, Delete, thêm bước qua menu
+- [x] **15. Form cấu hình bước** – Loại hành động, số click, khoảng cách giữa các click, thời gian giữ, thời gian kéo, nội dung gõ, phím + phím kèm, delay sau bước.
+  - [x] `components/StepForm.tsx` (tách khỏi MainScreen): form điều khiển sửa thẳng vào store (`updateStep`); ô số giữ bản nháp khi gõ, chỉ ghi khi là số nguyên hợp lệ
+  - [x] Trường theo loại: click (nút, vị trí, số click, giữa các click khi > 1), double, giữ (thời gian giữ), kéo thả (A, B, thời gian kéo), chờ, gõ chữ (đếm ký tự, cảnh báo trống), phím tắt (gợi ý tên phím, cảnh báo tên sai, Cmd/Ctrl/Option/Shift – Windows hiện Win/Alt)
+  - [x] Đổi loại bước (`changeStepType`) tự bổ sung điểm (kéo thả thêm B lệch A 100 px) và giá trị mặc định
+  - [x] Phím tắt nhiều phím chính (theo yêu cầu): model `key` → `keys` + `keyMode` (chord / sequence); engine `pressKeys` dùng `KeyToggle` (phím chính mang cờ phím kèm khi nhấn, thả không kèm để phím kèm vẫn giữ), luôn nhả hết kể cả khi huỷ; form ô phím nhận "c, t" + chọn cách bấm; test `TestKeyChordAndSequence`, `TestKeyCancelReleasesAll`
+  - [x] Kiểm tra tay: sửa từng loại bước, đổi loại, giá trị lưu khi chuyển bước / mở overlay
 - [ ] **16. Cài đặt chạy** – Số vòng / vô hạn / thời lượng, đếm ngược 3 giây, thanh trạng thái khi đang chạy.
 
 ### Hoàn thiện
@@ -177,3 +182,7 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Bước 13: chọn A → B cho kéo thả trên overlay, chọn lại A / B bằng ⌖. `npm run build` OK; chưa kiểm tra tay.
 - **2026-10-15** – Xong bước 13: kiểm tra tay macOS OK.
 - **2026-10-15** – Bước 14: `StepList.tsx` (dnd-kit sắp xếp, bật/tắt, nhân bản, xoá + hoàn tác, menu thêm bước). `npm run build` OK, chụp headless màn chính; chưa kiểm tra tay.
+- **2026-10-15** – Xong bước 14: kiểm tra tay macOS OK.
+- **2026-10-15** – Bước 15: `StepForm.tsx` form sửa bước theo loại, `updateStep` / `changeStepType`, `KEY_NAMES` + `isValidKey`. `npm run build` OK, chụp headless form click / kéo thả / phím tắt; chưa kiểm tra tay, chưa commit.
+- **2026-10-15** – Bước 15 (tiếp): phím tắt nhiều phím chính + chọn cách bấm (chord / sequence) theo yêu cầu người dùng. `go test -race` 10/10, `npm run build` OK; chưa kiểm tra tay, chưa commit.
+- **2026-10-15** – Xong bước 15: người dùng test form OK, commit.

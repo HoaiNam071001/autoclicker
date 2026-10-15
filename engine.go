@@ -31,7 +31,7 @@ func validateScript(sc Script) error {
 				return fmt.Errorf("bước %d: chưa nhập nội dung gõ", i+1)
 			}
 		case StepKey:
-			if s.Key == "" {
+			if len(s.Keys) == 0 {
 				return fmt.Errorf("bước %d: chưa chọn phím", i+1)
 			}
 		default:
@@ -250,9 +250,62 @@ func (e *engine) runStep(ctx context.Context, s Step) error {
 			}
 		}
 	case StepKey:
-		return in.KeyTap(s.Key, s.Modifiers)
+		return pressKeys(ctx, in, s)
 	}
 	return nil
+}
+
+// Thời gian giữ khi bấm phím: chord giữ cả tổ hợp keyHoldMs; sequence nhấn mỗi phím keyHoldMs,
+// cách phím sau keyGapMs.
+const keyHoldMs, keyGapMs = 50, 50
+
+// pressKeys bấm tổ hợp theo KeyMode; mọi phím đã nhấn luôn được nhả (ngược thứ tự), kể cả khi lỗi / bị huỷ.
+func pressKeys(ctx context.Context, in Input, s Step) error {
+	var held []string
+	defer func() {
+		for i := len(held) - 1; i >= 0; i-- {
+			in.KeyToggle(held[i], false, nil)
+		}
+	}()
+	press := func(k string, mods []string) error {
+		if err := in.KeyToggle(k, true, mods); err != nil {
+			return err
+		}
+		held = append(held, k)
+		return nil
+	}
+
+	for _, m := range s.Modifiers {
+		if err := press(m, nil); err != nil {
+			return err
+		}
+	}
+	if s.KeyMode == KeySequence {
+		for i, k := range s.Keys {
+			if err := press(k, s.Modifiers); err != nil {
+				return err
+			}
+			if err := sleep(ctx, keyHoldMs); err != nil {
+				return err
+			}
+			held = held[:len(held)-1]
+			if err := in.KeyToggle(k, false, nil); err != nil {
+				return err
+			}
+			if i < len(s.Keys)-1 {
+				if err := sleep(ctx, keyGapMs); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+	for _, k := range s.Keys {
+		if err := press(k, s.Modifiers); err != nil {
+			return err
+		}
+	}
+	return sleep(ctx, keyHoldMs)
 }
 
 // drag giữ nút tại A, di dần tới B trong DragMs, rồi nhả.

@@ -13,7 +13,13 @@ const (
 	StepDrag   = "drag"   // kéo Points[0] -> Points[1] trong DragMs
 	StepWait   = "wait"   // chỉ chờ DelayAfter
 	StepText   = "type"   // gõ chuỗi Text vào ô đang focus
-	StepKey    = "key"    // bấm Key, kèm Modifiers (tổ hợp phím)
+	StepKey    = "key"    // bấm Keys, kèm Modifiers (tổ hợp phím) theo KeyMode
+)
+
+// Cách bấm khi bước phím có nhiều phím chính (Step.KeyMode).
+const (
+	KeyChord    = "chord"    // nhấn giữ phím kèm + mọi phím chính cùng lúc rồi nhả (vd Ctrl+C+T)
+	KeySequence = "sequence" // giữ phím kèm, gõ lần lượt từng phím chính rồi nhả phím kèm
 )
 
 type Point struct {
@@ -38,7 +44,8 @@ type Step struct {
 	HoldMs        int      `json:"holdMs"`
 	DragMs        int      `json:"dragMs"`
 	Text          string   `json:"text"`       // type: chuỗi cần gõ
-	Key           string   `json:"key"`        // key: tên phím theo robotgo (enter, tab, a, f5…)
+	Keys          []string `json:"keys"`       // key: phím chính theo tên robotgo (enter, tab, a, f5…)
+	KeyMode       string   `json:"keyMode"`    // key: chord | sequence (chỉ khác nhau khi có ≥ 2 phím chính)
 	Modifiers     []string `json:"modifiers"`  // key: cmd | ctrl | alt | shift
 	DelayAfter    int      `json:"delayAfter"` // ms, sang bước kế tiếp
 	Enabled       bool     `json:"enabled"`
@@ -59,6 +66,8 @@ func (a *App) NewStep(stepType string) (Step, error) {
 		Type:       stepType,
 		Points:     []Point{},
 		Button:     "left",
+		Keys:       []string{},
+		KeyMode:    KeyChord,
 		Modifiers:  []string{},
 		DelayAfter: 500,
 		Enabled:    true,
@@ -79,7 +88,7 @@ func (a *App) NewStep(stepType string) (Step, error) {
 		s.DelayAfter = 1000
 	case StepText:
 	case StepKey:
-		s.Key = "enter"
+		s.Keys = []string{"enter"}
 	default:
 		return Step{}, fmt.Errorf("loại bước không hợp lệ: %q", stepType)
 	}

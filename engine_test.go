@@ -29,8 +29,11 @@ func (f *fakeInput) Drag(x, y int, b string) error     { return f.add("drag %d,%
 func (f *fakeInput) Toggle(b string, down bool) error  { return f.add("toggle %s %v", b, down) }
 func (f *fakeInput) Click(b string, double bool) error { return f.add("click %s %v", b, double) }
 func (f *fakeInput) TypeStr(s string) error            { return f.add("type %s", s) }
-func (f *fakeInput) KeyTap(k string, mods []string) error {
-	return f.add("key %s %s", strings.Join(mods, "+"), k)
+func (f *fakeInput) KeyToggle(k string, down bool, mods []string) error {
+	if !down {
+		return f.add("up %s", k)
+	}
+	return f.add("down %s [%s]", k, strings.Join(mods, "+"))
 }
 
 func (f *fakeInput) lines() []string {
@@ -91,12 +94,13 @@ func TestRunTypeAndKey(t *testing.T) {
 	in := &fakeInput{}
 	sc := Script{Loops: 1, Steps: []Step{
 		step(StepText, func(s *Step) { s.Text = "Gõ" }),
-		step(StepKey, func(s *Step) { s.Key = "v"; s.Modifiers = []string{"cmd", "shift"} }),
+		step(StepKey, func(s *Step) { s.Keys = []string{"v"}; s.Modifiers = []string{"cmd", "shift"} }),
 	}}
 	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	want := []string{"type G", "type õ", "key cmd+shift v"}
+	want := []string{"type G", "type õ",
+		"down cmd []", "down shift []", "down v [cmd+shift]", "up v", "up shift", "up cmd"}
 	if got := in.lines(); !reflect.DeepEqual(got, want) {
 		t.Errorf("got %q\nwant %q", got, want)
 	}
@@ -132,7 +136,7 @@ func TestValidateScript(t *testing.T) {
 		"không có bước nào được bật": {Steps: []Step{step(StepWait, func(s *Step) { s.Enabled = false })}},
 		"cần 2 điểm":                 {Steps: []Step{step(StepDrag, func(s *Step) { s.Points = s.Points[:1] })}},
 		"chưa nhập nội dung gõ":      {Steps: []Step{step(StepText, nil)}},
-		"chưa chọn phím":             {Steps: []Step{step(StepKey, func(s *Step) { s.Key = "" })}},
+		"chưa chọn phím":             {Steps: []Step{step(StepKey, func(s *Step) { s.Keys = nil })}},
 		"không hợp lệ":               {Steps: []Step{{Type: "scroll", Enabled: true}}},
 	}
 	for want, sc := range cases {
@@ -185,5 +189,42 @@ func TestPauseResumeAndProgress(t *testing.T) {
 	}
 	if !sawPaused {
 		t.Error("không báo tiến độ khi tạm dừng")
+	}
+}
+
+func TestKeyChordAndSequence(t *testing.T) {
+	cases := map[string][]string{
+		// Ctrl+C+T nhấn giữ cùng lúc rồi nhả ngược thứ tự
+		KeyChord: {"down ctrl []", "down c [ctrl]", "down t [ctrl]", "up t", "up c", "up ctrl"},
+		// giữ Ctrl, gõ C rồi T
+		KeySequence: {"down ctrl []", "down c [ctrl]", "up c", "down t [ctrl]", "up t", "up ctrl"},
+	}
+	for mode, want := range cases {
+		in := &fakeInput{}
+		sc := Script{Loops: 1, Steps: []Step{step(StepKey, func(s *Step) {
+			s.Keys = []string{"c", "t"}
+			s.Modifiers = []string{"ctrl"}
+			s.KeyMode = mode
+		})}}
+		if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+		if got := in.lines(); !reflect.DeepEqual(got, want) {
+			t.Errorf("%s: got %q\nwant %q", mode, got, want)
+		}
+	}
+}
+
+func TestKeyCancelReleasesAll(t *testing.T) {
+	in := &fakeInput{}
+	s := step(StepKey, func(s *Step) { s.Keys = []string{"c", "t"}; s.Modifiers = []string{"ctrl"} })
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // huỷ trước: lần chờ giữ phím trả lỗi ngay
+	if err := pressKeys(ctx, in, s); !errors.Is(err, context.Canceled) {
+		t.Fatalf("err = %v", err)
+	}
+	want := []string{"down ctrl []", "down c [ctrl]", "down t [ctrl]", "up t", "up c", "up ctrl"}
+	if got := in.lines(); !reflect.DeepEqual(got, want) {
+		t.Errorf("got %q\nwant %q", got, want)
 	}
 }
