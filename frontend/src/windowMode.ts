@@ -16,7 +16,7 @@ export type OverlayTool = 'point' | 'drag' | 'region';
 // Công cụ được chọn sẵn khi mở overlay (OverlayScreen đọc lúc mount).
 export let overlayTool: OverlayTool = 'region';
 
-export function openOverlay(tool: OverlayTool) {
+export function openOverlay(tool: OverlayTool = 'point') {
   overlayTool = tool;
   return setWindowMode('overlay');
 }

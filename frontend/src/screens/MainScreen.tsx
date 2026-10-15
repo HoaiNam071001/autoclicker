@@ -6,7 +6,7 @@ import { RunScript, SpikeClick, StopScript } from '../../wailsjs/go/main/App';
 import { main } from '../../wailsjs/go/models';
 import { EventsOn, Quit, WindowMinimise } from '../../wailsjs/runtime/runtime';
 import { inWails, openOverlay, setWindowMode } from '../windowMode';
-import { setRegion, useScript } from '../scriptStore';
+import { pickPointFor, selectStep, setRegion, useEditor } from '../scriptStore';
 import { setLastError, STOP_REASON, useEngine } from '../engineStore';
 
 const btn = 'flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3.5';
@@ -30,9 +30,8 @@ const engineDemo = main.Script.createFrom({
 });
 
 export default function MainScreen() {
-  const { steps, region } = useScript();
-  const [selected, setSelected] = useState('3');
-  const cur = steps.find((s) => s.id === selected)!;
+  const { script: { steps, region }, selected, notice } = useEditor();
+  const cur = steps.find((s) => s.id === selected) ?? steps[0];
   const idx = steps.indexOf(cur) + 1;
   const [spikeMsg, setSpikeMsg] = useState('');
   const { running, lastError, stopReason } = useEngine();
@@ -80,7 +79,7 @@ export default function MainScreen() {
         </div>
         <div className="flex flex-1 flex-wrap gap-2">
           <button onClick={() => openOverlay('region')} className={btn}><Region />Chọn vùng</button>
-          <button className={btn}><Target />Thêm điểm
+          <button onClick={() => openOverlay('point')} className={btn}><Target />Thêm điểm
             <kbd className="rounded border border-line px-1.5 font-mono text-xs text-muted">F6</kbd>
           </button>
           <button className={btn}><Drag className="h-4 w-4 text-drag" />Kéo thả</button>
@@ -90,6 +89,7 @@ export default function MainScreen() {
         <button onClick={() => setWindowMode('minibar')} className={btn} title="Spike bước 5">Thử mini bar</button>
         {spikeMsg && <span className="font-mono text-xs text-muted">{spikeMsg}</span>}
         {lastError && <span className="font-mono text-xs text-danger">Lỗi engine: {lastError}</span>}
+        {notice && <span className="font-mono text-xs text-accent">{notice}</span>}
         {stopReason && <span className="font-mono text-xs text-muted">{STOP_REASON[stopReason] ?? stopReason}</span>}
         <button className="flex h-11 items-center gap-2.5 rounded-lg bg-accent px-5 font-semibold text-white">
           <Play />Chạy <span className="font-mono text-xs opacity-85">F8</span>
@@ -114,7 +114,7 @@ export default function MainScreen() {
               return (
                 <li key={s.id}>
                   <button
-                    onClick={() => setSelected(s.id)}
+                    onClick={() => selectStep(s.id)}
                     className={`flex w-full items-center gap-3 rounded-lg p-2.5 text-left ${s.id === selected ? 'bg-accent-soft' : 'hover:bg-ground'} ${s.enabled ? '' : 'opacity-50'}`}
                   >
                     <span className="cursor-grab text-[#9AA2AE]" aria-hidden>⋮⋮</span>
@@ -132,7 +132,8 @@ export default function MainScreen() {
           <button className="mx-3 mb-3 mt-auto h-11 rounded-lg border border-dashed border-[#B8C0CC] text-[#3F4857]">+ Thêm bước</button>
         </section>
 
-        <section aria-label={`Cấu hình bước ${idx}`} className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 rounded-[10px] border border-line bg-white px-6 py-5">
+        {/* key: form dùng defaultValue nên vẽ lại khi đổi bước / bước bị sửa (chọn lại điểm, F6) – tới bước 15 sẽ thành form điều khiển */}
+        <section key={JSON.stringify(cur)} aria-label={`Cấu hình bước ${idx}`} className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 rounded-[10px] border border-line bg-white px-6 py-5">
           <div className="flex items-center gap-3">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-accent font-bold text-white">{idx}</span>
             <h2 className="text-lg font-semibold">Bước {idx}</h2>
@@ -192,7 +193,8 @@ export default function MainScreen() {
                     <input defaultValue={cur.points[0]?.[k]} className="w-full font-mono outline-none" />
                   </label>
                 ))}
-                <button aria-label="Chọn lại trên màn hình" className="grid h-10 w-11 place-items-center rounded-lg border border-line"><Target /></button>
+                <button aria-label="Chọn lại trên màn hình" title="Chọn lại trên màn hình" disabled={cur.type === 'drag'}
+                  onClick={() => pickPointFor(cur.id)} className="grid h-10 w-11 place-items-center rounded-lg border border-line disabled:opacity-40"><Target /></button>
               </div>
             </div>
             <label className="flex flex-col gap-1.5 font-semibold">Số click

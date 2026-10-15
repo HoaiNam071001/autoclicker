@@ -1,7 +1,7 @@
 // Overlay chọn vùng / điểm – cửa sổ trong suốt phủ màn hình, always-on-top
 import { MouseEvent, useEffect, useRef, useState } from 'react';
 import { MousePos } from '../../wailsjs/go/main/App';
-import { setRegion, toScreen, useScript } from '../scriptStore';
+import { cancelPick, pickingStep, placePoint, setRegion, toScreen, useEditor } from '../scriptStore';
 import { Point, Rect } from '../types';
 import { inWails, OverlayTool, overlayTool, setWindowMode } from '../windowMode';
 
@@ -13,7 +13,7 @@ const CALIBRATE_MS = 150;
 const MIN_REGION = 10; // px – kéo nhỏ hơn coi như click nhầm
 
 const TOOLS: { id: OverlayTool; label: string; ready: boolean }[] = [
-  { id: 'point', label: 'Đặt điểm', ready: false },
+  { id: 'point', label: 'Đặt điểm', ready: true },
   { id: 'drag', label: 'Kéo thả A → B', ready: false },
   { id: 'region', label: 'Chọn vùng', ready: true },
 ];
@@ -23,7 +23,8 @@ const rectOf = (a: Point, b: Point): Rect => ({
 });
 
 export default function OverlayScreen() {
-  const { region, steps } = useScript();
+  const { script: { region, steps }, notice } = useEditor();
+  const [picking] = useState(pickingStep); // id bước đang chọn lại điểm (nút ⌖), null = thêm bước mới
   const [tool, setTool] = useState<OverlayTool>(overlayTool);
   const [cursor, setCursor] = useState<Point>({ x: -100, y: -100 });
   const [offset, setOffset] = useState(lastOffset);
@@ -47,6 +48,7 @@ export default function OverlayScreen() {
     return () => {
       window.removeEventListener('keydown', onKey);
       clearTimeout(timer.current);
+      cancelPick(); // thoát overlay (Esc / Xong) mà chưa chọn lại điểm → huỷ
     };
   }, []);
 
@@ -75,6 +77,13 @@ export default function OverlayScreen() {
     setDragFrom({ x: e.clientX, y: e.clientY });
   };
 
+  // Đặt điểm: lấy vị trí chuột thật từ Go (không phụ thuộc độ lệch đã đo hay chưa).
+  const onClick = async (e: MouseEvent) => {
+    if (onUI(e) || tool !== 'point') return;
+    const screen = inWails ? await MousePos() : { x: e.clientX + offset.x, y: e.clientY + offset.y };
+    placePoint(screen);
+  };
+
   const onUp = (e: MouseEvent) => {
     if (!dragFrom) return;
     const r = rectOf(dragFrom, { x: e.clientX, y: e.clientY });
@@ -98,8 +107,8 @@ export default function OverlayScreen() {
   const screenCursor = { x: cursor.x + offset.x, y: cursor.y + offset.y };
 
   return (
-    <div className={`fixed inset-0 select-none bg-[rgba(20,24,32,.45)] ${tool === 'region' ? 'cursor-crosshair' : ''}`}
-      onMouseMove={onMove} onMouseDown={onDown} onMouseUp={onUp}>
+    <div className={`fixed inset-0 select-none bg-[rgba(20,24,32,.45)] ${tool !== 'drag' ? 'cursor-crosshair' : ''}`}
+      onMouseMove={onMove} onMouseDown={onDown} onMouseUp={onUp} onClick={onClick}>
       {shown && (
         <>
           <div className="absolute border-2 border-dashed border-white bg-white/5"
@@ -161,6 +170,12 @@ export default function OverlayScreen() {
       <div data-ui className="absolute left-6 top-6 flex flex-col gap-0.5 rounded-lg bg-ink/90 px-3 py-2 font-mono text-[13px] text-white">
         <span>{region ? `Vùng X ${region.x} Y ${region.y} · ${region.w} × ${region.h}` : 'Vùng: toàn màn hình'}</span>
         {tool === 'region' && <span className="text-dark-muted">Kéo chuột để chọn vùng</span>}
+        {tool === 'point' && (
+          <span className="text-dark-muted">
+            {picking ? 'Click để đặt lại điểm cho bước đang chọn' : 'Click (hoặc fn+F6) để thêm bước click mới'}
+          </span>
+        )}
+        {notice && <span className="max-w-[420px] whitespace-normal text-ok">{notice}</span>}
         {inWails && (
           <span className="text-accent-light">
             {isMeasured ? `Lệch toạ độ X ${offset.x}  Y ${offset.y}` : 'Đang đo lệch toạ độ – rê chuột rồi dừng lại'}
