@@ -37,7 +37,7 @@ export default function StepList() {
   };
 
   return (
-    <section aria-label="Danh sách bước" className="flex max-w-[420px] flex-[1_1_340px] flex-col rounded-[10px] border border-line bg-white">
+    <section aria-label="Danh sách bước" className="flex min-h-0 max-w-[420px] flex-[1_1_320px] flex-col rounded-[10px] border border-line bg-white">
       <div className="flex items-center justify-between border-b border-line px-4 py-3.5">
         <h2 className="text-[15px] font-semibold">Các bước</h2>
         <span className="text-muted">{steps.length} bước</span>
@@ -46,7 +46,7 @@ export default function StepList() {
       {steps.length === 0 && <p className="px-4 py-6 text-center text-muted">Chưa có bước nào – bấm “Thêm điểm” hoặc “+ Thêm bước”.</p>}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-          <ol className="flex flex-col gap-0.5 p-1.5">
+          <ol className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto p-1.5">
             {steps.map((s, i) => <Row key={s.id} step={s} index={i} selected={s.id === selected} />)}
           </ol>
         </SortableContext>
@@ -59,7 +59,7 @@ export default function StepList() {
         </div>
       )}
 
-      <div className="relative mx-3 mb-3 mt-auto">
+      <div className="relative mx-3 mb-3 mt-2 flex-none">
         {menu && (
           <ul className="absolute inset-x-0 bottom-full mb-1.5 overflow-hidden rounded-lg border border-line bg-white shadow-[0_6px_24px_rgba(0,0,0,.12)]">
             {ADD_MENU.map((m) => (
@@ -94,10 +94,11 @@ function Row({ step: s, index: i, selected }: { step: Step; index: number; selec
           <span className="block font-semibold">{STEP_LABEL[s.type]}{s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}</span>
           <span className="block truncate font-mono text-xs text-muted">{fmtPos(s)}</span>
         </span>
-        <span className="font-mono text-xs text-muted group-hover:hidden">{fmtMs(s.delayAfter)}{s.jitterMs > 0 && ` ±${s.jitterMs}`}</span>
+        {/* invisible (không phải hidden) để giữ nguyên chiều rộng – rê chuột không làm dòng nhảy */}
+        <span className="font-mono text-xs whitespace-nowrap text-muted group-hover:invisible">{fmtMs(s.delayAfter)}{s.jitterMs > 0 && ` ±${s.jitterMs}`}</span>
       </button>
-      {/* hiện khi rê chuột vào dòng (che chỗ thời gian chờ) */}
-      <span className="hidden gap-0.5 group-hover:flex">
+      {/* nổi lên góc phải khi rê chuột (vị trí tuyệt đối, nền cùng màu dòng) – không đẩy bố cục */}
+      <span className={`absolute inset-y-0 right-1.5 hidden items-center gap-0.5 pl-3 group-hover:flex ${selected ? 'bg-accent-soft' : 'bg-ground'}`}>
         <button onClick={() => duplicateStep(s.id)} aria-label={`Nhân bản bước ${i + 1}`} title="Nhân bản" className={iconBtn}><Copy /></button>
         <button onClick={() => removeStep(s.id)} aria-label={`Xoá bước ${i + 1}`} title="Xoá (Delete)" className={`${iconBtn} hover:text-danger`}><Trash /></button>
       </span>

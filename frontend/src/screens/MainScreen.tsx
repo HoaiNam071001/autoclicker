@@ -11,7 +11,7 @@ import RunSettings from '../components/RunSettings';
 import { STOP_REASON, useEngine } from '../engineStore';
 import { Point } from '../types';
 
-const btn = 'flex h-11 items-center gap-2 rounded-lg border border-line bg-white px-3.5';
+const btn = 'flex h-9 flex-none items-center gap-1.5 whitespace-nowrap rounded-lg border border-line bg-white px-2.5 hover:bg-ground';
 const MOUSE_POLL_MS = 250;
 
 export default function MainScreen() {
@@ -40,18 +40,21 @@ export default function MainScreen() {
   }, [cur]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-ground">
-      <header className="drag flex flex-wrap items-center gap-3 border-b border-line bg-white px-5 py-3">
-        <div className="mr-3 flex items-center gap-2.5 text-accent">
-          <Logo /><span className="text-base font-bold text-ink">Auto Clicker</span>
+    // h-screen + phần giữa tự cuộn: header và thanh dưới luôn nằm trong cửa sổ.
+    <div className="flex h-screen flex-col overflow-hidden bg-ground">
+      {/* Header một hàng, gọn cho cửa sổ ~1024 px: nút h-9 chữ 13px, tên app chỉ hiện chữ khi rộng */}
+      <header className="drag flex flex-none items-center gap-2 border-b border-line bg-white px-4 py-2 text-[13px]">
+        <div className="mr-1 flex items-center gap-2 text-accent" title="Auto Clicker">
+          <Logo /><span className="hidden text-[15px] font-bold whitespace-nowrap text-ink xl:inline">Auto Clicker</span>
         </div>
-        <div className="flex h-9 items-center gap-1.5 rounded-lg border border-line px-3">
-          <span className="text-muted">Kịch bản</span><span className="font-semibold">Kịch bản 1</span>
-        </div>
-        <div className="flex flex-1 flex-wrap gap-2">
+        <span className="max-w-[160px] truncate rounded-lg border border-line px-2.5 py-1.5 font-semibold" title="Kịch bản">
+          Kịch bản 1
+        </span>
+        <span className="mx-1 h-6 w-px flex-none bg-line" />
+        <div className="flex min-w-0 flex-1 gap-1.5">
           <button onClick={() => openOverlay('region')} className={btn}><Region />Chọn vùng</button>
           <button onClick={() => openOverlay('point')} className={btn}><Target />Thêm điểm
-            <kbd className="rounded border border-line px-1.5 font-mono text-xs text-muted">F6</kbd>
+            <kbd className="rounded border border-line px-1 font-mono text-[11px] text-muted">F6</kbd>
           </button>
           <button onClick={() => openOverlay('drag')} className={btn}><Drag className="h-4 w-4 text-drag" />Kéo thả</button>
         </div>
@@ -60,22 +63,23 @@ export default function MainScreen() {
         </button>
         <button onClick={() => (running ? StopScript() : runCurrent())} disabled={!inWails}
           title={inWails ? undefined : 'Chỉ chạy được trong app'}
-          className={`flex h-11 items-center gap-2.5 rounded-lg px-5 font-semibold text-white disabled:opacity-50 ${running ? 'bg-danger' : 'bg-accent'}`}>
-          {running ? <><Stop />Dừng</> : <><Play />Chạy</>} <span className="font-mono text-xs opacity-85">F8</span>
+          className={`flex h-9 flex-none items-center gap-2 whitespace-nowrap rounded-lg px-4 font-semibold text-white disabled:opacity-50 ${running ? 'bg-danger' : 'bg-accent'}`}>
+          {running ? <><Stop />Dừng</> : <><Play />Chạy</>} <span className="font-mono text-[11px] opacity-85">F8</span>
         </button>
         {inWails && (
-          <div className="flex gap-1">
+          <div className="ml-1 flex flex-none gap-0.5">
             <button aria-label="Thu nhỏ" onClick={WindowMinimise} className="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-ground">–</button>
             <button aria-label="Đóng" onClick={Quit} className="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-danger hover:text-white">✕</button>
           </div>
         )}
       </header>
 
-      <div className="flex flex-1 flex-wrap gap-4 px-5 py-4">
+      {/* hai khung cao bằng phần còn lại của cửa sổ, mỗi khung tự cuộn bên trong */}
+      <div className="flex min-h-0 flex-1 gap-4 px-4 py-3">
         <StepList />
 
         {!cur ? (
-          <section className="grid flex-[999_1_560px] place-items-center rounded-[10px] border border-line bg-white text-muted">
+          <section className="grid min-w-0 flex-[999_1_560px] place-items-center rounded-[10px] border border-line bg-white text-muted">
             Chọn hoặc thêm một bước để cấu hình
           </section>
         ) : (<>
@@ -85,7 +89,7 @@ export default function MainScreen() {
         </>)}
       </div>
 
-      <footer className="flex flex-wrap gap-5 border-t border-line bg-white px-5 py-2 text-[13px] text-muted">
+      <footer className="flex flex-none flex-wrap gap-x-5 gap-y-1 border-t border-line bg-white px-5 py-2 text-[13px] text-muted">
         <span>Vùng: {region
           ? <><span className="font-mono">X {region.x} Y {region.y} · {region.w} × {region.h}</span>
               <button onClick={() => setRegion(null)} className="ml-2 underline">Toàn màn hình</button></>

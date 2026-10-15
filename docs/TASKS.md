@@ -223,3 +223,5 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Commit theo yêu cầu: bước 19 (ngẫu nhiên hoá), kéo thả từ điểm trước / lệch so với A, 19b (xem trước) – chưa xác nhận kiểm tra tay. Bắt đầu: xem / sửa vị trí riêng một bước trên overlay.
 - **2026-10-15** – Commit `f886bd8`. Thêm 19c: xem / sửa riêng một bước trên overlay. `npm run build` OK, chụp headless; chưa kiểm tra tay, chưa commit.
 - **2026-10-15** – Đánh dấu xong 19, kéo thả mới, 19b, 19c theo xác nhận của người dùng (yêu cầu commit sau khi thử). Commit + push lên GitHub.
+- **2026-10-15** – Sửa giao diện màn chính theo phản hồi (header 2 hàng, thanh dưới bị cắt ở cửa sổ 1024×768): header một hàng gọn (nút h-9, chữ 13px, tên app chỉ hiện chữ từ `xl`), màn chính `h-screen`, danh sách bước và form tự cuộn trong khung, hàng nút loại bước nhỏ lại. Chụp headless 1024×768 và 1440×800 OK; chưa commit.
+- **2026-10-15** – Sửa dòng trong danh sách bước bị nhảy khi rê chuột (mô tả dài): nút nhân bản / xoá nổi tuyệt đối ở góc phải, thời gian chờ chỉ `invisible` để giữ chiều rộng. `npm run build` OK; chưa commit.

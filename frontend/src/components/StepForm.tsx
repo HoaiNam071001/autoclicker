@@ -31,7 +31,7 @@ export default function StepForm({ step: s, index, children }: Props) {
   const mouse = s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'drag';
 
   return (
-    <section aria-label={`Cấu hình bước ${index}`} className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 rounded-[10px] border border-line bg-white px-6 py-5">
+    <section aria-label={`Cấu hình bước ${index}`} className="flex min-h-0 min-w-0 flex-[999_1_560px] flex-col gap-5 overflow-y-auto rounded-[10px] border border-line bg-white px-6 py-5">
       <div className="flex items-center gap-3">
         <span className="grid h-8 w-8 place-items-center rounded-full bg-accent font-bold text-white">{index}</span>
         <h2 className="text-lg font-semibold">Bước {index}</h2>
@@ -51,7 +51,7 @@ export default function StepForm({ step: s, index, children }: Props) {
         <div className="flex flex-wrap gap-1.5">
           {TYPES.map((t) => (
             <button key={t} onClick={() => changeStepType(s.id, t)} aria-pressed={t === s.type}
-              className={`h-10 rounded-lg px-4 ${t === s.type ? 'border-2 border-accent bg-accent-soft font-semibold text-accent-strong' : 'border border-line bg-white hover:bg-ground'}`}>
+              className={`h-9 rounded-lg px-3 text-[13px] ${t === s.type ? 'border-2 border-accent bg-accent-soft font-semibold text-accent-strong' : 'border border-line bg-white hover:bg-ground'}`}>
               {STEP_LABEL[t]}
             </button>
           ))}
