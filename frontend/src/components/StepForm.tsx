@@ -6,9 +6,9 @@ import NumInput, { fieldBox } from './NumInput';
 import Segmented from './Segmented';
 import { Switch } from './RunSettings';
 import PinButton from './inputs/PinButton';
-import AnchorField from './steps/AnchorField';
+import AnchorField, { AnchorMap } from './steps/AnchorField';
 import {
-  changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
+  boundsOf, changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
 } from '../scriptStore';
 import { fmtKey, isValidKey, KEY_NAMES, KeyMode, Modifier, MouseButton, Step, STEP_LABEL, StepPoint, StepType } from '../types';
 
@@ -77,7 +77,7 @@ export default function StepForm({ step: s, index }: Props) {
           <div className="col-span-2 flex flex-col gap-1.5 text-muted">
             <span>Vị trí <span className="text-xs">(neo theo góc {region ? 'vùng' : 'màn hình'})</span></span>
             <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
-              pick={<PickButton step={s} />} trailing={<PinSoon />} />
+              pick={<PickButton step={s} />} trailing={<PinSoon />} bounds={boundsOf(region)} boundsLabel={region ? 'Vùng' : 'Màn hình'} />
           </div>
         )}
         {s.type === 'drag' && s.points.length >= 2 && <DragPoints step={s} setPoint={setPoint} />}
@@ -216,6 +216,11 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p
   const { steps, region } = useScript();
   const ends = endpoints(steps, region).get(s.id);
   const inRegion = region && <span className="ml-1.5 text-xs">(trong vùng)</span>;
+  // Bản đồ chung A + B: chọn điểm nào để đổi neo (chỉ điểm lưu vị trí – không phải "từ điểm trước" / "lệch so với A").
+  const editable = [!s.dragFromPrev && 'A', !s.dragRelative && 'B'].filter(Boolean) as ('A' | 'B')[];
+  const [pick, setPick] = useState<'A' | 'B'>('A');
+  const cur = editable.includes(pick) ? pick : editable[0];
+  const curIdx = cur === 'B' ? 1 : 0;
   return (
     <>
       <div className="col-span-2 flex flex-col gap-1.5 text-muted">
@@ -230,7 +235,7 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p
           </span>
         ) : (
           <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
-            pick={<PickButton step={s} title="Chọn lại A rồi B trên màn hình" />} />
+            pick={<PickButton step={s} title="Chọn lại A rồi B trên màn hình" />} grid={false} />
         )}
       </div>
       <div className="col-span-2 flex flex-col gap-1.5 text-muted">
@@ -246,11 +251,28 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p
           </div>
         ) : (
           <AnchorField value={s.points[1]} onChange={(p) => setPoint(1, p)} onAnchor={(ax, ay) => setAnchor(s.id, 1, ax, ay)}
-            pick={s.dragFromPrev ? <PickButton step={s} title="Chọn lại B trên màn hình" /> : <span />} />
+            pick={s.dragFromPrev ? <PickButton step={s} title="Chọn lại B trên màn hình" /> : <span />} grid={false} />
         )}
         {s.dragRelative && ends?.end && (
           <span className="text-xs">Thả tại X {ends.end.x} Y {ends.end.y}</span>
         )}
+      </div>
+      <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+        <span className="flex items-center gap-2">
+          <span className="flex-1">Neo trên {region ? 'vùng' : 'màn hình'}</span>
+          {editable.length > 1 && (
+            <Segmented value={cur} onChange={(v: 'A' | 'B') => setPick(v)} label="Đổi neo cho điểm"
+              options={[{ id: 'A', label: 'A' }, { id: 'B', label: 'B' }]} />
+          )}
+        </span>
+        <AnchorMap bounds={boundsOf(region)} label={region ? 'Vùng' : 'Màn hình'}
+          value={cur ? s.points[curIdx] : undefined} onAnchor={cur ? (ax, ay) => setAnchor(s.id, curIdx, ax, ay) : undefined}
+          marks={[
+            ...(ends?.start ? [{ at: ends.start, text: 'A', active: cur === 'A' }] : []),
+            ...(ends?.end ? [{ at: ends.end, text: 'B', active: cur === 'B' }] : []),
+          ]}
+          arrow={ends?.start && ends.end ? [ends.start, ends.end] : null} />
+        {!cur && <span className="text-xs">A lấy từ điểm trước, B lệch so với A – không có điểm nào để neo</span>}
       </div>
     </>
   );
