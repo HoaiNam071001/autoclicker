@@ -6,9 +6,9 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** chưa chọn – xong 19, 19b, 19c. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** bước 20 (nhóm bước), 21 (lưu / tải kịch bản JSON). Khi có máy Windows: quay lại 17–18
-- **Cập nhật lần cuối:** 2026-10-15
+- **Đang làm:** chưa bắt đầu – đã đưa design v2 + kế hoạch mới vào Phase 3 (checklist chi tiết từng bước). Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 27 (UI v2 màn đang có) → 27b (khung UI tính năng chưa có) → 29 (neo 4 góc) → 21 → 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
+- **Cập nhật lần cuối:** 2026-10-16
 
 ## Quyết định đã chốt
 
@@ -16,6 +16,11 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - **Tailwind v4** (`@tailwindcss/vite`), token màu/font khai báo trong `@theme` ở `frontend/src/style.css` – không dùng `tailwind.config.js`.
 - Font **Be Vietnam Pro** + **IBM Plex Mono** cài local qua `@fontsource/*` (app phải chạy được offline).
 - UI theo **phương án A (MainScreen)** cho MVP. Phương án B (PreviewScreen) giữ làm tham khảo.
+- **Design v2** (2026-10-16, `design/DESIGN.md`) thay bản thiết kế cũ `autoclicker-ui/` từ bước 27: theme sáng / tối, một màu nhấn, gradient chỉ ở 4 chỗ, bố cục 3 cột kiểu Windows 11; font Plus Jakarta Sans + JetBrains Mono (vẫn cài local); bỏ màu riêng cho kéo thả và nhóm `dark-*`.
+- Thứ tự Phase 3 (2026-10-16, bảng đầu Phase 3): 27 → 27b → 29 → 21 → 30 → 21b → 23 → 25 → 25b → 25c → 26 → 20 → 22 → 24 → 28; chờ ảnh / click theo ảnh làm sớm (cốt lõi cho web / app), nhóm bước làm sau xử lý hết giờ. Không làm bản chạy trên điện thoại.
+- **Neo điểm theo trục** (29): X neo trái / phải, Y neo trên / dưới (thêm giữa, %), lưu offset dương + tên neo, UI hiện dạng ±; làm ngay sau UI (27, 27b), trước 21, để định dạng file có neo ngay từ đầu (không cần chuyển đổi). Biến đổi nhiều điểm (30) làm sau 27 + 21, ghi lại offset theo neo.
+- **UI trước, logic sau** (27b): tính năng chưa có vẫn hiện trong app nhưng tắt + nhãn *Sắp có*; dữ liệu giả chỉ ở màn `#demo` (`frontend/src/demo/`), không thêm loại bước chưa làm vào `types.ts` / `model.go`.
+- **Input của kịch bản** áp vào bản sao trước khi chạy (`resolveInputs`), engine không đổi; giá trị lần trước / preset lưu trên máy, không ghi vào file kịch bản; input trong nhóm lặp dùng cùng giá trị mọi vòng (mỗi vòng một giá trị → CSV, bước 28).
 - **Gõ chữ / phím tắt đưa vào MVP** (loại bước `type`, `key`) thay vì Phase 2, để model, engine, form làm một lần.
 - Toạ độ lưu theo **toạ độ màn hình thật (robotgo)**. Overlay tự đo độ lệch cửa sổ ↔ màn hình (so `clientX/Y` với `robotgo.Location` khi chuột đứng yên) thay vì tính từ vị trí cửa sổ – Wails macOS đặt cửa sổ dưới menu bar.
 - Cửa sổ luôn **frameless + nền trong suốt** (Wails v2 không đổi được lúc chạy); MainScreen tự vẽ thanh kéo và nút thu nhỏ / đóng.
@@ -169,16 +174,178 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] `openOverlay(tool, focus)`; overlay chế độ xem riêng: nền tối hơn, vùng + bước khác mờ / xám / không bấm được, đường nối khác mờ, marker bước đang xem nổi lên; thanh công cụ: tên bước, *Chọn lại trên màn hình* (ở lại overlay – `startPick`), *Xem tất cả*, *Xong*; ô thông tin hiện toạ độ A / B
   - [x] Click chỗ trống / F6 không tạo bước mới khi xem riêng (`setFocusLock`), trừ lúc đang chọn lại; Esc huỷ chọn lại trước rồi mới thoát
   - [x] Kiểm tra tay
-- [ ] **20. Nhóm bước** – Lặp riêng một nhóm N lần trong kịch bản.
-- [ ] **21. Profile** – Lưu/tải kịch bản JSON qua hộp thoại file, danh sách mở gần đây.
-- [ ] **22. Hẹn giờ** – Tự chạy lúc HH:mm.
-- [ ] **23. Thêm hành động** – Cuộn chuột. *(gõ phím, tổ hợp phím đã chuyển vào MVP – bước 6, 7)*
 
-## Phase 3 – Nâng cao
+## Phase 3 – Design v2 & tự động hoá
 
-- [ ] **24. Ghi macro** – Record thao tác chuột thật rồi chuyển thành các bước.
-- [ ] **25. Click có điều kiện** – Chỉ click khi pixel đúng màu hoặc tìm thấy ảnh mẫu.
-- [ ] **26. Gắn với cửa sổ** – Bám theo một cửa sổ app cụ thể thay vì toạ độ cố định.
+> Thiết kế: **`design/DESIGN.md`** (token, thành phần, icon, map artboard → file), `design/theme.css` (token Tailwind v4), artboard tham khảo `design/canvas/*.dc.html` + canvas https://claude.ai/artifact/5WdDyFZdB3WKxEXwkticnw. Mỗi việc UI dưới đây ghi artboard tương ứng trong ngoặc vuông.
+> Số bước giữ nguyên để khớp nhật ký nên không theo thứ tự số; **làm theo thứ tự từ trên xuống**. Xong 26 là chạy được ví dụ Facebook (cuối phase).
+
+**Thứ tự làm** (từ trên xuống, giống danh sách bên dưới):
+
+| # | Bước | Vì sao ở vị trí này |
+|---|---|---|
+| 1 | 27. UI v2 cho màn đang có | Người dùng muốn làm giao diện trước; nền cho mọi màn sau |
+| 2 | 27b. Khung UI tính năng chưa có | Dựng hết UI theo design một lần cho đồng bộ; bước sau chỉ nối logic |
+| 3 | 29. Neo 4 góc | Sửa toạ độ lệch khi đổi vùng; đổi model `Point` nên làm trước khi có file lưu (21) |
+| 4 | 21. Lưu / tải | App chưa lưu được gì – tắt là mất kịch bản |
+| 5 | 30. Sửa nhiều điểm | Dựa vào neo (29) + UI mới (27); có kịch bản lưu được (21) mới đáng đầu tư chỉnh sửa hàng loạt; kèm hoàn tác / làm lại |
+| 6 | 21b. Input | Cần 21 (preset theo từng kịch bản); mở đường cho chuỗi web / app (23, 25) |
+| 7–8 | 23 → 25 | Cuộn / mở URL đơn giản, rồi chờ ảnh – cốt lõi tương tác web / app |
+| 9–11 | 25b → 25c → 26 | Xử lý khi không thấy ảnh, debug chỗ dễ lỗi, focus cửa sổ – xong 26 là chạy được ví dụ Facebook |
+| 12 | 20. Nhóm bước | Dùng lại thử lại / bỏ qua của 25b |
+| 13–15 | 22 → 24 → 28 | Chạy không cần canh, ghi macro, mở rộng |
+| – | 17 (Windows), 18 | Khi có máy Windows; riêng *Kiểm tra tay macOS* của 17 làm lúc nào cũng được (nên làm trước 25 vì chụp ảnh phụ thuộc tỷ lệ màn hình) |
+
+- [ ] **27. UI v2 cho các màn đang có + theme sáng / tối** – Đổi giao diện mọi thứ đang chạy được sang design v2, không đổi logic.
+  - [ ] Theme: thay `@theme` trong `style.css` bằng `design/theme.css` (giữ `@import "tailwindcss"`); `data-theme="light|dark"` trên `<html>`, không đặt thì theo hệ điều hành
+  - [ ] Font: cài `@fontsource/plus-jakarta-sans`, `@fontsource/jetbrains-mono`, bỏ Be Vietnam Pro / IBM Plex Mono (Windows ưu tiên Segoe UI Variable / Cascadia Mono có sẵn)
+  - [ ] Đổi class theo bảng "Đổi tên token" (DESIGN.md): `ground` → `bg`, `accent-strong` → `accent-text`; bỏ `accent-light`, `drag*` (kéo thả dùng màu trung tính, marker overlay dùng `accent`), bỏ `dark-*` (MiniBar, PreviewScreen dùng token chung)
+  - [ ] Utility gradient chỉ ở 4 chỗ: `btn-primary` (Chạy, Dùng ảnh này, Xong), `ring-selected` (bước / mục đang chọn), `ring-focus` (ô nhập focus), vòng tiến độ SVG thanh mini
+  - [ ] `components/icons.tsx`: **toàn bộ** bảng "Icon bước" (SVG 24×24, nét 1.8) – cả loại chưa có (scroll, open, waitImage, clickImage, waitPixel, focusWindow, group, ghim)
+  - [ ] Thanh tiêu đề tự vẽ kiểu Windows 11 (thu nhỏ / phóng to / đóng bên phải, vẫn kéo được cửa sổ) [`Main`]
+  - [ ] Bố cục 3 cột [`Main`]: chỗ cho thanh bên thư viện rộng 236 (nội dung ở 27b), danh sách bước co giãn, inspector 320–360 có tab Bước / Input (tab Input ở 27b)
+  - [ ] Thẻ bước [`Main`]: `bg-surface border-line rounded-card`, padding 9×12, cách 6 px, ô icon 32×32 `bg-soft`; đang chọn `ring-selected` + ô icon `bg-accent-soft text-accent-text`; chip thời gian mono; bước tắt `opacity-50`
+  - [ ] Inspector (`StepForm.tsx`, `RunSettings.tsx`): ô nhập `bg-field` bo 6–7, focus `ring-focus`, công tắc 40×20, segmented `bg-soft` / `bg-raised`, nút phụ `bg-surface border-line`
+  - [ ] Tab Soạn / Xem trước (gạch dưới 3px `bg-accent` rộng 50%) thay nút *Xem trước*
+  - [ ] Bảng thêm bước Ctrl+K [`AddStep`, `AddStepDark`]: `components/AddStepPalette.tsx` thay menu *+ Thêm bước* trong `StepList.tsx` – ô tìm, 4 nhóm, phím mũi tên + Enter; liệt kê **mọi** loại bước, loại chưa có hiện nhãn *Sắp có* và không chọn được
+  - [ ] Thanh mini [`MiniBar`, `MiniBarDark`]: `bg-surface border-line rounded-hud`, vòng tiến độ gradient, 2 dòng mono, nút tạm dừng phụ, nút Dừng `btn-danger-soft`
+  - [ ] Overlay [`Overlay`]: lớp phủ `bg-dim`, khung chọn nét đứt trắng + 4 núm viền accent + nhãn kích thước nền accent; thanh công cụ dưới `bg-hud text-hud-text border-hud-line rounded-xl`, công cụ đang bật nền trắng 14%; marker dùng `accent`
+  - [ ] Cài đặt theme Sáng / Tối / Theo hệ thống, lưu vào cấu hình app (`UserConfigDir`)
+  - [ ] Cập nhật mục *Quy ước UI* trong `CLAUDE.md` theo token / font mới
+  - Xong khi: mọi màn hiện tại đúng ở cả 2 theme (chụp headless `#`, `#overlay`, `#minibar`, `#preview`), `npm run build` sạch
+- [ ] **27b. Dựng sẵn UI cho tính năng chưa có** *(người dùng yêu cầu, 2026-10-16)* – Làm hết giao diện theo design v2 trước, logic làm ở bước sau.
+  - Cách làm: component nhận dữ liệu qua props, chưa nối Go. Trong app: hiện đúng chỗ nhưng nút / ô bị tắt, nhãn *Sắp có* (tooltip ghi số bước sẽ làm). Màn **`#demo`** nạp kịch bản mẫu (cả loại bước chưa có, dữ liệu giả trong `frontend/src/demo/`, **không** thêm vào `types.ts` / `model.go`) để xem đủ trạng thái, so với canvas
+  - [ ] Thư viện thanh bên [`Main`] – `components/Library.tsx`: ô tìm, danh sách kịch bản, mục đang mở (`bg-hover` + vạch trái accent), chấm `warn` chưa lưu, "Mở gần đây", nút Kịch bản mới / Mở / Lưu, mục "Lịch sử"; nhãn "Chưa lưu" cạnh tên kịch bản; status bar "Bản nháp tự lưu lúc …" *(logic: 21, 25c)*
+  - [ ] Input [`StepInputs`, `InputsTab`]: `PinButton.tsx`, trường đã ghim `field-pinned` + chip key; `VarTextInput.tsx` tô `{{biến}}` + popup gợi ý; `InputsPanel.tsx` (tab Input, dòng input, dạng mở rộng để sửa); chip "N input" trên thẻ bước *(logic: 21b)*
+  - [ ] Form Chạy [`RunDialog`, `RunDialogDark`] – `RunDialog.tsx`: preset, ô theo bước, ô đã đổi + khôi phục, khung "Sẽ gõ", chân với "Lần sau chạy luôn" / Đếm ngược / Huỷ / Chạy *(logic: 21b)*
+  - [ ] Neo điểm: ô X / Y dạng ±, lưới 3×3 chọn neo + tuỳ chọn %, toạ độ `(−300, +300)` trong danh sách, đường neo trên overlay *(chưa có trong design – vẽ theo thành phần v2; logic: 29)*
+  - [ ] Sửa nhiều điểm trên overlay: khung biến đổi + núm (co giãn / xoay / xiên), thanh công cụ ΔX / ΔY / % / góc / xiên, nút căn chỉnh / lật, hộp hỏi "Ánh xạ sang vùng mới" *(chưa có trong design; logic: 30)*
+  - [ ] Inspector cho loại bước mới: cuộn (hướng, số nấc), mở URL / app, **Chờ ảnh** [`Main`] (ảnh mẫu, Chụp lại, Xem trên màn hình, độ khớp, chờ tối đa, kiểm tra mỗi), click theo ảnh (ΔX / ΔY), chờ pixel (điểm, màu, sai số), focus cửa sổ (ô nhập + danh sách cửa sổ) *(logic: 23, 25, 26)*
+  - [ ] Khi hết giờ [`Main`]: segmented Thử lại / Bỏ qua / Dừng, số lần thử, "Thử hết vẫn không thấy"; chip trên thẻ bước *(logic: 25b)*
+  - [ ] Overlay tool `capture` [`Overlay`]: khoanh ảnh mẫu, nhãn kích thước, "Dùng ảnh này" / "Khoanh lại" *(logic: 25)*
+  - [ ] Thanh mini trạng thái chờ [`MiniBar`]: vòng theo thời gian chờ, "đang tìm x / y s", "thử lại x / y", tên preset *(logic: 25, 25b, 21b)*
+  - [ ] Khung nhóm bước [`Main`]: nét đứt `border-line-strong bg-group rounded-group`, icon + tên + chip `lặp ×N` *(logic: 20)*
+  - [ ] Debug: nút Chạy từ bước này / Tiếp (F10), breakpoint trên thẻ bước, màn timeline lịch sử chạy *(chưa có trong design; logic: 25c)*
+  - [ ] Hẹn giờ (chip giờ trong thư viện, hộp đặt giờ), nút Ghi macro trên toolbar *(chưa có trong design; logic: 22, 24)*
+  - Xong khi: `#demo` hiện đủ các phần trên ở cả 2 theme, khớp canvas; app thật không có nút nào bấm được mà không chạy; `npm run build` sạch
+- [ ] **29. Neo điểm theo 4 góc vùng** *(người dùng yêu cầu, 2026-10-16)* – Hiện điểm chỉ tính từ góc trên trái của vùng nên điểm ở phía phải / dưới lệch khi đổi vùng. Mỗi trục neo riêng: X neo trái (+) hoặc phải (−), Y neo trên (+) hoặc dưới (−). Ví dụ 4 điểm cách mỗi cạnh 300 px = (+300, +300), (−300, +300), (+300, −300), (−300, −300); đổi vùng thì mỗi điểm bám theo góc của nó.
+  - [ ] Model: `Point` thêm `ax` (`start` = trái | `end` = phải | `center` | `ratio` = theo % rộng), `ay` (tương tự cho trên / dưới); bỏ trống = `start` (file / kịch bản cũ chạy như cũ). Lưu offset dương + neo riêng thay vì dùng dấu (để phân biệt +0 / −0); UI hiện dạng có dấu ±
+  - [ ] Toàn màn hình (`region = nil`) cũng neo được: nút *Toàn màn hình* lưu vùng = khung màn hình đang chứa overlay (thay vì `nil`) – cần chốt khi làm, vì liên quan đa màn hình (17)
+  - [ ] Go: một hàm `resolvePoint(p, region)` dùng chung cho engine (`runStep.pt`) và `validateScript` (điểm phải nằm trong vùng); test 4 góc, center, ratio, đổi cỡ vùng, kịch bản cũ không có neo
+  - [ ] Frontend: `toScreen` / `toRelative` / `endpoints()` trong `scriptStore.ts` tính theo neo (khớp Go); đổi neo giữ nguyên chỗ trên màn hình (tính lại offset)
+  - [ ] Neo khi đặt điểm: mặc định **tự chọn góc gần nhất** theo từng trục (cài đặt kịch bản: góc gần nhất / luôn trên trái); kéo marker giữ neo hiện tại
+  - [ ] Form: ô X / Y có dấu ± – gõ số âm = neo phải / dưới; nút chọn neo dạng lưới 3×3 nhỏ (4 góc, giữa cạnh, tâm) + tuỳ chọn %; danh sách bước hiện toạ độ dạng `(−300, +300)`
+  - [ ] Overlay: đường mảnh từ marker tới cạnh / góc đang neo (hiện với bước đang chọn hoặc khi giữ Alt); đổi vùng (kéo vùng mới) thấy marker bám theo góc ngay
+  - [ ] Kéo thả "lệch so với A" (ΔX, ΔY) giữ nguyên – lệch không phụ thuộc neo
+  - [ ] Nối UI khung từ 27b (ô ±, lưới chọn neo, đường neo trên overlay)
+  - Xong khi: đặt 4 điểm ở 4 góc vùng 1000×700, đổi vùng sang 1400×900 → 4 điểm vẫn cách mỗi cạnh đúng 300 px khi chạy thật và trên overlay
+- [ ] **21. Lưu / tải kịch bản** – App chưa lưu gì; thêm `version` trước khi đổi model nhiều.
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - [ ] Model: `Script.version`; file `.json`
+  - [ ] Go: `SaveScript`, `SaveScriptAs`, `OpenScript` qua `runtime.SaveFileDialog` / `OpenFileDialog`; `validateScript` khi mở; danh sách mở gần đây (≤ 5) + bản nháp tự lưu trong `os.UserConfigDir()/autoclicker/`
+  - [ ] Thư viện ở thanh bên [`Main`]: ô tìm, mục đang mở (`bg-hover` + vạch trái 3×16 `bg-accent`), chấm `warn` khi chưa lưu, "Mở gần đây", nút Kịch bản mới / Mở / Lưu
+  - [ ] Nhãn "Chưa lưu" cạnh tên kịch bản; status bar "Bản nháp tự lưu lúc …"; chấm `ok` "Sẵn sàng"
+  - [ ] Phím Ctrl+S, Ctrl+Shift+S, Ctrl+O, Ctrl+N (macOS: Cmd); hỏi lưu khi đóng app / đổi kịch bản
+  - [ ] Test: ghi rồi đọc lại khớp; file hỏng / sai `version` báo lỗi
+  - Xong khi: tắt app mở lại vẫn còn bản nháp; mở / lưu qua hộp thoại trên macOS
+- [ ] **30. Sửa nhiều điểm cùng lúc: di chuyển, co giãn, xoay, xiên** *(người dùng yêu cầu, 2026-10-16)* – Chọn nhiều marker trên overlay (chế độ sửa và tab Xem trước) rồi biến đổi cả nhóm để khớp vùng mới.
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - [ ] Chọn nhiều: Shift / Cmd+click marker, kéo khung chọn trên chỗ trống (khi đang ở công cụ *Chọn*), Ctrl+A chọn tất cả, Esc bỏ chọn; danh sách bước đồng bộ chọn nhiều
+  - [ ] Khung biến đổi quanh các điểm đã chọn: kéo thân = **di chuyển** (phím mũi tên 1 px, Shift 10 px); 8 núm = **co giãn** (Shift giữ tỷ lệ, Alt từ tâm); núm ngoài góc = **xoay** (Shift bước 15°); Cmd/Ctrl + kéo núm cạnh = **xiên (skew)**; Cmd/Ctrl + kéo núm góc = **biến dạng tự do 4 góc (perspective)**; nút **lật ngang / dọc**
+  - [ ] Ô nhập số trên thanh công cụ overlay: ΔX, ΔY, rộng / cao %, góc xoay, xiên X / Y – để nhập chính xác
+  - [ ] Căn chỉnh: căn trái / phải / trên / dưới / giữa, chia đều khoảng cách ngang / dọc
+  - [ ] **Ánh xạ sang vùng mới**: khi đổi vùng hỏi cách xử lý các điểm – *Giữ theo neo* (bước 29, mặc định) / *Co giãn theo vùng* (giữ tỷ lệ vị trí trong vùng) / *Giữ nguyên chỗ trên màn hình*; hoặc chọn 4 điểm mốc cũ → 4 điểm mốc mới để tính phép biến đổi
+  - [ ] Toán: một hàm áp ma trận affine (di chuyển / co giãn / xoay / xiên) + homography 4 điểm cho perspective, viết trong `frontend/src/transform.ts`, có test đơn vị; sau khi biến đổi, ghi lại offset theo neo hiện có của từng điểm (bước 29)
+  - [ ] Điểm đặc biệt: A "từ điểm trước" bỏ qua (tự tính); B "lệch so với A" biến đổi véc-tơ ΔX/ΔY theo phần tuyến tính (co giãn / xoay / xiên, không cộng di chuyển); điểm bị đẩy ra ngoài vùng → báo và không áp dụng
+  - [ ] Hoàn tác / làm lại (Ctrl+Z / Ctrl+Shift+Z) cho mọi thay đổi điểm – hiện chỉ có hoàn tác xoá; lịch sử trong `scriptStore.ts`
+  - [ ] Tab Xem trước: bật *Sửa điểm* cho phép chọn nhiều + biến đổi, mô phỏng chạy lại theo vị trí mới
+  - Xong khi: chọn 5 điểm, co giãn 150%, xoay 10°, xiên, lật → overlay và lần chạy thật khớp nhau; Ctrl+Z quay lại đúng từng bước; đổi vùng với cả 3 cách xử lý cho kết quả như mô tả
+- [ ] **21b. Input của kịch bản** – Người soạn đánh dấu giá trị nào được đổi khi chạy; bấm Chạy thì điền form. Go áp giá trị vào bản sao kịch bản rồi mới đưa engine, **engine không đổi**. Cùng đổi `version` với 21; CSV (28) dựa vào đây.
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - [ ] Model `Script.inputs`: `key`, `label`, `type` (`number`, `ms`, `text`, `multiline`, `bool`, `select`, `point`), `default`, `required`, `min` / `max`, `options`, `hint`, `targets: [{stepId, field}]`. Ví dụ:
+    ```json
+    "inputs": [
+      { "key": "click_delay", "label": "Chờ sau khi click", "type": "ms", "default": 500,
+        "targets": [{ "stepId": "s4", "field": "delayAfter" }] },
+      { "key": "M1", "label": "Tên người nhận", "type": "text", "required": true, "hint": "Tên hiện trong lời chào" }
+    ]
+    ```
+    - Nguồn: **trường được ghim** (`targets`, một input cho nhiều bước) và **biến `{{key}}`** trong trường chữ (gõ chữ, URL, tên cửa sổ) – tự tạo input khi gõ biến mới
+    - Key: chữ không dấu, số, `_`; nhãn tiếng Việt ở `label`; `\{{` để gõ ra `{{`; không ghim được trường tự tính (kéo thả "từ điểm trước")
+  - [ ] Go: `resolveInputs(script, values) (Script, error)` – sao chép, ghi trường ghim, thay `{{…}}`, `validateScript`; `RunScript(sc, values, countdown)`; Xem trước dùng chung resolve
+  - [ ] Lỗi rõ: thiếu bắt buộc, sai kiểu / ngoài khoảng, biến không có trong `inputs`, input không bước nào dùng, toạ độ ngoài vùng
+  - [ ] Giá trị lần trước + preset lưu trong `UserConfigDir` theo từng kịch bản, **không** ghi vào file kịch bản
+  - [ ] Inspector [`StepInputs`]: `components/PinButton.tsx` (32×32 cạnh mỗi trường số / chữ; đã ghim nền `accent-soft`); trường đã ghim `field-pinned` + chip key `var-token` cạnh nhãn
+  - [ ] Ô chữ có biến [`StepInputs`]: `components/VarTextInput.tsx` – tô `{{biến}}` bằng `var-token`; gõ `{{` mở popup gợi ý (key mono `accent-text` + nhãn `muted`, "+ Tạo input mới…"); dòng phụ "N biến, tự thêm vào tab Input"
+  - [ ] Tab Input [`InputsTab`]: `components/InputsPanel.tsx` – chip số input ở tab; mỗi dòng ⋮⋮ kéo, nhãn + `*`, `key · mặc định` mono, chip kiểu, chip bước dùng; input đang sửa mở rộng (`ring-selected`): nhãn, kiểu, mặc định, bắt buộc, gợi ý; bỏ ghim; "+ Thêm input"
+  - [ ] Thẻ bước: chip viền `line` "N input"
+  - [ ] Form Chạy [`RunDialog`, `RunDialogDark`]: `components/RunDialog.tsx` (popup 560, bo 12) – đầu có tên kịch bản + số input; "Bộ giá trị" (select preset + "Lưu bộ mới"); ô nhóm theo bước, ô đã đổi `ring-focus` + "đã đổi, mặc định … · khôi phục", `*` màu `warn`; khung "Sẽ gõ" xem trước câu sau khi thay biến; chân: "Lần sau chạy luôn với giá trị này", "Đếm ngược 3 giây", Huỷ / Chạy (`btn-primary`, F8)
+  - [ ] Nút Chạy / F8 mở form khi kịch bản có input; chạy thẳng nếu đã bật "Lần sau chạy luôn"; thanh mini hiện tên preset
+  - [ ] Test: ghi đè trường; thay biến (có tiếng Việt); thiếu biến; sai kiểu; escape; một input nhiều bước; input trong nhóm (sau bước 20)
+  - Xong khi: B1 click 500 → chạy với 1000 ms; B2 "xin chào {{M1}} và {{M2}}" gõ đúng giá trị điền
+- [ ] **23. Cuộn + Mở URL / app** – Loại bước đơn giản.
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - [ ] Model: `scroll` (`direction`, `amount`, điểm tuỳ chọn); `open` (`target` URL / đường dẫn app, `app` tuỳ chọn)
+  - [ ] Engine: `robotgo.Scroll`; `open` → macOS `open [-a App] target`, Windows `cmd /c start "" target`; test với input giả
+  - [ ] UI: icon `scroll`, `open` (bảng icon DESIGN.md), thêm vào bảng Ctrl+K; inspector: hướng + số nấc; URL / app + trình duyệt (URL nhận biến, vd `facebook.com/{{profile}}`)
+- [ ] **25. Chờ ảnh, click theo ảnh, chờ pixel** – Cốt lõi để tương tác web / app (làm sớm).
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - [ ] Model: `waitImage` (`template` PNG cạnh file kịch bản hoặc base64, `threshold` %, `timeoutMs`, `intervalMs`, vùng tìm); `clickImage` (dùng kết quả `waitImage` hoặc tự tìm, lệch ΔX/ΔY); `waitPixel` (điểm, màu, sai số, timeout)
+  - [ ] Engine: chụp màn hình (`robotgo.CaptureImg`), so khớp mẫu (bắt đầu đơn giản trên ảnh thu nhỏ, cân nhắc `gocv` nếu chậm); lưu vị trí tìm thấy cho bước sau
+  - [ ] Overlay tool `capture` [`Overlay`]: khoanh ảnh mẫu, nhãn kích thước, "Dùng ảnh này" / "Khoanh lại"
+  - [ ] Inspector "Chờ ảnh" [`Main`]: ảnh mẫu, Chụp lại, Xem trên màn hình, độ khớp, chờ tối đa (ghim được), kiểm tra mỗi
+  - [ ] Icon `waitImage`, `clickImage`, `waitPixel`; thêm vào bảng Ctrl+K
+  - [ ] Thanh mini [`MiniBar`]: vòng tiến độ theo thời gian chờ, "đang tìm x / y s"
+  - [ ] Retina / DPI ≠ 100%: chụp và so cùng tỷ lệ (liên quan 17)
+- [ ] **25b. Xử lý khi hết giờ** – Chờ ảnh cần hướng xử lý khi không thấy.
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - [ ] Model: `onTimeout: { action: "retry" | "skip" | "stop", retries, then: "skipGroup" | "stop" }`
+  - [ ] Engine: thử lại N lần, bỏ qua bước, bỏ qua phần còn lại của nhóm, hoặc dừng (lý do vào `engine:stopped`)
+  - [ ] UI [`Main`]: segmented Thử lại / Bỏ qua / Dừng, số lần thử, "Thử hết vẫn không thấy"; chip trên thẻ bước; thanh mini "thử lại x / y"
+- [ ] **25c. Debug từng bước + lịch sử chạy** – Chờ ảnh là chỗ dễ lỗi nhất.
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - [ ] Chạy từ bước đang chọn; chạy từng bước (nút Tiếp / F10); breakpoint trên thẻ bước
+  - [ ] Mỗi lần chạy lưu nhật ký: thời gian từng bước, giá trị input đã dùng, ảnh chụp màn hình khi bước lỗi / hết giờ
+  - [ ] UI: mục "Lịch sử" trong thư viện; xem lại từng lần chạy dạng timeline
+- [ ] **26. Focus cửa sổ theo tên**
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - [ ] Model: `focusWindow` (`title` hoặc process); Engine: `robotgo.ActivateName`, không thấy → `onTimeout`
+  - [ ] UI: icon `focusWindow`; ô nhập (nhận biến) + chọn từ danh sách cửa sổ đang mở
+- [ ] **20. Nhóm bước** – Lặp riêng một nhóm N lần; dùng chung thử lại / bỏ qua của 25b.
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - [ ] Model: `group` (`name`, `repeat` – ghim được, `children`); tăng `version` + chuyển đổi file cũ
+  - [ ] Engine: chạy lồng, tiến độ theo bước con; `skipGroup` từ 25b
+  - [ ] UI [`Main`]: khung `border-dashed border-line-strong bg-group rounded-group p-2`, đầu khung icon `group` + tên + chip `lặp ×N`; kéo bước vào / ra; overlay + Xem trước đánh số theo thứ tự thực tế
+- [ ] **22. Hẹn giờ + thông báo + CLI / API local** – Chạy không cần ngồi canh.
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - [ ] Hẹn giờ: chạy lúc HH:mm (một lần / hằng ngày) với preset input đã chọn; chip giờ trong thư viện; app thu xuống khay
+  - [ ] Thông báo: Telegram / Discord / webhook khi xong hoặc lỗi, kèm ảnh chụp màn hình
+  - [ ] CLI: `autoclicker run script.json --preset "Gửi cho Lan" --set M1=Lan`
+  - [ ] API local: `POST /run` (kèm values), `POST /stop`, `GET /status`, tiến độ qua SSE; bảo vệ bằng token
+- [ ] **24. Ghi macro** – Ghi click / kéo / gõ phím bằng gohook, gộp thành bước, tự tính delay; nút Ghi trên toolbar, F9 dừng.
+  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+- [ ] **28. Mở rộng** – Làm sau cùng.
+  - [ ] Chrome qua DOM (`chromedp`): `web.goto`, `web.waitVisible`, `web.click`, `web.type`, `web.scroll` theo selector; nút "chọn phần tử trên trang"
+  - [ ] CSV: mỗi cột là một input key, chạy kịch bản cho từng dòng (mỗi dòng một lần `resolveInputs`)
+  - [ ] OCR: đọc chữ trong vùng vào biến, rẽ nhánh theo nội dung (Tesseract)
+  - [ ] Tìm phần tử bằng AI: mô tả bằng lời ("nút Gửi"), model có vision trả toạ độ; dự phòng khi ảnh mẫu không khớp
+  - [ ] Biến và điều kiện: đọc clipboard / OCR vào biến, `if / else`, "lặp đến khi thấy ảnh"
+  - [ ] Thư viện mẫu, chia sẻ gói kịch bản (kèm ảnh mẫu), thống kê lần chạy (SQLite)
+
+
+### Ví dụ mục tiêu: nhắn tin cho một người trên Facebook
+
+| # | Bước | Loại | Input | Cần bước |
+|---|---|---|---|---|
+| 1 | Mở `facebook.com/{{profile}}` | `open` | `profile` | 21b, 23 |
+| 2 | Đưa Chrome lên trước | `focusWindow` | | 26 |
+| 3 | Chờ nút "Nhắn tin" (thử lại 2 lần) | `waitImage` | `wait_s` | 25, 25b |
+| 4 | Click nút | `clickImage` | `click_delay` | 25 |
+| 5 | Gõ "xin chào {{M1}} và {{M2}}" | `type` | `M1`, `M2` | có sẵn + 21b |
+| 6 | Enter | `key` | | có sẵn |
+| 7 | Cuộn xuống 5 nấc | `scroll` | | 23 |
+
+> Tự động hoá trên Facebook vi phạm điều khoản của họ và dễ bị khoá tài khoản, nhất là khi nhắn hàng loạt. Thử trên tài khoản phụ hoặc trang của chính bạn.
 
 ---
 
@@ -225,3 +392,8 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-15** – Đánh dấu xong 19, kéo thả mới, 19b, 19c theo xác nhận của người dùng (yêu cầu commit sau khi thử). Commit + push lên GitHub.
 - **2026-10-15** – Sửa giao diện màn chính theo phản hồi (header 2 hàng, thanh dưới bị cắt ở cửa sổ 1024×768): header một hàng gọn (nút h-9, chữ 13px, tên app chỉ hiện chữ từ `xl`), màn chính `h-screen`, danh sách bước và form tự cuộn trong khung, hàng nút loại bước nhỏ lại. Chụp headless 1024×768 và 1440×800 OK; chưa commit.
 - **2026-10-15** – Sửa dòng trong danh sách bước bị nhảy khi rê chuột (mô tả dài): nút nhân bản / xoá nổi tuyệt đối ở góc phải, thời gian chờ chỉ `invisible` để giữ chiều rộng. `npm run build` OK; chưa commit.
+- **2026-10-16** – Nhận design v2 + kế hoạch mới từ người dùng: chuyển vào `design/` (DESIGN.md, theme.css, canvas) và `docs/ROADMAP.md`. Sắp lại Phase 3 theo ROADMAP: thêm 27 (UI v2), 21b (input), 25b (hết giờ), 25c (debug + lịch sử), 28 (mở rộng); mở rộng 23 (+ mở URL / app), 22 (+ thông báo, CLI / API); bỏ Phase 2 / 3 cũ chưa làm (gộp vào danh sách mới). Chưa đổi code.
+- **2026-10-16** – Gộp toàn bộ `docs/ROADMAP.md` + phần design (artboard, thành phần, icon) vào checklist từng bước Phase 3 theo yêu cầu; xoá `docs/ROADMAP.md` (TASKS là nguồn duy nhất), chi tiết thiết kế vẫn ở `design/DESIGN.md`. Chưa đổi code.
+- **2026-10-16** – Thêm theo yêu cầu: bước 29 (neo điểm theo 4 góc vùng, ±X / ±Y) và 30 (chọn nhiều điểm: di chuyển, co giãn, xoay, xiên, perspective, căn chỉnh, ánh xạ sang vùng mới, hoàn tác). Xếp sau 27, trước 21. Chưa đổi code.
+- **2026-10-16** – Sắp lại thứ tự Phase 3 theo phụ thuộc: 29 → 27 → 21 → 30 → 21b → 23 → 25 → 25b → 25c → 26 → 20 → 22 → 24 → 28; thêm bảng thứ tự + lý do ở đầu Phase 3. Chưa đổi code.
+- **2026-10-16** – Theo yêu cầu: đưa UI lên đầu – 27 (đổi giao diện màn đang có) + 27b mới (dựng khung UI cho mọi tính năng chưa có, nhãn *Sắp có*, màn `#demo`); thứ tự mới 27 → 27b → 29 → 21 → 30 → 21b → 23 → 25 → 25b → 25c → 26 → 20 → 22 → 24 → 28. Chưa đổi code.

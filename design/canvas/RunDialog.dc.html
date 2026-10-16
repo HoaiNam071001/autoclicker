@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Auto Clicker – Chạy kịch bản</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 560px; height: 740px; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.surface}}; color: {{c.text}}; border: 1px solid {{c.border}}; border-radius: 12px; overflow: hidden; font-family: 'Segoe UI Variable Text', 'Segoe UI', 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 14px">
+
+<header style="display: flex; align-items: center; gap: 12px; padding: 16px 18px 12px">
+<span style="width: 36px; height: 36px; border-radius: 9px; background: {{c.accentSoft}}; color: {{c.accentText}}; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg></span>
+<div style="flex: 1"><div style="font-weight: 600; font-size: 16px">Chạy kịch bản</div><div style="color: {{c.muted}}; font-size: 13px">Nhắn tin Facebook, 5 input</div></div>
+<button aria-label="Đóng" style="width: 32px; height: 32px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; display: grid; place-items: center"><svg width="12" height="12" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 0l10 10M10 0L0 10" stroke="currentColor" stroke-width="1.3"></path></svg></button>
+</header>
+
+<div style="display: flex; align-items: center; gap: 8px; padding: 0 18px 14px; border-bottom: 1px solid {{c.border}}">
+<span style="color: {{c.muted}}; font-size: 13px">Bộ giá trị</span>
+<select style="flex: 1; height: 32px; border-radius: 6px; padding: 0 8px; background: {{c.field}}; border: 1px solid {{c.border}}; color: {{c.text}}; font: inherit"><option>Gửi cho Lan</option><option>Gửi cho Minh</option><option>Lần chạy trước</option><option>Mặc định</option></select>
+<button style="height: 32px; padding: 0 10px; border: 1px solid {{c.border}}; border-radius: 6px; background: {{c.surface}}; color: {{c.text}}; font: inherit; font-size: 13px">Lưu bộ mới</button>
+</div>
+
+<div style="flex: 1; overflow: hidden; padding: 14px 18px; display: flex; flex-direction: column; gap: 14px">
+
+<section style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: {{c.muted}}"><span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace">01</span>  Mở URL</span>
+<label style="display: flex; flex-direction: column; gap: 5px"><span>Trang cá nhân <span style="color: {{c.warn}}">*</span> <span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; color: {{c.muted}}">profile</span></span>
+<span style="display: flex; align-items: center; height: 34px; border-radius: 6px; padding: 0 10px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px"><span style="color: {{c.muted}}">facebook.com/</span>lan.nguyen.92</span></label>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: {{c.muted}}"><span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace">03–04</span>  Chờ ảnh, click theo ảnh</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<label style="display: flex; flex-direction: column; gap: 5px">Thời gian chờ nút
+<span style="display: flex; align-items: center; height: 34px; border-radius: 6px; padding: 0 10px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px">10<span style="margin-left: auto; color: {{c.muted}}">s</span></span></label>
+<label style="display: flex; flex-direction: column; gap: 5px">Chờ sau khi click
+<span style="display: flex; align-items: center; height: 34px; border-radius: 6px; padding: 0 10px; border: 1px solid transparent; background: {{c.changedRing}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px">1000<span style="margin-left: auto; color: {{c.muted}}">ms</span></span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: {{c.accentText}}">đã đổi, mặc định 500 ms<button style="border: 0; background: transparent; padding: 0; color: {{c.muted}}; font: inherit; font-size: 12px; text-decoration: underline">khôi phục</button></span></label>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: {{c.muted}}"><span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace">05</span>  Gõ chữ</span>
+<label style="display: flex; flex-direction: column; gap: 5px"><span>Tên người nhận <span style="color: {{c.warn}}">*</span> <span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; color: {{c.muted}}">M1</span></span>
+<span style="display: flex; align-items: center; height: 34px; border-radius: 6px; padding: 0 10px; background: {{c.field}}; border: 1px solid {{c.border}}">Lan</span>
+<span style="font-size: 12px; color: {{c.muted}}">Tên hiện trong lời chào</span></label>
+<label style="display: flex; flex-direction: column; gap: 5px"><span>Lời nhắn <span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; color: {{c.muted}}">M2</span></span>
+<span style="min-height: 58px; box-sizing: border-box; border-radius: 6px; padding: 8px 10px; background: {{c.field}}; border: 1px solid {{c.border}}">cuối tuần này đi cà phê không?</span></label>
+<div style="padding: 10px 12px; border-radius: 8px; background: {{c.soft}}; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 12px; color: {{c.muted}}">Sẽ gõ</span>
+<span>xin chào <b style="font-weight: 600; color: {{c.accentText}}">Lan</b> và <b style="font-weight: 600; color: {{c.accentText}}">cuối tuần này đi cà phê không?</b></span>
+</div>
+</section>
+</div>
+
+<footer style="display: flex; flex-direction: column; gap: 12px; padding: 14px 18px; border-top: 1px solid {{c.border}}; background: {{c.foot}}">
+<label style="display: flex; align-items: center; gap: 8px; color: {{c.text}}; font-size: 13px"><input type="checkbox" style="width: 16px; height: 16px; accent-color: {{c.accent}}">Lần sau chạy luôn với giá trị này, không hỏi lại</label>
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-size: 12px; color: {{c.muted}}">Đếm ngược 3 giây</span>
+<button style="margin-left: auto; height: 36px; padding: 0 14px; border: 1px solid {{c.border}}; border-radius: 7px; background: {{c.surface}}; color: {{c.text}}; font: inherit">Huỷ</button>
+<button style="height: 36px; padding: 0 18px; display: flex; align-items: center; gap: 10px; border: 1px solid {{c.btnEdge}}; border-radius: 7px; background: {{c.btnGrad}}; color: #FFFFFF; font: inherit; font-weight: 600; box-shadow: {{c.btnShadow}}"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>Chạy <span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; font-weight: 400; opacity: .8">F8</span></button>
+</div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"accent":{"editor":"color","default":"#4F6BED","options":["#4F6BED","#2F8F83","#8B6CE0","#5B6472"]},"$preview":{"width":560,"height":740}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const a = this.props.accent ?? '#4F6BED';
+    const hex = (h, al) => { const n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + al + ')'; };
+    const c = dark ? {
+      surface: '#1E1F23', foot: '#1A1B1E', field: '#17181B', text: '#ECEDF0', muted: '#A0A5B0', border: 'rgba(255,255,255,.08)',
+      soft: 'rgba(255,255,255,.05)', accentSoft: hex(a, .16), accentText: '#B4C1FF', warn: '#D9A35B'
+    } : {
+      surface: '#FFFFFF', foot: '#F8F9FA', field: '#FFFFFF', text: '#16181D', muted: '#636A76', border: '#E6E8EC',
+      soft: 'rgba(22,24,29,.045)', accentSoft: hex(a, .1), accentText: '#3B55CF', warn: '#C8893A'
+    };
+    c.accent = a;
+    c.changedRing = 'linear-gradient(' + c.field + ', ' + c.field + ') padding-box, linear-gradient(90deg, ' + a + ', ' + hex(a, .2) + ') border-box';
+    c.btnGrad = 'linear-gradient(180deg, ' + hex(a, .82) + ' 0%, ' + a + ' 100%)';
+    c.btnEdge = hex(a, .9);
+    c.btnShadow = '0 1px 0 rgba(255,255,255,.25) inset, 0 4px 12px ' + hex(a, dark ? .25 : .22);
+    return { c };
+  }
+}
+</script>
+</body>
+</html>

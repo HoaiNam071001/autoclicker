@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Auto Clicker – Thêm bước</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 680px; height: 600px; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.surface}}; color: {{c.text}}; border: 1px solid {{c.border}}; border-radius: 12px; overflow: hidden; font-family: 'Segoe UI Variable Text', 'Segoe UI', 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 14px">
+
+<label style="display: flex; align-items: center; gap: 12px; margin: 14px 14px 6px; height: 40px; padding: 0 12px; border-radius: 8px; border: 1px solid transparent; background: {{c.searchBg}}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{c.muted}}" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input placeholder="Tìm loại bước… (vd: chờ, cuộn, url)" style="flex: 1; border: 0; outline: none; background: transparent; color: {{c.text}}; font: inherit; font-size: 15px">
+<span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; color: {{c.muted}}">Esc</span>
+</label>
+
+<div style="flex: 1; overflow: hidden; padding: 8px 14px; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+<section style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: {{c.muted}}; padding: 0 4px">{{g.name}}</span>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+<button style="display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 6px 10px; border: {{it.border}}; border-radius: 9px; background: {{it.bg}}; font: inherit; color: {{c.text}}; text-align: left">
+<span style="width: 30px; height: 30px; flex: none; border-radius: 7px; background: {{it.tileBg}}; color: {{it.tileFg}}; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{it.icon}}"></path></svg></span>
+<span style="flex: 1; min-width: 0; font-weight: 500">{{it.label}}</span>
+<sc-if value="{{it.isNew}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10px; font-weight: 600; color: {{c.accentText}}; background: {{c.accentSoft}}; padding: 1px 6px; border-radius: 999px">Mới</span></sc-if>
+</button>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+
+<div style="display: flex; align-items: center; gap: 16px; padding: 10px 16px; border-top: 1px solid {{c.border}}; background: {{c.foot}}; color: {{c.muted}}; font-size: 12px">
+<span><span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace">↑↓←→</span> chọn</span>
+<span><span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace">Enter</span> thêm sau bước đang chọn</span>
+<span style="margin-left: auto">Click / Kéo thả / Chờ ảnh mở overlay</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"accent":{"editor":"color","default":"#4F6BED","options":["#4F6BED","#2F8F83","#8B6CE0","#5B6472"]},"$preview":{"width":680,"height":600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const a = this.props.accent ?? '#4F6BED';
+    const hex = (h, al) => { const n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + al + ')'; };
+    const c = dark ? {
+      surface: '#1E1F23', foot: '#1A1B1E', text: '#ECEDF0', muted: '#A0A5B0', border: 'rgba(255,255,255,.08)',
+      soft: 'rgba(255,255,255,.05)', item: 'rgba(255,255,255,.025)', accentSoft: hex(a, .16), accentText: '#B4C1FF', fieldBg: '#17181B'
+    } : {
+      surface: '#FFFFFF', foot: '#F8F9FA', text: '#16181D', muted: '#636A76', border: '#E6E8EC',
+      soft: 'rgba(22,24,29,.045)', item: '#FFFFFF', accentSoft: hex(a, .1), accentText: '#3B55CF', fieldBg: '#FFFFFF'
+    };
+    c.searchBg = 'linear-gradient(' + c.fieldBg + ', ' + c.fieldBg + ') padding-box, linear-gradient(90deg, ' + a + ', ' + hex(a, .2) + ') border-box';
+    const selBg = 'linear-gradient(' + c.surface + ', ' + c.surface + ') padding-box, linear-gradient(135deg, ' + a + ', ' + hex(a, .25) + ') border-box';
+    const I = {
+      click: 'M5 3l13 7-6 1.5L9 18z',
+      dbl: 'M5 3l13 7-6 1.5L9 18zM15 3l2-2M19 6l2-1',
+      hold: 'M5 3l13 7-6 1.5L9 18zM17 15a3 3 0 1 0 0 .01',
+      drag: 'M5 19a2 2 0 1 0 0-.01M7 17L18 6M13 6h5v5',
+      scroll: 'M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4',
+      type: 'M4 7V5h12v2M10 5v14M7 19h6M15 13h5M17.5 13v6',
+      key: 'M5 9h14v10H5zM8 13h1M11 13h1M14 13h2M8 16h8',
+      wait: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2',
+      scan: 'M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0',
+      pixel: 'M4 4h7v7H4zM13 13h7v7h-7zM13 4h7v7h-7z',
+      tclick: 'M4 8V5h3M17 5h3v3M7 19H4v-3M10 9l9 5-4 1-2 4z',
+      globe: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18',
+      win: 'M4 5h16v14H4zM4 9h16',
+      group: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z'
+    };
+    const sel = 'Chờ ảnh';
+    const it = (label, icon, isNew) => {
+      const s = label === sel;
+      return {
+        label, icon: I[icon], isNew,
+        bg: s ? selBg : c.item,
+        border: s ? '1px solid transparent' : '1px solid ' + c.border,
+        tileBg: s ? c.accentSoft : c.soft, tileFg: s ? c.accentText : c.muted
+      };
+    };
+    const groups = [
+      { name: 'Chuột', items: [it('Click', 'click'), it('Double click', 'dbl'), it('Giữ chuột', 'hold'), it('Kéo thả', 'drag'), it('Cuộn', 'scroll', true), it('Click theo ảnh', 'tclick', true)] },
+      { name: 'Bàn phím', items: [it('Gõ chữ', 'type'), it('Phím tắt', 'key')] },
+      { name: 'Chờ & điều kiện', items: [it('Chờ', 'wait'), it('Chờ ảnh', 'scan', true), it('Chờ màu pixel', 'pixel', true)] },
+      { name: 'Ứng dụng & cấu trúc', items: [it('Mở URL / app', 'globe', true), it('Focus cửa sổ', 'win', true), it('Nhóm bước', 'group', true)] }
+    ];
+    return { c, groups };
+  }
+}
+</script>
+</body>
+</html>

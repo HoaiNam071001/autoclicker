@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Auto Clicker – Input của kịch bản</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 360px; height: 760px; box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; gap: 14px; background: {{c.surface}}; color: {{c.text}}; border: 1px solid {{c.border}}; border-radius: 12px; font-family: 'Segoe UI Variable Text', 'Segoe UI', 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 14px">
+
+<div style="display: flex; gap: 18px; border-bottom: 1px solid {{c.border}}">
+<button style="height: 34px; padding: 0 2px; border: 0; background: transparent; color: {{c.muted}}; font: inherit">Bước</button>
+<button style="height: 34px; padding: 0 2px; border: 0; background: transparent; color: {{c.text}}; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px; position: relative">Input <span style="font-size: 11px; font-weight: 600; color: {{c.accentText}}; background: {{c.accentSoft}}; padding: 0 6px; border-radius: 999px">5</span><span style="position: absolute; left: 10%; right: 10%; bottom: -1px; height: 3px; border-radius: 2px; background: {{c.accent}}"></span></button>
+</div>
+
+<p style="margin: 0; font-size: 12px; color: {{c.muted}}">Các giá trị được hỏi khi bấm Chạy, theo thứ tự dưới đây.</p>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<sc-for list="{{before}}" as="i" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid {{c.border}}; border-radius: 9px; background: {{c.surface}}">
+<span style="color: {{c.muted}}; cursor: grab" aria-hidden="true">⋮⋮</span>
+<div style="flex: 1; min-width: 0">
+<div style="display: flex; align-items: center; gap: 6px"><span style="font-weight: 600">{{i.label}}</span><sc-if value="{{i.req}}" hint-placeholder-val="{{ false }}"><span style="color: {{c.warn}}">*</span></sc-if></div>
+<div style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 12px; color: {{c.muted}}">{{i.key}}  ·  {{i.def}}</div>
+</div>
+<span style="font-size: 11px; color: {{c.muted}}; background: {{c.soft}}; padding: 2px 7px; border-radius: 5px">{{i.type}}</span>
+<span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; color: {{c.muted}}; border: 1px solid {{c.border}}; padding: 1px 6px; border-radius: 5px">{{i.used}}</span>
+</div>
+</sc-for>
+
+<div style="padding: 12px; border: 1px solid transparent; border-radius: 9px; background: {{c.selRing}}; box-shadow: 0 4px 14px {{c.selShadow}}; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="color: {{c.muted}}" aria-hidden="true">⋮⋮</span>
+<span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px; color: {{c.accentText}}; background: {{c.accentSoft}}; padding: 1px 7px; border-radius: 5px">M1</span>
+<span style="font-size: 12px; color: {{c.muted}}">dùng ở B05 Gõ chữ</span>
+<button aria-label="Xoá input" style="margin-left: auto; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button>
+</div>
+<label style="display: flex; flex-direction: column; gap: 5px; color: {{c.muted}}; font-size: 13px">Nhãn
+<input value="Tên người nhận" style="height: 32px; border-radius: 6px; padding: 0 10px; background: {{c.field}}; border: 1px solid {{c.border}}; color: {{c.text}}; font: inherit; font-size: 14px"></label>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<label style="display: flex; flex-direction: column; gap: 5px; color: {{c.muted}}; font-size: 13px">Kiểu
+<select style="height: 32px; border-radius: 6px; padding: 0 8px; background: {{c.field}}; border: 1px solid {{c.border}}; color: {{c.text}}; font: inherit; font-size: 14px"><option>Chữ</option><option>Nhiều dòng</option><option>Số</option><option>Thời gian (ms)</option><option>Toạ độ</option><option>Bật / tắt</option><option>Danh sách chọn</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 5px; color: {{c.muted}}; font-size: 13px">Mặc định
+<input placeholder="(trống)" style="height: 32px; border-radius: 6px; padding: 0 10px; background: {{c.field}}; border: 1px solid {{c.border}}; color: {{c.text}}; font: inherit; font-size: 14px"></label>
+</div>
+<label style="display: flex; align-items: center; justify-content: space-between; color: {{c.text}}; font-size: 13px">Bắt buộc nhập
+<span style="width: 36px; height: 18px; border-radius: 9px; background: {{c.accent}}; position: relative" role="img" aria-label="Bật"><span style="position: absolute; right: 3px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF"></span></span></label>
+<label style="display: flex; flex-direction: column; gap: 5px; color: {{c.muted}}; font-size: 13px">Gợi ý hiện dưới ô
+<input value="Tên hiện trong lời chào" style="height: 32px; border-radius: 6px; padding: 0 10px; background: {{c.field}}; border: 1px solid {{c.border}}; color: {{c.text}}; font: inherit; font-size: 14px"></label>
+</div>
+
+<sc-for list="{{after}}" as="i" hint-placeholder-count="1">
+<div style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid {{c.border}}; border-radius: 9px; background: {{c.surface}}">
+<span style="color: {{c.muted}}; cursor: grab" aria-hidden="true">⋮⋮</span>
+<div style="flex: 1; min-width: 0">
+<div style="font-weight: 600">{{i.label}}</div>
+<div style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 12px; color: {{c.muted}}">{{i.key}}  ·  {{i.def}}</div>
+</div>
+<span style="font-size: 11px; color: {{c.muted}}; background: {{c.soft}}; padding: 2px 7px; border-radius: 5px">{{i.type}}</span>
+<span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; color: {{c.muted}}; border: 1px solid {{c.border}}; padding: 1px 6px; border-radius: 5px">{{i.used}}</span>
+</div>
+</sc-for>
+</div>
+
+<button style="height: 38px; border: 1px dashed {{c.borderStrong}}; border-radius: 8px; background: transparent; color: {{c.muted}}; font: inherit">+ Thêm input</button>
+<p style="margin: auto 0 0; font-size: 12px; color: {{c.muted}}">Giá trị lần chạy trước lưu trên máy này, không ghi vào file kịch bản.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"accent":{"editor":"color","default":"#4F6BED","options":["#4F6BED","#2F8F83","#8B6CE0","#5B6472"]},"$preview":{"width":360,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const a = this.props.accent ?? '#4F6BED';
+    const hex = (h, al) => { const n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + al + ')'; };
+    const c = dark ? {
+      surface: '#1E1F23', field: '#17181B', text: '#ECEDF0', muted: '#A0A5B0', border: 'rgba(255,255,255,.08)', borderStrong: 'rgba(255,255,255,.16)',
+      soft: 'rgba(255,255,255,.05)', accentSoft: hex(a, .16), accentText: '#B4C1FF', warn: '#D9A35B'
+    } : {
+      surface: '#FFFFFF', field: '#FFFFFF', text: '#16181D', muted: '#636A76', border: '#E6E8EC', borderStrong: '#D3D6DC',
+      soft: 'rgba(22,24,29,.045)', accentSoft: hex(a, .1), accentText: '#3B55CF', warn: '#C8893A'
+    };
+    c.accent = a;
+    c.selRing = 'linear-gradient(' + c.surface + ', ' + c.surface + ') padding-box, linear-gradient(135deg, ' + a + ', ' + hex(a, .25) + ') border-box';
+    c.selShadow = hex(a, dark ? .18 : .12);
+    const before = [
+      { label: 'Trang cá nhân', key: 'profile', def: 'bắt buộc', type: 'Chữ', used: 'B01', req: true },
+      { label: 'Thời gian chờ nút', key: 'wait_s', def: 'mặc định 10 s', type: 'Số', used: 'B03', req: false },
+      { label: 'Chờ sau khi click', key: 'click_delay', def: 'mặc định 500 ms', type: 'ms', used: 'B04', req: false }
+    ];
+    const after = [
+      { label: 'Lời nhắn', key: 'M2', def: 'mặc định trống', type: 'Nhiều dòng', used: 'B05' }
+    ];
+    return { c, before, after };
+  }
+}
+</script>
+</body>
+</html>

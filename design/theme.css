@@ -1,0 +1,166 @@
+/*
+ * Auto Clicker – design v2 (sáng / tối), Tailwind v4.
+ * Thay khối @theme cũ trong frontend/src/style.css bằng file này (giữ @import "tailwindcss" ở đầu).
+ * Đổi theme: <html data-theme="light|dark">; không đặt thì theo hệ điều hành.
+ * Đổi màu nhấn: chỉ sửa --c-accent, các màu pha (soft, gradient) tự tính bằng color-mix.
+ */
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --c-accent: #4F6BED;
+
+  --c-bg: #F6F7F9;          /* nền vùng nội dung */
+  --c-chrome: #FBFBFC;      /* thanh tiêu đề, toolbar, status bar */
+  --c-side: #F3F4F7;        /* thanh bên thư viện */
+  --c-surface: #FFFFFF;     /* thẻ bước, inspector, popup */
+  --c-raised: #FFFFFF;      /* nút đang chọn trong segmented */
+  --c-field: #FFFFFF;       /* ô nhập */
+  --c-soft: rgb(22 24 29 / 0.045);   /* chip, ô icon, nền segmented */
+  --c-hover: rgb(22 24 29 / 0.05);
+  --c-group: rgb(22 24 29 / 0.015);  /* nền khung nhóm bước */
+  --c-line: #E6E8EC;
+  --c-line-strong: #D3D6DC;          /* viền nét đứt: nhóm, nút thêm */
+  --c-ink: #16181D;
+  --c-muted: #636A76;
+  --c-accent-text: #3B55CF;
+  --c-accent-soft: color-mix(in srgb, var(--c-accent) 10%, transparent);
+  --c-warn: #C8893A;
+  --c-ok: #3E9B5C;
+  --c-danger: #D6343A;
+  --c-danger-text: #B4252B;
+  --c-danger-soft: rgb(214 52 58 / 0.08);
+  --c-raise: 0 1px 2px rgb(22 24 29 / 0.1);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --c-bg: #141518;
+  --c-chrome: #18191C;
+  --c-side: #18191C;
+  --c-surface: #1E1F23;
+  --c-raised: #2A2C31;
+  --c-field: #17181B;
+  --c-soft: rgb(255 255 255 / 0.05);
+  --c-hover: rgb(255 255 255 / 0.06);
+  --c-group: rgb(255 255 255 / 0.02);
+  --c-line: rgb(255 255 255 / 0.08);
+  --c-line-strong: rgb(255 255 255 / 0.16);
+  --c-ink: #ECEDF0;
+  --c-muted: #A0A5B0;
+  --c-accent-text: #B4C1FF;
+  --c-accent-soft: color-mix(in srgb, var(--c-accent) 16%, transparent);
+  --c-warn: #D9A35B;
+  --c-ok: #5DBB7A;
+  --c-danger-text: #FF9A9D;
+  --c-danger-soft: rgb(229 72 77 / 0.14);
+  --c-raise: none;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --c-bg: #141518; --c-chrome: #18191C; --c-side: #18191C; --c-surface: #1E1F23; --c-raised: #2A2C31; --c-field: #17181B;
+    --c-soft: rgb(255 255 255 / 0.05); --c-hover: rgb(255 255 255 / 0.06); --c-group: rgb(255 255 255 / 0.02);
+    --c-line: rgb(255 255 255 / 0.08); --c-line-strong: rgb(255 255 255 / 0.16);
+    --c-ink: #ECEDF0; --c-muted: #A0A5B0; --c-accent-text: #B4C1FF;
+    --c-accent-soft: color-mix(in srgb, var(--c-accent) 16%, transparent);
+    --c-warn: #D9A35B; --c-ok: #5DBB7A; --c-danger-text: #FF9A9D; --c-danger-soft: rgb(229 72 77 / 0.14);
+    --c-raise: none;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-chrome: var(--c-chrome);
+  --color-side: var(--c-side);
+  --color-surface: var(--c-surface);
+  --color-raised: var(--c-raised);
+  --color-field: var(--c-field);
+  --color-soft: var(--c-soft);
+  --color-hover: var(--c-hover);
+  --color-group: var(--c-group);
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+  --color-ink: var(--c-ink);
+  --color-muted: var(--c-muted);
+  --color-accent: var(--c-accent);
+  --color-accent-soft: var(--c-accent-soft);
+  --color-accent-text: var(--c-accent-text);
+  --color-warn: var(--c-warn);
+  --color-ok: var(--c-ok);
+  --color-danger: var(--c-danger);
+  --color-danger-text: var(--c-danger-text);
+  --color-danger-soft: var(--c-danger-soft);
+
+  /* Overlay / HUD: luôn tối, không đổi theo theme */
+  --color-hud: #1E1F23;
+  --color-hud-text: #D7DAE0;
+  --color-hud-line: rgb(255 255 255 / 0.1);
+  --color-dim: rgb(14 16 22 / 0.5);
+
+  --font-sans: "Segoe UI Variable Text", "Segoe UI", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-control: 7px;  /* nút, ô nhập */
+  --radius-card: 9px;     /* thẻ bước, mục trong bảng thêm bước */
+  --radius-group: 11px;   /* khung nhóm */
+  --radius-panel: 12px;   /* popup, bảng thêm bước */
+  --radius-hud: 14px;     /* thanh mini */
+}
+
+/* ---- Chỉ 4 chỗ dùng gradient ---- */
+
+/* 1. Nút chính: Chạy, Dùng ảnh này, Xong */
+@utility btn-primary {
+  color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c-accent) 82%, transparent), var(--c-accent));
+  border: 1px solid color-mix(in srgb, var(--c-accent) 90%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 4px 12px color-mix(in srgb, var(--c-accent) 22%, transparent);
+}
+
+/* 2. Viền gradient cho mục đang chọn (thẻ bước, mục trong bảng thêm bước) */
+@utility ring-selected {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--c-surface), var(--c-surface)) padding-box,
+    linear-gradient(135deg, var(--c-accent), color-mix(in srgb, var(--c-accent) 25%, transparent)) border-box;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--c-accent) 12%, transparent);
+}
+
+/* 3. Ô nhập đang focus (ô tìm loại bước) */
+@utility ring-focus {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--c-field), var(--c-field)) padding-box,
+    linear-gradient(90deg, var(--c-accent), color-mix(in srgb, var(--c-accent) 20%, transparent)) border-box;
+}
+
+/* 4. Vòng tiến độ ở thanh mini: dùng <linearGradient> trong SVG (xem DESIGN.md) */
+
+/* Nút Dừng: không gradient, nền đỏ pha trong suốt */
+@utility btn-danger-soft {
+  color: var(--c-danger-text);
+  background: var(--c-danger-soft);
+  border: 1px solid color-mix(in srgb, var(--c-danger) 32%, transparent);
+}
+
+body {
+  @apply m-0 bg-bg font-sans text-sm text-ink;
+}
+
+/* Biến {{…}} trong ô chữ, chip key của input */
+@utility var-token {
+  font-family: var(--font-mono);
+  font-size: 0.93em;
+  color: var(--c-accent-text);
+  background: var(--c-accent-soft);
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+
+/* Trường đã ghim làm input (trong inspector) */
+@utility field-pinned {
+  border: 1px dashed var(--c-accent);
+}

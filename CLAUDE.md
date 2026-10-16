@@ -4,7 +4,7 @@ Desktop app tự động click theo kịch bản (chọn vùng, chọn điểm, 
 
 ## Bắt đầu mỗi session
 
-1. Đọc **`docs/TASKS.md`**: mục *Trạng thái hiện tại* cho biết đang làm bước nào, *Quyết định đã chốt* là các lựa chọn không cần bàn lại, *Nhật ký* là lịch sử.
+1. Đọc **`docs/TASKS.md`**: mục *Trạng thái hiện tại* cho biết đang làm bước nào, *Quyết định đã chốt* là các lựa chọn không cần bàn lại, *Nhật ký* là lịch sử. Thiết kế UI v2 (token, thành phần, icon, artboard) ở **`design/DESIGN.md`** + `design/theme.css`.
 2. Xong một bước (hoặc chuyển sang bước mới) → cập nhật `docs/TASKS.md`: tick `[x]`, sửa *Trạng thái hiện tại*, thêm 1 dòng vào *Nhật ký* (ngày tuyệt đối, kết quả kiểm tra).
 3. Người dùng trao đổi bằng **tiếng Việt** – trả lời, comment UI và tài liệu bằng tiếng Việt; tên biến/hàm bằng tiếng Anh.
 
@@ -25,9 +25,12 @@ Xem riêng từng màn trong `wails dev` / trình duyệt: thêm hash `#preview`
 - `frontend/src/scriptStore.ts` – store kịch bản đang soạn (dùng chung các màn); `coordMap.ts` – đổi toạ độ overlay ↔ robotgo (tỷ lệ + độ lệch đo từ chuột); `engineStore.ts` – store trạng thái engine (event `engine:state` / `engine:progress`); `windowMode.ts` – `setWindowMode` đổi cửa sổ + màn.
 - `frontend/src/screens/` – các màn UI; `components/StepList.tsx` – danh sách bước (dnd-kit); `components/StepForm.tsx` – form sửa bước; `components/RunSettings.tsx` – lặp / đếm ngược; `components/Simulation.tsx` – xem trước bằng con trỏ giả; `components/icons.tsx` – icon SVG; `types.ts` – model `Step` (phải khớp struct Go trong `model.go`; tsc tự kiểm tra).
 - `frontend/src/style.css` – Tailwind v4 + token thiết kế trong `@theme`.
-- `autoclicker-ui/` – bản thiết kế gốc (Tailwind v3, chỉ để tham khảo, không build).
+- `autoclicker-ui/` – bản thiết kế gốc (Tailwind v3, chỉ để tham khảo, không build) – bị thay bởi design v2 từ bước 27.
+- `design/` – design v2: `DESIGN.md` (token, thành phần, icon, map artboard → file), `theme.css` (token Tailwind v4 sáng / tối), `canvas/` (mã artboard, chỉ tham khảo – cần runtime canvas, không chạy riêng).
 
 ## Quy ước UI
+
+> Mục dưới là UI hiện tại. Từ bước 27 chuyển sang design v2 (`design/DESIGN.md`): token `bg` / `surface` / `accent-text`…, theme sáng / tối qua `data-theme`, font Plus Jakarta Sans + JetBrains Mono – khi xong bước 27 thì sửa lại mục này.
 
 - Tailwind **v4**: thêm màu/font mới vào `@theme` trong `style.css`, không tạo `tailwind.config.js`.
 - Token: `ground` nền, `ink` chữ, `muted`, `line` viền; `accent` (xanh) cho điểm click; `drag` (cam) cho kéo thả; `danger`, `ok`; nhóm `dark-*` cho màn nền tối và mini bar.
