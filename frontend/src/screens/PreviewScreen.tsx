@@ -26,7 +26,7 @@ export default function PreviewScreen() {
         </div>
         <div className="ml-auto flex items-center gap-2.5">
           <span className="text-muted">10 vòng</span>
-          <button className="flex h-11 items-center gap-2 rounded-lg bg-accent px-5 font-semibold text-white"><Play />Chạy</button>
+          <button className="flex h-11 items-center gap-2 rounded-lg bg-accent px-5 font-semibold text-on-accent"><Play />Chạy</button>
         </div>
       </header>
 
@@ -35,7 +35,7 @@ export default function PreviewScreen() {
           {/* Thay nền này bằng ảnh chụp màn hình thật */}
           <div className="relative aspect-video w-full overflow-hidden rounded-[10px] border border-line bg-[#2A303B]">
             <div className="absolute left-[12%] top-[14%] h-[66%] w-[66%] rounded border-2 border-dashed border-accent bg-accent/10" />
-            <span className="absolute left-[12%] top-[calc(14%-26px)] rounded bg-accent px-2 py-0.5 font-mono text-xs text-white">Vùng 1056 × 594</span>
+            <span className="absolute left-[12%] top-[calc(14%-26px)] rounded bg-accent px-2 py-0.5 font-mono text-xs text-on-accent">Vùng 1056 × 594</span>
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden>
               <polyline points="26,24 40,24 51,48 19,67" fill="none" stroke="#8FA6EE" strokeWidth={1.5} strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
               <line x1="19" y1="67" x2="56" y2="67" stroke="#F0913A" strokeWidth={2.5} vectorEffect="non-scaling-stroke" />

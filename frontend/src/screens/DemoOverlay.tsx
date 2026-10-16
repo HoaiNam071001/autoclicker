@@ -91,7 +91,7 @@ export default function DemoOverlay() {
               {corners(cap).map(([x, y], i) => (
                 <span key={i} className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-[3px] border-2 border-accent bg-white" style={{ left: x, top: y }} />
               ))}
-              <span className="absolute rounded-md bg-accent px-2 py-[3px] font-mono text-xs text-white" style={{ left: cap.x, top: cap.y - 30 }}>
+              <span className="absolute rounded-md bg-accent px-2 py-[3px] font-mono text-xs text-on-accent" style={{ left: cap.x, top: cap.y - 30 }}>
                 Ảnh mẫu {Math.round(cap.w)} × {Math.round(cap.h)}
               </span>
               <div data-ui className="absolute flex gap-1.5 rounded-[10px] border border-hud-line bg-hud p-1.5 shadow-[0_8px_24px_rgb(0_0_0/.35)]"
@@ -115,7 +115,7 @@ export default function DemoOverlay() {
           {box && <TransformBox box={bbox(sel.map((i) => shown[i]))} rot={tf.rot} />}
           {shown.map((p, i) => (
             <span key={i} data-marker onMouseDown={(e) => { e.stopPropagation(); setTf(ID); setSel(e.shiftKey || e.metaKey ? (sel.includes(i) ? sel.filter((s) => s !== i) : [...sel, i]) : [i]); }}
-              className={`absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-[3px] text-[13px] font-bold text-white shadow-[0_2px_8px_rgb(0_0_0/.35)] ${sel.includes(i) ? 'border-white bg-accent outline-2 outline-offset-2 outline-white' : 'border-white/80 bg-accent/60'}`}
+              className={`absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border-[3px] text-[13px] font-bold text-on-accent shadow-[0_2px_8px_rgb(0_0_0/.35)] ${sel.includes(i) ? 'border-white bg-accent outline-2 outline-offset-2 outline-white' : 'border-white/80 bg-accent/60'}`}
               style={{ left: p.x, top: p.y }}>{i + 1}</span>
           ))}
           {sel.length > 0 && (
@@ -187,7 +187,7 @@ function TransformBox({ box, rot }: { box: Rect; rot: number }) {
       ))}
       <span className="absolute -top-7 left-1/2 h-7 w-px -translate-x-1/2 bg-accent" />
       <span className="absolute -top-9 left-1/2 grid h-4 w-4 -translate-x-1/2 place-items-center rounded-full border-[1.5px] border-accent bg-white" title="Kéo để xoay" />
-      {rot !== 0 && <span className="absolute -top-9 left-1/2 ml-3 rounded bg-accent px-1.5 font-mono text-[11px] text-white">{rot}°</span>}
+      {rot !== 0 && <span className="absolute -top-9 left-1/2 ml-3 rounded bg-accent px-1.5 font-mono text-[11px] text-on-accent">{rot}°</span>}
     </div>
   );
 }

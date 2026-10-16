@@ -14,6 +14,8 @@ Xuất ảnh / PDF: mở canvas → Share › Export.
 
 ## Token màu
 
+> **Theme tối đã đổi sang bảng "Slate"** (`design/newdarkmode.md`, 2026-10-16) – cột *Tối* dưới đây là bản cũ; giá trị đang dùng nằm trong `theme.css` / `frontend/src/style.css`. Thêm token `on-accent` (chữ trên nền accent: trắng ở theme sáng, `#0B1B33` ở theme tối).
+
 Khai báo trong `theme.css`. Class Tailwind: `bg-surface`, `text-muted`, `border-line`, `bg-accent-soft`…
 
 | Token | Sáng | Tối | Dùng cho |

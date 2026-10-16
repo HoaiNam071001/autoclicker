@@ -12,6 +12,7 @@
 
 :root {
   --c-accent: #4F6BED;
+  --c-on-accent: #FFFFFF;
 
   --c-bg: #F6F7F9;          /* nền vùng nội dung */
   --c-chrome: #FBFBFC;      /* thanh tiêu đề, toolbar, status bar */
@@ -37,38 +38,58 @@
   color-scheme: light;
 }
 
+/* Theme tối "Slate" – design/newdarkmode.md (xám ám xanh) */
 [data-theme="dark"] {
-  --c-bg: #141518;
-  --c-chrome: #18191C;
-  --c-side: #18191C;
-  --c-surface: #1E1F23;
-  --c-raised: #2A2C31;
-  --c-field: #17181B;
-  --c-soft: rgb(255 255 255 / 0.05);
-  --c-hover: rgb(255 255 255 / 0.06);
-  --c-group: rgb(255 255 255 / 0.02);
-  --c-line: rgb(255 255 255 / 0.08);
-  --c-line-strong: rgb(255 255 255 / 0.16);
-  --c-ink: #ECEDF0;
-  --c-muted: #A0A5B0;
-  --c-accent-text: #B4C1FF;
-  --c-accent-soft: color-mix(in srgb, var(--c-accent) 16%, transparent);
-  --c-warn: #D9A35B;
-  --c-ok: #5DBB7A;
-  --c-danger-text: #FF9A9D;
-  --c-danger-soft: rgb(229 72 77 / 0.14);
+  --c-accent: #60A5FA;          /* Slate: xanh dương sáng – nổi trên nền tối */
+  --c-on-accent: #0B1B33;       /* chữ trên nền accent (nút chính, marker) */
+  --c-bg: #171B22;              /* lớp càng cao càng sáng: bg → surface → field / soft → raised */
+  --c-chrome: #171B22;
+  --c-side: #1B2029;
+  --c-surface: #222833;
+  --c-raised: #3D4759;
+  --c-field: #2E3644;
+  --c-soft: #2E3644;
+  --c-hover: #2E3644;
+  --c-group: rgb(255 255 255 / 0.025);
+  --c-line: #343D4D;
+  --c-line-strong: #4A5568;
+  --c-ink: #F1F5F9;
+  --c-muted: #9AA6B8;
+  --c-accent-text: #93C5FD;
+  --c-accent-soft: rgb(96 165 250 / 0.18);
+  --c-warn: #FACC15;
+  --c-ok: #4ADE80;
+  --c-danger: #F87171;
+  --c-danger-text: #FCA5A5;
+  --c-danger-soft: rgb(248 113 113 / 0.16);
   --c-raise: none;
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --c-bg: #141518; --c-chrome: #18191C; --c-side: #18191C; --c-surface: #1E1F23; --c-raised: #2A2C31; --c-field: #17181B;
-    --c-soft: rgb(255 255 255 / 0.05); --c-hover: rgb(255 255 255 / 0.06); --c-group: rgb(255 255 255 / 0.02);
-    --c-line: rgb(255 255 255 / 0.08); --c-line-strong: rgb(255 255 255 / 0.16);
-    --c-ink: #ECEDF0; --c-muted: #A0A5B0; --c-accent-text: #B4C1FF;
-    --c-accent-soft: color-mix(in srgb, var(--c-accent) 16%, transparent);
-    --c-warn: #D9A35B; --c-ok: #5DBB7A; --c-danger-text: #FF9A9D; --c-danger-soft: rgb(229 72 77 / 0.14);
+    --c-accent: #60A5FA;          /* Slate: xanh dương sáng – nổi trên nền tối */
+    --c-on-accent: #0B1B33;       /* chữ trên nền accent (nút chính, marker) */
+    --c-bg: #171B22;              /* lớp càng cao càng sáng: bg → surface → field / soft → raised */
+    --c-chrome: #171B22;
+    --c-side: #1B2029;
+    --c-surface: #222833;
+    --c-raised: #3D4759;
+    --c-field: #2E3644;
+    --c-soft: #2E3644;
+    --c-hover: #2E3644;
+    --c-group: rgb(255 255 255 / 0.025);
+    --c-line: #343D4D;
+    --c-line-strong: #4A5568;
+    --c-ink: #F1F5F9;
+    --c-muted: #9AA6B8;
+    --c-accent-text: #93C5FD;
+    --c-accent-soft: rgb(96 165 250 / 0.18);
+    --c-warn: #FACC15;
+    --c-ok: #4ADE80;
+    --c-danger: #F87171;
+    --c-danger-text: #FCA5A5;
+    --c-danger-soft: rgb(248 113 113 / 0.16);
     --c-raise: none;
     color-scheme: dark;
   }
@@ -91,6 +112,7 @@
   --color-accent: var(--c-accent);
   --color-accent-soft: var(--c-accent-soft);
   --color-accent-text: var(--c-accent-text);
+  --color-on-accent: var(--c-on-accent);
   --color-warn: var(--c-warn);
   --color-ok: var(--c-ok);
   --color-danger: var(--c-danger);
@@ -98,9 +120,9 @@
   --color-danger-soft: var(--c-danger-soft);
 
   /* Overlay / HUD: luôn tối, không đổi theo theme */
-  --color-hud: #1E1F23;
-  --color-hud-text: #D7DAE0;
-  --color-hud-line: rgb(255 255 255 / 0.1);
+  --color-hud: #222833;
+  --color-hud-text: #E2E8F0;
+  --color-hud-line: #343D4D;
   --color-dim: rgb(14 16 22 / 0.5);
 
   --font-sans: "Segoe UI Variable Text", "Segoe UI", "Plus Jakarta Sans", system-ui, sans-serif;
@@ -117,7 +139,7 @@
 
 /* 1. Nút chính: Chạy, Dùng ảnh này, Xong */
 @utility btn-primary {
-  color: #fff;
+  color: var(--c-on-accent);
   background: linear-gradient(180deg, color-mix(in srgb, var(--c-accent) 82%, transparent), var(--c-accent));
   border: 1px solid color-mix(in srgb, var(--c-accent) 90%, transparent);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 4px 12px color-mix(in srgb, var(--c-accent) 22%, transparent);

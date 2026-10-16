@@ -216,7 +216,7 @@ export default function OverlayScreen() {
         <div className={focus ? 'opacity-30' : ''}>
           <div className="absolute rounded-md border-2 border-dashed border-white bg-white/5"
             style={{ left: shown.x, top: shown.y, width: shown.w, height: shown.h }} />
-          <span className="absolute rounded-md bg-accent px-2 py-[3px] font-mono text-xs text-white"
+          <span className="absolute rounded-md bg-accent px-2 py-[3px] font-mono text-xs text-on-accent"
             style={{ left: shown.x, top: shown.y - 30 }}>Vùng {shownSize?.w} × {shownSize?.h}</span>
           {[[shown.x, shown.y], [shown.x + shown.w, shown.y], [shown.x, shown.y + shown.h], [shown.x + shown.w, shown.y + shown.h]].map(([x, y], i) => (
             <span key={i} className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-[3px] border-2 border-accent bg-white" style={{ left: x, top: y }} />
@@ -255,14 +255,14 @@ export default function OverlayScreen() {
       {markers.filter((m) => !m.ghost).map((m) => (
         <span key={m.label} style={{ left: m.at.x, top: m.at.y }} title="Kéo để dời điểm, click để chọn bước"
           onMouseDown={(e) => onMarkerDown(e, m.id, m.index)}
-          className={`${preview ? 'pointer-events-none opacity-70' : ''} ${focus && m.id !== focus ? 'pointer-events-none opacity-25 grayscale' : ''} ${focus === m.id ? 'z-10 scale-110' : ''} absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white text-[13px] font-bold text-white shadow-[0_2px_8px_rgb(0_0_0/.35)] bg-accent ${moving ? 'cursor-grabbing' : 'cursor-grab'} ${m.id === selected ? 'outline-[3px] outline-offset-2 outline-white outline-dashed' : ''}`}>
+          className={`${preview ? 'pointer-events-none opacity-70' : ''} ${focus && m.id !== focus ? 'pointer-events-none opacity-25 grayscale' : ''} ${focus === m.id ? 'z-10 scale-110' : ''} absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white text-[13px] font-bold text-on-accent shadow-[0_2px_8px_rgb(0_0_0/.35)] bg-accent ${moving ? 'cursor-grabbing' : 'cursor-grab'} ${m.id === selected ? 'outline-[3px] outline-offset-2 outline-white outline-dashed' : ''}`}>
           {m.label}
         </span>
       ))}
 
       {dragA && (
         <span style={{ left: toClient(dragA).x, top: toClient(dragA).y }}
-          className="pointer-events-none absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white bg-accent text-[13px] font-bold text-white shadow-[0_2px_8px_rgb(0_0_0/.35)]">
+          className="pointer-events-none absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white bg-accent text-[13px] font-bold text-on-accent shadow-[0_2px_8px_rgb(0_0_0/.35)]">
           A
         </span>
       )}
@@ -311,7 +311,7 @@ export default function OverlayScreen() {
         {focus && focusStep ? (
           <>
             <span className="flex items-center gap-2 px-2.5 font-semibold">
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-accent text-[13px] text-white">{focusIdx}</span>
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-accent text-[13px] text-on-accent">{focusIdx}</span>
               Bước {focusIdx} · {STEP_LABEL[focusStep.type]}
             </span>
             <button onClick={() => { if (repicking) { cancelPick(); setRepicking(false); } else { startPick(focus); setRepicking(true); } }}

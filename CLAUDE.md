@@ -37,6 +37,7 @@ Theo **design v2** – chi tiết token, thành phần, icon trong `design/DESIG
 
 - Tailwind **v4**: token khai báo trong `style.css` (chép từ `design/theme.css` – sửa token thì sửa cả hai), không tạo `tailwind.config.js`. Body không tô nền (overlay / mini bar cần trong suốt) – mỗi màn tự tô `bg-bg` / `bg-surface`.
 - Token: `bg` nền, `chrome` thanh tiêu đề / status bar, `side` thanh bên, `surface` thẻ / inspector / popup, `field` ô nhập, `soft` / `hover` nền pha nhẹ, `line` / `line-strong` viền, `ink` / `muted` chữ, `accent` / `accent-soft` / `accent-text` (chỉ cho trạng thái), `warn`, `ok`, `danger*`; `hud*` / `dim` cho overlay (luôn tối).
+- Theme tối dùng bảng **Slate** trong `design/newdarkmode.md` (lớp càng cao càng sáng: `bg` → `surface` → `field` / `soft` → `raised`). Chữ trên nền `accent` dùng `text-on-accent`, không dùng `text-white`.
 - Theme: `data-theme="light|dark"` trên `<html>` (`theme.ts`, lưu qua `settings.go`), không đặt = theo hệ điều hành; overlay đặt `data-theme="dark"` riêng. Xem thử trên trình duyệt: `?theme=dark`.
 - Gradient chỉ ở 4 chỗ: `btn-primary`, `ring-selected`, `ring-focus`, vòng tiến độ thanh mini. Nút Dừng `btn-danger-soft`.
 - Thành phần dùng chung: `NumInput` (+ `fieldBox`), `Segmented`, `Switch` (trong `RunSettings.tsx`), `StepIcon` (`icons.tsx`, đủ icon cả loại bước chưa làm).
