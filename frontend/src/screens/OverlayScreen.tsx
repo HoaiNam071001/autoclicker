@@ -9,7 +9,7 @@ import { Point, Rect, STEP_LABEL } from '../types';
 import { inWails, OverlayTool, overlayFocus, overlayTool, setWindowMode } from '../windowMode';
 import { addSample, currentMapping, isMeasured, resetSamples, toClientPt, toScreenPt } from '../coordMap';
 import { SimulationLayer, useSimulation } from '../components/Simulation';
-import { Eye, Play, Region, StepIcon, Stop, Target } from '../components/icons';
+import { Eye, Play, Region, SelectIcon, StepIcon, Stop, Target } from '../components/icons';
 
 const SPEEDS = [1, 2, 4];
 
@@ -20,10 +20,12 @@ const MIN_MOVE = 3; // px – kéo marker ít hơn coi như click (chọn bướ
 // Marker đang được kéo: bước, điểm thứ mấy, vị trí bấm xuống (toạ độ cửa sổ), đã kéo đủ xa chưa.
 type Moving = { id: string; index: number; from: Point; moved: boolean };
 
-const TOOLS: { id: OverlayTool; label: string; ready: boolean; icon: ReactNode }[] = [
-  { id: 'point', label: 'Đặt điểm', ready: true, icon: <StepIcon type="click" /> },
-  { id: 'drag', label: 'Kéo thả A → B', ready: true, icon: <StepIcon type="drag" /> },
-  { id: 'region', label: 'Chọn vùng', ready: true, icon: <Region /> },
+const TOOLS: { id: OverlayTool; label: string; soon?: string; icon: ReactNode }[] = [
+  { id: 'point', label: 'Đặt điểm', icon: <StepIcon type="click" /> },
+  { id: 'drag', label: 'Kéo thả A → B', icon: <StepIcon type="drag" /> },
+  { id: 'region', label: 'Chọn vùng', icon: <Region /> },
+  { id: 'select', label: 'Chọn nhiều', soon: '30', icon: <SelectIcon /> },
+  { id: 'capture', label: 'Khoanh ảnh', soon: '25', icon: <StepIcon type="waitImage" /> },
 ];
 const toolBtn = 'flex h-11 items-center gap-2 rounded-[7px] px-3.5 font-semibold';
 
@@ -339,7 +341,7 @@ export default function OverlayScreen() {
         ) : (
           <>
             {TOOLS.map((t) => (
-              <button key={t.id} disabled={!t.ready} title={t.ready ? undefined : 'Sắp có'} onClick={() => setTool(t.id)}
+              <button key={t.id} disabled={!!t.soon} title={t.soon && `Sắp có (bước ${t.soon})`} onClick={() => setTool(t.id)}
                 className={`${toolBtn} disabled:opacity-40 ${tool === t.id ? 'bg-white/14 text-white' : 'hover:bg-white/6'}`}>
                 {t.icon}{t.label}
               </button>

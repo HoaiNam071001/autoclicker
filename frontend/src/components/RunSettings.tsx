@@ -4,6 +4,7 @@ import NumInput from './NumInput';
 import Segmented from './Segmented';
 import { setCountdown, updateScript, useEditor } from '../scriptStore';
 import { Script } from '../types';
+import { ScheduleRow } from './ScheduleDialog';
 
 type Mode = 'loops' | 'infinite' | 'time';
 const MODES: { id: Mode; label: string }[] = [
@@ -56,6 +57,7 @@ export default function RunSettings() {
         Đếm ngược 3 giây trước khi chạy
         <Switch on={countdown} onChange={setCountdown} label="Đếm ngược 3 giây" />
       </label>
+      <ScheduleRow value={null} soon />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 // Thanh mini khi đang chạy (design v2, artboard MiniBar) – cửa sổ nhỏ always-on-top, 540×96 (window.go)
 import { useEffect, useReducer } from 'react';
 import { PauseScript, ResumeScript, StopScript } from '../../wailsjs/go/main/App';
-import { Pause, Play, Stop, StepIcon } from '../components/icons';
+import { Pause, Play, Stop, StepIcon, StepIconName } from '../components/icons';
 import { elapsedNow, fmtElapsed, Progress, useEngine } from '../engineStore';
 import { useScript } from '../scriptStore';
 import { STEP_LABEL } from '../types';
@@ -41,6 +41,24 @@ export default function MiniBar() {
   };
 
   return (
+    <MiniBarView progress={progress} paused={paused} countdown={engine.countdown} icon={cur?.type ?? 'click'}
+      title={!running ? 'Chưa chạy'
+        : counting ? `Bắt đầu sau ${engine.countdown} giây…`
+        : !p ? 'Đang bắt đầu…'
+        : `${paused ? 'Tạm dừng · ' : ''}Bước ${p.step} / ${p.total}${cur ? `: ${STEP_LABEL[cur.type]}` : ''}`}
+      lines={[`vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`]}
+      canPause={running && !counting} onPause={() => (paused ? ResumeScript() : PauseScript())} onStop={stop} />
+  );
+}
+
+// Phần hiển thị (dùng chung với #demo-minibar). progress: 0..1 – vòng tiến độ (đang chờ ảnh: theo thời gian chờ);
+// lines: 1–2 dòng mono (vòng / click / thời gian; "đang tìm x / y s   thử lại a / b"…).
+export function MiniBarView({ title, lines, icon, progress, paused, countdown, canPause, onPause, onStop }: {
+  title: string; lines: string[]; icon: StepIconName; progress: number; paused: boolean; countdown: number;
+  canPause: boolean; onPause: () => void; onStop: () => void;
+}) {
+  const counting = countdown > 0;
+  return (
     <div className="drag flex h-[96px] w-[540px] items-center gap-3.5 overflow-hidden rounded-hud border border-line bg-surface pr-3.5 pl-4 text-ink">
       <div className="relative h-[50px] w-[50px] flex-none">
         <svg width="50" height="50" viewBox="0 0 50 50" aria-hidden>
@@ -54,28 +72,20 @@ export default function MiniBar() {
             strokeDasharray={`${(progress * CIRC).toFixed(1)} ${CIRC.toFixed(1)}`} transform="rotate(-90 25 25)" />
         </svg>
         <span className={`absolute inset-2.5 grid place-items-center rounded-full ${paused || counting ? 'bg-soft text-muted' : 'bg-accent-soft text-accent-text'}`}>
-          {counting ? <span className="font-mono text-[13px] font-semibold">{engine.countdown}</span>
+          {counting ? <span className="font-mono text-[13px] font-semibold">{countdown}</span>
             : paused ? <Pause className="h-3.5 w-3.5" />
-            : <StepIcon type={cur?.type ?? 'click'} className="h-[15px] w-[15px]" />}
+            : <StepIcon type={icon} className="h-[15px] w-[15px]" />}
         </span>
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
-        <span className="truncate font-semibold">
-          {!running ? 'Chưa chạy'
-            : counting ? `Bắt đầu sau ${engine.countdown} giây…`
-            : !p ? 'Đang bắt đầu…'
-            : `${paused ? 'Tạm dừng · ' : ''}Bước ${p.step} / ${p.total}${cur ? `: ${STEP_LABEL[cur.type]}` : ''}`}
-        </span>
-        <span className="whitespace-pre font-mono text-xs text-muted">
-          vòng {p?.loop ?? 0} / {p && p.loops > 0 ? p.loops : '∞'}   {p?.clicks ?? 0} click   {fmtElapsed(elapsed)}
-        </span>
+        <span className="truncate font-semibold">{title}</span>
+        {lines.map((l) => <span key={l} className="whitespace-pre font-mono text-xs text-muted">{l}</span>)}
       </div>
-      <button aria-label={paused ? 'Tiếp tục' : 'Tạm dừng'} disabled={!running || counting}
-        onClick={() => (paused ? ResumeScript() : PauseScript())}
+      <button aria-label={paused ? 'Tiếp tục' : 'Tạm dừng'} disabled={!canPause} onClick={onPause}
         className="grid h-11 w-11 place-items-center rounded-[9px] border border-line bg-surface hover:bg-hover disabled:opacity-40">
         {paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
       </button>
-      <button onClick={stop} className="btn-danger-soft flex h-11 items-center gap-2 rounded-[9px] px-3.5 font-semibold">
+      <button onClick={onStop} className="btn-danger-soft flex h-11 items-center gap-2 rounded-[9px] px-3.5 font-semibold">
         <Stop className="h-2.5 w-2.5" />Dừng <span className="font-mono text-[11px] font-normal opacity-75">F8</span>
       </button>
     </div>

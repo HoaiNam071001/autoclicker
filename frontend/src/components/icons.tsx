@@ -43,6 +43,12 @@ export const SidebarToggle = ({ className = 'h-4 w-4', open = true }: P & { open
     <rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" /><path d={open ? 'M15.5 10l-2 2 2 2' : 'M13.5 10l2 2-2 2'} />
   </svg>
 );
+// Chọn nhiều (khung chọn nét đứt + con trỏ)
+export const SelectIcon = ({ className = 'h-4 w-4' }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9V5a2 2 0 0 1 2-2h4M15 3h4a2 2 0 0 1 2 2v4M3 15v4a2 2 0 0 0 2 2h4" /><path d="M13 13l8 3.5-3.5 1-1 3.5z" />
+  </svg>
+);
 export const Copy = ({ className = 'h-4 w-4' }: P) => (
   <svg viewBox="0 0 24 24" className={className} {...base}><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" /></svg>
 );

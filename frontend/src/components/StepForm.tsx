@@ -5,6 +5,8 @@ import { openOverlay } from '../windowMode';
 import NumInput, { fieldBox } from './NumInput';
 import Segmented from './Segmented';
 import { Switch } from './RunSettings';
+import PinButton from './inputs/PinButton';
+import { AnchorGrid } from './steps/AnchorField';
 import {
   changeStepType, endpoints, pickPointFor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
 } from '../scriptStore';
@@ -65,7 +67,7 @@ export default function StepForm({ step: s, index }: Props) {
 
       <div className="grid grid-cols-2 gap-3">
         {mouse && (
-          <Field label="Nút chuột" wide>
+          <Field label="Nút chuột" wide group>
             <Segmented value={s.button} onChange={(button: MouseButton) => set({ button })} full label="Nút chuột"
               options={[{ id: 'left', label: 'Trái' }, { id: 'right', label: 'Phải' }, { id: 'center', label: 'Giữa' }]} />
           </Field>
@@ -76,9 +78,11 @@ export default function StepForm({ step: s, index }: Props) {
             <span>Vị trí{region && <span className="ml-1.5 text-xs">(trong vùng)</span>}</span>
             <div className="flex gap-2">
               {(['x', 'y'] as const).map((k) => (
-                <NumInput key={k} prefix={k.toUpperCase()} value={s.points[0][k]} onChange={(v) => setPoint(0, { [k]: v })} className="flex-1" />
+                <NumInput key={k} prefix={k.toUpperCase()} value={s.points[0][k]} onChange={(v) => setPoint(0, { [k]: v })} className="min-w-0 flex-1" />
               ))}
+              <AnchorGrid value={{ x: 0, y: 0, ax: 'start', ay: 'start' }} onChange={() => {}} disabled />
               <PickButton step={s} />
+              <PinSoon />
             </div>
           </div>
         )}
@@ -86,17 +90,17 @@ export default function StepForm({ step: s, index }: Props) {
 
         {s.type === 'click' && (
           <>
-            <Field label="Số click"><NumInput value={s.clicks} min={1} onChange={(v) => set({ clicks: v })} /></Field>
+            <Field pin label="Số click"><NumInput value={s.clicks} min={1} onChange={(v) => set({ clicks: v })} /></Field>
             {s.clicks > 1 && (
-              <Field label="Giữa các click"><NumInput value={s.clickInterval} unit="ms" onChange={(v) => set({ clickInterval: v })} /></Field>
+              <Field pin label="Giữa các click"><NumInput value={s.clickInterval} unit="ms" onChange={(v) => set({ clickInterval: v })} /></Field>
             )}
           </>
         )}
         {s.type === 'hold' && (
-          <Field label="Giữ chuột trong"><NumInput value={s.holdMs} unit="ms" onChange={(v) => set({ holdMs: v })} /></Field>
+          <Field pin label="Giữ chuột trong"><NumInput value={s.holdMs} unit="ms" onChange={(v) => set({ holdMs: v })} /></Field>
         )}
         {s.type === 'drag' && (
-          <Field label="Thời gian kéo"><NumInput value={s.dragMs} unit="ms" onChange={(v) => set({ dragMs: v })} /></Field>
+          <Field pin label="Thời gian kéo"><NumInput value={s.dragMs} unit="ms" onChange={(v) => set({ dragMs: v })} /></Field>
         )}
 
         {s.type === 'type' && (
@@ -159,10 +163,10 @@ export default function StepForm({ step: s, index }: Props) {
 
       {/* Chờ sau bước + ngẫu nhiên thời gian (bước 19) ở cuối, giống artboard */}
       <section className="mt-auto grid grid-cols-2 gap-3 border-t border-line pt-3">
-        <Field label={s.type === 'wait' ? 'Thời gian chờ' : 'Chờ sau bước'}>
+        <Field pin label={s.type === 'wait' ? 'Thời gian chờ' : 'Chờ sau bước'}>
           <NumInput value={s.delayAfter} unit="ms" onChange={(v) => set({ delayAfter: v })} />
         </Field>
-        <Field label="Ngẫu nhiên">
+        <Field pin label="Ngẫu nhiên">
           <NumInput prefix="±" value={s.jitterMs} unit="ms" onChange={(v) => set({ jitterMs: v })} />
         </Field>
         <span className={`col-span-2 -mt-1 ${hint}`}>
@@ -258,6 +262,17 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p
   );
 }
 
-function Field({ label, children, wide = false }: { label: string; children: ReactNode; wide?: boolean }) {
-  return <label className={`flex flex-col gap-1.5 text-muted ${wide ? 'col-span-2' : ''}`}>{label}{children}</label>;
+// pin: thêm nút ghim (đặt làm input của kịch bản) – giao diện có sẵn, logic ở bước 21b
+// group: bên trong là nhóm nút (Segmented) – dùng <div>, vì <label> bọc nút thì bấm chữ nhãn sẽ bấm luôn nút đầu
+function Field({ label, children, wide = false, pin = false, group = false }: {
+  label: string; children: ReactNode; wide?: boolean; pin?: boolean; group?: boolean;
+}) {
+  const Tag = group ? 'div' : 'label';
+  return (
+    <Tag className={`flex flex-col gap-1.5 text-muted ${wide ? 'col-span-2' : ''}`}>{label}
+      {pin ? <span className="flex gap-1.5 [&>*:first-child]:min-w-0 [&>*:first-child]:flex-1">{children}<PinSoon /></span> : children}
+    </Tag>
+  );
 }
+
+const PinSoon = () => <PinButton pinned={false} disabled title="Đặt làm input – sắp có (bước 21b)" />;

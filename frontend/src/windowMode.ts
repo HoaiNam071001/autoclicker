@@ -12,7 +12,8 @@ export async function setWindowMode(mode: WindowMode) {
 }
 
 // preview: xem trước kịch bản (con trỏ giả), không sửa điểm
-export type OverlayTool = 'point' | 'drag' | 'region' | 'preview';
+// select (chọn nhiều điểm để biến đổi – bước 30) và capture (khoanh ảnh mẫu – bước 25): giao diện ở #demo-overlay, chưa bật
+export type OverlayTool = 'point' | 'drag' | 'region' | 'preview' | 'select' | 'capture';
 
 // Công cụ được chọn sẵn khi mở overlay và bước đang xem riêng (null = xem tất cả) – OverlayScreen đọc lúc mount.
 export let overlayTool: OverlayTool = 'region';

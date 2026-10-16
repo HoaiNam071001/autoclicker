@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** bước 27b – dựng sẵn UI cho tính năng chưa có (xong 27). Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 27b (khung UI tính năng chưa có) → 29 (neo 4 góc) → 21 → 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
+- **Đang làm:** đổi màu theme tối theo `design/newdarkmode.md` (xong 27, 27b). Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 29 (neo 4 góc) → 21 → 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-16
 
 ## Quyết định đã chốt
@@ -216,21 +216,23 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - Xong khi: mọi màn hiện tại đúng ở cả 2 theme (chụp headless `#`, `#overlay`, `#minibar`, `#preview`), `npm run build` sạch
   - [x] Chụp headless cả 2 theme: màn chính (1280 / 1024), inspector click / kéo thả / gõ chữ / phím tắt, popup lặp, bảng Ctrl+K (tìm không dấu, phím mũi tên, Enter chèn sau bước đang chọn), overlay chọn vùng / xem trước, mini bar
   - [x] Kiểm tra tay trong `wails dev`: kéo cửa sổ bằng thanh tiêu đề, thu nhỏ / phóng to / đóng, phóng to rồi mở overlay → quay về vẫn phóng to; mini bar 540×96 khi chạy; overlay thanh công cụ dưới đáy; đổi theme, tắt app mở lại vẫn giữ; Ctrl/Cmd+K thêm Double click / Giữ chuột qua overlay
-- [ ] **27b. Dựng sẵn UI cho tính năng chưa có** *(người dùng yêu cầu, 2026-10-16)* – Làm hết giao diện theo design v2 trước, logic làm ở bước sau.
+- [x] **27b. Dựng sẵn UI cho tính năng chưa có** *(người dùng yêu cầu, 2026-10-16)* – Làm hết giao diện theo design v2 trước, logic làm ở bước sau.
   - Cách làm: component nhận dữ liệu qua props, chưa nối Go. Trong app: hiện đúng chỗ nhưng nút / ô bị tắt, nhãn *Sắp có* (tooltip ghi số bước sẽ làm). Màn **`#demo`** nạp kịch bản mẫu (cả loại bước chưa có, dữ liệu giả trong `frontend/src/demo/`, **không** thêm vào `types.ts` / `model.go`) để xem đủ trạng thái, so với canvas
-  - [ ] Thư viện thanh bên [`Main`] – `components/Library.tsx`: ô tìm, danh sách kịch bản, mục đang mở (`bg-hover` + vạch trái accent), chấm `warn` chưa lưu, "Mở gần đây", nút Kịch bản mới / Mở / Lưu, mục "Lịch sử"; nhãn "Chưa lưu" cạnh tên kịch bản; status bar "Bản nháp tự lưu lúc …" *(logic: 21, 25c)*
-  - [ ] Input [`StepInputs`, `InputsTab`]: `PinButton.tsx`, trường đã ghim `field-pinned` + chip key; `VarTextInput.tsx` tô `{{biến}}` + popup gợi ý; `InputsPanel.tsx` (tab Input, dòng input, dạng mở rộng để sửa); chip "N input" trên thẻ bước *(logic: 21b)*
-  - [ ] Form Chạy [`RunDialog`, `RunDialogDark`] – `RunDialog.tsx`: preset, ô theo bước, ô đã đổi + khôi phục, khung "Sẽ gõ", chân với "Lần sau chạy luôn" / Đếm ngược / Huỷ / Chạy *(logic: 21b)*
-  - [ ] Neo điểm: ô X / Y dạng ±, lưới 3×3 chọn neo + tuỳ chọn %, toạ độ `(−300, +300)` trong danh sách, đường neo trên overlay *(chưa có trong design – vẽ theo thành phần v2; logic: 29)*
-  - [ ] Sửa nhiều điểm trên overlay: khung biến đổi + núm (co giãn / xoay / xiên), thanh công cụ ΔX / ΔY / % / góc / xiên, nút căn chỉnh / lật, hộp hỏi "Ánh xạ sang vùng mới" *(chưa có trong design; logic: 30)*
-  - [ ] Inspector cho loại bước mới: cuộn (hướng, số nấc), mở URL / app, **Chờ ảnh** [`Main`] (ảnh mẫu, Chụp lại, Xem trên màn hình, độ khớp, chờ tối đa, kiểm tra mỗi), click theo ảnh (ΔX / ΔY), chờ pixel (điểm, màu, sai số), focus cửa sổ (ô nhập + danh sách cửa sổ) *(logic: 23, 25, 26)*
-  - [ ] Khi hết giờ [`Main`]: segmented Thử lại / Bỏ qua / Dừng, số lần thử, "Thử hết vẫn không thấy"; chip trên thẻ bước *(logic: 25b)*
-  - [ ] Overlay tool `capture` [`Overlay`]: khoanh ảnh mẫu, nhãn kích thước, "Dùng ảnh này" / "Khoanh lại" *(logic: 25)*
-  - [ ] Thanh mini trạng thái chờ [`MiniBar`]: vòng theo thời gian chờ, "đang tìm x / y s", "thử lại x / y", tên preset *(logic: 25, 25b, 21b)*
-  - [ ] Khung nhóm bước [`Main`]: nét đứt `border-line-strong bg-group rounded-group`, icon + tên + chip `lặp ×N` *(logic: 20)*
-  - [ ] Debug: nút Chạy từ bước này / Tiếp (F10), breakpoint trên thẻ bước, màn timeline lịch sử chạy *(chưa có trong design; logic: 25c)*
-  - [ ] Hẹn giờ (chip giờ trong thư viện, hộp đặt giờ), nút Ghi macro trên toolbar *(chưa có trong design; logic: 22, 24)*
+  - [x] Thư viện thanh bên [`Main`] – `components/Library.tsx`: ô tìm, danh sách kịch bản, mục đang mở (`bg-hover` + vạch trái accent), chấm `warn` chưa lưu, "Mở gần đây", nút Kịch bản mới / Mở / Lưu, mục "Lịch sử"; nhãn "Chưa lưu" cạnh tên kịch bản; status bar "Bản nháp tự lưu lúc …" *(logic: 21, 25c)*
+  - [x] Input [`StepInputs`, `InputsTab`]: `PinButton.tsx`, trường đã ghim `field-pinned` + chip key; `VarTextInput.tsx` tô `{{biến}}` + popup gợi ý; `InputsPanel.tsx` (tab Input, dòng input, dạng mở rộng để sửa); chip "N input" trên thẻ bước *(logic: 21b)*
+  - [x] Form Chạy [`RunDialog`, `RunDialogDark`] – `RunDialog.tsx`: preset, ô theo bước, ô đã đổi + khôi phục, khung "Sẽ gõ", chân với "Lần sau chạy luôn" / Đếm ngược / Huỷ / Chạy *(logic: 21b)*
+  - [x] Neo điểm: ô X / Y dạng ±, lưới 3×3 chọn neo + tuỳ chọn %, toạ độ `(−300, +300)` trong danh sách, đường neo trên overlay *(chưa có trong design – vẽ theo thành phần v2; logic: 29)*
+  - [x] Sửa nhiều điểm trên overlay: khung biến đổi + núm (co giãn / xoay / xiên), thanh công cụ ΔX / ΔY / % / góc / xiên, nút căn chỉnh / lật, hộp hỏi "Ánh xạ sang vùng mới" *(chưa có trong design; logic: 30)*
+  - [x] Inspector cho loại bước mới: cuộn (hướng, số nấc), mở URL / app, **Chờ ảnh** [`Main`] (ảnh mẫu, Chụp lại, Xem trên màn hình, độ khớp, chờ tối đa, kiểm tra mỗi), click theo ảnh (ΔX / ΔY), chờ pixel (điểm, màu, sai số), focus cửa sổ (ô nhập + danh sách cửa sổ) *(logic: 23, 25, 26)*
+  - [x] Khi hết giờ [`Main`]: segmented Thử lại / Bỏ qua / Dừng, số lần thử, "Thử hết vẫn không thấy"; chip trên thẻ bước *(logic: 25b)*
+  - [x] Overlay tool `capture` [`Overlay`]: khoanh ảnh mẫu, nhãn kích thước, "Dùng ảnh này" / "Khoanh lại" *(logic: 25)*
+  - [x] Thanh mini trạng thái chờ [`MiniBar`]: vòng theo thời gian chờ, "đang tìm x / y s", "thử lại x / y", tên preset *(logic: 25, 25b, 21b)*
+  - [x] Khung nhóm bước [`Main`]: nét đứt `border-line-strong bg-group rounded-group`, icon + tên + chip `lặp ×N` *(logic: 20)*
+  - [x] Debug: nút Chạy từ bước này / Tiếp (F10), breakpoint trên thẻ bước, màn timeline lịch sử chạy *(chưa có trong design; logic: 25c)*
+  - [x] Hẹn giờ (chip giờ trong thư viện, hộp đặt giờ), nút Ghi macro trên toolbar *(chưa có trong design; logic: 22, 24)*
   - Xong khi: `#demo` hiện đủ các phần trên ở cả 2 theme, khớp canvas; app thật không có nút nào bấm được mà không chạy; `npm run build` sạch
+  - Kết quả: màn mẫu `#demo` (màn soạn đủ loại bước + nhóm, thư viện, inspector từng loại, tab Input, form Chạy, hẹn giờ, ghi macro, debug), `#demo-overlay` (khoanh ảnh, chọn nhiều + biến đổi + ánh xạ), `#demo-minibar` (các trạng thái thanh mini). Code dùng lại khi làm logic: `components/StepCard.tsx`, `components/inputs/*`, `components/steps/*` (model + `StepFields` + `AnchorField`), `ScheduleDialog.tsx`, `AppChrome.tsx`, `MiniBarView`, `LibraryView`. Dữ liệu mẫu chỉ trong `frontend/src/demo/`
+  - [x] Người dùng xem `#demo`, `#demo-overlay`, `#demo-minibar` và màn chính (nút tắt + *Sắp có*), góp ý trước khi commit
 - [ ] **29. Neo điểm theo 4 góc vùng** *(người dùng yêu cầu, 2026-10-16)* – Hiện điểm chỉ tính từ góc trên trái của vùng nên điểm ở phía phải / dưới lệch khi đổi vùng. Mỗi trục neo riêng: X neo trái (+) hoặc phải (−), Y neo trên (+) hoặc dưới (−). Ví dụ 4 điểm cách mỗi cạnh 300 px = (+300, +300), (−300, +300), (+300, −300), (−300, −300); đổi vùng thì mỗi điểm bám theo góc của nó.
   - [ ] Model: `Point` thêm `ax` (`start` = trái | `end` = phải | `center` | `ratio` = theo % rộng), `ay` (tương tự cho trên / dưới); bỏ trống = `start` (file / kịch bản cũ chạy như cũ). Lưu offset dương + neo riêng thay vì dùng dấu (để phân biệt +0 / −0); UI hiện dạng có dấu ±
   - [ ] Toàn màn hình (`region = nil`) cũng neo được: nút *Toàn màn hình* lưu vùng = khung màn hình đang chứa overlay (thay vì `nil`) – cần chốt khi làm, vì liên quan đa màn hình (17)
@@ -406,3 +408,8 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-16** – Bước 27 đợt 4: mini bar 540×96 (vòng tiến độ gradient + icon bước đang chạy, `btn-danger-soft`), overlay theo artboard (thanh công cụ có icon ở đáy, banner hướng dẫn giữa trên, 4 núm góc vùng), `settings.go` (`GetSettings`, `SetTheme`, file `settings.json` trong `UserConfigDir`, test `TestSettingsRoundTrip`, `TestSettingsBadFile`), `theme.ts` + nút Sáng / Tối / Theo hệ thống trên thanh tiêu đề, cập nhật `CLAUDE.md`. `go test -race` OK, `npm run build` OK, chụp headless + Playwright kiểm tra đổi theme; chưa kiểm tra tay, chưa commit.
 - **2026-10-16** – Thêm thu gọn / mở rộng cột thư viện theo yêu cầu (`Library.tsx`, icon `SidebarToggle`, Ctrl/Cmd+B, nhớ bằng localStorage). `npm run build` OK, Playwright: 236 → 44 px, tải lại vẫn thu gọn, Cmd+B mở lại.
 - **2026-10-16** – Xong bước 27: người dùng kiểm tra tay trong app OK, commit. Bắt đầu 27b.
+- **2026-10-16** – Bước 27b đợt 1: tách `StepCard.tsx` (thẻ, khung nhóm, nhãn *Sắp có*), `LibraryView` (tìm, danh sách + giờ hẹn + chấm chưa lưu, mở gần đây, lịch sử chạy, Mới / Mở / Lưu), `AppChrome.tsx` (`Toolbar` có chip "Chưa lưu", `StatusBar`), màn `#demo` với dữ liệu mẫu (`demo/demoScript.ts`). App thật: các mục chưa có logic tắt + *Sắp có*.
+- **2026-10-16** – Bước 27b đợt 2: `components/inputs/` – `PinButton` + `KeyChip`, `VarTextInput` (tô `{{biến}}` bằng lớp vẽ dưới textarea, gợi ý khi gõ `{{`, "+ Tạo input mới"), `InputsPanel` (kéo sắp xếp, mở rộng để sửa), `RunDialog` (bộ giá trị, ô đã đổi + khôi phục, bắt buộc, "Sẽ gõ"). Inspector thật có nút ghim tắt. Sửa lỗi con trỏ nhảy sau khi chèn biến (`useLayoutEffect` thay `requestAnimationFrame`). Kiểm tra bằng Playwright.
+- **2026-10-16** – Bước 27b đợt 3: `components/steps/` – inspector cuộn, mở URL / app, chờ ảnh, click theo ảnh, chờ pixel, focus cửa sổ, Khi hết giờ, nhóm bước, `AnchorField` (± theo neo, lưới 3×3, %); nút debug trên thanh công cụ; `Field` dùng `<div>` khi bọc nhóm nút (trước đó bấm chữ "Nút chuột" là chọn luôn "Trái").
+- **2026-10-16** – Bước 27b đợt 4: overlay thật thêm công cụ Chọn nhiều / Khoanh ảnh (tắt); `#demo-overlay` (khoanh ảnh mẫu; chọn nhiều điểm, khung biến đổi, ô ΔX ΔY % xoay xiên áp thử, căn / chia đều / lật, hộp ánh xạ 4 cách); `MiniBarView` + `#demo-minibar`; `ScheduleDialog` (giờ, lặp theo ngày, bộ giá trị, khay, thông báo); nút Ghi F9. `npm run build` OK, chụp headless cả 2 theme; chưa commit. Người dùng thêm `design/newdarkmode.md` (bảng màu tối Slate / Dimmed / Nord) – chưa áp dụng, chờ hỏi.
+- **2026-10-16** – Xong 27b theo xác nhận của người dùng, commit (chưa gồm `design/newdarkmode.md`).

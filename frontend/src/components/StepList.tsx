@@ -15,6 +15,7 @@ import { fmtMs, fmtPos, Step, STEP_LABEL } from '../types';
 import { openOverlay } from '../windowMode';
 
 import AddStepPalette from './AddStepPalette';
+import { CardBody, cardClass, tileClass } from './StepCard';
 
 const isMac = navigator.platform.startsWith('Mac');
 
@@ -88,28 +89,19 @@ export default function StepList() {
 function Card({ step: s, index: i, selected }: { step: Step; index: number; selected: boolean }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: s.id });
   const iconBtn = 'grid h-7 w-7 place-items-center rounded-md text-muted hover:bg-hover hover:text-ink';
-  const n = String(i + 1).padStart(2, '0');
 
   return (
     <li ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform), transition }} onClick={() => selectStep(s.id)}
-      className={`group relative flex cursor-default items-center gap-3 rounded-card px-3 py-[9px] ${selected ? 'ring-selected' : 'border border-line bg-surface'} ${isDragging ? 'z-10 shadow-[0_6px_20px_rgb(0_0_0/.18)]' : ''}`}>
+      className={`${cardClass(selected)} ${isDragging ? 'z-10 shadow-[0_6px_20px_rgb(0_0_0/.18)]' : ''}`}>
       {/* ô icon = tay kéo để sắp xếp */}
       <button ref={setActivatorNodeRef} {...listeners} {...attributes} aria-label={`Kéo để sắp xếp bước ${i + 1}`} title="Kéo để sắp xếp"
-        className={`grid h-8 w-8 flex-none cursor-grab touch-none place-items-center rounded-lg active:cursor-grabbing ${selected ? 'bg-accent-soft text-accent-text' : 'bg-soft text-muted'} ${s.enabled ? '' : 'opacity-50'}`}>
+        className={`${tileClass(selected)} cursor-grab touch-none active:cursor-grabbing ${s.enabled ? '' : 'opacity-50'}`}>
         <StepIcon type={s.type} />
       </button>
-      <span className={`min-w-0 flex-1 ${s.enabled ? '' : 'opacity-50'}`}>
-        <span className="flex items-center gap-2">
-          <span className="font-mono text-xs text-muted">{n}</span>
-          <span className="truncate font-semibold">{STEP_LABEL[s.type]}{s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}</span>
-          {!s.enabled && <span className="rounded-full bg-soft px-[7px] py-px text-[11px] text-muted">Tắt</span>}
-        </span>
-        <span className="block truncate font-mono text-xs text-muted">{fmtPos(s)}</span>
-      </span>
-      {/* invisible (không phải hidden) để giữ nguyên chiều rộng – rê chuột không làm thẻ nhảy */}
-      <span className="rounded-[5px] bg-soft px-2 py-[3px] font-mono text-xs whitespace-nowrap text-muted group-hover:invisible">
-        {fmtMs(s.delayAfter)}{s.jitterMs > 0 && ` ±${s.jitterMs}`}
-      </span>
+      <CardBody n={String(i + 1).padStart(2, '0')} enabled={s.enabled}
+        title={`${STEP_LABEL[s.type]}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`}
+        tags={!s.enabled && <span className="rounded-full bg-soft px-[7px] py-px text-[11px] text-muted">Tắt</span>}
+        detail={fmtPos(s)} delay={`${fmtMs(s.delayAfter)}${s.jitterMs > 0 ? ` ±${s.jitterMs}` : ''}`} />
       {/* nút nổi ở góc phải khi rê chuột – không đẩy bố cục */}
       <span onClick={(e) => e.stopPropagation()} className="absolute inset-y-0 right-2 hidden items-center gap-0.5 group-hover:flex">
         <button onClick={() => toggleStep(s.id)} aria-label={`${s.enabled ? 'Tắt' : 'Bật'} bước ${i + 1}`} title={s.enabled ? 'Tắt bước' : 'Bật bước'}
