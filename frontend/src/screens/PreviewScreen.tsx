@@ -1,4 +1,4 @@
-// Phương án B – xem trước màn hình là trung tâm (nền tối)
+// Phương án B – xem trước màn hình là trung tâm (nền tối) – bản mẫu tĩnh, chỉ để tham khảo
 import { Logo, Play } from '../components/icons';
 
 type Pt = { label: string; x: number; y: number; name?: string; delay?: string; drag?: boolean };
@@ -11,21 +11,21 @@ const pts: Pt[] = [
   { label: '5', x: 69, y: 58, name: 'Click phải', delay: '500 ms' },
 ];
 const SELECTED = '3';
-const input = 'h-10 rounded-lg border border-dark-border bg-dark-bg px-2.5 font-mono text-dark-text';
+const input = 'h-10 rounded-lg border border-line-strong bg-bg px-2.5 font-mono text-ink';
 
 export default function PreviewScreen() {
   return (
-    <div className="flex min-h-screen flex-col bg-dark-bg text-dark-text">
-      <header className="flex flex-wrap items-center gap-2.5 border-b border-dark-line px-4 py-2.5">
+    <div data-theme="dark" className="flex min-h-screen flex-col bg-bg text-ink">
+      <header className="flex flex-wrap items-center gap-2.5 border-b border-line px-4 py-2.5">
         <span className="text-accent"><Logo /></span>
         <span className="mr-4 text-base font-bold">Kịch bản 1</span>
-        <div className="flex gap-1 rounded-[10px] bg-dark-panel p-1">
+        <div className="flex gap-1 rounded-[10px] bg-surface p-1">
           {['Chọn điểm', 'Kéo thả', 'Chọn vùng'].map((m, i) => (
-            <button key={m} className={`h-10 rounded-[7px] px-3.5 ${i === 0 ? 'bg-dark-border text-white' : 'text-[#C3CAD5]'}`}>{m}</button>
+            <button key={m} className={`h-10 rounded-[7px] px-3.5 ${i === 0 ? 'bg-line-strong text-white' : 'text-[#C3CAD5]'}`}>{m}</button>
           ))}
         </div>
         <div className="ml-auto flex items-center gap-2.5">
-          <span className="text-dark-muted">10 vòng</span>
+          <span className="text-muted">10 vòng</span>
           <button className="flex h-11 items-center gap-2 rounded-lg bg-accent px-5 font-semibold text-white"><Play />Chạy</button>
         </div>
       </header>
@@ -33,7 +33,7 @@ export default function PreviewScreen() {
       <div className="flex flex-1 flex-wrap gap-4 p-4">
         <section aria-label="Xem trước màn hình" className="flex min-w-0 flex-[999_1_640px] flex-col gap-2.5">
           {/* Thay nền này bằng ảnh chụp màn hình thật */}
-          <div className="relative aspect-video w-full overflow-hidden rounded-[10px] border border-dark-line bg-[#2A303B]">
+          <div className="relative aspect-video w-full overflow-hidden rounded-[10px] border border-line bg-[#2A303B]">
             <div className="absolute left-[12%] top-[14%] h-[66%] w-[66%] rounded border-2 border-dashed border-accent bg-accent/10" />
             <span className="absolute left-[12%] top-[calc(14%-26px)] rounded bg-accent px-2 py-0.5 font-mono text-xs text-white">Vùng 1056 × 594</span>
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden>
@@ -47,26 +47,26 @@ export default function PreviewScreen() {
                 <span key={p.label}
                   style={{ left: `${p.x}%`, top: `${p.y}%` }}
                   className={`absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 text-xs font-bold shadow-[0_0_0_4px_rgba(28,33,43,.6)]
-                    ${sel ? 'h-[34px] w-[34px] bg-accent' : 'h-7 w-7 bg-dark-bg'} ${p.drag ? 'border-drag-light' : 'border-accent'}`}>
+                    ${sel ? 'h-[34px] w-[34px] bg-accent' : 'h-7 w-7 bg-bg'} border-accent`}>
                   {p.label}
                 </span>
               );
             })}
           </div>
-          <div className="flex gap-4 text-[13px] text-dark-muted">
+          <div className="flex gap-4 text-[13px] text-muted">
             <span>Kéo điểm để sửa vị trí</span><span>Click chuột phải để xoá</span>
             <span className="ml-auto font-mono">X 812 Y 436</span>
           </div>
         </section>
 
-        <aside aria-label="Thuộc tính bước" className="flex max-w-[360px] flex-[1_1_300px] flex-col gap-4 rounded-[10px] border border-dark-line bg-dark-panel p-[18px]">
+        <aside aria-label="Thuộc tính bước" className="flex max-w-[360px] flex-[1_1_300px] flex-col gap-4 rounded-[10px] border border-line bg-surface p-[18px]">
           <div className="flex items-center gap-2.5">
             <span className="grid h-[30px] w-[30px] place-items-center rounded-full bg-accent font-bold">3</span>
             <h2 className="text-base font-semibold">Click trái</h2>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {[['X', 812], ['Y', 436], ['Số click', 5], ['Giữa click (ms)', 120]].map(([l, v]) => (
-              <label key={l} className="flex flex-col gap-1.5 text-dark-muted">{l}<input defaultValue={v} className={input} /></label>
+              <label key={l} className="flex flex-col gap-1.5 text-muted">{l}<input defaultValue={v} className={input} /></label>
             ))}
           </div>
           <Range label="Chờ trước bước tiếp theo" max={3000} value={800} unit="ms" />
@@ -76,13 +76,13 @@ export default function PreviewScreen() {
 
       <section aria-label="Thứ tự bước" className="px-4 pb-4">
         <div className="overflow-x-auto">
-          <ol className="flex min-w-max items-center gap-2 rounded-[10px] border border-dark-line bg-dark-panel p-3">
+          <ol className="flex min-w-max items-center gap-2 rounded-[10px] border border-line bg-surface p-3">
             {pts.filter((p) => p.name).map((p) => (
               <li key={p.label} className="flex items-center gap-2">
-                <span className={`flex h-11 items-center gap-2 rounded-lg border px-3 ${p.label === SELECTED ? 'border-accent bg-[#2F3A55]' : 'border-dark-border bg-dark-bg'}`}>
-                  <span className={`grid h-[22px] w-[22px] place-items-center rounded-full border-2 text-[11px] font-bold ${p.drag ? 'border-drag-light' : 'border-accent'}`}>{p.label}</span>
+                <span className={`flex h-11 items-center gap-2 rounded-lg border px-3 ${p.label === SELECTED ? 'border-accent bg-[#2F3A55]' : 'border-line-strong bg-bg'}`}>
+                  <span className={`grid h-[22px] w-[22px] place-items-center rounded-full border-2 text-[11px] font-bold border-accent`}>{p.label}</span>
                   {p.name}
-                  <span className="font-mono text-xs text-dark-muted">{p.delay}</span>
+                  <span className="font-mono text-xs text-muted">{p.delay}</span>
                 </span>
                 <span className="text-[#6B7484]" aria-hidden>›</span>
               </li>
@@ -97,10 +97,10 @@ export default function PreviewScreen() {
 
 function Range({ label, max, value, unit, prefix = '' }: { label: string; max: number; value: number; unit: string; prefix?: string }) {
   return (
-    <label className="flex flex-col gap-1.5 text-dark-muted">{label}
+    <label className="flex flex-col gap-1.5 text-muted">{label}
       <span className="flex items-center gap-3">
         <input type="range" min={0} max={max} defaultValue={value} className="flex-1 accent-accent" />
-        <span className="font-mono text-dark-text">{prefix}{value} {unit}</span>
+        <span className="font-mono text-ink">{prefix}{value} {unit}</span>
       </span>
     </label>
   );

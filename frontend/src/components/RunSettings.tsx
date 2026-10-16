@@ -1,5 +1,7 @@
-// Cài đặt chạy (bước 16): lặp theo số vòng / vô hạn / theo thời gian, đếm ngược trước khi chạy
+// Cài đặt chạy (bước 16): lặp theo số vòng / vô hạn / theo thời gian, đếm ngược trước khi chạy.
+// Hiện trong popup của nút "N vòng" trên thanh công cụ.
 import NumInput from './NumInput';
+import Segmented from './Segmented';
 import { setCountdown, updateScript, useEditor } from '../scriptStore';
 import { Script } from '../types';
 
@@ -12,6 +14,10 @@ const MODES: { id: Mode; label: string }[] = [
 
 // Script chỉ có loops (0 = vô hạn) và maxMinutes (0 = không giới hạn) – suy ra chế độ từ hai số này.
 const modeOf = (sc: Script): Mode => (sc.loops > 0 ? 'loops' : sc.maxMinutes > 0 ? 'time' : 'infinite');
+
+// Chữ trên nút: "10 vòng" / "∞ vòng" / "5 phút"
+export const loopSummary = (sc: Script) =>
+  ({ loops: `${sc.loops} vòng`, infinite: '∞ vòng', time: `${sc.maxMinutes} phút` })[modeOf(sc)];
 
 // Nhớ số vòng / số phút đã nhập để chuyển chế độ qua lại không mất.
 let lastLoops = 10;
@@ -32,31 +38,34 @@ export default function RunSettings() {
   };
 
   return (
-    <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-4">
+    <div className="flex flex-col gap-3">
       <span className="font-semibold">Lặp kịch bản</span>
-      <div className="flex overflow-hidden rounded-lg border border-line" role="radiogroup" aria-label="Chế độ lặp">
-        {MODES.map((m, i) => (
-          <button key={m.id} role="radio" aria-checked={mode === m.id} onClick={() => setMode(m.id)}
-            className={`h-10 px-3.5 ${i > 0 ? 'border-l border-line' : ''} ${mode === m.id ? 'bg-ink text-white' : 'bg-white hover:bg-ground'}`}>
-            {m.label}
-          </button>
-        ))}
-      </div>
+      <Segmented value={mode} options={MODES} onChange={setMode} label="Chế độ lặp" full />
       {mode === 'loops' && (
-        <span className="w-[120px]" aria-label="Số vòng">
-          <NumInput value={script.loops} min={1} unit="vòng" onChange={(loops) => updateScript({ loops })} />
-        </span>
+        <label className="flex items-center justify-between text-muted">Số vòng
+          <NumInput value={script.loops} min={1} unit="vòng" onChange={(loops) => updateScript({ loops })} className="w-[130px]" />
+        </label>
       )}
       {mode === 'time' && (
-        <span className="w-[120px]" aria-label="Số phút">
-          <NumInput value={script.maxMinutes} min={1} unit="phút" onChange={(maxMinutes) => updateScript({ maxMinutes })} />
-        </span>
+        <label className="flex items-center justify-between text-muted">Chạy trong
+          <NumInput value={script.maxMinutes} min={1} unit="phút" onChange={(maxMinutes) => updateScript({ maxMinutes })} className="w-[130px]" />
+        </label>
       )}
       {mode === 'infinite' && <span className="text-[13px] text-muted">Chạy tới khi bấm Dừng / F8</span>}
-      <label className="flex items-center gap-2 text-[#3F4857]">
-        <input type="checkbox" checked={countdown} onChange={(e) => setCountdown(e.target.checked)} className="h-[18px] w-[18px] accent-accent" />
-        Đếm ngược 3 giây
+      <label className="flex items-center justify-between border-t border-line pt-3">
+        Đếm ngược 3 giây trước khi chạy
+        <Switch on={countdown} onChange={setCountdown} label="Đếm ngược 3 giây" />
       </label>
     </div>
+  );
+}
+
+// Công tắc 40×20 (design v2): bật nền accent, núm trắng 14px.
+export function Switch({ on, onChange, label }: { on: boolean; onChange: (on: boolean) => void; label: string }) {
+  return (
+    <button role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)}
+      className={`relative h-5 w-10 flex-none rounded-full transition-colors ${on ? 'bg-accent' : 'bg-line-strong'}`}>
+      <span className={`absolute top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-all ${on ? 'left-[23px]' : 'left-[3px]'}`} />
+    </button>
   );
 }

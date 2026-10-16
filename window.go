@@ -15,7 +15,7 @@ const (
 	ModeMinibar = "minibar"
 )
 
-const miniBarW, miniBarH = 460, 76
+const miniBarW, miniBarH = 540, 96
 
 type winRect struct{ x, y, w, h int }
 
@@ -29,6 +29,12 @@ func (a *App) SetWindowMode(mode string) error {
 	}
 
 	if a.mode == ModeMain {
+		// Đang phóng to thì thu về trước: kích thước / vị trí lưu là của cửa sổ thường,
+		// và SetSize trên cửa sổ đang phóng to không có tác dụng ổn định.
+		a.mainMax = runtime.WindowIsMaximised(a.ctx)
+		if a.mainMax {
+			runtime.WindowUnmaximise(a.ctx)
+		}
 		x, y := runtime.WindowGetPosition(a.ctx)
 		w, h := runtime.WindowGetSize(a.ctx)
 		a.mainRect = winRect{x, y, w, h}
@@ -40,6 +46,9 @@ func (a *App) SetWindowMode(mode string) error {
 		runtime.WindowSetAlwaysOnTop(a.ctx, false)
 		runtime.WindowSetSize(a.ctx, r.w, r.h)
 		runtime.WindowSetPosition(a.ctx, r.x, r.y)
+		if a.mainMax {
+			runtime.WindowMaximise(a.ctx)
+		}
 	case ModeOverlay, ModeMinibar:
 		sw, sh, err := a.currentScreenSize()
 		if err != nil {

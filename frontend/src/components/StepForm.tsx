@@ -1,8 +1,10 @@
-// Form cấu hình bước đang chọn – sửa trực tiếp vào store (bước 15)
+// Inspector – cấu hình bước đang chọn (design v2, cột phải), sửa trực tiếp vào store (bước 15)
 import { ReactNode, useEffect, useState } from 'react';
-import { Eye, Target } from './icons';
+import { Eye, StepIcon, Target } from './icons';
 import { openOverlay } from '../windowMode';
-import NumInput from './NumInput';
+import NumInput, { fieldBox } from './NumInput';
+import Segmented from './Segmented';
+import { Switch } from './RunSettings';
 import {
   changeStepType, endpoints, pickPointFor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
 } from '../scriptStore';
@@ -20,10 +22,12 @@ const KEY_MODES: { id: KeyMode; label: string; hint: string }[] = [
   { id: 'chord', label: 'Nhấn giữ cùng lúc', hint: 'Đè phím kèm và mọi phím, rồi nhả – vd Ctrl+C+T' },
   { id: 'sequence', label: 'Giữ phím kèm, gõ lần lượt', hint: 'Đè phím kèm, gõ C rồi T, rồi nhả phím kèm' },
 ];
+const selectBox = `${fieldBox} w-full text-ink`;
+const hint = 'text-xs text-muted';
 
-type Props = { step: Step; index: number; children?: ReactNode };
+type Props = { step: Step; index: number };
 
-export default function StepForm({ step: s, index, children }: Props) {
+export default function StepForm({ step: s, index }: Props) {
   const { region } = useScript();
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   const setPoint = (i: number, p: Partial<Point>) =>
@@ -31,48 +35,45 @@ export default function StepForm({ step: s, index, children }: Props) {
   const mouse = s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'drag';
 
   return (
-    <section aria-label={`Cấu hình bước ${index}`} className="flex min-h-0 min-w-0 flex-[999_1_560px] flex-col gap-5 overflow-y-auto rounded-[10px] border border-line bg-white px-6 py-5">
+    <aside aria-label={`Thuộc tính bước ${index}`} className="flex w-[340px] flex-none flex-col gap-4 overflow-y-auto border-l border-line bg-surface p-4 max-[1100px]:w-[300px]">
       <div className="flex items-center gap-3">
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-accent font-bold text-white">{index}</span>
-        <h2 className="text-lg font-semibold">Bước {index}</h2>
+        <span className="grid h-9 w-9 flex-none place-items-center rounded-[9px] bg-accent-soft text-accent-text"><StepIcon type={s.type} className="h-[18px] w-[18px]" /></span>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[15px] font-semibold">{STEP_LABEL[s.type]}</div>
+          <div className="text-xs text-muted">Bước {index}{s.enabled ? '' : ' · đang tắt'}</div>
+        </div>
         {mouse && (
-          <button onClick={() => openOverlay('point', s.id)} title="Xem / sửa vị trí riêng bước này trên màn hình – các bước khác mờ đi"
-            className="ml-auto flex h-9 items-center gap-2 rounded-lg border border-line px-3 text-[13px] hover:bg-ground">
-            <Eye />Xem trên màn hình
-          </button>
+          <button onClick={() => openOverlay('point', s.id)} aria-label="Xem trên màn hình"
+            title="Xem / sửa vị trí riêng bước này trên màn hình – các bước khác mờ đi"
+            className="grid h-8 w-8 flex-none place-items-center rounded-control border border-line text-muted hover:bg-hover hover:text-ink"><Eye /></button>
         )}
-        <label className={`${mouse ? 'ml-3' : 'ml-auto'} flex items-center gap-2 text-[#3F4857]`}>
-          <input type="checkbox" checked={s.enabled} onChange={() => toggleStep(s.id)} className="h-[18px] w-[18px] accent-accent" />Bật
-        </label>
+        <Switch on={s.enabled} onChange={() => toggleStep(s.id)} label="Bật bước" />
       </div>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 font-semibold">Hành động</legend>
-        <div className="flex flex-wrap gap-1.5">
-          {TYPES.map((t) => (
-            <button key={t} onClick={() => changeStepType(s.id, t)} aria-pressed={t === s.type}
-              className={`h-9 rounded-lg px-3 text-[13px] ${t === s.type ? 'border-2 border-accent bg-accent-soft font-semibold text-accent-strong' : 'border border-line bg-white hover:bg-ground'}`}>
-              {STEP_LABEL[t]}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <div className="-mt-1 flex gap-[18px] border-b border-line" role="tablist">
+        <button role="tab" aria-selected className="relative h-[34px] px-0.5 font-semibold">
+          Bước<span className="absolute inset-x-[20%] -bottom-px h-[3px] rounded-sm bg-accent" />
+        </button>
+        <button role="tab" aria-selected={false} disabled title="Sắp có (bước 21b)" className="h-[34px] px-0.5 text-muted opacity-60">Input</button>
+      </div>
 
-      <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+      <label className="flex flex-col gap-1.5 text-muted">Hành động
+        <select value={s.type} onChange={(e) => changeStepType(s.id, e.target.value as StepType)} className={selectBox}>
+          {TYPES.map((t) => <option key={t} value={t}>{STEP_LABEL[t]}</option>)}
+        </select>
+      </label>
+
+      <div className="grid grid-cols-2 gap-3">
         {mouse && (
-          <label className="flex flex-col gap-1.5 font-semibold">Nút chuột
-            <select value={s.button} onChange={(e) => set({ button: e.target.value as MouseButton })}
-              className="h-10 rounded-lg border border-line bg-white px-2.5 font-normal">
-              <option value="left">Trái</option><option value="right">Phải</option><option value="center">Giữa</option>
-            </select>
-          </label>
+          <Field label="Nút chuột" wide>
+            <Segmented value={s.button} onChange={(button: MouseButton) => set({ button })} full label="Nút chuột"
+              options={[{ id: 'left', label: 'Trái' }, { id: 'right', label: 'Phải' }, { id: 'center', label: 'Giữa' }]} />
+          </Field>
         )}
 
         {mouse && s.type !== 'drag' && s.points[0] && (
-          <div className="flex flex-col gap-1.5">
-            <span className="font-semibold">
-              Vị trí{region && <span className="ml-1.5 text-xs font-normal text-muted">(trong vùng)</span>}
-            </span>
+          <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+            <span>Vị trí{region && <span className="ml-1.5 text-xs">(trong vùng)</span>}</span>
             <div className="flex gap-2">
               {(['x', 'y'] as const).map((k) => (
                 <NumInput key={k} prefix={k.toUpperCase()} value={s.points[0][k]} onChange={(v) => setPoint(0, { [k]: v })} className="flex-1" />
@@ -99,10 +100,10 @@ export default function StepForm({ step: s, index, children }: Props) {
         )}
 
         {s.type === 'type' && (
-          <label className="col-span-2 flex flex-col gap-1.5 font-semibold">Nội dung gõ
+          <label className="col-span-2 flex flex-col gap-1.5 text-muted">Nội dung gõ
             <textarea value={s.text} onChange={(e) => set({ text: e.target.value })} rows={3}
-              className="rounded-lg border border-line px-2.5 py-2 font-mono font-normal focus:border-accent focus:outline-none" />
-            <span className={`text-xs font-normal ${s.text ? 'text-muted' : 'text-danger'}`}>
+              className="rounded-control border border-line bg-field px-2.5 py-2 font-mono text-[13px] text-ink outline-none focus:ring-focus" />
+            <span className={`text-xs ${s.text ? '' : 'text-danger-text'}`}>
               {s.text ? `${[...s.text].length} ký tự · ` : 'Chưa nhập nội dung – chạy sẽ báo lỗi · '}
               Gõ vào ô đang focus – thường đặt sau một bước click. Tắt bộ gõ tiếng Việt khi chạy.
             </span>
@@ -112,31 +113,32 @@ export default function StepForm({ step: s, index, children }: Props) {
         {s.type === 'key' && (
           <>
             <KeysField step={s} onChange={(keys) => set({ keys })} />
-            <fieldset className="flex flex-col gap-1.5">
-              <legend className="mb-1.5 font-semibold">Kèm phím</legend>
+            <fieldset className="col-span-2 flex flex-col gap-1.5">
+              <legend className="mb-1.5 text-muted">Kèm phím</legend>
               <div className="flex flex-wrap gap-1.5">
-                {MODIFIERS.map((m) => (
-                  <label key={m.id} className="flex h-10 items-center gap-1.5 rounded-lg border border-line px-3">
-                    <input type="checkbox" checked={s.modifiers.includes(m.id)} className="accent-accent"
-                      onChange={(e) => set({
-                        modifiers: e.target.checked ? [...s.modifiers, m.id] : s.modifiers.filter((x) => x !== m.id),
-                      })} />
-                    {m.label}
-                  </label>
-                ))}
+                {MODIFIERS.map((m) => {
+                  const on = s.modifiers.includes(m.id);
+                  return (
+                    <button key={m.id} aria-pressed={on}
+                      onClick={() => set({ modifiers: on ? s.modifiers.filter((x) => x !== m.id) : [...s.modifiers, m.id] })}
+                      className={`h-8 rounded-control border px-2.5 text-[13px] ${on ? 'border-accent bg-accent-soft font-semibold text-accent-text' : 'border-line hover:bg-hover'}`}>
+                      {m.label}
+                    </button>
+                  );
+                })}
               </div>
             </fieldset>
             {s.keys.length > 1 && (
               <fieldset className="col-span-2 flex flex-col gap-1.5">
-                <legend className="mb-1.5 font-semibold">Cách bấm</legend>
-                <div className="flex flex-wrap gap-1.5">
+                <legend className="mb-1.5 text-muted">Cách bấm</legend>
+                <div className="flex flex-col gap-1.5">
                   {KEY_MODES.map((m) => (
-                    <label key={m.id} className={`flex cursor-pointer flex-col rounded-lg border px-3 py-2 ${s.keyMode === m.id ? 'border-2 border-accent bg-accent-soft' : 'border-line'}`}>
+                    <label key={m.id} className={`flex cursor-pointer flex-col rounded-card px-3 py-2 ${s.keyMode === m.id ? 'ring-selected' : 'border border-line'}`}>
                       <span className="flex items-center gap-2 font-semibold">
                         <input type="radio" name="keyMode" checked={s.keyMode === m.id} onChange={() => set({ keyMode: m.id })} className="accent-accent" />
                         {m.label}
                       </span>
-                      <span className="text-xs text-muted">{m.hint}</span>
+                      <span className={hint}>{m.hint}</span>
                     </label>
                   ))}
                 </div>
@@ -145,31 +147,31 @@ export default function StepForm({ step: s, index, children }: Props) {
           </>
         )}
 
-        <Field label={s.type === 'wait' ? 'Thời gian chờ' : 'Chờ trước bước tiếp theo'}>
-          <NumInput value={s.delayAfter} unit="ms" onChange={(v) => set({ delayAfter: v })} />
-        </Field>
-
-        {/* Ngẫu nhiên hoá (bước 19) – thao tác giống người thật hơn */}
-        <Field label="Ngẫu nhiên thời gian">
-          <NumInput prefix="±" value={s.jitterMs} unit="ms" onChange={(v) => set({ jitterMs: v })} />
-          <span className="text-xs font-normal text-muted">
-            {s.jitterMs > 0
-              ? `Chờ ${Math.max(s.delayAfter - s.jitterMs, 0)}–${s.delayAfter + s.jitterMs} ms${s.type === 'click' && s.clicks > 1 ? ', giữa các click cũng lệch' : ''}`
-              : 'Tắt (0)'}
-          </span>
-        </Field>
         {mouse && (
-          <Field label="Ngẫu nhiên vị trí">
+          <Field label="Ngẫu nhiên vị trí" wide>
             <NumInput prefix="±" value={s.jitterPx} unit="px" onChange={(v) => set({ jitterPx: v })} />
-            <span className="text-xs font-normal text-muted">
+            <span className={hint}>
               {s.jitterPx > 0 ? `Mỗi lần ${s.type === 'drag' ? 'kéo, A và B' : 'click'} lệch trong ô ${2 * s.jitterPx + 1}×${2 * s.jitterPx + 1} px` : 'Tắt (0)'}
             </span>
           </Field>
         )}
       </div>
 
-      {children}
-    </section>
+      {/* Chờ sau bước + ngẫu nhiên thời gian (bước 19) ở cuối, giống artboard */}
+      <section className="mt-auto grid grid-cols-2 gap-3 border-t border-line pt-3">
+        <Field label={s.type === 'wait' ? 'Thời gian chờ' : 'Chờ sau bước'}>
+          <NumInput value={s.delayAfter} unit="ms" onChange={(v) => set({ delayAfter: v })} />
+        </Field>
+        <Field label="Ngẫu nhiên">
+          <NumInput prefix="±" value={s.jitterMs} unit="ms" onChange={(v) => set({ jitterMs: v })} />
+        </Field>
+        <span className={`col-span-2 -mt-1 ${hint}`}>
+          {s.jitterMs > 0
+            ? `Chờ ${Math.max(s.delayAfter - s.jitterMs, 0)}–${s.delayAfter + s.jitterMs} ms${s.type === 'click' && s.clicks > 1 ? ', giữa các click cũng lệch' : ''}`
+            : 'Thời gian chờ cố định (ngẫu nhiên = 0)'}
+        </span>
+      </section>
+    </aside>
   );
 }
 
@@ -186,16 +188,16 @@ function KeysField({ step: s, onChange }: { step: Step; onChange: (keys: string[
   const bad = s.keys.filter((k) => !isValidKey(k));
   const ok = s.keys.length > 0 && bad.length === 0;
   return (
-    <label className="flex flex-col gap-1.5 font-semibold">Phím
+    <label className="col-span-2 flex flex-col gap-1.5 text-muted">Phím
       <input value={draft} list="key-names" placeholder="enter · hoặc nhiều phím: c, t"
         onChange={(e) => {
           setDraft(e.target.value);
           onChange(parseKeys(e.target.value));
         }}
         onBlur={() => setDraft(s.keys.join(', '))}
-        className={`h-10 rounded-lg border px-2.5 font-mono font-normal focus:outline-none ${ok ? 'border-line focus:border-accent' : 'border-danger'}`} />
+        className={`h-8 rounded-control border bg-field px-2.5 font-mono text-[13px] text-ink outline-none ${ok ? 'border-line focus:ring-focus' : 'border-danger'}`} />
       <datalist id="key-names">{KEY_NAMES.map((k) => <option key={k} value={k} />)}</datalist>
-      <span className={`text-xs font-normal ${ok ? 'text-muted' : 'text-danger'}`}>
+      <span className={`text-xs ${ok ? '' : 'text-danger-text'}`}>
         {s.keys.length === 0 ? 'Chưa có phím – chạy sẽ báo lỗi'
           : bad.length ? `Tên phím không hợp lệ: ${bad.join(', ')} – chọn trong gợi ý hoặc gõ 1 ký tự`
           : `Sẽ bấm: ${fmtKey(s)}`}
@@ -207,22 +209,7 @@ function KeysField({ step: s, onChange }: { step: Step; onChange: (keys: string[
 function PickButton({ step: s, title = 'Chọn lại trên màn hình' }: { step: Step; title?: string }) {
   return (
     <button aria-label={title} title={title} onClick={() => pickPointFor(s.id)}
-      className="grid h-10 w-11 flex-none place-items-center rounded-lg border border-line hover:bg-ground"><Target /></button>
-  );
-}
-
-function Segmented<T extends string>({ value, options, onChange }: {
-  value: T; options: { id: T; label: string }[]; onChange: (v: T) => void;
-}) {
-  return (
-    <div className="flex w-fit overflow-hidden rounded-lg border border-line text-[13px] font-normal" role="radiogroup">
-      {options.map((o, i) => (
-        <button key={o.id} role="radio" aria-checked={value === o.id} onClick={() => onChange(o.id)}
-          className={`h-8 px-3 ${i > 0 ? 'border-l border-line' : ''} ${value === o.id ? 'bg-ink text-white' : 'bg-white hover:bg-ground'}`}>
-          {o.label}
-        </button>
-      ))}
-    </div>
+      className="grid h-8 w-9 flex-none place-items-center rounded-control border border-line text-muted hover:bg-hover hover:text-ink"><Target /></button>
   );
 }
 
@@ -230,15 +217,15 @@ function Segmented<T extends string>({ value, options, onChange }: {
 function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: Partial<Point>) => void }) {
   const { steps, region } = useScript();
   const ends = endpoints(steps, region).get(s.id);
-  const inRegion = region && <span className="ml-1.5 text-xs font-normal text-muted">(trong vùng)</span>;
+  const inRegion = region && <span className="ml-1.5 text-xs">(trong vùng)</span>;
   return (
     <>
-      <div className="col-start-1 flex flex-col gap-1.5">
-        <span className="font-semibold">Điểm A – bắt đầu kéo{!s.dragFromPrev && inRegion}</span>
-        <Segmented value={s.dragFromPrev ? 'prev' : 'pos'} onChange={(v) => setDragFromPrev(s.id, v === 'prev')}
+      <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+        <span>Điểm A – bắt đầu kéo{!s.dragFromPrev && inRegion}</span>
+        <Segmented value={s.dragFromPrev ? 'prev' : 'pos'} onChange={(v) => setDragFromPrev(s.id, v === 'prev')} full
           options={[{ id: 'pos', label: 'Vị trí' }, { id: 'prev', label: 'Từ điểm trước' }]} />
         {s.dragFromPrev ? (
-          <span className={`flex h-10 items-center text-[13px] ${ends?.start ? 'text-muted' : 'text-danger'}`}>
+          <span className={`text-[13px] ${ends?.start ? '' : 'text-danger-text'}`}>
             {ends?.start
               ? `Chỗ chuột dừng ở bước ${ends.prevStep} (X ${ends.start.x} Y ${ends.start.y})`
               : 'Phía trước không có bước chuột nào – chạy sẽ báo lỗi'}
@@ -252,9 +239,9 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p
           </div>
         )}
       </div>
-      <div className="flex flex-col gap-1.5">
-        <span className="font-semibold">Điểm B – thả{!s.dragRelative && inRegion}</span>
-        <Segmented value={s.dragRelative ? 'rel' : 'pos'} onChange={(v) => setDragRelative(s.id, v === 'rel')}
+      <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+        <span>Điểm B – thả{!s.dragRelative && inRegion}</span>
+        <Segmented value={s.dragRelative ? 'rel' : 'pos'} onChange={(v) => setDragRelative(s.id, v === 'rel')} full
           options={[{ id: 'pos', label: 'Vị trí' }, { id: 'rel', label: 'Lệch so với A' }]} />
         <div className="flex gap-2">
           {(['x', 'y'] as const).map((k) => (
@@ -264,13 +251,13 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p
           {s.dragFromPrev && <PickButton step={s} title="Chọn lại B trên màn hình" />}
         </div>
         {s.dragRelative && ends?.end && (
-          <span className="text-xs font-normal text-muted">Thả tại X {ends.end.x} Y {ends.end.y}</span>
+          <span className="text-xs">Thả tại X {ends.end.x} Y {ends.end.y}</span>
         )}
       </div>
     </>
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <label className="flex flex-col gap-1.5 font-semibold">{label}{children}</label>;
+function Field({ label, children, wide = false }: { label: string; children: ReactNode; wide?: boolean }) {
+  return <label className={`flex flex-col gap-1.5 text-muted ${wide ? 'col-span-2' : ''}`}>{label}{children}</label>;
 }

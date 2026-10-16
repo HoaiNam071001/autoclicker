@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
-import { makeStep, Point, Rect, Script, sampleSteps, Step, StepType } from './types';
+import { makeStep, Point, Rect, Script, sampleSteps, Step, STEP_LABEL, StepType } from './types';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
 import { runScript } from './engineStore';
 
@@ -119,17 +119,42 @@ export function changeStepType(id: string, type: StepType) {
   });
 }
 
-// Thêm bước không cần chọn điểm (chờ, gõ chữ, phím tắt) vào cuối – giá trị mặc định giống NewStep (model.go).
+// Bước mới từ bảng thêm bước (Ctrl+K) chèn ngay sau bước này; null = thêm vào cuối (F6, đặt điểm thường).
+// Đặt nhiều điểm liên tiếp trên overlay thì mỗi điểm chèn sau điểm vừa thêm. cancelPick (đóng overlay) xoá.
+let insertAfter: string | null = null;
+// Loại bước tạo khi đặt điểm trên overlay (bảng thêm bước chọn Double click / Giữ chuột).
+type PointType = Extract<StepType, 'click' | 'double' | 'hold'>;
+let pointType: PointType = 'click';
+export const placingType = () => pointType; // gợi ý trên overlay
+
+// Thêm bước vào kịch bản (sau insertAfter hoặc cuối), chọn nó và báo. Trả số thứ tự (từ 1).
+function insertStep(step: Step, notice: (n: number) => string) {
+  const steps = state.script.steps;
+  const at = insertAfter ? indexOf(insertAfter) + 1 : 0;
+  const i = at > 0 ? at : steps.length;
+  setSteps([...steps.slice(0, i), step, ...steps.slice(i)]);
+  if (insertAfter) insertAfter = step.id;
+  set({ selected: step.id, notice: notice(i + 1) });
+}
+
+// Thêm bước không cần chọn điểm (chờ, gõ chữ, phím tắt) ngay sau bước đang chọn – giá trị mặc định giống NewStep (model.go).
 export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key'>) {
   const defaults: Record<typeof type, Partial<Step>> = {
     wait: { clicks: 0, delayAfter: 1000 },
     type: { clicks: 0, delayAfter: 500 },
     key: { clicks: 0, keys: ['enter'], delayAfter: 500 },
   };
-  const step = makeStep({ id: newId(), type, ...defaults[type] });
-  const steps = state.script.steps;
-  setSteps([...steps, step]);
-  set({ selected: step.id, notice: `Đã thêm bước ${steps.length + 1}` });
+  insertAfter = state.selected || null;
+  insertStep(makeStep({ id: newId(), type, ...defaults[type] }), (n) => `Đã thêm bước ${n}`);
+  insertAfter = null;
+}
+
+// Bảng thêm bước: bước cần vị trí → mở overlay chọn điểm, bước mới chèn sau bước đang chọn.
+export function addPointStep(type: PointType | 'drag') {
+  insertAfter = state.selected || null;
+  if (type === 'drag') return openOverlay('drag');
+  pointType = type;
+  return openOverlay('point');
 }
 
 // Đổi vùng; toạ độ điểm vẫn tương đối nên các điểm đi theo vùng mới. null = toàn màn hình.
@@ -191,6 +216,8 @@ export const cancelDragA = () => {
 export const cancelPick = () => {
   pickTarget = null;
   pickStay = false;
+  insertAfter = null;
+  pointType = 'click';
   setDragMode(false);
 };
 
@@ -231,13 +258,11 @@ export function placePoint(screen: Point): boolean {
   if (a) {
     const relA = toRelative(a, script.region)!;
     const step = makeStep({ id: newId(), type: 'drag', points: [relA, rel], dragMs: 400, delayAfter: 500 });
-    setSteps([...steps, step]);
-    set({ selected: step.id, notice: `Đã thêm bước ${steps.length + 1}: kéo A ${relA.x},${relA.y} → B ${rel.x},${rel.y}` });
+    insertStep(step, (n) => `Đã thêm bước ${n}: kéo A ${relA.x},${relA.y} → B ${rel.x},${rel.y}`);
     return true;
   }
-  const step = makeStep({ id: newId(), type: 'click', points: [rel], delayAfter: 500 });
-  setSteps([...steps, step]);
-  set({ selected: step.id, notice: `Đã thêm bước ${steps.length + 1}: click X ${rel.x} Y ${rel.y}` });
+  const step = makeStep({ id: newId(), type: pointType, points: [rel], delayAfter: 500, holdMs: pointType === 'hold' ? 1000 : 0 });
+  insertStep(step, (n) => `Đã thêm bước ${n}: ${STEP_LABEL[pointType].toLowerCase()} X ${rel.x} Y ${rel.y}`);
   return true;
 }
 

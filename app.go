@@ -14,6 +14,7 @@ type App struct {
 	run      *runHandle // khác nil khi kịch bản đang chạy
 	mode     string     // chế độ cửa sổ hiện tại, xem window.go
 	mainRect winRect    // vị trí/kích thước main để khôi phục
+	mainMax  bool       // main đang phóng to (nút phóng to trên thanh tiêu đề) – phóng to lại khi quay về
 }
 
 // NewApp creates a new App application struct

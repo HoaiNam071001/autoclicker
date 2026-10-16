@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** chưa bắt đầu – đã đưa design v2 + kế hoạch mới vào Phase 3 (checklist chi tiết từng bước). Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 27 (UI v2 màn đang có) → 27b (khung UI tính năng chưa có) → 29 (neo 4 góc) → 21 → 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
+- **Đang làm:** bước 27b – dựng sẵn UI cho tính năng chưa có (xong 27). Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 27b (khung UI tính năng chưa có) → 29 (neo 4 góc) → 21 → 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-16
 
 ## Quyết định đã chốt
@@ -196,23 +196,26 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 | 13–15 | 22 → 24 → 28 | Chạy không cần canh, ghi macro, mở rộng |
 | – | 17 (Windows), 18 | Khi có máy Windows; riêng *Kiểm tra tay macOS* của 17 làm lúc nào cũng được (nên làm trước 25 vì chụp ảnh phụ thuộc tỷ lệ màn hình) |
 
-- [ ] **27. UI v2 cho các màn đang có + theme sáng / tối** – Đổi giao diện mọi thứ đang chạy được sang design v2, không đổi logic.
-  - [ ] Theme: thay `@theme` trong `style.css` bằng `design/theme.css` (giữ `@import "tailwindcss"`); `data-theme="light|dark"` trên `<html>`, không đặt thì theo hệ điều hành
-  - [ ] Font: cài `@fontsource/plus-jakarta-sans`, `@fontsource/jetbrains-mono`, bỏ Be Vietnam Pro / IBM Plex Mono (Windows ưu tiên Segoe UI Variable / Cascadia Mono có sẵn)
-  - [ ] Đổi class theo bảng "Đổi tên token" (DESIGN.md): `ground` → `bg`, `accent-strong` → `accent-text`; bỏ `accent-light`, `drag*` (kéo thả dùng màu trung tính, marker overlay dùng `accent`), bỏ `dark-*` (MiniBar, PreviewScreen dùng token chung)
-  - [ ] Utility gradient chỉ ở 4 chỗ: `btn-primary` (Chạy, Dùng ảnh này, Xong), `ring-selected` (bước / mục đang chọn), `ring-focus` (ô nhập focus), vòng tiến độ SVG thanh mini
-  - [ ] `components/icons.tsx`: **toàn bộ** bảng "Icon bước" (SVG 24×24, nét 1.8) – cả loại chưa có (scroll, open, waitImage, clickImage, waitPixel, focusWindow, group, ghim)
-  - [ ] Thanh tiêu đề tự vẽ kiểu Windows 11 (thu nhỏ / phóng to / đóng bên phải, vẫn kéo được cửa sổ) [`Main`]
-  - [ ] Bố cục 3 cột [`Main`]: chỗ cho thanh bên thư viện rộng 236 (nội dung ở 27b), danh sách bước co giãn, inspector 320–360 có tab Bước / Input (tab Input ở 27b)
-  - [ ] Thẻ bước [`Main`]: `bg-surface border-line rounded-card`, padding 9×12, cách 6 px, ô icon 32×32 `bg-soft`; đang chọn `ring-selected` + ô icon `bg-accent-soft text-accent-text`; chip thời gian mono; bước tắt `opacity-50`
-  - [ ] Inspector (`StepForm.tsx`, `RunSettings.tsx`): ô nhập `bg-field` bo 6–7, focus `ring-focus`, công tắc 40×20, segmented `bg-soft` / `bg-raised`, nút phụ `bg-surface border-line`
-  - [ ] Tab Soạn / Xem trước (gạch dưới 3px `bg-accent` rộng 50%) thay nút *Xem trước*
-  - [ ] Bảng thêm bước Ctrl+K [`AddStep`, `AddStepDark`]: `components/AddStepPalette.tsx` thay menu *+ Thêm bước* trong `StepList.tsx` – ô tìm, 4 nhóm, phím mũi tên + Enter; liệt kê **mọi** loại bước, loại chưa có hiện nhãn *Sắp có* và không chọn được
-  - [ ] Thanh mini [`MiniBar`, `MiniBarDark`]: `bg-surface border-line rounded-hud`, vòng tiến độ gradient, 2 dòng mono, nút tạm dừng phụ, nút Dừng `btn-danger-soft`
-  - [ ] Overlay [`Overlay`]: lớp phủ `bg-dim`, khung chọn nét đứt trắng + 4 núm viền accent + nhãn kích thước nền accent; thanh công cụ dưới `bg-hud text-hud-text border-hud-line rounded-xl`, công cụ đang bật nền trắng 14%; marker dùng `accent`
-  - [ ] Cài đặt theme Sáng / Tối / Theo hệ thống, lưu vào cấu hình app (`UserConfigDir`)
-  - [ ] Cập nhật mục *Quy ước UI* trong `CLAUDE.md` theo token / font mới
+- [x] **27. UI v2 cho các màn đang có + theme sáng / tối** – Đổi giao diện mọi thứ đang chạy được sang design v2, không đổi logic.
+  - [x] Theme: thay `@theme` trong `style.css` bằng `design/theme.css` (giữ `@import "tailwindcss"`); `data-theme="light|dark"` trên `<html>`, không đặt thì theo hệ điều hành
+  - [x] Font: cài `@fontsource/plus-jakarta-sans`, `@fontsource/jetbrains-mono`, bỏ Be Vietnam Pro / IBM Plex Mono (Windows ưu tiên Segoe UI Variable / Cascadia Mono có sẵn)
+  - [x] Đổi class theo bảng "Đổi tên token" (DESIGN.md): `ground` → `bg`, `accent-strong` → `accent-text`; bỏ `accent-light`, `drag*` (kéo thả dùng màu trung tính, marker overlay dùng `accent`), bỏ `dark-*` (MiniBar, PreviewScreen dùng token chung)
+  - [x] Utility gradient chỉ ở 4 chỗ: `btn-primary` (Chạy, Dùng ảnh này, Xong), `ring-selected` (bước / mục đang chọn), `ring-focus` (ô nhập focus), vòng tiến độ SVG thanh mini
+  - [x] `components/icons.tsx`: **toàn bộ** bảng "Icon bước" (SVG 24×24, nét 1.8) – cả loại chưa có (scroll, open, waitImage, clickImage, waitPixel, focusWindow, group, ghim)
+  - [x] Thanh tiêu đề tự vẽ kiểu Windows 11 (thu nhỏ / phóng to / đóng bên phải, vẫn kéo được cửa sổ) [`Main`]
+  - [x] Bố cục 3 cột [`Main`]: chỗ cho thanh bên thư viện rộng 236 (nội dung ở 27b), danh sách bước co giãn, inspector 320–360 có tab Bước / Input (tab Input ở 27b)
+  - [x] Thẻ bước [`Main`]: `bg-surface border-line rounded-card`, padding 9×12, cách 6 px, ô icon 32×32 `bg-soft`; đang chọn `ring-selected` + ô icon `bg-accent-soft text-accent-text`; chip thời gian mono; bước tắt `opacity-50`
+  - [x] Inspector (`StepForm.tsx`, `RunSettings.tsx`): ô nhập `bg-field` bo 6–7, focus `ring-focus`, công tắc 40×20, segmented `bg-soft` / `bg-raised`, nút phụ `bg-surface border-line`
+  - [x] Thu gọn / mở rộng cột thư viện *(người dùng yêu cầu, 2026-10-16)*: nút ở đầu cột hoặc Ctrl/Cmd+B, thu gọn còn dải 44 px, nhớ trạng thái trên máy (localStorage)
+  - [x] Tab Soạn / Xem trước (gạch dưới 3px `bg-accent` rộng 50%) thay nút *Xem trước*
+  - [x] Bảng thêm bước Ctrl+K [`AddStep`, `AddStepDark`]: `components/AddStepPalette.tsx` thay menu *+ Thêm bước* trong `StepList.tsx` – ô tìm, 4 nhóm, phím mũi tên + Enter; liệt kê **mọi** loại bước, loại chưa có hiện nhãn *Sắp có* và không chọn được
+  - [x] Thanh mini [`MiniBar`, `MiniBarDark`]: `bg-surface border-line rounded-hud`, vòng tiến độ gradient, 2 dòng mono, nút tạm dừng phụ, nút Dừng `btn-danger-soft`
+  - [x] Overlay [`Overlay`]: lớp phủ `bg-dim`, khung chọn nét đứt trắng + 4 núm viền accent + nhãn kích thước nền accent; thanh công cụ dưới `bg-hud text-hud-text border-hud-line rounded-xl`, công cụ đang bật nền trắng 14%; marker dùng `accent`
+  - [x] Cài đặt theme Sáng / Tối / Theo hệ thống, lưu vào cấu hình app (`UserConfigDir`)
+  - [x] Cập nhật mục *Quy ước UI* trong `CLAUDE.md` theo token / font mới
   - Xong khi: mọi màn hiện tại đúng ở cả 2 theme (chụp headless `#`, `#overlay`, `#minibar`, `#preview`), `npm run build` sạch
+  - [x] Chụp headless cả 2 theme: màn chính (1280 / 1024), inspector click / kéo thả / gõ chữ / phím tắt, popup lặp, bảng Ctrl+K (tìm không dấu, phím mũi tên, Enter chèn sau bước đang chọn), overlay chọn vùng / xem trước, mini bar
+  - [x] Kiểm tra tay trong `wails dev`: kéo cửa sổ bằng thanh tiêu đề, thu nhỏ / phóng to / đóng, phóng to rồi mở overlay → quay về vẫn phóng to; mini bar 540×96 khi chạy; overlay thanh công cụ dưới đáy; đổi theme, tắt app mở lại vẫn giữ; Ctrl/Cmd+K thêm Double click / Giữ chuột qua overlay
 - [ ] **27b. Dựng sẵn UI cho tính năng chưa có** *(người dùng yêu cầu, 2026-10-16)* – Làm hết giao diện theo design v2 trước, logic làm ở bước sau.
   - Cách làm: component nhận dữ liệu qua props, chưa nối Go. Trong app: hiện đúng chỗ nhưng nút / ô bị tắt, nhãn *Sắp có* (tooltip ghi số bước sẽ làm). Màn **`#demo`** nạp kịch bản mẫu (cả loại bước chưa có, dữ liệu giả trong `frontend/src/demo/`, **không** thêm vào `types.ts` / `model.go`) để xem đủ trạng thái, so với canvas
   - [ ] Thư viện thanh bên [`Main`] – `components/Library.tsx`: ô tìm, danh sách kịch bản, mục đang mở (`bg-hover` + vạch trái accent), chấm `warn` chưa lưu, "Mở gần đây", nút Kịch bản mới / Mở / Lưu, mục "Lịch sử"; nhãn "Chưa lưu" cạnh tên kịch bản; status bar "Bản nháp tự lưu lúc …" *(logic: 21, 25c)*
@@ -397,3 +400,9 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-16** – Thêm theo yêu cầu: bước 29 (neo điểm theo 4 góc vùng, ±X / ±Y) và 30 (chọn nhiều điểm: di chuyển, co giãn, xoay, xiên, perspective, căn chỉnh, ánh xạ sang vùng mới, hoàn tác). Xếp sau 27, trước 21. Chưa đổi code.
 - **2026-10-16** – Sắp lại thứ tự Phase 3 theo phụ thuộc: 29 → 27 → 21 → 30 → 21b → 23 → 25 → 25b → 25c → 26 → 20 → 22 → 24 → 28; thêm bảng thứ tự + lý do ở đầu Phase 3. Chưa đổi code.
 - **2026-10-16** – Theo yêu cầu: đưa UI lên đầu – 27 (đổi giao diện màn đang có) + 27b mới (dựng khung UI cho mọi tính năng chưa có, nhãn *Sắp có*, màn `#demo`); thứ tự mới 27 → 27b → 29 → 21 → 30 → 21b → 23 → 25 → 25b → 25c → 26 → 20 → 22 → 24 → 28. Chưa đổi code.
+- **2026-10-16** – Commit kế hoạch (`9ad3e7b`). Bước 27 đợt 1: `style.css` theo `design/theme.css` (body không tô nền để overlay / mini bar trong suốt), font Plus Jakarta Sans + JetBrains Mono (có tiếng Việt), đổi token cũ → mới ở mọi màn, overlay + PreviewScreen `data-theme="dark"` (HUD luôn tối), marker / mũi tên kéo thả dùng `accent`, segmented kiểu `bg-soft` / `bg-raised`, `StepIcon` đủ bộ icon, `theme.ts` (tạm đọc `?theme=`). `npm run build` OK, chụp headless main / overlay / minibar cả 2 theme.
+- **2026-10-16** – Bước 27 đợt 2: `TitleBar.tsx` (kiểu Windows 11, double click phóng to), thanh công cụ (tên kịch bản, tab Soạn / Xem trước, nút "N vòng" mở popup `RunSettings`, Chạy `btn-primary`), `Library.tsx` (khung), `StepList.tsx` thành thẻ bước (ô icon = tay kéo, nút bật/tắt / nhân bản / xoá khi rê, chip vùng ở đầu danh sách), `StepForm.tsx` thành inspector 340 px (tab Bước / Input – Input tắt, `Segmented`, `Switch`, `NumInput` cao 32 + `ring-focus`). Go: nhớ trạng thái phóng to khi đổi chế độ cửa sổ (`mainMax`). Chụp headless OK.
+- **2026-10-16** – Bước 27 đợt 3: `AddStepPalette.tsx` (Ctrl/Cmd+K, tìm không dấu, 4 nhóm, ←→↑↓ + Enter, loại chưa làm nhãn *Sắp có*); store `addPointStep` / `insertStep` – bước thêm từ bảng chèn sau bước đang chọn, overlay đặt điểm tạo đúng loại (click / double / giữ). Kiểm tra bằng Playwright: tìm "cuon" → Cuộn, Enter thêm Chờ sau bước 3, Esc đóng.
+- **2026-10-16** – Bước 27 đợt 4: mini bar 540×96 (vòng tiến độ gradient + icon bước đang chạy, `btn-danger-soft`), overlay theo artboard (thanh công cụ có icon ở đáy, banner hướng dẫn giữa trên, 4 núm góc vùng), `settings.go` (`GetSettings`, `SetTheme`, file `settings.json` trong `UserConfigDir`, test `TestSettingsRoundTrip`, `TestSettingsBadFile`), `theme.ts` + nút Sáng / Tối / Theo hệ thống trên thanh tiêu đề, cập nhật `CLAUDE.md`. `go test -race` OK, `npm run build` OK, chụp headless + Playwright kiểm tra đổi theme; chưa kiểm tra tay, chưa commit.
+- **2026-10-16** – Thêm thu gọn / mở rộng cột thư viện theo yêu cầu (`Library.tsx`, icon `SidebarToggle`, Ctrl/Cmd+B, nhớ bằng localStorage). `npm run build` OK, Playwright: 236 → 44 px, tải lại vẫn thu gọn, Cmd+B mở lại.
+- **2026-10-16** – Xong bước 27: người dùng kiểm tra tay trong app OK, commit. Bắt đầu 27b.
