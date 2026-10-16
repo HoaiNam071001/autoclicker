@@ -13,7 +13,13 @@ import (
 const dragStepMs = 10
 
 // validateScript kiểm tra kịch bản trước khi chạy để không dừng giữa chừng vì dữ liệu sai.
-func validateScript(sc Script) error {
+// screen: khung màn hình khi Region = nil; W = 0 thì bỏ qua kiểm tra điểm nằm trong vùng (không biết màn hình).
+func validateScript(sc Script, screen Rect) error {
+	b := bounds(sc, screen)
+	inside := func(p Point) bool {
+		q := resolvePoint(p, b)
+		return b.W == 0 || q.X >= b.X && q.X <= b.X+b.W && q.Y >= b.Y && q.Y <= b.Y+b.H
+	}
 	enabled := 0
 	hasPrevPoint := false // đã có bước chuột (để lại vị trí chuột) phía trước chưa
 	for i, s := range sc.Steps {
@@ -45,6 +51,13 @@ func validateScript(sc Script) error {
 		if len(s.Points) < need {
 			return fmt.Errorf("bước %d: cần %d điểm, mới có %d", i+1, need, len(s.Points))
 		}
+		for j := 0; j < need; j++ {
+			skip := s.Type == StepDrag && (j == 0 && s.DragFromPrev || j == 1 && s.DragRelative)
+			if !skip && !inside(s.Points[j]) {
+				q := resolvePoint(s.Points[j], b)
+				return fmt.Errorf("bước %d: điểm X %d Y %d nằm ngoài vùng", i+1, q.X, q.Y)
+			}
+		}
 		hasPrevPoint = hasPrevPoint || need > 0
 	}
 	if enabled == 0 {
@@ -72,6 +85,7 @@ type engine struct {
 	in         Input
 	sc         Script
 	gate       pauseGate
+	screen     Rect            // khung màn hình khi Region = nil (runner đặt = mainScreen); zero = gốc (0, 0)
 	onProgress func(Progress)  // có thể nil
 	intN       func(n int) int // số ngẫu nhiên [0, n) – test thay bằng hàm cố định
 
@@ -104,7 +118,7 @@ func (e *engine) jitterMs(v, j int) int { return max(e.jitter(v, j), 0) }
 // MaxMinutes tính theo đồng hồ thật, kể cả lúc tạm dừng.
 func (e *engine) run(ctx context.Context) error {
 	sc := e.sc
-	if err := validateScript(sc); err != nil {
+	if err := validateScript(sc, e.screen); err != nil {
 		return err
 	}
 	runCtx := ctx
@@ -212,20 +226,16 @@ func (e *engine) click(button string, double bool) error {
 
 // move đưa chuột tới (x, y) và nhớ lại vị trí đó.
 func (e *engine) move(x, y int) error {
-	e.last, e.hasLast = Point{x, y}, true
+	e.last, e.hasLast = Point{X: x, Y: y}, true
 	return e.in.Move(x, y)
 }
 
 func (e *engine) runStep(ctx context.Context, s Step) error {
 	in := e.in
-	// pt: toạ độ màn hình của điểm i, mỗi lần gọi lệch ngẫu nhiên ± JitterPx.
+	// pt: toạ độ màn hình của điểm i (theo neo), mỗi lần gọi lệch ngẫu nhiên ± JitterPx.
 	pt := func(i int) (int, int) {
-		p := s.Points[i]
-		x, y := p.X, p.Y
-		if r := e.sc.Region; r != nil {
-			x, y = r.X+x, r.Y+y
-		}
-		return e.jitter(x, s.JitterPx), e.jitter(y, s.JitterPx)
+		p := resolvePoint(s.Points[i], bounds(e.sc, e.screen))
+		return e.jitter(p.X, s.JitterPx), e.jitter(p.Y, s.JitterPx)
 	}
 
 	switch s.Type {
@@ -369,7 +379,7 @@ func (e *engine) drag(ctx context.Context, s Step, pt func(int) (int, int)) erro
 		if err := in.Drag(x, y, s.Button); err != nil {
 			return err
 		}
-		e.last = Point{x, y}
+		e.last = Point{X: x, Y: y}
 	}
 	return nil
 }

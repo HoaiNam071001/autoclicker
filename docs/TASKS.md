@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** chưa bắt đầu – xong 27, 27b, theme tối Slate. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 29 (neo 4 góc) → 21 → 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
+- **Đang làm:** 29 (neo 4 góc) – xong code + test, chờ kiểm tra tay. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 21 → 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-16
 
 ## Quyết định đã chốt
@@ -235,15 +235,16 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - Kết quả: màn mẫu `#demo` (màn soạn đủ loại bước + nhóm, thư viện, inspector từng loại, tab Input, form Chạy, hẹn giờ, ghi macro, debug), `#demo-overlay` (khoanh ảnh, chọn nhiều + biến đổi + ánh xạ), `#demo-minibar` (các trạng thái thanh mini). Code dùng lại khi làm logic: `components/StepCard.tsx`, `components/inputs/*`, `components/steps/*` (model + `StepFields` + `AnchorField`), `ScheduleDialog.tsx`, `AppChrome.tsx`, `MiniBarView`, `LibraryView`. Dữ liệu mẫu chỉ trong `frontend/src/demo/`
   - [x] Người dùng xem `#demo`, `#demo-overlay`, `#demo-minibar` và màn chính (nút tắt + *Sắp có*), góp ý trước khi commit
 - [ ] **29. Neo điểm theo 4 góc vùng** *(người dùng yêu cầu, 2026-10-16)* – Hiện điểm chỉ tính từ góc trên trái của vùng nên điểm ở phía phải / dưới lệch khi đổi vùng. Mỗi trục neo riêng: X neo trái (+) hoặc phải (−), Y neo trên (+) hoặc dưới (−). Ví dụ 4 điểm cách mỗi cạnh 300 px = (+300, +300), (−300, +300), (+300, −300), (−300, −300); đổi vùng thì mỗi điểm bám theo góc của nó.
-  - [ ] Model: `Point` thêm `ax` (`start` = trái | `end` = phải | `center` | `ratio` = theo % rộng), `ay` (tương tự cho trên / dưới); bỏ trống = `start` (file / kịch bản cũ chạy như cũ). Lưu offset dương + neo riêng thay vì dùng dấu (để phân biệt +0 / −0); UI hiện dạng có dấu ±
-  - [ ] Toàn màn hình (`region = nil`) cũng neo được: nút *Toàn màn hình* lưu vùng = khung màn hình đang chứa overlay (thay vì `nil`) – cần chốt khi làm, vì liên quan đa màn hình (17)
-  - [ ] Go: một hàm `resolvePoint(p, region)` dùng chung cho engine (`runStep.pt`) và `validateScript` (điểm phải nằm trong vùng); test 4 góc, center, ratio, đổi cỡ vùng, kịch bản cũ không có neo
-  - [ ] Frontend: `toScreen` / `toRelative` / `endpoints()` trong `scriptStore.ts` tính theo neo (khớp Go); đổi neo giữ nguyên chỗ trên màn hình (tính lại offset)
-  - [ ] Neo khi đặt điểm: mặc định **tự chọn góc gần nhất** theo từng trục (cài đặt kịch bản: góc gần nhất / luôn trên trái); kéo marker giữ neo hiện tại
-  - [ ] Form: ô X / Y có dấu ± – gõ số âm = neo phải / dưới; nút chọn neo dạng lưới 3×3 nhỏ (4 góc, giữa cạnh, tâm) + tuỳ chọn %; danh sách bước hiện toạ độ dạng `(−300, +300)`
-  - [ ] Overlay: đường mảnh từ marker tới cạnh / góc đang neo (hiện với bước đang chọn hoặc khi giữ Alt); đổi vùng (kéo vùng mới) thấy marker bám theo góc ngay
-  - [ ] Kéo thả "lệch so với A" (ΔX, ΔY) giữ nguyên – lệch không phụ thuộc neo
-  - [ ] Nối UI khung từ 27b (ô ±, lưới chọn neo, đường neo trên overlay)
+  - [x] Model: `Point` thêm `ax` (`start` = trái | `end` = phải | `center` | `ratio` = theo % rộng), `ay` (tương tự cho trên / dưới); bỏ trống = `start` (file / kịch bản cũ chạy như cũ). Lưu offset dương + neo riêng thay vì dùng dấu (để phân biệt +0 / −0); UI hiện dạng có dấu ±
+  - [x] Toàn màn hình (`region = nil`) cũng neo được: chốt **giữ `nil`**, lúc tính thì khung = màn hình chính (`mainScreen`, Go; frontend lấy qua `ScreenBounds`) – kịch bản mang sang máy khác cỡ màn hình vẫn bám góc. Đa màn hình xử lý ở 17
+  - [x] Go: một hàm `resolvePoint(p, region)` dùng chung cho engine (`runStep.pt`) và `validateScript` (điểm phải nằm trong vùng); test 4 góc, center, ratio, đổi cỡ vùng, kịch bản cũ không có neo
+  - [x] Frontend: `toScreen` / `toRelative` / `endpoints()` trong `scriptStore.ts` tính theo neo (khớp Go); đổi neo giữ nguyên chỗ trên màn hình (tính lại offset)
+  - [x] Neo khi đặt điểm: mặc định **tự chọn góc gần nhất** theo từng trục; kéo marker / chọn lại giữ neo hiện tại
+  - [ ] Cài đặt kịch bản *góc gần nhất / luôn trên trái* – chưa làm (cần chỗ lưu cài đặt kịch bản, làm cùng 21)
+  - [x] Form: ô X / Y có dấu ± – gõ số âm = neo phải / dưới; nút chọn neo dạng lưới 3×3 nhỏ (4 góc, giữa cạnh, tâm) + tuỳ chọn %; danh sách bước hiện toạ độ dạng `(−300, +300)`
+  - [x] Overlay: đường mảnh từ marker tới cạnh / góc đang neo (hiện với bước đang chọn hoặc khi giữ Alt); đổi vùng (kéo vùng mới) thấy marker bám theo góc ngay
+  - [x] Kéo thả "lệch so với A" (ΔX, ΔY) giữ nguyên – lệch không phụ thuộc neo
+  - [x] Nối UI khung từ 27b (ô ±, lưới chọn neo, đường neo trên overlay)
   - Xong khi: đặt 4 điểm ở 4 góc vùng 1000×700, đổi vùng sang 1400×900 → 4 điểm vẫn cách mỗi cạnh đúng 300 px khi chạy thật và trên overlay
 - [ ] **21. Lưu / tải kịch bản** – App chưa lưu gì; thêm `version` trước khi đổi model nhiều.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
@@ -417,3 +418,4 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-16** – Theme tối đổi sang bảng Slate (`design/newdarkmode.md`) trong `style.css` + `design/theme.css`: nền / bề mặt / ô nhập tách lớp rõ, accent `#60A5FA`, thêm token `on-accent` (chữ trên nền accent, thay `text-white`), HUD overlay cùng tông. `npm run build` OK, chụp headless màn chính / `#demo` / overlay / mini bar; chưa commit.
 - **2026-10-16** – Sửa nút đóng cửa sổ khi rê chuột ở theme sáng bị nền xám + chữ trắng (`hover:bg-hover` đè `hover:bg-danger`) – tách class riêng. Commit theme tối Slate + bản sửa.
 - **2026-10-16** – Sửa (người dùng báo): thanh công cụ đáy overlay (Xem trước / Đặt điểm…) bị Dock che – overlay đặt dưới menu bar, cao bằng màn hình nên tràn qua mép dưới. Theo yêu cầu dời thanh công cụ lên giữa phía trên (`OverlayScreen.tsx`), banner hướng dẫn + khung toạ độ xuống ngay dưới. `npm run build` OK, chụp headless `#overlay` 1280 không chồng nhau; chưa kiểm tra tay, chưa commit.
+- **2026-10-16** – Bước 29 (neo 4 góc): `anchor.go` (`resolvePoint`, `mainScreen`, `ScreenBounds`) + `anchor.ts` cùng công thức; `Point.ax/ay` (`omitempty`, trống = start), ratio lưu 1/10000; `validateScript` báo điểm ngoài vùng; toàn màn hình neo theo màn chính. Frontend: `StepPoint`, đặt điểm neo góc gần nhất, lưới / % đổi neo giữ chỗ (`setAnchor`), `AnchorField` thật trong inspector (điểm, A, B), danh sách hiện ±, overlay vẽ đường neo (bước đang chọn, giữ Alt = mọi điểm), marker bám vùng ngay khi đang kéo. `go test -race` OK (thêm 4 test neo), `npm run build` OK, kiểm tra `anchor.ts` bằng cùng bộ số với test Go, chụp headless inspector + overlay. Chưa kiểm tra tay, chưa commit.

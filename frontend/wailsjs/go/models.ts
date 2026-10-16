@@ -3,6 +3,8 @@ export namespace main {
 	export class Point {
 	    x: number;
 	    y: number;
+	    ax?: string;
+	    ay?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Point(source);
@@ -12,6 +14,8 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.x = source["x"];
 	        this.y = source["y"];
+	        this.ax = source["ax"];
+	        this.ay = source["ay"];
 	    }
 	}
 	export class Rect {

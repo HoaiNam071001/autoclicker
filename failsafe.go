@@ -33,7 +33,7 @@ func hardCorners(displays []Rect) []Point {
 			{d.X + d.W - 1, d.Y + d.H - 1, 1, 1},
 		} {
 			if !inAny(c.x+c.dx, c.y) && !inAny(c.x, c.y+c.dy) && !inAny(c.x+c.dx, c.y+c.dy) {
-				out = append(out, Point{c.x, c.y})
+				out = append(out, Point{X: c.x, Y: c.y})
 			}
 		}
 	}

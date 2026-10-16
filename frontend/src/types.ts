@@ -1,6 +1,12 @@
 import { main } from '../wailsjs/go/models';
+import { fmtAxis, fmtPoint } from './anchor';
 
+// Neo của một trục (anchor.ts, khớp anchor.go): bỏ trống = start (cách cạnh trái / trên).
+export type Anchor = 'start' | 'center' | 'end' | 'ratio';
+// Toạ độ màn hình / cửa sổ.
 export type Point = { x: number; y: number };
+// Điểm lưu trong bước: neo theo cạnh vùng từng trục (khớp Point trong model.go).
+export type StepPoint = Point & { ax?: Anchor; ay?: Anchor };
 export type Rect = { x: number; y: number; w: number; h: number };
 export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key';
 export type MouseButton = 'left' | 'right' | 'center';
@@ -11,7 +17,7 @@ export type KeyMode = 'chord' | 'sequence';
 export interface Step {
   id: string;
   type: StepType;
-  points: Point[]; // drag: points[0] -> points[1]
+  points: StepPoint[]; // drag: points[0] -> points[1]; B lệch so với A (dragRelative) không dùng neo
   button: MouseButton;
   clicks: number;
   clickInterval: number; // ms
@@ -92,10 +98,11 @@ export const sampleSteps: Step[] = [
 
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);
 const fmtSigned = (v: number) => (v > 0 ? `+${v}` : `${v}`);
+const fmtPair = (p: StepPoint) => `${fmtAxis(p.x, p.ax)}, ${fmtAxis(p.y, p.ay)}`;
 export const fmtPos = (s: Step) =>
   s.type === 'drag'
-    ? `${s.dragFromPrev ? 'Từ điểm trước' : `A ${s.points[0].x},${s.points[0].y}`} → ${
-      s.dragRelative ? `Δ ${fmtSigned(s.points[1].x)},${fmtSigned(s.points[1].y)}` : `B ${s.points[1].x},${s.points[1].y}`}`
+    ? `${s.dragFromPrev ? 'Từ điểm trước' : `A ${fmtPair(s.points[0])}`} → ${
+      s.dragRelative ? `Δ ${fmtSigned(s.points[1].x)},${fmtSigned(s.points[1].y)}` : `B ${fmtPair(s.points[1])}`}`
     : s.type === 'type' ? `"${s.text}"`
     : s.type === 'key' ? fmtKey(s)
-    : s.points[0] ? `X ${s.points[0].x}  Y ${s.points[0].y}` : '—';
+    : s.points[0] ? fmtPoint(s.points[0]) : '—';

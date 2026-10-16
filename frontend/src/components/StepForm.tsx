@@ -6,11 +6,11 @@ import NumInput, { fieldBox } from './NumInput';
 import Segmented from './Segmented';
 import { Switch } from './RunSettings';
 import PinButton from './inputs/PinButton';
-import { AnchorGrid } from './steps/AnchorField';
+import AnchorField from './steps/AnchorField';
 import {
-  changeStepType, endpoints, pickPointFor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
+  changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
 } from '../scriptStore';
-import { fmtKey, isValidKey, KEY_NAMES, KeyMode, Modifier, MouseButton, Point, Step, STEP_LABEL, StepType } from '../types';
+import { fmtKey, isValidKey, KEY_NAMES, KeyMode, Modifier, MouseButton, Step, STEP_LABEL, StepPoint, StepType } from '../types';
 
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'wait', 'type', 'key'];
 const isMac = navigator.platform.startsWith('Mac');
@@ -32,7 +32,7 @@ type Props = { step: Step; index: number };
 export default function StepForm({ step: s, index }: Props) {
   const { region } = useScript();
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
-  const setPoint = (i: number, p: Partial<Point>) =>
+  const setPoint = (i: number, p: Partial<StepPoint>) =>
     set({ points: s.points.map((q, j) => (j === i ? { ...q, ...p } : q)) });
   const mouse = s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'drag';
 
@@ -75,15 +75,9 @@ export default function StepForm({ step: s, index }: Props) {
 
         {mouse && s.type !== 'drag' && s.points[0] && (
           <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-            <span>Vị trí{region && <span className="ml-1.5 text-xs">(trong vùng)</span>}</span>
-            <div className="flex gap-2">
-              {(['x', 'y'] as const).map((k) => (
-                <NumInput key={k} prefix={k.toUpperCase()} value={s.points[0][k]} onChange={(v) => setPoint(0, { [k]: v })} className="min-w-0 flex-1" />
-              ))}
-              <AnchorGrid value={{ x: 0, y: 0, ax: 'start', ay: 'start' }} onChange={() => {}} disabled />
-              <PickButton step={s} />
-              <PinSoon />
-            </div>
+            <span>Vị trí <span className="text-xs">(neo theo góc {region ? 'vùng' : 'màn hình'})</span></span>
+            <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
+              pick={<PickButton step={s} />} trailing={<PinSoon />} />
           </div>
         )}
         {s.type === 'drag' && s.points.length >= 2 && <DragPoints step={s} setPoint={setPoint} />}
@@ -218,7 +212,7 @@ function PickButton({ step: s, title = 'Chọn lại trên màn hình' }: { step
 }
 
 // Điểm A / B của bước kéo thả: A = vị trí hoặc "từ điểm trước"; B = vị trí hoặc lệch so với A.
-function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: Partial<Point>) => void }) {
+function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: Partial<StepPoint>) => void }) {
   const { steps, region } = useScript();
   const ends = endpoints(steps, region).get(s.id);
   const inRegion = region && <span className="ml-1.5 text-xs">(trong vùng)</span>;
@@ -235,25 +229,25 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p
               : 'Phía trước không có bước chuột nào – chạy sẽ báo lỗi'}
           </span>
         ) : (
-          <div className="flex gap-2">
-            {(['x', 'y'] as const).map((k) => (
-              <NumInput key={k} prefix={k.toUpperCase()} value={s.points[0][k]} onChange={(v) => setPoint(0, { [k]: v })} className="flex-1" />
-            ))}
-            <PickButton step={s} title="Chọn lại A rồi B trên màn hình" />
-          </div>
+          <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
+            pick={<PickButton step={s} title="Chọn lại A rồi B trên màn hình" />} />
         )}
       </div>
       <div className="col-span-2 flex flex-col gap-1.5 text-muted">
         <span>Điểm B – thả{!s.dragRelative && inRegion}</span>
         <Segmented value={s.dragRelative ? 'rel' : 'pos'} onChange={(v) => setDragRelative(s.id, v === 'rel')} full
           options={[{ id: 'pos', label: 'Vị trí' }, { id: 'rel', label: 'Lệch so với A' }]} />
-        <div className="flex gap-2">
-          {(['x', 'y'] as const).map((k) => (
-            <NumInput key={k} signed={s.dragRelative} prefix={s.dragRelative ? `Δ${k.toUpperCase()}` : k.toUpperCase()}
-              value={s.points[1][k]} onChange={(v) => setPoint(1, { [k]: v })} className="flex-1" />
-          ))}
-          {s.dragFromPrev && <PickButton step={s} title="Chọn lại B trên màn hình" />}
-        </div>
+        {s.dragRelative ? (
+          <div className="flex gap-2">
+            {(['x', 'y'] as const).map((k) => (
+              <NumInput key={k} signed prefix={`Δ${k.toUpperCase()}`} value={s.points[1][k]} onChange={(v) => setPoint(1, { [k]: v })} className="flex-1" />
+            ))}
+            {s.dragFromPrev && <PickButton step={s} title="Chọn lại B trên màn hình" />}
+          </div>
+        ) : (
+          <AnchorField value={s.points[1]} onChange={(p) => setPoint(1, p)} onAnchor={(ax, ay) => setAnchor(s.id, 1, ax, ay)}
+            pick={s.dragFromPrev ? <PickButton step={s} title="Chọn lại B trên màn hình" /> : <span />} />
+        )}
         {s.dragRelative && ends?.end && (
           <span className="text-xs">Thả tại X {ends.end.x} Y {ends.end.y}</span>
         )}

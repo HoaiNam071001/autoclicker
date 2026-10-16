@@ -13,8 +13,9 @@ import {
   ClickImageFields, FocusWindowFields, GroupFields, OnTimeoutFields, OpenFields, ScrollFields, WaitImageFields, WaitPixelFields,
 } from '../components/steps/StepFields';
 import AnchorField from '../components/steps/AnchorField';
+import { StepPoint } from '../types';
 import {
-  AnchoredPoint, ClickImageData, FocusWindowData, OnTimeout, OpenData, ScrollData, WaitImageData, WaitPixelData,
+  ClickImageData, FocusWindowData, OnTimeout, OpenData, ScrollData, WaitImageData, WaitPixelData,
 } from '../components/steps/model';
 
 type Props = {
@@ -89,7 +90,7 @@ function StepBody({ step, inputs, setInputs }: { step: DemoStep } & Omit<Props, 
   const [pixel, setPixel] = useState<WaitPixelData>({ at: { x: 640, y: 300 }, color: '#1877F2', tolerance: 10, timeoutMs: 5000 });
   const [win, setWin] = useState<FocusWindowData>({ title: 'Google Chrome', match: 'contains' });
   const [timeout, setTimeoutCfg] = useState<OnTimeout>({ action: 'retry', retries: 2, then: 'skipGroup' });
-  const [pt, setPt] = useState<AnchoredPoint>({ x: 300, y: 300, ax: 'end', ay: 'start' });
+  const [pt, setPt] = useState<StepPoint>({ x: 300, y: 300, ax: 'end', ay: 'start' });
   const onTimeout = <OnTimeoutFields value={timeout} onChange={setTimeoutCfg} inGroup={inGroup(step)} />;
 
   switch (step.type) {

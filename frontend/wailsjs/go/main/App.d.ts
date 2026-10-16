@@ -18,6 +18,8 @@ export function ResumeScript():Promise<boolean>;
 
 export function RunScript(arg1:main.Script,arg2:number):Promise<void>;
 
+export function ScreenBounds():Promise<main.Rect>;
+
 export function SetTheme(arg1:string):Promise<void>;
 
 export function SetWindowMode(arg1:string):Promise<void>;

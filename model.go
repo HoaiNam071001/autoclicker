@@ -22,9 +22,13 @@ const (
 	KeySequence = "sequence" // giữ phím kèm, gõ lần lượt từng phím chính rồi nhả phím kèm
 )
 
+// Point – toạ độ điểm trong vùng, mỗi trục neo riêng (anchor.go): Ax / Ay trống = start (cách cạnh trái / trên).
+// Điểm B kéo thả "lệch so với A" (DragRelative) là độ lệch, không dùng neo.
 type Point struct {
-	X int `json:"x"`
-	Y int `json:"y"`
+	X  int    `json:"x"`
+	Y  int    `json:"y"`
+	Ax string `json:"ax,omitempty"` // start | end | center | ratio
+	Ay string `json:"ay,omitempty"`
 }
 
 type Rect struct {
@@ -57,7 +61,7 @@ type Step struct {
 
 type Script struct {
 	Name       string `json:"name"`
-	Region     *Rect  `json:"region"`     // nil = toàn màn hình; toạ độ điểm tương đối theo vùng
+	Region     *Rect  `json:"region"`     // nil = toàn màn hình (màn chính); toạ độ điểm neo theo cạnh vùng
 	Loops      int    `json:"loops"`      // 0 = vô hạn
 	MaxMinutes int    `json:"maxMinutes"` // 0 = không giới hạn
 	Steps      []Step `json:"steps"`

@@ -21,7 +21,7 @@ type runHandle struct {
 
 // ValidateScript kiểm tra kịch bản trước khi chạy (frontend gọi trước khi thu cửa sổ thành mini bar).
 func (a *App) ValidateScript(sc Script) error {
-	return validateScript(sc)
+	return validateScript(sc, mainScreen())
 }
 
 // RunScript đếm ngược countdown giây rồi chạy kịch bản; chỉ trả về khi chạy xong / bị dừng
@@ -29,7 +29,8 @@ func (a *App) ValidateScript(sc Script) error {
 // Emit "engine:state" (true khi bắt đầu, false khi kết thúc), "engine:countdown" (số giây còn lại)
 // và "engine:progress" (Progress) trong lúc chạy.
 func (a *App) RunScript(sc Script, countdown int) error {
-	if err := validateScript(sc); err != nil {
+	screen := mainScreen()
+	if err := validateScript(sc, screen); err != nil {
 		return err
 	}
 	a.mu.Lock()
@@ -42,6 +43,7 @@ func (a *App) RunScript(sc Script, countdown int) error {
 	eng := newEngine(in, sc, func(p Progress) {
 		runtime.EventsEmit(a.ctx, "engine:progress", p)
 	})
+	eng.screen = screen
 	h := &runHandle{cancel: cancel, eng: eng}
 	a.run = h
 	a.mu.Unlock()

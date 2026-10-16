@@ -18,9 +18,5 @@ export type FocusWindowData = { title: string; match: 'contains' | 'exact' };
 export type OnTimeout = { action: 'retry' | 'skip' | 'stop'; retries: number; then: 'skipGroup' | 'stop' };
 export type GroupData = { name: string; repeat: number };
 
-// Neo theo từng trục (bước 29): start = trái / trên (+), end = phải / dưới (−), center = giữa, ratio = theo % cạnh.
-export type AnchorAxis = 'start' | 'center' | 'end' | 'ratio';
-export type AnchoredPoint = { x: number; y: number; ax: AnchorAxis; ay: AnchorAxis };
-
 // Cửa sổ đang mở (mẫu) cho ô chọn của Focus cửa sổ
 export const SAMPLE_WINDOWS = ['Google Chrome', 'Zalo', 'Visual Studio Code', 'Finder', 'Microsoft Excel'];

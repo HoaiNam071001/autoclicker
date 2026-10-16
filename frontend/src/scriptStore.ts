@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
-import { makeStep, Point, Rect, Script, sampleSteps, Step, STEP_LABEL, StepType } from './types';
+import { ScreenBounds } from '../wailsjs/go/main/App';
+import { Anchor, makeStep, Point, Rect, Script, sampleSteps, Step, STEP_LABEL, StepPoint, StepType } from './types';
+import { anchorPoint, fmtPoint, insideBounds, nearestAnchor, resolvePoint } from './anchor';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
 import { runScript } from './engineStore';
 
@@ -13,6 +15,7 @@ type EditorState = {
   dragA: Point | null; // điểm A (toạ độ màn hình) đã chọn, đang chờ điểm B của kéo thả
   deleted: { step: Step; index: number } | null; // bước vừa xoá – để hoàn tác
   countdown: boolean; // đếm ngược 3 giây trước khi chạy
+  screen: Rect; // khung màn hình chính (robotgo) – "toàn màn hình" neo theo khung này, khớp mainScreen (anchor.go)
 };
 
 let state: EditorState = {
@@ -22,6 +25,7 @@ let state: EditorState = {
   dragA: null,
   deleted: null,
   countdown: true,
+  screen: { x: 0, y: 0, w: window.screen.width, h: window.screen.height }, // trình duyệt: tạm lấy cỡ màn hình
 };
 const listeners = new Set<() => void>();
 
@@ -108,7 +112,10 @@ export function changeStepType(id: string, type: StepType) {
   const points = s.points.map((p) => ({ ...p }));
   const need = type === 'drag' ? 2 : type === 'click' || type === 'double' || type === 'hold' ? 1 : 0;
   if (need >= 1 && points.length === 0) points.push({ x: 0, y: 0 });
-  if (need === 2 && points.length === 1) points.push({ x: points[0].x + 100, y: points[0].y });
+  if (need === 2 && points.length === 1) {
+    const a = toScreen(points[0], state.script.region);
+    points.push(anchorPoint({ x: a.x + 100, y: a.y }, boundsOf(state.script.region), points[0].ax, points[0].ay));
+  }
   updateStep(id, {
     type,
     points,
@@ -157,19 +164,32 @@ export function addPointStep(type: PointType | 'drag') {
   return openOverlay('point');
 }
 
-// Đổi vùng; toạ độ điểm vẫn tương đối nên các điểm đi theo vùng mới. null = toàn màn hình.
+// Đổi vùng; điểm lưu theo neo nên mỗi điểm bám theo cạnh / góc nó neo. null = toàn màn hình.
 export const setRegion = (region: Rect | null) => updateScript({ region });
 
-// Điểm tương đối theo vùng → toạ độ màn hình thật.
-export const toScreen = (p: Point, region: Rect | null): Point =>
-  region ? { x: region.x + p.x, y: region.y + p.y } : p;
+// Khung tính toạ độ điểm: vùng, không có thì màn hình chính (bounds trong anchor.go).
+export const boundsOf = (region: Rect | null): Rect => region ?? state.screen;
 
-// Toạ độ màn hình → tương đối theo vùng; null nếu nằm ngoài vùng.
-const toRelative = (p: Point, r: Rect | null): Point | null => {
-  if (!r) return p;
-  const rel = { x: p.x - r.x, y: p.y - r.y };
-  return rel.x < 0 || rel.y < 0 || rel.x > r.w || rel.y > r.h ? null : rel;
+// Điểm đã lưu (neo theo vùng) → toạ độ màn hình thật.
+export const toScreen = (p: StepPoint, region: Rect | null): Point => resolvePoint(p, boundsOf(region));
+
+// Toạ độ màn hình → điểm lưu: like = điểm cũ để giữ neo (kéo marker, chọn lại), không có thì neo góc gần nhất.
+// null nếu nằm ngoài vùng.
+const toRelative = (p: Point, r: Rect | null, like?: StepPoint): StepPoint | null => {
+  const b = boundsOf(r);
+  if (!insideBounds(p, b)) return null;
+  return like ? anchorPoint(p, b, like.ax, like.ay) : nearestAnchor(p, b);
 };
+
+// Đổi neo điểm thứ index của bước, giữ nguyên chỗ trên màn hình (lưới chọn neo, nút %).
+export function setAnchor(id: string, index: number, ax: Anchor, ay: Anchor) {
+  const { steps, region } = state.script;
+  const s = steps.find((x) => x.id === id);
+  const p = s?.points[index];
+  if (!s || !p) return;
+  const q = anchorPoint(toScreen(p, region), boundsOf(region), ax, ay);
+  updateStep(id, { points: s.points.map((x, i) => (i === index ? q : x)) });
+}
 
 const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
@@ -241,7 +261,7 @@ export function placePoint(screen: Point): boolean {
 
   // Kéo thả cần 2 điểm: lần đầu chỉ ghi nhớ A.
   if (wantsPair && !state.dragA) {
-    set({ dragA: screen, notice: `Điểm A: X ${rel.x} Y ${rel.y} – chọn điểm B (Esc để huỷ)` });
+    set({ dragA: screen, notice: `Điểm A: ${fmtPoint(rel)} – chọn điểm B (Esc để huỷ)` });
     return true;
   }
   const a = wantsPair ? state.dragA! : null;
@@ -258,11 +278,11 @@ export function placePoint(screen: Point): boolean {
   if (a) {
     const relA = toRelative(a, script.region)!;
     const step = makeStep({ id: newId(), type: 'drag', points: [relA, rel], dragMs: 400, delayAfter: 500 });
-    insertStep(step, (n) => `Đã thêm bước ${n}: kéo A ${relA.x},${relA.y} → B ${rel.x},${rel.y}`);
+    insertStep(step, (n) => `Đã thêm bước ${n}: kéo A ${fmtPoint(relA)} → B ${fmtPoint(rel)}`);
     return true;
   }
   const step = makeStep({ id: newId(), type: pointType, points: [rel], delayAfter: 500, holdMs: pointType === 'hold' ? 1000 : 0 });
-  insertStep(step, (n) => `Đã thêm bước ${n}: ${STEP_LABEL[pointType].toLowerCase()} X ${rel.x} Y ${rel.y}`);
+  insertStep(step, (n) => `Đã thêm bước ${n}: ${STEP_LABEL[pointType].toLowerCase()} ${fmtPoint(rel)}`);
   return true;
 }
 
@@ -271,8 +291,8 @@ export function placePoint(screen: Point): boolean {
 export function movePoint(id: string, index: number, screen: Point): boolean {
   const { steps, region } = state.script;
   const idx = steps.findIndex((s) => s.id === id);
-  const rel = toRelative(screen, region);
   if (idx < 0) return false;
+  const rel = toRelative(screen, region, steps[idx].points[index]);
   if (!rel) {
     setNotice(`Điểm X ${screen.x} Y ${screen.y} nằm ngoài vùng – giữ vị trí cũ`);
     return false;
@@ -290,7 +310,7 @@ export function movePoint(id: string, index: number, screen: Point): boolean {
     value = { x: screen.x - start.x, y: screen.y - start.y };
   }
   setSteps(steps.map((s) => (s.id === id ? { ...s, points: s.points.map((p, i) => (i === index ? value : p)) } : s)));
-  set({ selected: id, notice: `Đã đặt điểm ${label}: X ${rel.x} Y ${rel.y}` });
+  set({ selected: id, notice: `Đã đặt điểm ${label}: ${fmtPoint(value)}` });
   return true;
 }
 
@@ -334,7 +354,7 @@ export function setDragFromPrev(id: string, on: boolean) {
   const ends = endpoints(steps, region).get(id);
   const patch: Partial<Step> = { dragFromPrev: on };
   if (!on && ends?.start) {
-    patch.points = [toRelative(ends.start, region) ?? s.points[0], s.points[1]];
+    patch.points = [toRelative(ends.start, region, s.points[0]) ?? s.points[0], s.points[1]];
   }
   updateStep(id, patch);
 }
@@ -349,13 +369,14 @@ export function setDragRelative(id: string, on: boolean) {
   if (ends?.start && ends.end) {
     b = on
       ? { x: ends.end.x - ends.start.x, y: ends.end.y - ends.start.y }
-      : region ? { x: ends.end.x - region.x, y: ends.end.y - region.y } : ends.end;
+      : toRelative(ends.end, region) ?? anchorPoint(ends.end, boundsOf(region), undefined, undefined);
   }
   updateStep(id, { dragRelative: on, points: [s.points[0], b] });
 }
 
 // F6 (Go nghe phím toàn cục) gửi vị trí chuột hiện tại.
 if (inWails) {
+  ScreenBounds().then((screen) => set({ screen })).catch(() => {});
   EventsOn('hotkey:f6', (p: Point) => placePoint(p));
   EventsOn('hotkey:f8start', () => runCurrent());
 }

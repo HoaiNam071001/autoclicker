@@ -2,10 +2,11 @@
 import { MouseEvent, ReactNode, useEffect, useRef, useState } from 'react';
 import { MousePos } from '../../wailsjs/go/main/App';
 import {
-  cancelDragA, cancelPick, endpoints, movePoint, pickingStep, placePoint, placingType, selectStep, setDragMode, setFocusLock,
+  boundsOf, cancelDragA, cancelPick, endpoints, movePoint, pickingStep, placePoint, placingType, selectStep, setDragMode, setFocusLock,
   setRegion, startPick, useEditor,
 } from '../scriptStore';
-import { Point, Rect, STEP_LABEL } from '../types';
+import { Point, Rect, STEP_LABEL, StepPoint } from '../types';
+import { fmtAxis } from '../anchor';
 import { inWails, OverlayTool, overlayFocus, overlayTool, setWindowMode } from '../windowMode';
 import { addSample, currentMapping, isMeasured, resetSamples, toClientPt, toScreenPt } from '../coordMap';
 import { SimulationLayer, useSimulation } from '../components/Simulation';
@@ -65,6 +66,7 @@ export default function OverlayScreen() {
     repickRef.current = on;
     setRepickingState(on);
   };
+  const [alt, setAlt] = useState(false); // giữ Alt: hiện đường neo của mọi điểm
   const skipClick = useRef(false); // click sinh ra sau khi thả marker không được tính là đặt điểm
   const cursorRef = useRef(cursor);
   const timer = useRef<number | undefined>(undefined);
@@ -83,9 +85,14 @@ export default function OverlayScreen() {
         setRepicking(false);
       } else setWindowMode('main');
     };
+    const onAlt = (e: KeyboardEvent) => setAlt(e.altKey);
     window.addEventListener('keydown', onKey);
+    window.addEventListener('keydown', onAlt);
+    window.addEventListener('keyup', onAlt);
     return () => {
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keydown', onAlt);
+      window.removeEventListener('keyup', onAlt);
       clearTimeout(timer.current);
       cancelPick(); // thoát overlay (Esc / Xong) mà chưa chọn lại điểm → huỷ
     };
@@ -175,8 +182,12 @@ export default function OverlayScreen() {
   // Marker của các bước đang bật, đánh số giống danh sách bước; kéo thả có A và B.
   // Marker đang kéo vẽ theo con trỏ; đường nối cũng đi theo.
   // ghost: điểm A của bước kéo "từ điểm trước" – trùng marker bước trước nên không vẽ, chỉ dùng cho đường nối.
-  const markers: { id: string; index: number; label: string; at: Point; drag: boolean; jitter: number; ghost: boolean }[] = [];
-  const ends = endpoints(steps, region);
+  // pt: điểm đã lưu (có neo) – không có với A "từ điểm trước" và B "lệch so với A".
+  const markers: { id: string; index: number; label: string; at: Point; drag: boolean; jitter: number; ghost: boolean; pt?: StepPoint }[] = [];
+  // Đang kéo vùng mới: marker tính theo vùng tạm để thấy ngay điểm bám theo góc nó neo.
+  const liveRegion = dragFrom && shown && shown.w >= MIN_REGION && shown.h >= MIN_REGION
+    ? { ...toScreenFromClient(shown), w: Math.round(shown.w * map.kx), h: Math.round(shown.h * map.ky) } : region;
+  const ends = endpoints(steps, liveRegion);
   steps.forEach((s, i) => {
     const e = ends.get(s.id);
     if (!e) return;
@@ -188,8 +199,22 @@ export default function OverlayScreen() {
       markers.push({
         id: s.id, index: j, label, at: dragging ? cursor : toClient(p), drag: s.type === 'drag',
         jitter: s.jitterPx, ghost: s.type === 'drag' && j === 0 && s.dragFromPrev,
+        pt: s.type === 'drag' && (j === 0 ? s.dragFromPrev : s.dragRelative) ? undefined : s.points[j],
       });
     });
+  });
+  // Đường neo (bước 29): từ marker tới cạnh / giữa đang neo – bước đang chọn / xem riêng, giữ Alt thì mọi điểm.
+  const b = boundsOf(liveRegion);
+  const bc = { ...toClient(b), w: b.w / map.kx, h: b.h / map.ky };
+  const anchorLines = preview ? [] : markers.filter((m) => m.pt && (alt || m.id === (focus ?? selected))).flatMap((m) => {
+    const p = m.pt!;
+    const edge = (a: StepPoint['ax'], o: number, size: number) => (a === 'end' ? o + size : a === 'center' ? o + size / 2 : o);
+    const ex = edge(p.ax, bc.x, bc.w);
+    const ey = edge(p.ay, bc.y, bc.h);
+    return [
+      { key: `${m.label}x`, x1: ex, y1: m.at.y, x2: m.at.x, y2: m.at.y, text: fmtAxis(p.x, p.ax) },
+      { key: `${m.label}y`, x1: m.at.x, y1: ey, x2: m.at.x, y2: m.at.y, text: fmtAxis(p.y, p.ay) },
+    ];
   });
   const screenCursor = toScreenFromClient(cursor);
   const focusIdx = focus ? steps.findIndex((x) => x.id === focus) + 1 : 0;
@@ -230,6 +255,14 @@ export default function OverlayScreen() {
             <path d="M0 0 10 5 0 10z" className="fill-accent" />
           </marker>
         </defs>
+        {anchorLines.map((l) => (
+          <g key={l.key}>
+            <line x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke="#fff" strokeWidth={1} strokeDasharray="3 4" opacity={0.7} />
+            <circle cx={l.x1} cy={l.y1} r={3} fill="#fff" opacity={0.8} />
+            <text x={(l.x1 + l.x2) / 2} y={(l.y1 + l.y2) / 2} dx={l.y1 === l.y2 ? 0 : 6} dy={l.y1 === l.y2 ? -6 : 4}
+              textAnchor={l.y1 === l.y2 ? 'middle' : 'start'} className="fill-white font-mono text-[11px]" opacity={0.85}>{l.text}</text>
+          </g>
+        ))}
         {dragA && (
           <line x1={toClient(dragA).x} y1={toClient(dragA).y} x2={cursor.x} y2={cursor.y}
             className="stroke-accent" strokeWidth={3} strokeDasharray="8 5" markerEnd="url(#ah)" />

@@ -60,8 +60,8 @@ func TestRunClickLoopsAndRegion(t *testing.T) {
 		Loops:  2,
 		Region: &Rect{X: 100, Y: 50},
 		Steps: []Step{
-			step(StepClick, func(s *Step) { s.Points = []Point{{10, 20}}; s.Clicks = 2 }),
-			step(StepDouble, func(s *Step) { s.Points = []Point{{1, 2}}; s.Button = "right" }),
+			step(StepClick, func(s *Step) { s.Points = []Point{{X: 10, Y: 20}}; s.Clicks = 2 }),
+			step(StepDouble, func(s *Step) { s.Points = []Point{{X: 1, Y: 2}}; s.Button = "right" }),
 			step(StepClick, func(s *Step) { s.Enabled = false }),
 		},
 	}
@@ -78,7 +78,7 @@ func TestRunClickLoopsAndRegion(t *testing.T) {
 func TestRunDrag(t *testing.T) {
 	in := &fakeInput{}
 	sc := Script{Loops: 1, Steps: []Step{
-		step(StepDrag, func(s *Step) { s.Points = []Point{{0, 0}, {100, 40}}; s.DragMs = 40 }),
+		step(StepDrag, func(s *Step) { s.Points = []Point{{X: 0, Y: 0}, {X: 100, Y: 40}}; s.DragMs = 40 }),
 	}}
 	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
 		t.Fatal(err)
@@ -140,7 +140,7 @@ func TestValidateScript(t *testing.T) {
 		"không hợp lệ":               {Steps: []Step{{Type: "scroll", Enabled: true}}},
 	}
 	for want, sc := range cases {
-		err := validateScript(sc)
+		err := validateScript(sc, Rect{})
 		if err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("muốn lỗi chứa %q, nhận %v", want, err)
 		}
@@ -150,7 +150,7 @@ func TestValidateScript(t *testing.T) {
 func TestPauseResumeAndProgress(t *testing.T) {
 	in := &fakeInput{}
 	sc := Script{Loops: 2, Steps: []Step{
-		step(StepClick, func(s *Step) { s.Points = []Point{{1, 1}}; s.Clicks = 3; s.ClickInterval = 20 }),
+		step(StepClick, func(s *Step) { s.Points = []Point{{X: 1, Y: 1}}; s.Clicks = 3; s.ClickInterval = 20 }),
 		step(StepWait, func(s *Step) { s.DelayAfter = 10 }),
 	}}
 	var mu sync.Mutex
@@ -253,7 +253,7 @@ func TestJitter(t *testing.T) {
 func TestRunJitterPositionsInBounds(t *testing.T) {
 	in := &fakeInput{}
 	sc := Script{Loops: 1, Steps: []Step{
-		step(StepClick, func(s *Step) { s.Points = []Point{{500, 300}}; s.Clicks = 200; s.JitterPx = 4 }),
+		step(StepClick, func(s *Step) { s.Points = []Point{{X: 500, Y: 300}}; s.Clicks = 200; s.JitterPx = 4 }),
 	}}
 	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
 		t.Fatal(err)
@@ -277,15 +277,15 @@ func TestRunJitterPositionsInBounds(t *testing.T) {
 func TestDragFromPrevAndRelative(t *testing.T) {
 	in := &fakeInput{}
 	sc := Script{Loops: 1, Region: &Rect{X: 1000, Y: 0}, Steps: []Step{
-		step(StepClick, func(s *Step) { s.Points = []Point{{100, 100}} }),
+		step(StepClick, func(s *Step) { s.Points = []Point{{X: 100, Y: 100}} }),
 		// kéo từ chỗ vừa click, sang phải 40, lên 20
 		step(StepDrag, func(s *Step) {
-			s.Points = []Point{{0, 0}, {40, -20}}
+			s.Points = []Point{{X: 0, Y: 0}, {X: 40, Y: -20}}
 			s.DragFromPrev, s.DragRelative, s.DragMs = true, true, 20
 		}),
 		// kéo tiếp từ điểm thả vừa rồi tới điểm cố định (trong vùng)
 		step(StepDrag, func(s *Step) {
-			s.Points = []Point{{0, 0}, {10, 10}}
+			s.Points = []Point{{X: 0, Y: 0}, {X: 10, Y: 10}}
 			s.DragFromPrev, s.DragMs = true, 10
 		}),
 	}}
@@ -307,11 +307,11 @@ func TestValidateDragFromPrevNeedsPrevPoint(t *testing.T) {
 		step(StepKey, nil),
 		step(StepDrag, func(s *Step) { s.DragFromPrev = true }),
 	}}
-	if err := validateScript(sc); err == nil || !strings.Contains(err.Error(), "bước 2: kéo từ điểm trước đó") {
+	if err := validateScript(sc, Rect{}); err == nil || !strings.Contains(err.Error(), "bước 2: kéo từ điểm trước đó") {
 		t.Errorf("muốn lỗi thiếu điểm trước, nhận %v", err)
 	}
 	sc.Steps[0] = step(StepClick, nil) // có bước click phía trước → hợp lệ
-	if err := validateScript(sc); err != nil {
+	if err := validateScript(sc, Rect{}); err != nil {
 		t.Errorf("không muốn lỗi: %v", err)
 	}
 }

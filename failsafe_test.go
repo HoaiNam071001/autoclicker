@@ -14,14 +14,14 @@ func TestHardCorners(t *testing.T) {
 	for _, c := range hardCorners(ds) {
 		got[c] = true
 	}
-	want := []Point{{0, 0}, {0, 899}, {3359, 0}, {3359, 1079}, {1440, 1079}}
+	want := []Point{{X: 0, Y: 0}, {X: 0, Y: 899}, {X: 3359, Y: 0}, {X: 3359, Y: 1079}, {X: 1440, Y: 1079}}
 	for _, p := range want {
 		if !got[p] {
 			t.Errorf("thiếu góc %v", p)
 		}
 	}
 	// Góc tiếp giáp 2 màn: chuột đi xuyên qua được → không tính.
-	for _, p := range []Point{{1439, 0}, {1440, 0}, {1439, 899}} {
+	for _, p := range []Point{{X: 1439, Y: 0}, {X: 1440, Y: 0}, {X: 1439, Y: 899}} {
 		if got[p] {
 			t.Errorf("góc tiếp giáp %v không được tính", p)
 		}
