@@ -5,7 +5,10 @@ import { ReactNode } from 'react';
 import { Logo, Monitor, Moon, Sun } from './icons';
 import { setTheme, Theme, useTheme } from '../theme';
 
-const winBtn = 'grid h-10 w-[46px] place-items-center text-ink hover:bg-hover';
+const winBase = 'grid h-10 w-[46px] place-items-center text-ink';
+const winBtn = `${winBase} hover:bg-hover`;
+// Nút đóng: nền đỏ khi rê chuột (không gộp với hover:bg-hover – hai class hover cùng lúc thì bg-hover thắng)
+const closeBtn = `${winBase} hover:bg-danger hover:text-white`;
 
 export default function TitleBar() {
   return (
@@ -23,7 +26,7 @@ export default function TitleBar() {
           <button aria-label="Phóng to" onClick={WindowToggleMaximise} className={winBtn}>
             <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden><rect x=".5" y=".5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor" /></svg>
           </button>
-          <button aria-label="Đóng" onClick={Quit} className={`${winBtn} hover:bg-danger hover:text-white`}>
+          <button aria-label="Đóng" onClick={Quit} className={closeBtn}>
             <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden><path d="M0 0l10 10M10 0L0 10" stroke="currentColor" /></svg>
           </button>
         </div>

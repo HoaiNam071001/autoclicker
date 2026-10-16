@@ -6,7 +6,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** đổi màu theme tối theo `design/newdarkmode.md` (xong 27, 27b). Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Đang làm:** chưa bắt đầu – xong 27, 27b, theme tối Slate. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
 - **Tiếp theo:** 29 (neo 4 góc) → 21 → 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-16
 
@@ -18,6 +18,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - UI theo **phương án A (MainScreen)** cho MVP. Phương án B (PreviewScreen) giữ làm tham khảo.
 - **Design v2** (2026-10-16, `design/DESIGN.md`) thay bản thiết kế cũ `autoclicker-ui/` từ bước 27: theme sáng / tối, một màu nhấn, gradient chỉ ở 4 chỗ, bố cục 3 cột kiểu Windows 11; font Plus Jakarta Sans + JetBrains Mono (vẫn cài local); bỏ màu riêng cho kéo thả và nhóm `dark-*`.
 - Thứ tự Phase 3 (2026-10-16, bảng đầu Phase 3): 27 → 27b → 29 → 21 → 30 → 21b → 23 → 25 → 25b → 25c → 26 → 20 → 22 → 24 → 28; chờ ảnh / click theo ảnh làm sớm (cốt lõi cho web / app), nhóm bước làm sau xử lý hết giờ. Không làm bản chạy trên điện thoại.
+- **Theme tối = bảng Slate** (`design/newdarkmode.md`, 2026-10-16): theme cũ nhiều nút bị chìm. Có thêm 2 bảng Dimmed / Nord trong file, chưa dùng.
 - **Neo điểm theo trục** (29): X neo trái / phải, Y neo trên / dưới (thêm giữa, %), lưu offset dương + tên neo, UI hiện dạng ±; làm ngay sau UI (27, 27b), trước 21, để định dạng file có neo ngay từ đầu (không cần chuyển đổi). Biến đổi nhiều điểm (30) làm sau 27 + 21, ghi lại offset theo neo.
 - **UI trước, logic sau** (27b): tính năng chưa có vẫn hiện trong app nhưng tắt + nhãn *Sắp có*; dữ liệu giả chỉ ở màn `#demo` (`frontend/src/demo/`), không thêm loại bước chưa làm vào `types.ts` / `model.go`.
 - **Input của kịch bản** áp vào bản sao trước khi chạy (`resolveInputs`), engine không đổi; giá trị lần trước / preset lưu trên máy, không ghi vào file kịch bản; input trong nhóm lặp dùng cùng giá trị mọi vòng (mỗi vòng một giá trị → CSV, bước 28).
@@ -413,3 +414,5 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-16** – Bước 27b đợt 3: `components/steps/` – inspector cuộn, mở URL / app, chờ ảnh, click theo ảnh, chờ pixel, focus cửa sổ, Khi hết giờ, nhóm bước, `AnchorField` (± theo neo, lưới 3×3, %); nút debug trên thanh công cụ; `Field` dùng `<div>` khi bọc nhóm nút (trước đó bấm chữ "Nút chuột" là chọn luôn "Trái").
 - **2026-10-16** – Bước 27b đợt 4: overlay thật thêm công cụ Chọn nhiều / Khoanh ảnh (tắt); `#demo-overlay` (khoanh ảnh mẫu; chọn nhiều điểm, khung biến đổi, ô ΔX ΔY % xoay xiên áp thử, căn / chia đều / lật, hộp ánh xạ 4 cách); `MiniBarView` + `#demo-minibar`; `ScheduleDialog` (giờ, lặp theo ngày, bộ giá trị, khay, thông báo); nút Ghi F9. `npm run build` OK, chụp headless cả 2 theme; chưa commit. Người dùng thêm `design/newdarkmode.md` (bảng màu tối Slate / Dimmed / Nord) – chưa áp dụng, chờ hỏi.
 - **2026-10-16** – Xong 27b theo xác nhận của người dùng, commit (chưa gồm `design/newdarkmode.md`).
+- **2026-10-16** – Theme tối đổi sang bảng Slate (`design/newdarkmode.md`) trong `style.css` + `design/theme.css`: nền / bề mặt / ô nhập tách lớp rõ, accent `#60A5FA`, thêm token `on-accent` (chữ trên nền accent, thay `text-white`), HUD overlay cùng tông. `npm run build` OK, chụp headless màn chính / `#demo` / overlay / mini bar; chưa commit.
+- **2026-10-16** – Sửa nút đóng cửa sổ khi rê chuột ở theme sáng bị nền xám + chữ trắng (`hover:bg-hover` đè `hover:bg-danger`) – tách class riêng. Commit theme tối Slate + bản sửa.
