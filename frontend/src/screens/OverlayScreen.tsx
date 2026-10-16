@@ -276,8 +276,8 @@ export default function OverlayScreen() {
         <span className="absolute left-3.5 top-3 whitespace-nowrap rounded bg-hud px-2 py-1 font-mono text-[13px] text-hud-text">X {screenCursor.x}  Y {screenCursor.y}</span>
       </div>
 
-      {/* Banner hướng dẫn giữa phía trên (artboard Overlay) */}
-      <div data-ui className="absolute left-1/2 top-6 flex max-w-[min(720px,calc(100vw-48px))] -translate-x-1/2 flex-col items-center gap-1 rounded-[10px] border border-hud-line bg-hud px-4 py-2.5 text-center text-[13px] text-hud-text">
+      {/* Banner hướng dẫn giữa phía trên, ngay dưới thanh công cụ */}
+      <div data-ui className="absolute left-1/2 top-[96px] flex max-w-[min(720px,calc(100vw-600px))] -translate-x-1/2 flex-col items-center gap-1 rounded-[10px] border border-hud-line bg-hud px-4 py-2.5 text-center text-[13px] text-hud-text">
         <span className="flex items-center gap-2.5">
           <span className="grid h-[22px] w-[22px] flex-none place-items-center rounded-[7px] bg-accent-soft text-accent-text">
             {preview ? <Eye className="h-[13px] w-[13px]" /> : tool === 'region' && !focus ? <Region className="h-[13px] w-[13px]" />
@@ -291,8 +291,8 @@ export default function OverlayScreen() {
         {notice && <span className="text-ok">{notice}</span>}
       </div>
 
-      {/* Thông tin toạ độ góc trên trái */}
-      <div data-ui className="absolute left-6 top-6 flex max-w-[260px] flex-col gap-0.5 rounded-lg border border-hud-line bg-hud/95 px-3 py-2 font-mono text-xs text-hud-text">
+      {/* Thông tin toạ độ bên trái, ngang banner hướng dẫn */}
+      <div data-ui className="absolute left-6 top-[96px] flex max-w-[260px] flex-col gap-0.5 rounded-lg border border-hud-line bg-hud/95 px-3 py-2 font-mono text-xs text-hud-text">
         <span>{region ? `Vùng X ${region.x} Y ${region.y} · ${region.w} × ${region.h}` : 'Vùng: toàn màn hình'}</span>
         {focus && focusStep && (focusStep.type === 'drag' ? [['A', focusEnds?.start], ['B', focusEnds?.end]] as const : [['Điểm', focusEnds?.start]] as const).map(([k, p]) => (
           <span key={k}>{k}: {p ? `X ${p.x} Y ${p.y}` : '—'}</span>
@@ -306,8 +306,8 @@ export default function OverlayScreen() {
         )}
       </div>
 
-      {/* Thanh công cụ giữa đáy (artboard Overlay) */}
-      <div data-ui className="absolute bottom-7 left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-xl border border-hud-line bg-hud p-1.5 text-hud-text shadow-[0_12px_32px_rgb(0_0_0/.4)]">
+      {/* Thanh công cụ giữa phía trên (artboard để ở đáy – dời lên vì đáy bị Dock / taskbar che) */}
+      <div data-ui className="absolute left-1/2 top-6 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-xl border border-hud-line bg-hud p-1.5 text-hud-text shadow-[0_12px_32px_rgb(0_0_0/.4)]">
         {focus && focusStep ? (
           <>
             <span className="flex items-center gap-2 px-2.5 font-semibold">
