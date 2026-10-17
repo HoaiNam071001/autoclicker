@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addConnected, chain, connect, disconnect, Edge, insertNode, nextRef, pruneEdges, reachable, removeNode } from './edit';
+import { addConnected, chain, connect, copyNodes, pasteNodes, disconnect, Edge, insertNode, nextRef, pruneEdges, reachable, removeNode } from './edit';
 import { makeStep } from '../types';
 
 const e = (id: string, from: string, port: string, to: string): Edge => ({ id, from, port, to });
@@ -72,5 +72,27 @@ describe('flowEdit – kịch bản', () => {
 
   it('chain nối success theo thứ tự', () => {
     expect(chain(['a', 'b', 'c']).map((x) => `${x.from}>${x.to}`)).toEqual(['a>b', 'b>c']);
+  });
+
+  it('copy / paste: chỉ cạnh bên trong, id + mã mới, đổi imageFrom và biến trỏ node đã chép', () => {
+    const steps = [
+      makeStep({ id: 'a', ref: 'n1', type: 'waitImage', pos: { x: 0, y: 0 } }),
+      makeStep({ id: 'b', ref: 'n2', type: 'clickImage', imageSource: 'node', imageFrom: 'a' }),
+      makeStep({ id: 'c', ref: 'n3', type: 'type', text: '{{n1.output.text}} {{n9.status}}' }),
+    ];
+    const g = { steps, edges: chain(['a', 'b', 'c']), start: 'a' };
+    const clip = copyNodes(g, ['a', 'b', 'c'])!;
+    expect(copyNodes(g, ['b', 'c'])!.edges).toHaveLength(1);
+    let i = 0;
+    const r = pasteNodes(g, clip, () => `p${i++}`, { x: 40, y: 40 });
+    expect(r.ids).toEqual(['p0', 'p1', 'p2']);
+    const [pa, pb, pc] = r.steps.slice(3);
+    expect([pa.ref, pb.ref, pc.ref]).toEqual(['n4', 'n5', 'n6']);
+    expect(pa.pos).toEqual({ x: 40, y: 40 });
+    expect(pb.imageFrom).toBe('p0');
+    expect(pc.text).toBe('{{n4.output.text}} {{n9.status}}');
+    expect(r.edges.slice(2).map((x) => `${x.from}>${x.to}`)).toEqual(['p0>p1', 'p1>p2']);
+    expect(r.start).toBe('a');
+    expect(steps[1].imageFrom).toBe('a'); // không sửa bản gốc
   });
 });

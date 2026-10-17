@@ -96,3 +96,44 @@ export function pruneEdges(steps: Step[], edges: Edge[]): Edge[] {
 // Nối các node thành chuỗi success theo thứ tự (dữ liệu mẫu, test).
 export const chain = (ids: string[]): Edge[] =>
   ids.slice(1).map((to, i) => ({ id: `c${i}`, from: ids[i], port: PORT_SUCCESS, to }));
+
+// ---- Copy / paste ----
+
+// Phần đã chép: các node + cạnh nằm hẳn bên trong (cạnh ra / vào node ngoài bị bỏ).
+export type Clip = { steps: Step[]; edges: Edge[] };
+
+export function copyNodes(g: FlowGraph, ids: string[]): Clip | null {
+  const pick = new Set(ids);
+  const steps = g.steps.filter((s) => pick.has(s.id));
+  if (!steps.length) return null;
+  return structuredClone({ steps, edges: g.edges.filter((e) => pick.has(e.from) && pick.has(e.to)) });
+}
+
+// Dán: id + mã mới, vị trí lệch `offset`. Trong phần dán, cạnh / imageFrom / biến {{nX.…}} trỏ node đã chép thì đổi sang
+// bản sao; trỏ node ngoài thì giữ (dán cùng kịch bản vẫn đúng, kịch bản khác thì Kiểm tra báo). Chưa có start → node dán đầu tiên.
+export function pasteNodes(g: FlowGraph, clip: Clip, newId: () => string, offset: { x: number; y: number }): FlowGraph & { ids: string[] } {
+  const ids = new Map<string, string>();
+  const refs = new Map<string, string>();
+  const taken = [...g.steps];
+  for (const s of clip.steps) {
+    const ref = nextRef(taken);
+    ids.set(s.id, newId());
+    refs.set(s.ref, ref);
+    taken.push({ ...s, ref });
+  }
+  const reVar = (t?: string) => t?.replace(/\{\{(\s*)([A-Za-z][A-Za-z0-9_]*)\./g, (m, sp, r) => (refs.has(r) ? `{{${sp}${refs.get(r)}.` : m));
+  const pasted = clip.steps.map((s): Step => ({
+    ...structuredClone(s),
+    id: ids.get(s.id)!,
+    ref: refs.get(s.ref)!,
+    pos: s.pos && { x: s.pos.x + offset.x, y: s.pos.y + offset.y },
+    imageFrom: s.imageFrom && (ids.get(s.imageFrom) ?? s.imageFrom),
+    text: reVar(s.text) ?? '',
+    findText: reVar(s.findText),
+    target: reVar(s.target),
+  }));
+  const edges = clip.edges.map((e) => ({ id: edgeId(), from: ids.get(e.from)!, port: e.port, to: ids.get(e.to)! }));
+  const steps = [...g.steps, ...pasted];
+  const start = g.steps.some((s) => s.id === g.start) ? g.start : pasted[0]?.id ?? g.start;
+  return { steps, edges: [...g.edges, ...edges], start, ids: pasted.map((s) => s.id) };
+}

@@ -136,7 +136,7 @@ export default function DemoFlow() {
               onMove={(id, pos) => setPositions((p) => ({ ...p, [id]: pos }))}
               onConnect={(from, port, to) => setEdges((es) => connect(es, from, port, to))}
               onDeleteEdge={(id) => setEdges((es) => removeEdge(es, id))}
-              onDeleteNode={del}
+              onDeleteNodes={(ids) => ids.forEach(del)}
               onDropPort={(from, port, _client, at) => setDrop({ from, port, at })}
               onLayout={() => relayout(nodes, edges)}
               taken={run ? new Set(run.taken) : undefined} activeEdge={run?.active} />

@@ -21,15 +21,15 @@ export type InputView = ScriptInput & {
 
 export const isValidKey = (k: string) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(k);
 
-// Tách chuỗi theo {{key}} – \{{ là ký tự {{ thật, không phải biến.
-export type Segment = { text: string; varKey?: string };
+// Tách chuỗi theo {{key}} (input) và {{n2.output.x}} (kết quả node, vars.go) – \{{ là ký tự {{ thật, không phải biến.
+export type Segment = { text: string; varKey?: string; nodeVar?: string };
 export function splitVars(text: string): Segment[] {
   const out: Segment[] = [];
-  const re = /\\\{\{|\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}/g;
+  const re = /\\\{\{|\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}|\{\{\s*([A-Za-z][A-Za-z0-9_]*\.[A-Za-z0-9_.]+)\s*\}\}/g;
   let last = 0;
   for (let m = re.exec(text); m; m = re.exec(text)) {
     if (m.index > last) out.push({ text: text.slice(last, m.index) });
-    out.push(m[1] ? { text: m[0], varKey: m[1] } : { text: m[0] });
+    out.push(m[1] ? { text: m[0], varKey: m[1] } : m[2] ? { text: m[0], nodeVar: m[2] } : { text: m[0] });
     last = m.index + m[0].length;
   }
   if (last < text.length) out.push({ text: text.slice(last) });

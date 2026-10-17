@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeStep } from '../types';
 import { chain } from './edit';
-import { nodeViews } from './view';
+import { nodeVarOptions, nodeViews } from './view';
 
 describe('nodeViews', () => {
   const steps = [
@@ -23,5 +23,15 @@ describe('nodeViews', () => {
     const c = nodeViews(sc)[2];
     expect(c.warn).toContain('Không có đường nào');
     expect(nodeViews({ ...sc, edges: chain(['a', 'c']) })[2].warn).toContain('Chưa chọn node');
+  });
+});
+
+describe('nodeVarOptions', () => {
+  it('output + status của node khác theo thứ tự flow, bỏ chính nó', () => {
+    const steps = [makeStep({ id: 'b', ref: 'n2', type: 'type', text: 'x' }), makeStep({ id: 'a', ref: 'n1', type: 'waitImage' })];
+    const keys = nodeVarOptions({ steps, start: 'a', edges: chain(['a', 'b']) }, 'b').map((v) => v.key);
+    expect(keys[0]).toBe('n1.output.x');
+    expect(keys).toContain('n1.status');
+    expect(keys.some((k) => k.startsWith('n2.'))).toBe(false);
   });
 });

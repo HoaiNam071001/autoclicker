@@ -6,7 +6,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 20 – flow kiểu n8n: F0, F4a, F1, F2 xong; F4b gần xong (canvas trong app, tổ chức lại code) – còn copy / paste, gợi ý biến node, kiểm tra tay. Chờ kiểm tra tay 25 / 25b / 25e. 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Đang làm:** 20 – flow kiểu n8n: F0, F4a, F1, F2 xong; F4b xong phần code (canvas, copy / paste, chọn nhiều node, gợi ý biến node) – chờ kiểm tra tay, rồi sang F3. Chờ kiểm tra tay 25 / 25b / 25e. 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
 - **Tiếp theo:** 20: F4b → F3 → F5 → F6 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17 (bỏ cây khối 20a–20c, plan mới cho 20: flow kiểu n8n)
 
@@ -437,8 +437,8 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
     - [x] Inspector: tên node sửa tại chỗ, mã node sửa được (báo trùng / sai dạng), *Khi thất bại* dùng chung `RetryPanel`, **Cổng ra** (chọn node đích), **Output** (bấm chép `{{n2.output.x}}`, `outputsOf` khớp `steptypes.go`), Đặt làm bắt đầu / Xoá node; click theo ảnh chọn node nguồn trong các node Chờ ảnh / Chờ chữ
     - [x] Overlay / xem trước / thanh mini / form Chạy dùng mã node (n2) và thứ tự `flowOrder` thay cho số thứ tự mảng; `endpoints` (điểm trước của kéo thả) theo `flowOrder`
     - [x] Thẻ node: cảnh báo không đi tới được / click theo ảnh thiếu nguồn (`flow/view.ts`), node đang chạy / node làm lần chạy trước dừng
-    - [ ] Copy / paste node + cạnh bên trong (Ctrl+C / V); Shift + kéo khung chọn nhiều node
-    - [ ] `VarTextInput` gợi ý cả output các node (`{{n2.output.x}}`)
+    - [x] Copy / paste node + cạnh bên trong (Ctrl+C / V, dán lệch dần, đổi `imageFrom` / biến `{{nX.…}}` trỏ node đã chép sang bản sao – `flow/edit.ts` `copyNodes` / `pasteNodes`, nhân bản dùng chung); Shift + kéo khung / Shift + click chọn nhiều node (`picked` trong store, kèm điểm cho bước 30), Ctrl+A chọn hết, Delete xoá cả nhóm một lần hoàn tác
+    - [x] `VarTextInput` gợi ý cả output các node (`{{n2.output.x}}`, status, error.message – `flow/view.ts` `nodeVarOptions`), tô màu biến node, mã node không có tô đỏ
     - [ ] Kiểm tra tay trong app: soạn ví dụ Facebook bằng canvas (node hành động + cạnh `fail` quay lại), thả cổng ra chỗ trống thêm node, đặt điểm liên tiếp trên overlay, hoàn tác, chạy thật
   - [ ] **F3. Node điều khiển** (`nodes.go`, `cond.go`, `components/flow/nodes/*`)
     - [ ] Lấy lại `Cond`, `evalCond`, `compareValues` (từ `60dcfe2`) và `CondEditor` (từ `d5882a7`) cho `if`
@@ -645,3 +645,5 @@ Người dùng gõ trên Claude: *"tạo kịch bản mở bài Tinh Hà Say 2 t
 - **2026-10-17** – Bước 20 F4a: màn mẫu `#demo-flow` – canvas `@xyflow/react` + xếp tự động `elkjs` (nạp lười, bundle chính 744 kB), thẻ node có cổng ra màu, cạnh (vòng lặp gấp khúc, cổng thất bại nét đứt), bảng thêm node khi thả cổng ở chỗ trống, inspector (Cổng ra / Khi thất bại / Output / Lần chạy gần nhất), form Nếu / Switch theo giá trị / Switch theo màn hình / Đếm / Kết thúc / Đặt biến, bảng Nhật ký + trạng thái chạy mẫu; phần *Canvas flow* trong `DESIGN.md`. `npm run build`, `npm test` (31, có 6 test `flowEdit`) OK; chụp headless sáng / tối. Người dùng duyệt OK.
 - **2026-10-17** – Bước 20 F1 + F2: model flow (`Script.start` / `edges`, `Step.ref` / `name` / `pos` / `imageFrom` / `retry`, bỏ `onFail`), file version 4 (file cũ không mở được, nháp cũ bỏ qua), `flow.go` (`StepResult`, `portsOf`, `flowOrder`), `flowcheck.go` (`validateFlow`), `flowrun.go` (chạy theo cạnh, thử lại, giới hạn 10 000, event `engine:node`), `vars.go` (`{{n2.output.x}}` lúc chạy), `steptypes.go` + `FlowGuide`; frontend `types.ts` / `flow.ts` khớp Go, thanh mini theo `nodeId`; cầu nối `linearToFlow` giữ màn danh sách cũ chạy được tới F4b. `go test ./...` (8 test flow mới), `npm run build`, `npm test` (36) OK.
 - **2026-10-17** – Bước 20 F4b: canvas flow trong màn chính (`FlowEditor`), bỏ danh sách bước; tổ chức lại code theo yêu cầu – `src/flow/` (thuần, có test), `src/store/` (tách scriptStore), `components/stepform/` (tách StepForm), mục *Quy tắc code* trong CLAUDE.md; Go bỏ cầu nối `linearToFlow` (còn là helper test). `go test ./...`, `npm run build`, `npm test` (42) OK; chụp headless màn chính. Chưa kiểm tra tay.
+- **2026-10-17** – Bước 20 F4b (tiếp): copy / paste node (Ctrl+C / V), Shift + kéo khung chọn nhiều node, Ctrl+A, xoá nhiều node một lần hoàn tác; ô chữ gợi ý + tô biến kết quả node (`{{n2.output.x}}`). `npm run build`, `npm test` (44) OK; thử headless Chrome: dán 1 node / nhóm 5 node + 3 cạnh, hoàn tác, gợi ý biến. Chưa kiểm tra tay trong app.
+- **2026-10-17** – Theo yêu cầu: chưa chọn node thì ẩn inspector, canvas lấy hết chiều ngang (bỏ khung "Chọn một node…"). `npm run build` OK.

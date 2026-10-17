@@ -9,8 +9,8 @@ import { portsOf } from '../../flow/model';
 import { nodeViews } from '../../flow/view';
 import { RunState } from './model';
 import {
-  applyLayout, clearInsertAt, connectPort, insertAfterSelected, moveNode, removeEdge, removeStep, selectStep, setInsertAt, setMulti,
-  setRegion, toggleMultiStep, useEditor,
+  applyLayout, clearInsertAt, connectPort, copySelected, insertAfterSelected, moveNode, pasteClip, removeEdge, removeSteps, selectNodes, selectStep,
+  getEditor, setInsertAt, setRegion, toggleMultiStep, useEditor,
 } from '../../store';
 import { stepInputCount } from '../../scriptInputs';
 import { useEngine } from '../../engineStore';
@@ -23,7 +23,7 @@ const isMac = navigator.platform.startsWith('Mac');
 const layoutOf = (sc: Script) => layoutFlow(sc.steps.map((s) => ({ id: s.id, ports: portsOf(s) })), sc.edges);
 
 export default function FlowEditor() {
-  const { script, selected, path } = useEditor();
+  const { script, selected, picked, path } = useEditor();
   const { running, progress, failedStep } = useEngine();
   const [palette, setPalette] = useState(false);
   const [fitKey, setFitKey] = useState(0);
@@ -45,16 +45,26 @@ export default function FlowEditor() {
     else setFitKey((k) => k + 1);
   }, [path]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Ctrl+K (macOS: Cmd+K) mở / đóng bảng thêm node – node mới nối sau cổng success của node đang chọn
+  // Ctrl+K (macOS: Cmd+K) mở / đóng bảng thêm node – node mới nối sau cổng success của node đang chọn.
+  // Ctrl+C / V chép / dán node đang chọn, Ctrl+A chọn mọi node – trừ khi đang gõ trong ô nhập.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() !== 'k' || !(isMac ? e.metaKey : e.ctrlKey)) return;
+      if (!(isMac ? e.metaKey : e.ctrlKey) || e.altKey || e.shiftKey) return;
+      const k = e.key.toLowerCase();
+      if (k === 'k') {
+        e.preventDefault();
+        return setPalette((open) => {
+          if (open) clearInsertAt();
+          else insertAfterSelected();
+          return !open;
+        });
+      }
+      const typing = (e.target as HTMLElement).closest?.('input, textarea, select, [contenteditable="true"]');
+      if (typing || !(k === 'c' || k === 'v' || k === 'a')) return;
       e.preventDefault();
-      setPalette((open) => {
-        if (open) clearInsertAt();
-        else insertAfterSelected();
-        return !open;
-      });
+      if (k === 'c') copySelected();
+      else if (k === 'v') pasteClip();
+      else selectNodes(getEditor().script.steps.map((s) => s.id));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -87,16 +97,17 @@ export default function FlowEditor() {
       </div>
 
       <div className="relative min-h-0 flex-1">
-        <FlowCanvas nodes={views} edges={script.edges} start={script.start} positions={positions} selected={selected || null} fitKey={fitKey}
+        <FlowCanvas nodes={views} edges={script.edges} start={script.start} positions={positions} selected={selected || null} picked={picked} fitKey={fitKey}
           onSelect={(id, additive) => {
             if (id && additive) return toggleMultiStep(id);
             selectStep(id ?? '');
-            setMulti([]);
+            selectNodes([]);
           }}
+          onSelectBox={selectNodes}
           onMove={moveNode}
           onConnect={connectPort}
           onDeleteEdge={removeEdge}
-          onDeleteNode={removeStep}
+          onDeleteNodes={removeSteps}
           onDropPort={(from, port, _client, pos) => {
             setInsertAt({ from, port, pos: { x: Math.round(pos.x), y: Math.round(pos.y - 28) } });
             setPalette(true);

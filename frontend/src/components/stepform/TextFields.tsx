@@ -3,13 +3,14 @@ import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
 import { Step } from '../../types';
-import { Field, hint, selectBox } from './shared';
+import { Field, hint, selectBox, useNodeVars } from './shared';
 
 // Trình duyệt gợi ý cho bước Mở (Windows: open.go đổi sang tên lệnh chrome / msedge / firefox)
 const BROWSERS = ['Google Chrome', 'Microsoft Edge', 'Firefox', ...(navigator.platform.startsWith('Mac') ? ['Safari'] : [])];
 
 export function OpenFields({ step: s }: { step: Step }) {
   const script = useScript();
+  const nodeVars = useNodeVars(s.id);
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   return (
           <>
@@ -17,7 +18,7 @@ export function OpenFields({ step: s }: { step: Step }) {
           <span className="flex items-center justify-between">URL, đường dẫn hoặc tên app
             <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
           </span>
-          <VarTextInput value={s.target ?? ''} onChange={(target) => set({ target })} inputs={script.inputs ?? []} rows={2}
+          <VarTextInput value={s.target ?? ''} onChange={(target) => set({ target })} inputs={script.inputs ?? []} nodeVars={nodeVars} rows={2}
             placeholder="youtube.com/results?search_query={{bai_hat}}" onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
           <span className={hint}>
             Vd <span className="font-mono">youtube.com/…</span> (tự thêm https://), <span className="font-mono">Spotify</span>, đường dẫn file / app.
@@ -37,13 +38,14 @@ export function OpenFields({ step: s }: { step: Step }) {
 
 export function TypeFields({ step: s }: { step: Step }) {
   const script = useScript();
+  const nodeVars = useNodeVars(s.id);
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   return (
           <div className="col-span-2 flex flex-col gap-1.5 text-muted">
         <span className="flex items-center justify-between">Nội dung gõ
           <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
         </span>
-        <VarTextInput value={s.text} onChange={(text) => set({ text })} inputs={script.inputs ?? []}
+        <VarTextInput value={s.text} onChange={(text) => set({ text })} inputs={script.inputs ?? []} nodeVars={nodeVars}
           onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
         <span className={`text-xs ${s.text ? '' : 'text-danger-text'}`}>
           {s.text ? `${[...s.text].length} ký tự · ` : 'Chưa nhập nội dung – chạy sẽ báo lỗi · '}

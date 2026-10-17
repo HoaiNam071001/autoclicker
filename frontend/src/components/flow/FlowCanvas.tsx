@@ -16,11 +16,13 @@ export type FlowCanvasProps = {
   start: string;
   positions: Positions;
   selected: string | null;
-  onSelect: (id: string | null, additive?: boolean) => void; // additive: Shift / ⌘ / Ctrl + click (chọn nhiều điểm)
+  picked?: string[]; // các node chọn cùng lúc (tô như đang chọn)
+  onSelect: (id: string | null, additive?: boolean) => void; // additive: Shift / ⌘ / Ctrl + click (thêm / bỏ khỏi nhóm)
+  onSelectBox?: (ids: string[]) => void; // Shift + kéo khung trên nền → các node trong khung
   onMove: (id: string, pos: { x: number; y: number }) => void;
   onConnect: (from: string, port: string, to: string) => void;
   onDeleteEdge: (id: string) => void;
-  onDeleteNode?: (id: string) => void;
+  onDeleteNodes?: (ids: string[]) => void; // Delete / Backspace: các node đang chọn (kèm cạnh) – một lần
   // kéo từ cổng ra rồi thả ở chỗ trống → mở bảng thêm node (client = toạ độ màn hình, flow = toạ độ canvas)
   onDropPort?: (from: string, port: string, client: { x: number; y: number }, flow: { x: number; y: number }) => void;
   onLayout?: () => void;
@@ -39,7 +41,8 @@ export default function FlowCanvas(props: FlowCanvasProps) {
 }
 
 function Canvas({
-  nodes, edges, start, positions, selected, onSelect, onMove, onConnect, onDeleteEdge, onDeleteNode, onDropPort, onLayout, fitKey, focus, taken, activeEdge,
+  nodes, edges, start, positions, selected, picked, onSelect, onSelectBox, onMove, onConnect, onDeleteEdge, onDeleteNodes, onDropPort, onLayout, fitKey, focus,
+  taken, activeEdge,
 }: FlowCanvasProps) {
   const { fitView, getZoom, screenToFlowPosition, setCenter, setViewport, zoomIn, zoomOut } = useReactFlow();
   const store = useStoreApi();
@@ -53,9 +56,9 @@ function Canvas({
       const old = prev.find((p) => p.id === v.id);
       const data = { view: v, start: v.id === start, linked: edges.filter((e) => e.from === v.id).map((e) => e.port) };
       const position = positions[v.id] ?? old?.position ?? { x: 0, y: 0 };
-      return { ...old, id: v.id, type: 'card' as const, position, data, selected: v.id === selected };
+      return { ...old, id: v.id, type: 'card' as const, position, data, selected: v.id === selected || !!picked?.includes(v.id) };
     }));
-  }, [nodes, edges, start, positions, selected, setRfNodes]);
+  }, [nodes, edges, start, positions, selected, picked, setRfNodes]);
 
   const rfEdges = useMemo<FlowEdgeType[]>(() => edges.map((e) => {
     const port = nodes.find((n) => n.id === e.from)?.ports.find((p) => p.id === e.port);
@@ -111,9 +114,10 @@ function Canvas({
         const pt = 'changedTouches' in ev ? ev.changedTouches[0] : ev;
         onDropPort(st.fromNode.id, st.fromHandle.id, { x: pt.clientX, y: pt.clientY }, screenToFlowPosition({ x: pt.clientX, y: pt.clientY }));
       }}
+      onSelectionEnd={() => onSelectBox?.(store.getState().nodes.filter((n) => n.selected).map((n) => n.id))}
       onDelete={({ nodes: ns, edges: es }) => {
+        if (ns.length) return onDeleteNodes?.(ns.map((n) => n.id)); // cạnh nối vào node xoá đi theo node
         es.forEach((e) => onDeleteEdge(e.id));
-        ns.forEach((n) => onDeleteNode?.(n.id));
       }}
       deleteKeyCode={['Delete', 'Backspace']}
       connectionLineStyle={{ stroke: 'var(--c-accent)', strokeWidth: 2 }}
@@ -122,7 +126,7 @@ function Canvas({
       {tall && <MiniMap pannable zoomable nodeColor="var(--c-soft)" nodeStrokeColor="var(--c-line-strong)" nodeBorderRadius={6}
         maskColor="color-mix(in srgb, var(--c-bg) 70%, transparent)" style={{ width: 168, height: 108 }} />}
       <Panel position="top-left" className="pointer-events-none rounded-md bg-bg/85 px-1.5 py-0.5 text-xs text-muted">
-        Kéo từ chấm cổng ra sang node để nối · thả ở chỗ trống để thêm node · Delete xoá
+        Kéo từ chấm cổng ra sang node để nối · thả ở chỗ trống để thêm node · Shift + kéo chọn nhiều · Delete xoá
       </Panel>
       <Panel position="bottom-left" className="flex gap-1 rounded-control border border-line bg-surface p-1 shadow-[0_1px_3px_rgb(0_0_0/.06)]">
         <ToolBtn label="Phóng to" onClick={() => zoomIn({ duration: 150 })} d="M12 5v14M5 12h14" />

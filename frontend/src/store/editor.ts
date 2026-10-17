@@ -11,7 +11,8 @@ export type EditorState = {
   script: Script;
   path: string | null; // file kịch bản đang mở, null = chưa lưu lần nào
   dirty: boolean; // có thay đổi chưa lưu xuống file – mọi thay đổi script qua updateScript đều bật cờ này
-  selected: string; // id node đang chọn
+  selected: string; // id node đang chọn (inspector)
+  picked: string[]; // các node chọn cùng lúc trên canvas (Shift + click / kéo khung) – copy, xoá, biến đổi điểm
   notice: string; // thông báo ngắn gần nhất (đã thêm điểm, điểm ngoài vùng…)
   dragA: Point | null; // điểm A (toạ độ màn hình) đã chọn, đang chờ điểm B của kéo thả
   countdown: boolean; // đếm ngược 3 giây trước khi chạy
@@ -34,6 +35,7 @@ let state: EditorState = {
   path: null,
   dirty: false,
   selected: inWails ? '' : '3',
+  picked: [],
   notice: '',
   dragA: null,
   countdown: true,
@@ -87,6 +89,7 @@ const restore = (script: Script, past: Script[], future: Script[], notice: strin
   setEditor({
     script, past, future, dirty: true, notice, dragA: null,
     selected: ids.has(state.selected) ? state.selected : '',
+    picked: state.picked.filter((id) => ids.has(id)),
     multi: state.multi.filter((k) => ids.has(k.split(':')[0])),
   });
 };
@@ -117,7 +120,7 @@ window.addEventListener('keydown', (e) => {
 // Thay cả kịch bản (mở file, kịch bản mới, khôi phục nháp): bỏ chọn / hoàn tác / điểm A đang chờ của kịch bản cũ.
 export function replaceScript(script: Script, path: string | null, dirty: boolean, notice = '') {
   lastEdit = 0;
-  setEditor({ script, path, dirty, selected: script.start || script.steps[0]?.id || '', dragA: null, notice, multi: [], past: [], future: [] });
+  setEditor({ script, path, dirty, selected: script.start || script.steps[0]?.id || '', picked: [], dragA: null, notice, multi: [], past: [], future: [] });
 }
 
 // Sau khi lưu: đường dẫn + tên mới (Lưu thành đổi tên theo file), giữ nguyên phần còn lại đang soạn.

@@ -74,13 +74,8 @@ export default function MainScreen() {
       <div className="flex min-h-0 flex-1 border-t border-line">
         <Library />
         <FlowEditor />
-        {cur ? (
-          <StepForm key={cur.id} step={cur} />
-        ) : (
-          <aside className="grid w-[340px] flex-none place-items-center border-l border-line bg-surface p-4 text-center text-muted">
-            Chọn một node trên canvas để cấu hình
-          </aside>
-        )}
+        {/* chưa chọn node thì ẩn inspector – canvas lấy hết chiều ngang */}
+        {cur && <StepForm key={cur.id} step={cur} />}
       </div>
 
       <StatusBar running={running} mouse={mouse ? `X ${mouse.x} Y ${mouse.y}` : 'X — Y —'}>

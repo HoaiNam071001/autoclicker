@@ -11,7 +11,7 @@ import { checkCapture, pickColor, requestCapture, startCapture, templateUrl, tes
 import { openOverlay } from '../../windowMode';
 import { nodeTitle } from '../../flow/view';
 import { MouseButton, Step } from '../../types';
-import { Field, fmtSec, hint, NumField, PickButton, selectBox, SetPoint } from './shared';
+import { Field, fmtSec, hint, NumField, PickButton, selectBox, SetPoint, useNodeVars } from './shared';
 
 export const isImageStep = (s: Step) => s.type === 'waitImage' || s.type === 'clickImage' || s.type === 'waitPixel';
 
@@ -117,6 +117,7 @@ function ImageSearchFields({ step: s }: { step: Step }) {
 // Tìm theo chữ: ô chữ (nhận {{biến}}), cách so, chỗ thứ mấy, thử tìm.
 function TextSearchFields({ step: s }: { step: Step }) {
   const script = useScript();
+  const nodeVars = useNodeVars(s.id);
   const { finds, busy, error } = useImageState();
   const find = finds[s.id];
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
@@ -126,7 +127,7 @@ function TextSearchFields({ step: s }: { step: Step }) {
       <span className="flex items-center justify-between">Chữ cần tìm
         <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
       </span>
-      <VarTextInput value={s.findText ?? ''} onChange={(findText) => set({ findText })} inputs={script.inputs ?? []}
+      <VarTextInput value={s.findText ?? ''} onChange={(findText) => set({ findText })} inputs={script.inputs ?? []} nodeVars={nodeVars}
         placeholder="Xem lịch sử" onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
       <span className={`text-xs ${empty ? 'text-danger-text' : ''}`}>
         {empty ? 'Chưa nhập chữ – chạy sẽ báo lỗi. ' : ''}Không phân biệt hoa / thường, bỏ qua khoảng trắng. Click vào giữa chữ.

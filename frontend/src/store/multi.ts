@@ -9,15 +9,24 @@ const script = () => getEditor().script;
 
 export const setMulti = (multi: string[]) => setEditor({ multi });
 
-// Thẻ node: Cmd/Shift+click thêm / bỏ mọi điểm của node vào chọn nhiều.
+const keysOf = (ids: string[]) => script().steps.filter((s) => ids.includes(s.id)).flatMap((s) => selectableIndexes(s).map((j) => pointKey(s.id, j)));
+
+// Thẻ node: Shift / Cmd + click thêm / bỏ node khỏi nhóm đang chọn, kèm mọi điểm của nó (chọn nhiều điểm – bước 30).
 export function toggleMultiStep(id: string) {
-  const s = script().steps.find((x) => x.id === id);
-  if (!s) return;
-  const { multi } = getEditor();
-  const keys = selectableIndexes(s).map((j) => pointKey(id, j));
-  const has = keys.some((k) => multi.includes(k));
-  setEditor({ multi: has ? multi.filter((k) => !keys.includes(k)) : [...multi, ...keys] });
+  if (!script().steps.some((x) => x.id === id)) return;
+  const { multi, picked, selected } = getEditor();
+  const base = picked.length ? picked : selected && selected !== id ? [selected] : [];
+  const has = base.includes(id);
+  const keys = keysOf([id]);
+  setEditor({
+    picked: has ? base.filter((x) => x !== id) : [...base, id],
+    multi: has ? multi.filter((k) => !keys.includes(k)) : [...new Set([...multi, ...keysOf(base), ...keys])],
+  });
 }
+
+// Chọn đúng các node này (kéo khung; [] = bỏ chọn nhóm): điểm chọn nhiều theo các node đó. Một node thì nó vào inspector.
+export const selectNodes = (ids: string[]) =>
+  setEditor({ picked: ids, multi: keysOf(ids), selected: ids.length === 1 ? ids[0] : getEditor().selected });
 
 // Áp f (toạ độ màn hình → toạ độ màn hình) lên các điểm được chọn (pick), đổi khung tính từ vùng from sang to.
 // Điểm thường: ghi lại theo neo hiện có trong khung mới. B "lệch so với A": véc-tơ đổi theo phần tuyến tính của f

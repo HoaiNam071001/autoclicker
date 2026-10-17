@@ -1,15 +1,22 @@
 // Phần dùng chung của inspector node: ô có nhãn, ô số ghim được, nút chọn lại điểm, tab, hằng style.
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
 import NumInput, { fieldBox } from '../NumInput';
 import { Target } from '../icons';
 import PinButton, { KeyChip, PinMenu } from '../inputs/PinButton';
 import { pickPointFor, updateStep, useScript } from '../../store';
 import { compatibleInputs, pinField, pinnedInput, pinToInput, setPinnedValue, unpinField } from '../../scriptInputs';
 import { PinField, Step, StepPoint } from '../../types';
+import { nodeVarOptions } from '../../flow/view';
 
 export const selectBox = `${fieldBox} w-full text-ink`;
 export const hint = 'text-xs text-muted';
 export const fmtSec = (ms?: number) => `${((ms ?? 0) / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} s`;
+// Biến kết quả các node khác ({{n2.output.x}}) cho ô chữ của node id
+export function useNodeVars(id: string) {
+  const { steps, start, edges } = useScript();
+  return useMemo(() => nodeVarOptions({ steps, start, edges }, id), [steps, start, edges, id]);
+}
+
 // Sửa một điểm của node (giữ các trường khác của điểm)
 export type SetPoint = (i: number, p: Partial<StepPoint>) => void;
 

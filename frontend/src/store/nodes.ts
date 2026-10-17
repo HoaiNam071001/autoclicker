@@ -1,7 +1,9 @@
 // Node và cạnh của flow (bước 20): thêm / sửa / xoá / nhân bản node, nối / cắt cạnh, node bắt đầu, vị trí trên canvas.
 // Phép trên đồ thị là hàm thuần ở flow/edit.ts – ở đây chỉ ghép với state, hoàn tác và thông báo.
 import { anchorPoint } from '../anchor';
-import { connect, disconnect, InsertAt, insertNode as insertInto, nextRef, pruneEdges, removeEdge as dropEdge, removeNode } from '../flow/edit';
+import {
+  Clip, connect, copyNodes, disconnect, InsertAt, insertNode as insertInto, nextRef, pasteNodes, pruneEdges, removeEdge as dropEdge, removeNode,
+} from '../flow/edit';
 import { flowOrder } from '../flow/model';
 import { placeNode, Positions } from '../flow/layout';
 import { makeStep, Point, Script, Step, StepType } from '../types';
@@ -81,24 +83,55 @@ export const toggleStep = (id: string) => {
 // Nhân bản: id + mã mới, đặt lệch xuống dưới, chưa nối cạnh nào.
 export function duplicateStep(id: string) {
   const sc = script();
-  const s = sc.steps.find((x) => x.id === id);
-  if (!s) return;
-  const copy: Step = {
-    ...structuredClone(s), id: newId(), ref: nextRef(sc.steps),
-    pos: s.pos && { x: s.pos.x + 24, y: s.pos.y + 24 },
-  };
-  setSteps([...sc.steps, copy]);
-  setEditor({ selected: copy.id, notice: `Đã nhân bản ${s.ref} thành ${copy.ref} (chưa nối)` });
+  const c = copyNodes(sc, [id]);
+  if (!c) return;
+  const r = pasteNodes(sc, c, newId, { x: 24, y: 24 });
+  updateScript({ steps: r.steps });
+  setEditor({ selected: r.ids[0], notice: `Đã nhân bản ${refOf(id)} thành ${refOf(r.ids[0])} (chưa nối)` });
 }
 
-// Xoá node kèm cạnh vào / ra (hoàn tác bằng ⌘Z / Ctrl+Z).
-export function removeStep(id: string) {
+const undoKey = () => `${navigator.platform.startsWith('Mac') ? '⌘' : 'Ctrl+'}Z để hoàn tác`;
+
+// Xoá các node kèm cạnh vào / ra – một lần hoàn tác (⌘Z / Ctrl+Z).
+export function removeSteps(ids: string[]) {
   const sc = script();
-  const ref = refOf(id);
-  if (!sc.steps.some((s) => s.id === id)) return;
-  const g = removeNode({ nodes: sc.steps, edges: sc.edges, start: sc.start }, id);
+  const del = ids.filter((id) => sc.steps.some((s) => s.id === id));
+  if (!del.length) return;
+  const label = del.length === 1 ? refOf(del[0]) : `${del.length} node`;
+  let g = { nodes: sc.steps, edges: sc.edges, start: sc.start };
+  for (const id of del) g = removeNode(g, id);
   updateScript({ steps: g.nodes, edges: g.edges, start: g.start });
-  setEditor({ selected: '', notice: `Đã xoá ${ref} – ${navigator.platform.startsWith('Mac') ? '⌘' : 'Ctrl+'}Z để hoàn tác` });
+  const { selected, picked } = getEditor();
+  setEditor({ selected: del.includes(selected) ? '' : selected, picked: picked.filter((id) => !del.includes(id)), notice: `Đã xoá ${label} – ${undoKey()}` });
+}
+export const removeStep = (id: string) => removeSteps([id]);
+
+// Node đang thao tác: nhóm đang chọn, không có thì node trong inspector.
+const targetIds = () => {
+  const { picked, selected } = getEditor();
+  return picked.length ? picked : selected ? [selected] : [];
+};
+
+// ---- Copy / paste (Ctrl+C / V) ----
+// Bộ nhớ chép ở store (không qua clipboard hệ thống) – dán được sang kịch bản khác đang mở trong app.
+// Dán liên tiếp thì mỗi lần lệch thêm một nấc để không chồng lên nhau.
+let clip: Clip | null = null;
+let pasteCount = 0;
+
+export function copySelected() {
+  const c = copyNodes(script(), targetIds());
+  if (!c) return setNotice('Chưa chọn node nào để chép');
+  clip = c;
+  pasteCount = 0;
+  setNotice(`Đã chép ${c.steps.length} node`);
+}
+
+export function pasteClip() {
+  if (!clip) return setNotice('Chưa chép node nào');
+  pasteCount++;
+  const r = pasteNodes(script(), clip, newId, { x: 40 * pasteCount, y: 40 * pasteCount });
+  updateScript({ steps: r.steps, edges: r.edges, start: r.start });
+  setEditor({ selected: r.ids[0], picked: r.ids.length > 1 ? r.ids : [], multi: [], notice: `Đã dán ${r.ids.length} node – ${undoKey()}` });
 }
 
 // Đổi loại node, bổ sung dữ liệu loại mới cần: điểm (click/double/hold 1, kéo thả 2 – B lệch A 100 px), số click ≥ 1.

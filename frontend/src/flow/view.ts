@@ -3,7 +3,7 @@
 import type { FlowNodeView, PortView, RunState } from '../components/flow/model';
 import { fmtMs, fmtPos, Script, Step, stepLabel } from '../types';
 import { reachable } from './edit';
-import { PORT_FAIL, PORT_SUCCESS, portsOf } from './model';
+import { flowOrder, PORT_FAIL, PORT_SUCCESS, portsOf } from './model';
 
 // Nhãn + màu cổng ra. Node điều khiển (F3) thêm cổng của mình ở đây.
 const PORTS: Record<string, Omit<PortView, 'id'>> = {
@@ -66,4 +66,21 @@ export function outputsOf(s: Step): OutputField[] {
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
     default: return [];
   }
+}
+
+// Biến đọc kết quả node khác – gợi ý cho ô chữ {{…}} (khớp lookup trong vars.go). Node khác `self`, theo thứ tự hiển thị;
+// mỗi node: output khi thành công, rồi status / error.message.
+export type NodeVar = { key: string; label: string };
+export function nodeVarOptions(sc: Pick<Script, 'steps' | 'start' | 'edges'>, self: string): NodeVar[] {
+  const byId = new Map(sc.steps.map((s) => [s.id, s]));
+  return flowOrder(sc).flatMap((id) => {
+    const s = byId.get(id);
+    if (!s || id === self || !s.ref) return [];
+    const name = nodeTitle(s);
+    return [
+      ...outputsOf(s).map((o) => ({ key: `${s.ref}.output.${o.key}`, label: `${name} – ${o.desc}` })),
+      { key: `${s.ref}.status`, label: `${name} – success / fail / skipped` },
+      { key: `${s.ref}.error.message`, label: `${name} – lời báo lỗi` },
+    ];
+  });
 }
