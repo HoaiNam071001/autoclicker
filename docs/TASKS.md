@@ -7,7 +7,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
 - **Đang làm:** 30 (sửa nhiều điểm) – xong code + test, chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
+- **Tiếp theo:** 21b → 23 → 25 … (bảng thứ tự đầu Phase 3); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17
 
 ## Quyết định đã chốt
@@ -17,7 +17,12 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - Font **Be Vietnam Pro** + **IBM Plex Mono** cài local qua `@fontsource/*` (app phải chạy được offline).
 - UI theo **phương án A (MainScreen)** cho MVP. Phương án B (PreviewScreen) giữ làm tham khảo.
 - **Design v2** (2026-10-16, `design/DESIGN.md`) thay bản thiết kế cũ `autoclicker-ui/` từ bước 27: theme sáng / tối, một màu nhấn, gradient chỉ ở 4 chỗ, bố cục 3 cột kiểu Windows 11; font Plus Jakarta Sans + JetBrains Mono (vẫn cài local); bỏ màu riêng cho kéo thả và nhóm `dark-*`.
-- Thứ tự Phase 3 (2026-10-16, bảng đầu Phase 3): 27 → 27b → 29 → 21 → 30 → 21b → 23 → 25 → 25b → 25c → 26 → 20 → 22 → 24 → 28; chờ ảnh / click theo ảnh làm sớm (cốt lõi cho web / app), nhóm bước làm sau xử lý hết giờ. Không làm bản chạy trên điện thoại.
+- Thứ tự Phase 3 (2026-10-16, bảng đầu Phase 3): 27 → 27b → 29 → 21 → 30 → 21b → 23 → 25 → 25b → 25c → 26 → 20 → 22 → 31a → 31b → 31c → 24 → 28 (thêm 31 ngày 2026-10-17); chờ ảnh / click theo ảnh làm sớm (cốt lõi cho web / app), nhóm bước làm sau xử lý hết giờ. Không làm bản chạy trên điện thoại.
+- **Tự động hoá qua AI là mục tiêu chính** (31, 2026-10-17): người dùng ra lệnh bằng lời trên Claude / GPT / … (vd "mở bài Tinh Hà Say 2") và AI tự tạo kịch bản, không cần soạn tay. Kết nối qua **MCP** (giao thức chuẩn mà Claude, ChatGPT, Cursor, Gemini CLI… đều hỗ trợ), không viết riêng plugin cho từng AI. App là MCP server; AI tạo / sửa kịch bản qua cùng `checkScript` / `validateScript` như người soạn; kịch bản do AI tạo mở trong app để người dùng duyệt, AI chỉ chạy thật khi người dùng cho phép. **MCP làm sau** (sau 22), nhưng các bước trước phải giữ đường cho nó – mỗi bước có mục *Chuẩn bị cho MCP*:
+  - Logic nằm ở **Go** (kiểm tra, `resolveInputs`, chạy bước, chụp / tìm ảnh, đổi toạ độ, danh sách cửa sổ), frontend chỉ gọi – MCP / CLI / API dùng lại, không viết lại
+  - Lỗi trả có cấu trúc (`stepId`, `field`, thông điệp) để AI tự sửa được; `id` bước ổn định để sửa theo bước
+  - Mỗi loại bước có mô tả + ví dụ JSON trong `model.go` (bắt đầu từ 23) để sau sinh schema cho AI
+  - Kịch bản đổi từ ngoài app (file / API / AI) phải nạp lại được vào store, vẫn hoàn tác được; việc chạy từ ngoài đi qua cùng một chỗ hỏi quyền
 - **Theme tối = bảng Slate** (`design/newdarkmode.md`, 2026-10-16): theme cũ nhiều nút bị chìm. Có thêm 2 bảng Dimmed / Nord trong file, chưa dùng.
 - **Neo điểm theo trục** (29): X neo trái / phải, Y neo trên / dưới (thêm giữa, %), lưu offset dương + tên neo, UI hiện dạng ±; làm ngay sau UI (27, 27b), trước 21, để định dạng file có neo ngay từ đầu (không cần chuyển đổi). Biến đổi nhiều điểm (30) làm sau 27 + 21, ghi lại offset theo neo.
 - **UI trước, logic sau** (27b): tính năng chưa có vẫn hiện trong app nhưng tắt + nhãn *Sắp có*; dữ liệu giả chỉ ở màn `#demo` (`frontend/src/demo/`), không thêm loại bước chưa làm vào `types.ts` / `model.go`.
@@ -195,7 +200,9 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 | 7–8 | 23 → 25 | Cuộn / mở URL đơn giản, rồi chờ ảnh – cốt lõi tương tác web / app |
 | 9–11 | 25b → 25c → 26 | Xử lý khi không thấy ảnh, debug chỗ dễ lỗi, focus cửa sổ – xong 26 là chạy được ví dụ Facebook |
 | 12 | 20. Nhóm bước | Dùng lại thử lại / bỏ qua của 25b |
-| 13–15 | 22 → 24 → 28 | Chạy không cần canh, ghi macro, mở rộng |
+| 13 | 22. Hẹn giờ / CLI / API local | Chạy không cần ngồi canh; dựng server HTTP + token mà MCP dùng lại |
+| 14–16 | 31a → 31b → 31c. MCP cho AI | Người dùng chọn làm sau (2026-10-17); các bước trước đã có mục *Chuẩn bị cho MCP* nên lúc này chủ yếu là bọc hàm Go sẵn có thành tool |
+| 17–18 | 24 → 28 | Ghi macro, mở rộng |
 | – | 17 (Windows), 18 | Khi có máy Windows; riêng *Kiểm tra tay macOS* của 17 làm lúc nào cũng được (nên làm trước 25 vì chụp ảnh phụ thuộc tỷ lệ màn hình) |
 
 - [x] **27. UI v2 cho các màn đang có + theme sáng / tối** – Đổi giao diện mọi thứ đang chạy được sang design v2, không đổi logic.
@@ -293,6 +300,7 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [ ] Thẻ bước: chip viền `line` "N input"
   - [ ] Form Chạy [`RunDialog`, `RunDialogDark`]: `components/RunDialog.tsx` (popup 560, bo 12) – đầu có tên kịch bản + số input; "Bộ giá trị" (select preset + "Lưu bộ mới"); ô nhóm theo bước, ô đã đổi `ring-focus` + "đã đổi, mặc định … · khôi phục", `*` màu `warn`; khung "Sẽ gõ" xem trước câu sau khi thay biến; chân: "Lần sau chạy luôn với giá trị này", "Đếm ngược 3 giây", Huỷ / Chạy (`btn-primary`, F8)
   - [ ] Nút Chạy / F8 mở form khi kịch bản có input; chạy thẳng nếu đã bật "Lần sau chạy luôn"; thanh mini hiện tên preset
+  - [ ] Chuẩn bị cho MCP (31): `resolveInputs` và kiểm tra input viết ở Go (không ở frontend) để CLI / MCP gọi được; `validateScript` trả lỗi có cấu trúc `{stepId, field, message}` thay vì chỉ chuỗi
   - [ ] Test: ghi đè trường; thay biến (có tiếng Việt); thiếu biến; sai kiểu; escape; một input nhiều bước; input trong nhóm (sau bước 20)
   - Xong khi: B1 click 500 → chạy với 1000 ms; B2 "xin chào {{M1}} và {{M2}}" gõ đúng giá trị điền
 - [ ] **23. Cuộn + Mở URL / app** – Loại bước đơn giản.
@@ -300,6 +308,7 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [ ] Model: `scroll` (`direction`, `amount`, điểm tuỳ chọn); `open` (`target` URL / đường dẫn app, `app` tuỳ chọn)
   - [ ] Engine: `robotgo.Scroll`; `open` → macOS `open [-a App] target`, Windows `cmd /c start "" target`; test với input giả
   - [ ] UI: icon `scroll`, `open` (bảng icon DESIGN.md), thêm vào bảng Ctrl+K; inspector: hướng + số nấc; URL / app + trình duyệt (URL nhận biến, vd `facebook.com/{{profile}}`)
+  - [ ] Chuẩn bị cho MCP (31): bắt đầu bảng mô tả loại bước trong `model.go` (`stepTypeDocs`: tên, mô tả, trường bắt buộc, ví dụ JSON ngắn) – ghi cho cả loại bước đã có; từ đây mỗi loại bước mới thêm một dòng
 - [ ] **25. Chờ ảnh, click theo ảnh, chờ pixel** – Cốt lõi để tương tác web / app (làm sớm).
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
   - [ ] Model: `waitImage` (`template` PNG cạnh file kịch bản hoặc base64, `threshold` %, `timeoutMs`, `intervalMs`, vùng tìm); `clickImage` (dùng kết quả `waitImage` hoặc tự tìm, lệch ΔX/ΔY); `waitPixel` (điểm, màu, sai số, timeout)
@@ -309,6 +318,7 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [ ] Icon `waitImage`, `clickImage`, `waitPixel`; thêm vào bảng Ctrl+K
   - [ ] Thanh mini [`MiniBar`]: vòng tiến độ theo thời gian chờ, "đang tìm x / y s"
   - [ ] Retina / DPI ≠ 100%: chụp và so cùng tỷ lệ (liên quan 17)
+  - [ ] Chuẩn bị cho MCP (31): chụp màn hình, tìm ảnh, đổi toạ độ ảnh chụp ↔ robotgo là hàm Go độc lập với overlay (trả kèm tỷ lệ); ảnh mẫu là file cạnh kịch bản, tạo được từ toạ độ vùng (không chỉ từ thao tác khoanh trên overlay)
 - [ ] **25b. Xử lý khi hết giờ** – Chờ ảnh cần hướng xử lý khi không thấy.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
   - [ ] Model: `onTimeout: { action: "retry" | "skip" | "stop", retries, then: "skipGroup" | "stop" }`
@@ -319,10 +329,12 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [ ] Chạy từ bước đang chọn; chạy từng bước (nút Tiếp / F10); breakpoint trên thẻ bước
   - [ ] Mỗi lần chạy lưu nhật ký: thời gian từng bước, giá trị input đã dùng, ảnh chụp màn hình khi bước lỗi / hết giờ
   - [ ] UI: mục "Lịch sử" trong thư viện; xem lại từng lần chạy dạng timeline
+  - [ ] Chuẩn bị cho MCP (31): chạy một bước là hàm Go riêng (`RunStep`), không phụ thuộc trạng thái frontend; nhật ký chạy lưu JSON có cấu trúc, có trường nguồn (người dùng / hẹn giờ / CLI / AI)
 - [ ] **26. Focus cửa sổ theo tên**
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
   - [ ] Model: `focusWindow` (`title` hoặc process); Engine: `robotgo.ActivateName`, không thấy → `onTimeout`
   - [ ] UI: icon `focusWindow`; ô nhập (nhận biến) + chọn từ danh sách cửa sổ đang mở
+  - [ ] Chuẩn bị cho MCP (31): danh sách cửa sổ là hàm Go (`ListWindows`) dùng chung cho UI và MCP
 - [ ] **20. Nhóm bước** – Lặp riêng một nhóm N lần; dùng chung thử lại / bỏ qua của 25b.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
   - [ ] Model: `group` (`name`, `repeat` – ghim được, `children`); tăng `version` + chuyển đổi file cũ
@@ -334,6 +346,31 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [ ] Thông báo: Telegram / Discord / webhook khi xong hoặc lỗi, kèm ảnh chụp màn hình
   - [ ] CLI: `autoclicker run script.json --preset "Gửi cho Lan" --set M1=Lan`
   - [ ] API local: `POST /run` (kèm values), `POST /stop`, `GET /status`, tiến độ qua SSE; bảo vệ bằng token
+  - [ ] Chuẩn bị cho MCP (31): server HTTP chỉ nghe localhost, gắn thêm route được (`/mcp` sau này); kịch bản bị đổi từ ngoài (file / API) → event `script:changed` để frontend nạp lại, giữ hoàn tác; chỗ chặn "hỏi người dùng trước khi chạy" dùng chung cho hẹn giờ / API / AI
+- [ ] **31a. Kết nối AI qua MCP – tạo / sửa kịch bản** *(người dùng yêu cầu, 2026-10-17)* – Người dùng ra lệnh trên Claude / GPT / Cursor… và AI tạo ra một hoặc nhiều kịch bản trong app, không cần soạn tay. App làm **MCP server** (Model Context Protocol – chuẩn chung, một server dùng được cho mọi AI hỗ trợ MCP).
+  - Kiến trúc:
+    - App đang chạy mở MCP server **Streamable HTTP** tại `127.0.0.1:<port>/mcp` (chỉ nghe localhost, token trong `UserConfigDir/autoclicker/`); dùng SDK chính thức `github.com/modelcontextprotocol/go-sdk`. dùng chung server HTTP + token của API local (22)
+    - Cùng file chạy có chế độ `autoclicker --mcp` (**stdio**) cho AI chỉ chạy được server dạng lệnh (Claude Desktop, Codex CLI, Gemini CLI…): chuyển tiếp sang app đang chạy; app chưa mở thì tự mở, hoặc chỉ làm việc với file kịch bản
+    - Kết nối được: Claude Desktop / Claude Code / Cursor / GitHub Copilot (chế độ agent trong VS Code) / Codex CLI / Gemini CLI (stdio hoặc HTTP localhost). Copilot Studio (Microsoft 365) cũng chỉ nhận MCP từ xa như ChatGPT. ChatGPT bản web / desktop chỉ nhận MCP từ xa qua HTTPS → cần tunnel (cloudflared / ngrok) + token; ghi rõ trong hướng dẫn, không bật mặc định
+  - [ ] Schema cho AI: sinh **JSON Schema** của `Script` / `Step` từ `model.go` (mô tả tiếng Việt + tiếng Anh từng trường, giá trị mặc định, loại bước, neo, `{{biến}}`); test kiểm tra schema khớp struct Go (như `types.ts`). Resource `autoclicker://schema`, `autoclicker://guide` (cách viết kịch bản bền: ưu tiên mở URL / phím tắt / chờ ảnh hơn toạ độ cứng, thêm chờ sau khi mở app…), `autoclicker://examples` (vài kịch bản mẫu)
+  - [ ] Tool đọc: `list_scripts` (thư viện + mở gần đây), `read_script`, `get_step_types` (loại bước app đang hỗ trợ – AI không dùng loại *Sắp có*), `get_screen_info` (kích thước, tỷ lệ Retina / DPI, số màn hình)
+  - [ ] Tool ghi: `validate_script` (trả lỗi rõ theo từng bước để AI tự sửa), `create_script` (một hoặc nhiều kịch bản, lưu vào thư viện), `update_script` (sửa theo `stepId`, không ghi đè cả file), `open_in_app` (mở kịch bản trên MainScreen cho người dùng xem)
+  - [ ] Prompt MCP `tao_kich_ban`: khung hỏi đáp mẫu (mục tiêu, app / trang web, giá trị nào là input) để AI hỏi lại khi thiếu thông tin
+  - [ ] An toàn: kịch bản AI tạo có `meta.createdBy: "ai"` + chip "AI" trong thư viện, mở ở trạng thái chưa lưu để người dùng duyệt; AI sửa kịch bản đang mở có thay đổi chưa lưu → tạo bản sao, không ghi đè; mọi thay đổi của AI đi qua store nên Ctrl+Z hoàn tác được; bước này **chưa cho AI chạy** kịch bản (31c)
+  - [ ] Cài đặt [màn Cài đặt]: bật / tắt MCP, cổng, token (sao chép / tạo lại), nút *Thêm vào Claude Desktop* (ghi `claude_desktop_config.json`, hỏi trước), đoạn cấu hình mẫu cho Claude Code / Cursor / Codex; nhật ký các lệnh AI đã gọi
+  - [ ] Test Go: gọi tool qua client MCP trong test (in-memory transport): tạo kịch bản hợp lệ / lỗi, sửa theo `stepId`, schema khớp struct
+  - Xong khi: trên Claude Desktop nói "tạo kịch bản mở Spotify, tìm bài Tinh Hà Say 2 và phát" → kịch bản hiện trong thư viện app (chip AI), Xem trước chạy đúng thứ tự, bấm Chạy thì phát nhạc; nói "đổi thành bài khác, cho tên bài thành input" → AI sửa đúng kịch bản, có input `{{bai_hat}}`
+- [ ] **31b. MCP – AI nhìn màn hình** – Để AI tự biết vị trí nút thay vì đoán toạ độ.
+  - [ ] Tool `screenshot` (toàn màn hình / vùng / cửa sổ, thu nhỏ cho nhẹ, trả ảnh + tỷ lệ); toạ độ AI gửi về theo pixel ảnh, Go tự đổi sang toạ độ robotgo (Retina / DPI – dùng chung cách đổi của 17, 25)
+  - [ ] Tool `find_image` (dùng so khớp mẫu của 25), `capture_template` (AI khoanh vùng trên ảnh chụp → lưu ảnh mẫu cạnh kịch bản cho bước `waitImage` / `clickImage`), `get_mouse_position`, `list_windows`
+  - [ ] Người dùng thấy khi AI chụp màn hình: thông báo nhỏ / chấm đỏ trên thanh mini; tắt được trong Cài đặt
+  - Xong khi: AI chụp màn hình YouTube, tự khoanh nút "Phát" làm ảnh mẫu, kịch bản tạo ra dùng `clickImage` thay vì toạ độ cứng và vẫn chạy khi cửa sổ dời chỗ
+- [ ] **31c. MCP – AI tự thử và chạy kịch bản** – AI làm từng bước trên màn hình thật, xem kết quả, bước nào đúng thì ghi vào kịch bản (giống người dùng soạn rồi bấm thử).
+  - [ ] Tool `run_step` (chạy một bước, trả ảnh chụp sau bước), `run_script` (kèm giá trị input, dùng `resolveInputs`), `get_run_status` (tiến độ + nhật ký 25c), `stop_script`
+  - [ ] Quyền: mặc định mỗi lần AI muốn chạy thì app hiện hộp hỏi (tên kịch bản, các bước, Cho phép / Từ chối, "cho phép kịch bản này đến khi đóng app"); F8 và dừng khẩn cấp (góc màn hình) vẫn luôn có tác dụng; giới hạn số bước / thời gian mỗi lượt AI chạy
+  - [ ] Chế độ "AI soạn bằng cách thử": các bước AI `run_step` thành công được ghi lại thành kịch bản nháp, kèm ảnh chụp từng bước để người dùng xem lại
+  - [ ] Lịch sử chạy (25c) ghi rõ lần nào do AI chạy
+  - Xong khi: nói "mở bài Tinh Hà Say 2 trên YouTube" → AI hỏi quyền, tự thử (mở URL, chờ, click kết quả đầu), nhạc phát, kịch bản được lưu để lần sau chạy lại không cần AI
 - [ ] **24. Ghi macro** – Ghi click / kéo / gõ phím bằng gohook, gộp thành bước, tự tính delay; nút Ghi trên toolbar, F9 dừng.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
 - [ ] **28. Mở rộng** – Làm sau cùng.
@@ -344,6 +381,18 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [ ] Biến và điều kiện: đọc clipboard / OCR vào biến, `if / else`, "lặp đến khi thấy ảnh"
   - [ ] Thư viện mẫu, chia sẻ gói kịch bản (kèm ảnh mẫu), thống kê lần chạy (SQLite)
 
+
+### Ví dụ mục tiêu: nhờ AI mở một bài nhạc
+
+Người dùng gõ trên Claude: *"tạo kịch bản mở bài Tinh Hà Say 2 trên YouTube"*. Claude gọi `get_step_types` / đọc `autoclicker://guide`, tạo kịch bản, `validate_script`, rồi `create_script` + `open_in_app`:
+
+| # | Bước | Loại | Input | Cần bước |
+|---|---|---|---|---|
+| 1 | Mở `https://www.youtube.com/results?search_query={{bai_hat}}` | `open` | `bai_hat` = "Tinh Hà Say 2" | 21b, 23, 31a |
+| 2 | Chờ trang tải (chờ ảnh khung kết quả, tối đa 10 s) | `waitImage` | | 25, 31b |
+| 3 | Click video đầu tiên | `clickImage` (ảnh mẫu AI tự khoanh) | | 25, 31b |
+
+> Bản đơn giản hơn chỉ cần 31a (không cần 31b): mở URL → chờ 4 s → click toạ độ kết quả đầu (AI hỏi người dùng vị trí hoặc chụp màn hình ở 31b). Kém bền hơn khi cửa sổ đổi cỡ.
 
 ### Ví dụ mục tiêu: nhắn tin cho một người trên Facebook
 
@@ -431,3 +480,5 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-17** – Sửa (người dùng báo): Ctrl+K chọn Double click / Giữ chuột nhưng đặt điểm ra Click – StrictMode (`wails dev`) gỡ rồi gắn lại OverlayScreen khi mở, cleanup gọi `cancelPick()` reset loại bước + chỗ chèn + chọn lại điểm. Chỉ huỷ khi hash đã rời `#overlay`. `npm run build` OK; chưa kiểm tra tay, chưa commit.
 - **2026-10-17** – Bước 30: `transform.ts` (ma trận 3×3 affine + homography, căn chỉnh, vùng → vùng) + vitest 14 test; store: hoàn tác / làm lại mọi thay đổi, chọn nhiều, `mapPoints` (giữ neo, B lệch, chặn điểm ra ngoài vùng) dùng chung cho biến đổi / xem trước / ánh xạ vùng; overlay: công cụ *Chọn nhiều* (`TransformTool.tsx`: khung 8 núm + xoay, ⌘ xiên / phối cảnh, thanh số né khung + kéo được, căn / chia đều / lật), hộp ánh xạ khi đổi vùng (3 cách, xem trước); danh sách bước đồng bộ. `npm test` + `npm run build` OK; thử headless (CDP) chọn khung, ⌘A, xoay, co giãn, xiên, phối cảnh, ô Rộng 50%, căn trên, ⌘Z ×2, đổi vùng *Co giãn* – toạ độ khớp tính tay. Chưa làm ánh xạ 4 điểm mốc; chưa kiểm tra tay, chưa commit.
 - **2026-10-17** – Theo yêu cầu: overlay gọn hơn – thanh công cụ tự ẩn (hiện khi chuột sát mép trên / rời overlay qua mép trên / rê vào gợi ý, lúc mở hiện 2,5 s); banner hướng dẫn thành viên gợi ý một dòng (tên công cụ + câu ngắn, thông báo tự tắt sau 3,5 s); ô toạ độ thu nhỏ góc trên trái; thanh biến đổi / hộp ánh xạ dời lên. `npm run build` OK, chụp headless trạng thái ẩn / hiện; chưa kiểm tra tay, chưa commit.
+- **2026-10-17** – Theo yêu cầu: thêm bước 31 (kết nối AI qua MCP để AI tạo / sửa / chạy kịch bản từ câu lệnh bằng lời), chia 31a (tạo / sửa kịch bản, sau 21b) · 31b (AI nhìn màn hình, sau 25) · 31c (AI tự thử và chạy, sau 26); cập nhật bảng thứ tự Phase 3, quyết định đã chốt, bước 22 dùng chung server, thêm ví dụ mở bài nhạc. Chỉ sửa plan, chưa code.
+- **2026-10-17** – Theo yêu cầu: MCP làm sau – dời 31a / 31b / 31c xuống sau 22 (dùng chung server HTTP + token); thêm quy tắc *giữ đường cho MCP* vào quyết định đã chốt và mục *Chuẩn bị cho MCP* trong 21b, 23, 25, 25c, 26, 22. Chỉ sửa plan.
