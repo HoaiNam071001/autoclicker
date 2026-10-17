@@ -18,13 +18,18 @@ func TestStepTypeDocs(t *testing.T) {
 		if err := checkStep(&s); err != nil || s.Type != d.Type {
 			t.Errorf("%s: ví dụ không hợp lệ: %v (type %q)", d.Type, err, s.Type)
 		}
+		if s.Template != "" {
+			if _, err := decodePNG(s.Template); err != nil {
+				t.Errorf("%s: ảnh mẫu trong ví dụ hỏng: %v", d.Type, err)
+			}
+		}
 		for _, f := range d.Pinnable {
 			if _, ok := pinFields[f]; !ok {
 				t.Errorf("%s: %q không có trong pinFields", d.Type, f)
 			}
 		}
 	}
-	for _, typ := range []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen} {
+	for _, typ := range []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen, StepWaitImage, StepClickImage, StepWaitPixel} {
 		if _, err := (&App{}).NewStep(typ); err != nil {
 			t.Errorf("NewStep(%s): %v", typ, err)
 		}

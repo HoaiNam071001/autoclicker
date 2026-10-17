@@ -28,6 +28,7 @@ func validateScript(sc Script, screen Rect) error {
 	}
 	enabled := 0
 	hasPrevPoint := false // đã có bước chuột (để lại vị trí chuột) phía trước chưa
+	hasPrevImage := false // đã có bước chờ ảnh / click theo ảnh tự tìm phía trước chưa (click theo kết quả bước trước)
 	for i, s := range sc.Steps {
 		if !s.Enabled {
 			continue
@@ -54,6 +55,29 @@ func validateScript(sc Script, screen Rect) error {
 			if strings.TrimSpace(s.Target) == "" || s.Target == "https://" {
 				return stepErr(i, s, "target", "chưa nhập URL / app cần mở")
 			}
+		case StepWaitImage, StepClickImage:
+			if s.Type == StepClickImage && s.ImageSource != ImageFromSearch {
+				if !hasPrevImage {
+					return stepErr(i, s, "imageSource", "click theo kết quả bước trước nhưng phía trước không có bước chờ ảnh nào")
+				}
+			} else if err := checkImageStep(i, s); err != nil {
+				return err
+			}
+			hasPrevImage = true
+			if s.Type == StepClickImage {
+				hasPrevPoint = true // click theo ảnh di chuột tới chỗ thấy ảnh
+			}
+		case StepWaitPixel:
+			need = 1
+			if _, err := parseColor(s.Color); err != nil {
+				return stepErr(i, s, "color", "%v", err)
+			}
+			if s.Tolerance < 0 || s.Tolerance > 255 {
+				return stepErr(i, s, "tolerance", "sai số màu phải trong 0–255")
+			}
+			if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
+				return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
+			}
 		case StepWait:
 		case StepText:
 			if s.Text == "" {
@@ -76,7 +100,7 @@ func validateScript(sc Script, screen Rect) error {
 				return stepErr(i, s, "points", "điểm X %d Y %d nằm ngoài vùng", q.X, q.Y)
 			}
 		}
-		hasPrevPoint = hasPrevPoint || need > 0
+		hasPrevPoint = hasPrevPoint || need > 0 && s.Type != StepWaitPixel // chờ pixel không di chuột
 	}
 	if enabled == 0 {
 		return &ScriptError{Msg: "kịch bản không có bước nào được bật"}
@@ -86,13 +110,14 @@ func validateScript(sc Script, screen Rect) error {
 
 // Progress – tiến độ gửi sang frontend (event "engine:progress").
 type Progress struct {
-	Loop      int   `json:"loop"`  // vòng hiện tại, từ 1
-	Loops     int   `json:"loops"` // 0 = vô hạn
-	Step      int   `json:"step"`  // thứ tự bước hiện tại trong các bước đang bật, từ 1
-	Total     int   `json:"total"` // số bước đang bật
-	Clicks    int   `json:"clicks"`
-	ElapsedMs int64 `json:"elapsedMs"` // không tính thời gian tạm dừng
-	Paused    bool  `json:"paused"`
+	Loop      int           `json:"loop"`  // vòng hiện tại, từ 1
+	Loops     int           `json:"loops"` // 0 = vô hạn
+	Step      int           `json:"step"`  // thứ tự bước hiện tại trong các bước đang bật, từ 1
+	Total     int           `json:"total"` // số bước đang bật
+	Clicks    int           `json:"clicks"`
+	ElapsedMs int64         `json:"elapsedMs"` // không tính thời gian tạm dừng
+	Paused    bool          `json:"paused"`
+	Wait      *WaitProgress `json:"wait,omitempty"` // đang chờ ảnh / pixel
 }
 
 // progressEvery – giãn cách tối thiểu giữa 2 lần báo tiến độ trong cùng một bước (tránh dội event).
@@ -107,6 +132,13 @@ type engine struct {
 	onProgress func(Progress)                 // có thể nil
 	intN       func(n int) int                // số ngẫu nhiên [0, n) – test thay bằng hàm cố định
 	open       func(target, app string) error // bước Mở – test thay bằng hàm ghi lại
+	scr        Screen                         // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
+
+	failed   string      // id bước làm lần chạy dừng vì lỗi (runner gửi engine:failed)
+	miss     *FindResult // bước chờ ảnh hết giờ: chỗ giống nhất (để xem lại vì sao không thấy)
+	found    Point       // chỗ bước chờ ảnh / click theo ảnh gần nhất tìm thấy (ImageFromPrev)
+	hasFound bool
+	tpls     map[string]gray // ảnh mẫu đã giải mã theo id bước
 
 	last    Point // chỗ engine vừa đưa chuột tới – cho bước kéo "từ điểm trước đó"
 	hasLast bool
@@ -118,7 +150,7 @@ type engine struct {
 }
 
 func newEngine(in Input, sc Script, onProgress func(Progress)) *engine {
-	return &engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: openTarget}
+	return &engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: openTarget, scr: robotgoScreen{}}
 }
 
 // jitter trả v lệch ngẫu nhiên đều trong [v-j, v+j]; j ≤ 0 → v. Dùng cho toạ độ (có thể âm ở màn phụ).
@@ -180,6 +212,7 @@ func (e *engine) run(ctx context.Context) error {
 				if ctx.Err() != nil {
 					return ctx.Err()
 				}
+				e.failed = s.ID
 				return fmt.Errorf("vòng %d, bước %d: %w", loop, i+1, err)
 			}
 		}
@@ -329,6 +362,13 @@ func (e *engine) runStep(ctx context.Context, s Step) error {
 		}
 	case StepOpen:
 		return e.open(s.Target, s.App)
+	case StepWaitImage:
+		_, err := e.findImage(ctx, s)
+		return err
+	case StepClickImage:
+		return e.clickImage(ctx, s)
+	case StepWaitPixel:
+		return e.waitPixel(ctx, s)
 	}
 	return nil
 }
@@ -491,6 +531,17 @@ func (g *pauseGate) wait(ctx context.Context) error {
 	}
 }
 
+// pausedTotal – tổng thời gian đã tạm dừng tính tới giờ (kể cả lần đang dừng).
+func (g *pauseGate) pausedTotal() time.Duration {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	d := g.pausedFor
+	if g.ch != nil {
+		d += time.Since(g.since)
+	}
+	return d
+}
+
 // activeSince – thời gian từ start, trừ các khoảng tạm dừng.
 func (g *pauseGate) activeSince(start time.Time) time.Duration {
 	g.mu.Lock()
@@ -500,4 +551,25 @@ func (g *pauseGate) activeSince(start time.Time) time.Duration {
 		d -= time.Since(g.since)
 	}
 	return d
+}
+
+// checkImageStep: bước chờ ảnh / click theo ảnh tự tìm có ảnh mẫu đọc được và thông số hợp lệ.
+func checkImageStep(i int, s Step) error {
+	if s.Template == "" {
+		return stepErr(i, s, "template", "chưa có ảnh mẫu – bấm “Khoanh ảnh mẫu”")
+	}
+	img, err := decodePNG(s.Template)
+	if err != nil {
+		return stepErr(i, s, "template", "%v", err)
+	}
+	if b := img.Bounds(); b.Dx() < 4 || b.Dy() < 4 {
+		return stepErr(i, s, "template", "ảnh mẫu quá nhỏ (%d × %d px)", b.Dx(), b.Dy())
+	}
+	if s.Threshold < 1 || s.Threshold > 100 {
+		return stepErr(i, s, "threshold", "độ khớp tối thiểu phải trong 1–100%%")
+	}
+	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
+		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
+	}
+	return nil
 }

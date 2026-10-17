@@ -24,3 +24,14 @@ export function openOverlay(tool: OverlayTool = 'point', focus: string | null = 
   overlayFocus = focus;
   return setWindowMode('overlay');
 }
+
+// Vùng trong cửa sổ không bị Dock / taskbar / thanh menu che (overlay phủ cả màn hình nhưng nằm dưới Dock).
+// Dùng để đặt nút nổi (khoanh ảnh, thanh số) – toạ độ cửa sổ.
+export function safeArea() {
+  const s = window.screen as Screen & { availTop?: number };
+  const availTop = s.availTop ?? 0;
+  const top = Math.max(0, availTop - window.screenY);
+  const bottom = Math.min(window.innerHeight, availTop + s.availHeight - window.screenY);
+  // một số WebView báo availHeight = cả màn hình → vẫn chừa 80 px cho Dock / taskbar
+  return { top, bottom: bottom >= window.innerHeight - 4 ? window.innerHeight - 80 : bottom };
+}

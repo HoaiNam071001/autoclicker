@@ -29,7 +29,7 @@ func (f *fakeInput) Drag(x, y int, b string) error     { return f.add("drag %d,%
 func (f *fakeInput) Toggle(b string, down bool) error  { return f.add("toggle %s %v", b, down) }
 func (f *fakeInput) Click(b string, double bool) error { return f.add("click %s %v", b, double) }
 func (f *fakeInput) TypeStr(s string) error            { return f.add("type %s", s) }
-func (f *fakeInput) Scroll(d string) error              { return f.add("scroll %s", d) }
+func (f *fakeInput) Scroll(d string) error             { return f.add("scroll %s", d) }
 func (f *fakeInput) KeyToggle(k string, down bool, mods []string) error {
 	if !down {
 		return f.add("up %s", k)

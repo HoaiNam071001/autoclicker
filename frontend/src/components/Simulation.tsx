@@ -189,6 +189,20 @@ export function useSimulation(steps: Step[], region: Rect | null, speed: number)
             patch({ bubble: `Mở ${s.target}${s.app ? ` bằng ${s.app}` : ''}` });
             await wait(KEY_SHOW_MS);
             break;
+          case 'waitImage':
+            // không biết trước ảnh hiện lúc nào – chờ tượng trưng (≤ 1 s), ghi rõ ngưỡng / thời gian chờ tối đa
+            patch({ bubble: `Chờ ảnh (khớp ≥ ${s.threshold}%, tối đa ${(s.timeoutMs ?? 0) / 1000} s)` });
+            await wait(Math.min(s.timeoutMs ?? 0, 1000));
+            break;
+          case 'clickImage':
+            patch({ bubble: `Click theo ảnh${s.imageSource === 'search' ? ' (tự tìm)' : ''} – vị trí biết khi chạy thật` });
+            await wait(KEY_SHOW_MS);
+            break;
+          case 'waitPixel':
+            if (e?.start) await moveTo(e.start, TRAVEL_MS);
+            patch({ bubble: `Chờ màu ${s.color} ±${s.tolerance}` });
+            await wait(Math.min(s.timeoutMs ?? 0, 800));
+            break;
           case 'wait':
             break;
         }

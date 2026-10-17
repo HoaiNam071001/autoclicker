@@ -175,7 +175,7 @@ export function changeStepType(id: string, type: StepType) {
   const s = state.script.steps.find((x) => x.id === id);
   if (!s || s.type === type) return;
   const points = s.points.slice(0, type === 'scroll' ? 1 : undefined).map((p) => ({ ...p })); // cuộn: điểm tuỳ chọn, tối đa 1
-  const need = type === 'drag' ? 2 : type === 'click' || type === 'double' || type === 'hold' ? 1 : 0;
+  const need = type === 'drag' ? 2 : type === 'click' || type === 'double' || type === 'hold' || type === 'waitPixel' ? 1 : 0;
   if (need >= 1 && points.length === 0) points.push({ x: 0, y: 0 });
   if (need === 2 && points.length === 1) {
     const a = toScreen(points[0], state.script.region);
@@ -191,6 +191,12 @@ export function changeStepType(id: string, type: StepType) {
     direction: type === 'scroll' ? s.direction ?? 'down' : s.direction,
     amount: type === 'scroll' && !s.amount ? 3 : s.amount,
     target: type === 'open' && !s.target ? 'https://' : s.target,
+    threshold: s.threshold ?? 90,
+    timeoutMs: s.timeoutMs ?? (type === 'waitPixel' ? 5000 : 10000),
+    intervalMs: s.intervalMs ?? (type === 'waitPixel' ? 100 : 250),
+    imageSource: type === 'clickImage' ? s.imageSource ?? 'prev' : s.imageSource,
+    color: type === 'waitPixel' ? s.color ?? '#000000' : s.color,
+    tolerance: type === 'waitPixel' ? s.tolerance ?? 10 : s.tolerance,
   });
 }
 
@@ -214,13 +220,20 @@ function insertStep(step: Step, notice: (n: number) => string) {
 
 // Thêm bước không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở) ngay sau bước đang chọn
 // – giá trị mặc định giống NewStep (model.go).
-export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open'>) {
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel'>) {
+  const b = boundsOf(state.script.region);
   const defaults: Record<typeof type, Partial<Step>> = {
     wait: { clicks: 0, delayAfter: 1000 },
     type: { clicks: 0, delayAfter: 500 },
     key: { clicks: 0, keys: ['enter'], delayAfter: 500 },
     scroll: { clicks: 0, direction: 'down', amount: 3, delayAfter: 500 },
     open: { clicks: 0, target: 'https://', delayAfter: 2000 },
+    waitImage: { clicks: 0, threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 300 },
+    clickImage: { imageSource: 'prev', threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 500 },
+    waitPixel: {
+      clicks: 0, points: [nearestAnchor({ x: b.x + Math.round(b.w / 2), y: b.y + Math.round(b.h / 2) }, b)],
+      color: '#000000', tolerance: 10, timeoutMs: 5000, intervalMs: 100, delayAfter: 300,
+    },
   };
   insertAfter = state.selected || null;
   insertStep(makeStep({ id: newId(), type, ...defaults[type] }), (n) => `Đã thêm bước ${n}`);
@@ -405,7 +418,10 @@ export function endpoints(steps: Step[], region: Rect | null): Map<string, Ends>
   let lastStep: number | null = null;
   steps.forEach((s, i) => {
     if (!s.enabled || !s.points.length) return;
-    if (s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'scroll') {
+    if (s.type === 'waitPixel') { // có điểm (marker) nhưng không di chuột
+      const p = toScreen(s.points[0], region);
+      out.set(s.id, { start: p, end: p, prevStep: null });
+    } else if (s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'scroll') {
       const p = toScreen(s.points[0], region);
       out.set(s.id, { start: p, end: p, prevStep: null });
       last = p;

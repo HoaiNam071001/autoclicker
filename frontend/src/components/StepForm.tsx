@@ -22,8 +22,9 @@ import {
   StepPoint, StepType,
 } from '../types';
 import { insideBounds } from '../anchor';
+import { checkCapture, pickColor, requestCapture, startCapture, templateUrl, testFind, useImageState } from '../imageSteps';
 
-const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open'];
+const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel'];
 // Trình duyệt gợi ý cho bước Mở (Windows: open.go đổi sang tên lệnh chrome / msedge / firefox)
 const BROWSERS = ['Google Chrome', 'Microsoft Edge', 'Firefox', ...(navigator.platform.startsWith('Mac') ? ['Safari'] : [])];
 const isMac = navigator.platform.startsWith('Mac');
@@ -50,7 +51,7 @@ export default function StepForm({ step: s, index }: Props) {
   const setPoint = (i: number, p: Partial<StepPoint>) =>
     set({ points: s.points.map((q, j) => (j === i ? { ...q, ...p } : q)) });
   const mouse = s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'drag';
-  const atPoint = mouse || (s.type === 'scroll' && s.points.length > 0); // có vị trí trên màn hình
+  const atPoint = mouse || s.type === 'waitPixel' || (s.type === 'scroll' && s.points.length > 0); // có vị trí trên màn hình
 
   return (
     <aside aria-label={`Thuộc tính bước ${index}`} className="flex w-[340px] flex-none flex-col gap-4 overflow-y-auto border-l border-line bg-surface p-4 max-[1100px]:w-[300px]">
@@ -152,6 +153,11 @@ export default function StepForm({ step: s, index }: Props) {
             </div>
           </>
         )}
+
+        {(s.type === 'waitImage' || s.type === 'clickImage' || s.type === 'waitPixel') && <CapturePermission />}
+        {s.type === 'waitImage' && <ImageSearchFields step={s} />}
+        {s.type === 'clickImage' && <ClickImageFields step={s} />}
+        {s.type === 'waitPixel' && <WaitPixelFields step={s} setPoint={setPoint} />}
 
         {s.type === 'open' && (
           <>
@@ -481,5 +487,167 @@ function InputsTab() {
           <button onClick={stopAutoRun} className="font-semibold text-accent-text">Hỏi lại</button>
         </div>
       )} />
+  );
+}
+
+// ---- Chờ ảnh / click theo ảnh / chờ pixel (bước 25) ----
+
+// macOS: chưa có quyền ghi màn hình thì chụp chỉ ra hình nền – báo ngay trong inspector.
+function CapturePermission() {
+  const { allowed } = useImageState();
+  useEffect(() => {
+    checkCapture();
+  }, []);
+  if (allowed !== false) return null;
+  return (
+    <div className="col-span-2 flex flex-col gap-1.5 rounded-lg bg-danger-soft px-3 py-2 text-xs text-danger-text">
+      Chưa có quyền ghi màn hình (Screen Recording) – app không chụp được màn hình để tìm ảnh / đọc màu.
+      <span>System Settings → Privacy &amp; Security → Screen Recording → bật cho app (khi dev: terminal / VS Code), rồi mở lại app.</span>
+      <button onClick={requestCapture} className="self-start rounded-control border border-danger/40 px-2.5 py-1 font-semibold hover:bg-danger/10">Xin quyền</button>
+    </div>
+  );
+}
+
+// Ảnh mẫu + thử tìm + độ khớp / chờ tối đa / vùng tìm – dùng cho Chờ ảnh và Click theo ảnh (tự tìm).
+function ImageSearchFields({ step: s }: { step: Step }) {
+  const { finds, busy, error } = useImageState();
+  const find = finds[s.id];
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  const k = s.templateScale || 1;
+  return (
+    <>
+      <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+        <span>Ảnh mẫu</span>
+        <div className="relative grid min-h-[92px] place-items-center overflow-hidden rounded-card border border-line bg-soft p-2 text-[13px]">
+          {s.template ? (
+            <>
+              <img src={templateUrl(s.template)} alt="Ảnh mẫu" className="max-h-[140px] max-w-full object-contain"
+                style={size ? { width: Math.min(size.w / k, 300) } : undefined}
+                onLoad={(e) => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })} />
+              {size && (
+                <span className="absolute right-1.5 bottom-1.5 rounded bg-hud/80 px-1.5 font-mono text-[11px] text-hud-text">
+                  {Math.round(size.w / k)} × {Math.round(size.h / k)}
+                </span>
+              )}
+            </>
+          ) : 'Chưa có ảnh mẫu – bấm “Khoanh ảnh mẫu”, kéo khung quanh nút / chữ cần chờ'}
+        </div>
+        <div className="flex gap-1.5">
+          <button onClick={() => startCapture(s.id)} className="h-8 flex-1 rounded-control border border-line bg-surface text-ink hover:bg-hover">
+            {s.template ? 'Khoanh lại' : 'Khoanh ảnh mẫu'}
+          </button>
+          <button onClick={() => testFind(s.id)} disabled={!s.template || busy === s.id}
+            title="Tìm ảnh mẫu trên màn hình hiện tại (app ẩn đi một chút) – để biết độ khớp thực tế"
+            className="h-8 flex-1 rounded-control border border-line bg-surface text-ink enabled:hover:bg-hover disabled:opacity-50">
+            {busy === s.id ? 'Đang tìm…' : 'Thử tìm'}
+          </button>
+        </div>
+        {find && (
+          <span className={`flex flex-wrap items-center gap-x-2 text-xs ${find.found ? 'text-ok' : 'text-warn'}`}>
+            {find.found
+              ? <>Thấy tại X {find.x + Math.round(find.w / 2)} Y {find.y + Math.round(find.h / 2)} · khớp {find.score}% · {find.ms} ms</>
+              : find.fromRun
+                ? <>Lần chạy trước hết giờ không thấy – chỗ giống nhất khớp {find.score}% (cần {s.threshold}%)</>
+                : <>Không thấy trên màn hình hiện tại – khớp nhất {find.score}% (cần {s.threshold}%)</>}
+            <button onClick={() => openOverlay('point', s.id)} className="text-muted underline">xem trên màn hình</button>
+          </span>
+        )}
+        {error && busy === '' && <span className="text-xs text-danger-text">{error}</span>}
+      </div>
+      <NumField label="Độ khớp tối thiểu" step={s} field="threshold" unit="%" min={1} />
+      <NumField label="Chờ tối đa" step={s} field="timeoutMs" unit="ms" min={1} />
+      <Field label="Kiểm tra mỗi">
+        <NumInput value={s.intervalMs ?? 250} min={20} unit="ms" onChange={(intervalMs) => updateStep(s.id, { intervalMs })} />
+      </Field>
+      <span className={`self-end pb-2 ${hint}`}>Không thấy sau {fmtSec(s.timeoutMs)} thì dừng kịch bản</span>
+      {(s.threshold ?? 0) < 70 && (
+        <span className="col-span-2 -mt-1 text-xs text-warn">
+          Độ khớp {s.threshold}% rất thấp – gần như chỗ nào cũng “khớp”, dễ click nhầm. Ảnh khoanh đúng thường khớp 95–100%;
+          nên để 80–90% và bấm Thử tìm để xem độ khớp thật.
+        </span>
+      )}
+      <Field label="Tìm trong" wide group>
+        <Segmented value={s.searchArea ?? 'region'} onChange={(v) => updateStep(s.id, { searchArea: v === 'screen' ? 'screen' : undefined })} full
+          options={[{ id: 'region', label: 'Vùng của kịch bản' }, { id: 'screen', label: 'Cả màn hình chính' }]} />
+        <span className={hint}>Vùng nhỏ tìm nhanh hơn và ít nhầm hơn. Ảnh mẫu chụp ở màn Retina vẫn tìm được trên màn thường.</span>
+      </Field>
+    </>
+  );
+}
+
+const fmtSec = (ms?: number) => `${((ms ?? 0) / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} s`;
+
+function ClickImageFields({ step: s }: { step: Step }) {
+  const { steps } = useScript();
+  const i = steps.findIndex((x) => x.id === s.id);
+  // bước chờ ảnh / click tự tìm gần nhất phía trước – nguồn vị trí khi "Kết quả bước trước"
+  const prev = steps.slice(0, i).map((x, j) => ({ x, n: j + 1 })).reverse()
+    .find(({ x }) => x.enabled && (x.type === 'waitImage' || (x.type === 'clickImage' && x.imageSource === 'search')));
+  const set = (patch: Partial<Step>) => updateStep(s.id, patch);
+  return (
+    <>
+      <Field label="Vị trí ảnh" wide group>
+        <Segmented value={s.imageSource ?? 'prev'} onChange={(imageSource: 'prev' | 'search') => set({ imageSource })} full
+          options={[{ id: 'prev', label: prev ? `Kết quả bước ${prev.n}` : 'Kết quả bước trước' }, { id: 'search', label: 'Tự tìm ảnh mẫu' }]} />
+        <span className={`text-xs ${s.imageSource !== 'search' && !prev ? 'text-danger-text' : 'text-muted'}`}>
+          {s.imageSource === 'search' ? 'Chụp ảnh mẫu riêng, tìm lúc chạy (chờ như bước Chờ ảnh)'
+            : prev ? `Click vào chỗ bước ${prev.n} (${STEP_LABEL[prev.x.type]}) tìm thấy – không chụp lại`
+            : 'Phía trước chưa có bước Chờ ảnh – thêm một bước Chờ ảnh, hoặc chọn “Tự tìm ảnh mẫu”'}
+        </span>
+      </Field>
+      {s.imageSource === 'search' && <ImageSearchFields step={s} />}
+      <Field label="Lệch so với tâm ảnh" wide group>
+        <div className="flex gap-2">
+          <NumInput signed prefix="ΔX" value={s.dx ?? 0} onChange={(dx) => set({ dx })} className="flex-1" />
+          <NumInput signed prefix="ΔY" value={s.dy ?? 0} onChange={(dy) => set({ dy })} className="flex-1" />
+        </div>
+        <span className={hint}>Vd ảnh mẫu là nhãn “Họ tên”, ô nhập nằm bên phải 150 px → ΔX 150.</span>
+      </Field>
+      <Field label="Nút chuột" wide group>
+        <Segmented value={s.button} onChange={(button: MouseButton) => set({ button })} full label="Nút chuột"
+          options={[{ id: 'left', label: 'Trái' }, { id: 'right', label: 'Phải' }, { id: 'center', label: 'Giữa' }]} />
+      </Field>
+    </>
+  );
+}
+
+function WaitPixelFields({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: Partial<StepPoint>) => void }) {
+  const { region } = useScript();
+  const { busy, error } = useImageState();
+  const valid = /^#[0-9a-fA-F]{6}$/.test(s.color ?? '');
+  return (
+    <>
+      {s.points[0] && (
+        <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+          <span>Điểm</span>
+          <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
+            pick={<PickButton step={s} />} />
+        </div>
+      )}
+      <Field label="Màu cần chờ" wide group>
+        <div className="flex gap-2">
+          <span className={`${fieldBox} flex-1 gap-2 ${valid ? '' : 'border-danger'}`}>
+            <span className="h-4 w-4 flex-none rounded border border-line" style={{ background: valid ? s.color : 'transparent' }} />
+            <input value={s.color ?? ''} onChange={(e) => updateStep(s.id, { color: e.target.value.trim() })} spellCheck={false}
+              className="min-w-0 flex-1 bg-transparent font-mono text-[13px] text-ink outline-none" />
+          </span>
+          <button onClick={() => pickColor(s.id)} disabled={busy === s.id}
+            title="Lấy màu đang hiện tại điểm này trên màn hình (app ẩn đi một chút) – mở sẵn màn hình có màu cần chờ"
+            className="h-8 rounded-control border border-line px-2.5 text-[13px] whitespace-nowrap text-ink enabled:hover:bg-hover disabled:opacity-50">
+            {busy === s.id ? 'Đang lấy…' : 'Lấy màu'}
+          </button>
+        </div>
+        {!valid && <span className="text-xs text-danger-text">Màu dạng #RRGGBB, vd #1877F2</span>}
+        {error && busy === '' && <span className="text-xs text-danger-text">{error}</span>}
+      </Field>
+      <Field label="Sai số màu">
+        <NumInput prefix="±" value={s.tolerance ?? 0} onChange={(tolerance) => updateStep(s.id, { tolerance: Math.min(tolerance, 255) })} />
+      </Field>
+      <NumField label="Chờ tối đa" step={s} field="timeoutMs" unit="ms" min={1} />
+      <span className={`col-span-2 ${hint}`}>
+        Mỗi {s.intervalMs ?? 100} ms đọc màu tại điểm{region ? ' (trong vùng)' : ''}, mỗi kênh R / G / B lệch ≤ {s.tolerance} là được.
+        Không đổi màu sau {fmtSec(s.timeoutMs)} thì dừng kịch bản. Không di chuột.
+      </span>
+    </>
   );
 }

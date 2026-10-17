@@ -15,7 +15,7 @@ export default function TitleBar() {
     // double click vùng kéo = phóng to / thu về, giống cửa sổ thường
     <div className="drag flex h-10 flex-none items-center gap-2.5 bg-chrome pl-3.5" 
       onDoubleClick={(e) => inWails && !(e.target as HTMLElement).closest('button') && WindowToggleMaximise()}>
-      <span className="text-accent"><Logo className="h-4 w-4" /></span>
+      <Logo className="h-[18px] w-[18px] flex-none" />
       <span className="text-xs text-muted">Auto Clicker</span>
       <ThemeSwitch />
       {inWails && (

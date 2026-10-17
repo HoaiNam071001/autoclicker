@@ -9,11 +9,12 @@ export const tileClass = (selected: boolean) =>
   `grid h-8 w-8 flex-none place-items-center rounded-lg ${selected ? 'bg-accent-soft text-accent-text' : 'bg-soft text-muted'}`;
 
 // Phần giữa + phải của thẻ: "01  Tên  [chip]" / chi tiết mono, chip phụ (viền), chip thời gian.
-export function CardBody({ n, title, detail, delay, enabled = true, tags, chips, breakpoint }: {
+export function CardBody({ n, title, detail, delay, enabled = true, tags, chips, breakpoint, media }: {
   n: string; title: string; detail: string; delay: string; enabled?: boolean;
   tags?: ReactNode; // cạnh tên: "Tắt", "Sắp có"
   chips?: string[]; // viền line: "1 input", "Hết giờ: thử lại 2 lần"
   breakpoint?: boolean; // chấm đỏ – điểm dừng khi debug (bước 25c)
+  media?: ReactNode; // hình nhỏ bên phải (ảnh mẫu của bước chờ ảnh)
 }) {
   return (
     <>
@@ -26,6 +27,7 @@ export function CardBody({ n, title, detail, delay, enabled = true, tags, chips,
         </span>
         <span className="block truncate font-mono text-xs text-muted">{detail}</span>
       </span>
+      {media && <span className="flex-none group-hover:invisible">{media}</span>}
       {chips?.map((c) => (
         <span key={c} className="rounded-[5px] border border-line px-2 py-0.5 text-xs whitespace-nowrap text-muted group-hover:invisible">{c}</span>
       ))}

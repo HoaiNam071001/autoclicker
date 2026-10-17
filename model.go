@@ -16,6 +16,16 @@ const (
 	StepKey    = "key"    // bấm Keys, kèm Modifiers (tổ hợp phím) theo KeyMode
 	StepScroll = "scroll" // cuộn Amount nấc theo Direction, tại Points[0] (không có điểm = chỗ chuột đang đứng)
 	StepOpen   = "open"   // mở Target (URL / file / app) bằng App hoặc app mặc định của máy (open.go)
+
+	StepWaitImage  = "waitImage"  // chờ tới khi thấy ảnh mẫu Template trên màn hình (imagestep.go)
+	StepClickImage = "clickImage" // click vào chỗ thấy ảnh: kết quả bước chờ ảnh trước (ImageSource prev) hoặc tự tìm
+	StepWaitPixel  = "waitPixel"  // chờ tới khi điểm Points[0] có màu Color (± Tolerance)
+)
+
+// Nguồn vị trí của bước click theo ảnh (Step.ImageSource).
+const (
+	ImageFromPrev   = "prev"   // chỗ bước chờ ảnh / click theo ảnh gần nhất phía trước tìm thấy
+	ImageFromSearch = "search" // tự tìm ảnh mẫu riêng của bước
 )
 
 // Hướng cuộn (Step.Direction).
@@ -66,6 +76,18 @@ type Step struct {
 	Amount        int      `json:"amount,omitempty"`    // scroll: số nấc
 	Target        string   `json:"target,omitempty"`    // open: URL, đường dẫn file / app hoặc tên app; nhận {{biến}}
 	App           string   `json:"app,omitempty"`       // open: mở bằng app này ("" = mặc định của máy), vd Google Chrome
+	// Chờ ảnh / click theo ảnh / chờ pixel (bước 25)
+	Template      string  `json:"template,omitempty"`      // ảnh mẫu PNG (base64)
+	TemplateScale float64 `json:"templateScale,omitempty"` // px ảnh mẫu trên 1 đơn vị toạ độ lúc chụp (Retina = 2) – tìm trên màn tỷ lệ khác thì co giãn
+	Threshold     int     `json:"threshold,omitempty"`     // % khớp tối thiểu (1–100)
+	TimeoutMs     int     `json:"timeoutMs,omitempty"`     // chờ tối đa
+	IntervalMs    int     `json:"intervalMs,omitempty"`    // kiểm tra mỗi
+	SearchArea    string  `json:"searchArea,omitempty"`    // "" = vùng của kịch bản | screen = cả màn hình chính
+	ImageSource   string  `json:"imageSource,omitempty"`   // clickImage: prev | search
+	Dx            int     `json:"dx,omitempty"`            // clickImage: lệch so với tâm ảnh
+	Dy            int     `json:"dy,omitempty"`
+	Color         string  `json:"color,omitempty"`     // waitPixel: #RRGGBB
+	Tolerance     int     `json:"tolerance,omitempty"` // waitPixel: sai số mỗi kênh màu (0–255)
 }
 
 // Cách neo điểm mới đặt (Script.AnchorMode).
@@ -120,6 +142,13 @@ func (a *App) NewStep(stepType string) (Step, error) {
 	case StepOpen:
 		s.Target = "https://"
 		s.DelayAfter = 2000 // chờ trang / app mở
+	case StepWaitImage:
+		s.Threshold, s.TimeoutMs, s.IntervalMs, s.DelayAfter = 90, 10000, 250, 300
+	case StepClickImage:
+		s.ImageSource, s.Threshold, s.TimeoutMs, s.IntervalMs = ImageFromPrev, 90, 10000, 250
+	case StepWaitPixel:
+		s.Points = []Point{{}}
+		s.Color, s.Tolerance, s.TimeoutMs, s.IntervalMs, s.DelayAfter = "#000000", 10, 5000, 100, 300
 	default:
 		return Step{}, fmt.Errorf("loại bước không hợp lệ: %q", stepType)
 	}

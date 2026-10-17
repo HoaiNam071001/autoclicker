@@ -14,6 +14,7 @@ export type Progress = {
   clicks: number;
   elapsedMs: number; // không tính thời gian tạm dừng
   paused: boolean;
+  wait?: { kind: 'image' | 'pixel'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (imagestep.go)
 };
 
 // lastError: lỗi của lần chạy gần nhất – giữ ở store vì màn gọi RunScript bị gỡ khi chuyển sang mini bar.
@@ -27,11 +28,12 @@ type EngineState = {
   countdown: number; // giây còn lại trước khi chạy, 0 = không đếm ngược
   hotkeyError: string; // Go không nghe được phím toàn cục (thiếu quyền)
   preset: string; // bộ giá trị input của lần chạy này ('' = tự điền / không có input) – hiện trên thanh mini
+  failedStep: string; // id bước làm lần chạy trước dừng vì lỗi – thẻ bước viền đỏ
 };
 
 // Store chung nghe event từ Go ngay khi load, để màn mở sau (mini bar) vẫn có dữ liệu mới nhất.
 let state: EngineState = {
-  running: false, progress: null, receivedAt: 0, lastError: '', stopReason: '', countdown: 0, hotkeyError: '', preset: '',
+  running: false, progress: null, receivedAt: 0, lastError: '', stopReason: '', countdown: 0, hotkeyError: '', preset: '', failedStep: '',
 };
 const listeners = new Set<() => void>();
 const set = (patch: Partial<EngineState>) => {
@@ -40,7 +42,8 @@ const set = (patch: Partial<EngineState>) => {
 };
 
 if (inWails) {
-  EventsOn('engine:state', (running: boolean) => set(running ? { running, progress: null, lastError: '', stopReason: '' } : { running, countdown: 0 }));
+  EventsOn('engine:state', (running: boolean) => set(running ? { running, progress: null, lastError: '', stopReason: '', failedStep: '' } : { running, countdown: 0 }));
+  EventsOn('engine:failed', (f: { stepId: string }) => set({ failedStep: f.stepId }));
   EventsOn('engine:countdown', (countdown: number) => set({ countdown }));
   EventsOn('hotkey:error', (hotkeyError: string) => set({ hotkeyError }));
   EventsOn('engine:stopped', (stopReason: string) => set({ stopReason }));

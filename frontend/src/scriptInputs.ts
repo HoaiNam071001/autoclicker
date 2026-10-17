@@ -15,6 +15,8 @@ const PIN: Record<PinField, { key: string; label: string; type: InputType; min?:
   jitterMs: { key: 'jitter_ms', label: 'Ngẫu nhiên thời gian', type: 'ms' },
   jitterPx: { key: 'jitter_px', label: 'Ngẫu nhiên vị trí', type: 'number' },
   amount: { key: 'scroll', label: 'Số nấc cuộn', type: 'number', min: 1 },
+  timeoutMs: { key: 'timeout', label: 'Chờ tối đa', type: 'ms', min: 1 },
+  threshold: { key: 'threshold', label: 'Độ khớp tối thiểu (%)', type: 'number', min: 1 },
   enabled: { key: 'enabled', label: 'Bật bước', type: 'bool' },
 };
 

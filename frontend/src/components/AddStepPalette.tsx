@@ -4,6 +4,7 @@
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { StepIcon, StepIconName } from './icons';
 import { addPointStep, addStep } from '../scriptStore';
+import { addImageStep } from '../imageSteps';
 
 type Item = { icon: StepIconName; label: string; keywords: string; run?: () => unknown; soon?: string };
 
@@ -15,7 +16,7 @@ const GROUPS: { name: string; items: Item[] }[] = [
       { icon: 'hold', label: 'Giữ chuột', keywords: 'hold nhan giu', run: () => addPointStep('hold') },
       { icon: 'drag', label: 'Kéo thả', keywords: 'drag keo tha a b', run: () => addPointStep('drag') },
       { icon: 'scroll', label: 'Cuộn', keywords: 'scroll lan chuot', run: () => addStep('scroll') },
-      { icon: 'clickImage', label: 'Click theo ảnh', keywords: 'image anh mau tim', soon: 'bước 25' },
+      { icon: 'clickImage', label: 'Click theo ảnh', keywords: 'image anh mau tim nut', run: () => addImageStep('clickImage') },
     ],
   },
   {
@@ -27,8 +28,8 @@ const GROUPS: { name: string; items: Item[] }[] = [
   {
     name: 'Chờ & điều kiện', items: [
       { icon: 'wait', label: 'Chờ', keywords: 'wait delay nghi doi', run: () => addStep('wait') },
-      { icon: 'waitImage', label: 'Chờ ảnh', keywords: 'wait image anh mau xuat hien', soon: 'bước 25' },
-      { icon: 'waitPixel', label: 'Chờ màu pixel', keywords: 'pixel mau color', soon: 'bước 25' },
+      { icon: 'waitImage', label: 'Chờ ảnh', keywords: 'wait image anh mau xuat hien khoanh', run: () => addImageStep('waitImage') },
+      { icon: 'waitPixel', label: 'Chờ màu pixel', keywords: 'pixel mau color diem', run: () => addImageStep('waitPixel') },
     ],
   },
   {

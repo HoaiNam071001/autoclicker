@@ -8,7 +8,7 @@ export type Point = { x: number; y: number };
 // Điểm lưu trong bước: neo theo cạnh vùng từng trục (khớp Point trong model.go).
 export type StepPoint = Point & { ax?: Anchor; ay?: Anchor };
 export type Rect = { x: number; y: number; w: number; h: number };
-export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open';
+export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel';
 export type ScrollDirection = 'up' | 'down' | 'left' | 'right';
 export type MouseButton = 'left' | 'right' | 'center';
 export type Modifier = 'cmd' | 'ctrl' | 'alt' | 'shift';
@@ -38,6 +38,18 @@ export interface Step {
   amount?: number; // scroll: số nấc
   target?: string; // open: URL / đường dẫn / tên app, nhận {{biến}}
   app?: string; // open: mở bằng app này, '' = mặc định của máy
+  // chờ ảnh / click theo ảnh / chờ pixel (bước 25, imagestep.go)
+  template?: string; // ảnh mẫu PNG base64
+  templateScale?: number; // px ảnh mẫu / 1 đơn vị toạ độ lúc chụp (Retina 2)
+  threshold?: number; // % khớp tối thiểu
+  timeoutMs?: number; // chờ tối đa
+  intervalMs?: number; // kiểm tra mỗi
+  searchArea?: 'screen'; // bỏ trống = vùng của kịch bản
+  imageSource?: 'prev' | 'search'; // clickImage
+  dx?: number; // clickImage: lệch so với tâm ảnh
+  dy?: number;
+  color?: string; // waitPixel: #RRGGBB
+  tolerance?: number; // waitPixel: sai số mỗi kênh màu
 }
 
 // Kiểm tra lúc type-check: Step phải khớp struct Go (model.go) – thiếu/thừa/sai kiểu field là tsc báo lỗi.
@@ -65,7 +77,7 @@ void scriptMatchesGo;
 export type InputType = 'text' | 'multiline' | 'number' | 'ms' | 'bool' | 'select';
 export type InputValue = string | number | boolean;
 // Trường ghim được (pinFields trong inputs.go): số → input number / ms, enabled → bool.
-export type PinField = 'clicks' | 'clickInterval' | 'holdMs' | 'dragMs' | 'delayAfter' | 'jitterMs' | 'jitterPx' | 'amount' | 'enabled';
+export type PinField = 'clicks' | 'clickInterval' | 'holdMs' | 'dragMs' | 'delayAfter' | 'jitterMs' | 'jitterPx' | 'amount' | 'timeoutMs' | 'threshold' | 'enabled';
 export interface InputTarget { stepId: string; field: PinField }
 export interface ScriptInput {
   key: string; // chữ không dấu, số, _ – dùng trong {{key}}
@@ -98,6 +110,9 @@ export const STEP_LABEL: Record<StepType, string> = {
   key: 'Phím tắt',
   scroll: 'Cuộn',
   open: 'Mở URL / app',
+  waitImage: 'Chờ ảnh',
+  clickImage: 'Click theo ảnh',
+  waitPixel: 'Chờ màu pixel',
 };
 
 export const SCROLL_ARROW: Record<ScrollDirection, string> = { up: '↑', down: '↓', left: '←', right: '→' };
@@ -162,4 +177,8 @@ export const fmtPos = (s: Step) =>
     : s.type === 'key' ? fmtKey(s)
     : s.type === 'scroll' ? `${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount ?? 0} nấc ≈ ${(s.amount ?? 0) * SCROLL_NOTCH_PX} px ${s.points[0] ? `tại ${fmtPoint(s.points[0])}` : 'tại chuột'}`
     : s.type === 'open' ? `${s.target || '—'}${s.app ? ` · ${s.app}` : ''}`
+    : s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search')
+      ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.template ? `khớp ≥ ${s.threshold}% · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa có ảnh mẫu'}`
+    : s.type === 'clickImage' ? `chỗ bước trước thấy ảnh${s.dx || s.dy ? ` ${fmtSigned(s.dx ?? 0)},${fmtSigned(s.dy ?? 0)}` : ''}`
+    : s.type === 'waitPixel' && s.points[0] ? `${fmtPoint(s.points[0])} = ${s.color} ±${s.tolerance} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`
     : s.points[0] ? fmtPoint(s.points[0]) : '—';

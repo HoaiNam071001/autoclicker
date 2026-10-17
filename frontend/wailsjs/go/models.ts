@@ -103,6 +103,17 @@ export namespace main {
 	    amount?: number;
 	    target?: string;
 	    app?: string;
+	    template?: string;
+	    templateScale?: number;
+	    threshold?: number;
+	    timeoutMs?: number;
+	    intervalMs?: number;
+	    searchArea?: string;
+	    imageSource?: string;
+	    dx?: number;
+	    dy?: number;
+	    color?: string;
+	    tolerance?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Step(source);
@@ -132,6 +143,17 @@ export namespace main {
 	        this.amount = source["amount"];
 	        this.target = source["target"];
 	        this.app = source["app"];
+	        this.template = source["template"];
+	        this.templateScale = source["templateScale"];
+	        this.threshold = source["threshold"];
+	        this.timeoutMs = source["timeoutMs"];
+	        this.intervalMs = source["intervalMs"];
+	        this.searchArea = source["searchArea"];
+	        this.imageSource = source["imageSource"];
+	        this.dx = source["dx"];
+	        this.dy = source["dy"];
+	        this.color = source["color"];
+	        this.tolerance = source["tolerance"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -230,6 +252,50 @@ export namespace main {
 	        this.path = source["path"];
 	        this.dirty = source["dirty"];
 	        this.savedAt = source["savedAt"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class FindResult {
+	    found: boolean;
+	    score: number;
+	    x: number;
+	    y: number;
+	    w: number;
+	    h: number;
+	    area: Rect;
+	    ms: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new FindResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.found = source["found"];
+	        this.score = source["score"];
+	        this.x = source["x"];
+	        this.y = source["y"];
+	        this.w = source["w"];
+	        this.h = source["h"];
+	        this.area = this.convertValues(source["area"], Rect);
+	        this.ms = source["ms"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -373,6 +439,24 @@ export namespace main {
 	        this.fields = source["fields"];
 	        this.pinnable = source["pinnable"];
 	        this.example = source["example"];
+	    }
+	}
+	export class TemplateShot {
+	    png: string;
+	    scale: number;
+	    w: number;
+	    h: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new TemplateShot(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.png = source["png"];
+	        this.scale = source["scale"];
+	        this.w = source["w"];
+	        this.h = source["h"];
 	    }
 	}
 

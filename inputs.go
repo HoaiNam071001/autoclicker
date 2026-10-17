@@ -57,6 +57,8 @@ var pinFields = map[string]string{
 	"jitterMs":      "int",
 	"jitterPx":      "int",
 	"amount":        "int",
+	"timeoutMs":     "int",
+	"threshold":     "int",
 	"enabled":       "bool",
 }
 
@@ -367,6 +369,16 @@ func setStepField(s *Step, field string, v any) error {
 		s.JitterMs = n
 	case "jitterPx":
 		s.JitterPx = n
+	case "timeoutMs":
+		if n < 1 {
+			return errors.New("thời gian chờ tối đa phải > 0")
+		}
+		s.TimeoutMs = n
+	case "threshold":
+		if n < 1 || n > 100 {
+			return errors.New("độ khớp tối thiểu phải trong 1–100%")
+		}
+		s.Threshold = n
 	case "amount":
 		if n < 1 {
 			return errors.New("số nấc cuộn phải ≥ 1")

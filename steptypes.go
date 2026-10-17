@@ -41,6 +41,15 @@ var stepTypeDocs = []StepTypeDoc{
 	{StepOpen, "Mở URL / app", "Mở target: URL (https://… hoặc tên miền như youtube.com/…), đường dẫn file / app, hoặc tên app (Spotify). app: mở bằng app này, vd Google Chrome; trống = mặc định của máy. Nhận {{biến}} (trong URL tự mã hoá). Không chờ trang tải xong – đặt delayAfter đủ lâu hoặc thêm bước chờ.",
 		[]string{"target", "app"}, []string{"delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","type":"open","target":"https://www.youtube.com/results?search_query={{bai_hat}}","app":"Google Chrome","delayAfter":3000,"enabled":true}`},
+	{StepWaitImage, "Chờ ảnh", "Chờ tới khi ảnh mẫu template (PNG base64, chụp bằng app – CaptureTemplate) hiện trên màn hình, độ khớp ≥ threshold %. Hết timeoutMs không thấy thì dừng kịch bản. Tìm trong vùng của kịch bản, hoặc searchArea \"screen\" = cả màn hình chính. Chỗ thấy được nhớ cho bước clickImage sau.",
+		[]string{"template", "templateScale", "threshold", "timeoutMs", "intervalMs", "searchArea"}, []string{"timeoutMs", "threshold", "delayAfter", "jitterMs", "enabled"},
+		`{"id":"s1","type":"waitImage","template":"iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAAAAADhZOFXAAAAHUlEQVR4nGNkYPjPwMjwn4GJAQb+/4dguAgjEWoAyH0MAWBh3h0AAAAASUVORK5CYII=","templateScale":1,"threshold":90,"timeoutMs":10000,"intervalMs":250,"delayAfter":300,"enabled":true}`},
+	{StepClickImage, "Click theo ảnh", "Click vào tâm chỗ thấy ảnh (+ dx, dy). imageSource prev: dùng kết quả bước chờ ảnh / click theo ảnh gần nhất phía trước; search: tự tìm ảnh mẫu riêng (các trường như waitImage).",
+		[]string{"imageSource", "dx", "dy", "button", "template", "templateScale", "threshold", "timeoutMs", "intervalMs", "searchArea", "jitterPx"}, []string{"timeoutMs", "threshold", "jitterPx", "delayAfter", "jitterMs", "enabled"},
+		`{"id":"s2","type":"clickImage","imageSource":"prev","dx":0,"dy":0,"button":"left","delayAfter":500,"enabled":true}`},
+	{StepWaitPixel, "Chờ màu pixel", "Chờ tới khi điểm points[0] có màu color (#RRGGBB), mỗi kênh lệch ≤ tolerance. Hết timeoutMs thì dừng. Không di chuột.",
+		[]string{"points[1]", "color", "tolerance", "timeoutMs", "intervalMs"}, []string{"timeoutMs", "delayAfter", "jitterMs", "enabled"},
+		`{"id":"s1","type":"waitPixel","points":[{"x":640,"y":300}],"color":"#1877F2","tolerance":10,"timeoutMs":5000,"intervalMs":100,"delayAfter":300,"enabled":true}`},
 }
 
 // StepTypes trả mô tả các loại bước app đang hỗ trợ.

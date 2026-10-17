@@ -104,16 +104,25 @@ func checkScript(sc *Script) error {
 func checkStep(s *Step) error {
 	need := 0
 	switch s.Type {
-	case StepClick, StepDouble, StepHold:
+	case StepClick, StepDouble, StepHold, StepWaitPixel:
 		need = 1
 	case StepDrag:
 		need = 2
-	case StepWait, StepText, StepKey, StepOpen, StepScroll:
+	case StepWait, StepText, StepKey, StepOpen, StepScroll, StepWaitImage, StepClickImage:
 	default:
 		return fmt.Errorf("loại bước không hợp lệ: %q", s.Type)
 	}
 	if s.Direction != "" && !slices.Contains(scrollDirections, s.Direction) {
 		return fmt.Errorf("hướng cuộn không hợp lệ: %q", s.Direction)
+	}
+	if s.ImageSource != "" && s.ImageSource != ImageFromPrev && s.ImageSource != ImageFromSearch {
+		return fmt.Errorf("nguồn vị trí ảnh không hợp lệ: %q", s.ImageSource)
+	}
+	if s.SearchArea != "" && s.SearchArea != "screen" {
+		return fmt.Errorf("vùng tìm không hợp lệ: %q", s.SearchArea)
+	}
+	if s.Threshold < 0 || s.Threshold > 100 || s.Tolerance < 0 || s.Tolerance > 255 || s.TemplateScale < 0 {
+		return errors.New("độ khớp / sai số màu / tỷ lệ ảnh mẫu ngoài khoảng cho phép")
 	}
 	if len(s.Points) < need {
 		return fmt.Errorf("thiếu điểm (cần %d)", need)
@@ -142,7 +151,7 @@ func checkStep(s *Step) error {
 			return fmt.Errorf("phím kèm không hợp lệ: %q", m)
 		}
 	}
-	if s.Clicks < 0 || s.ClickInterval < 0 || s.HoldMs < 0 || s.DragMs < 0 || s.DelayAfter < 0 || s.JitterMs < 0 || s.JitterPx < 0 || s.Amount < 0 {
+	if s.Clicks < 0 || s.ClickInterval < 0 || s.HoldMs < 0 || s.DragMs < 0 || s.DelayAfter < 0 || s.JitterMs < 0 || s.JitterPx < 0 || s.Amount < 0 || s.TimeoutMs < 0 || s.IntervalMs < 0 {
 		return errors.New("số lần / thời gian / ngẫu nhiên không được âm")
 	}
 	if s.Points == nil {

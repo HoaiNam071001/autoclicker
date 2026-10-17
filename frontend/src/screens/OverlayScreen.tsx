@@ -10,10 +10,11 @@ import { frameRect, MapDialog, modKeyName, paramsPreview, TransformBar, Transfor
 import { bbox, NO_TF, TfParams, translate } from '../transform';
 import { Point, Rect, SCROLL_ARROW, scrollDelta, STEP_LABEL, StepPoint } from '../types';
 import { fmtAxis } from '../anchor';
-import { inWails, OverlayTool, overlayFocus, overlayTool, setWindowMode } from '../windowMode';
+import { inWails, OverlayTool, overlayFocus, overlayTool, safeArea, setWindowMode } from '../windowMode';
 import { addSample, currentMapping, isMeasured, resetSamples, toClientPt, toScreenPt } from '../coordMap';
 import { scrollRange, SimulationLayer, useSimulation } from '../components/Simulation';
 import { PageBackdrop, PageKindPicker, usePageKind } from '../components/MockPage';
+import { captureTargetStep, applyCapture, useImageState } from '../imageSteps';
 import { Eye, Play, Region, SelectIcon, StepIcon, Stop, Target } from '../components/icons';
 
 const SPEEDS = [1, 2, 4];
@@ -36,7 +37,7 @@ const TOOLS: { id: OverlayTool; label: string; soon?: string; icon: ReactNode }[
   { id: 'drag', label: 'Kéo thả A → B', icon: <StepIcon type="drag" /> },
   { id: 'region', label: 'Chọn vùng', icon: <Region /> },
   { id: 'select', label: 'Chọn nhiều', icon: <SelectIcon /> },
-  { id: 'capture', label: 'Khoanh ảnh', soon: '25', icon: <StepIcon type="waitImage" /> },
+  { id: 'capture', label: 'Khoanh ảnh', icon: <StepIcon type="waitImage" /> },
 ];
 const toolBtn = 'flex h-11 items-center gap-2 rounded-[7px] px-3.5 font-semibold';
 
@@ -67,6 +68,17 @@ export default function OverlayScreen() {
   const [measured, setMeasured] = useState(isMeasured);
   const [dragFrom, setDragFromState] = useState<Point | null>(null); // toạ độ cửa sổ
   const dragRef = useRef<Point | null>(null);
+  // Khoanh ảnh mẫu (bước 25): khung đã kéo xong (toạ độ cửa sổ), chờ "Dùng ảnh này" / "Khoanh lại".
+  const [cap, setCapState] = useState<Rect | null>(null);
+  const capRef = useRef<Rect | null>(null);
+  const setCap = (r: Rect | null) => {
+    capRef.current = r;
+    setCapState(r);
+  };
+  const [capBusy, setCapBusy] = useState(false);
+  const capUseRef = useRef<() => void>(() => {}); // Enter = Dùng ảnh này
+  const [capErr, setCapErr] = useState('');
+  const { finds } = useImageState();
   const setDragFrom = (p: Point | null) => {
     dragRef.current = p;
     setDragFromState(p);
@@ -139,12 +151,17 @@ export default function OverlayScreen() {
     resetSamples(); // overlay có thể đang mở trên màn khác lần trước
     const onKey = (e: KeyboardEvent) => {
       if (toolRef.current === 'select' && selectKeys(e)) return;
+      if (e.key === 'Enter' && capRef.current && toolRef.current === 'capture') {
+        e.preventDefault();
+        return capUseRef.current();
+      }
       if (e.key !== 'Escape') return;
       // Đang kéo vùng / marker thì Esc chỉ huỷ thao tác đó.
       if (gestureRef.current.cancel()) return;
       if (simRef.current.running) simRef.current.stop(); // xem trước đang chạy → Esc chỉ dừng
       else if (movingRef.current) setMoving(null);
       else if (dragRef.current) setDragFrom(null);
+      else if (capRef.current) setCap(null); // khoanh ảnh: Esc = khoanh lại
       else if (cancelDragA()) return;
       else if (repickRef.current) {
         cancelPick();
@@ -202,7 +219,11 @@ export default function OverlayScreen() {
 
   const onDown = (e: MouseEvent) => {
     skipClick.current = false; // bấm ngoài marker (marker chặn sự kiện này)
-    if (onUI(e) || e.button !== 0 || (tool !== 'region' && tool !== 'select') || focus) return; // kéo vùng / khung chọn
+    if (onUI(e) || e.button !== 0 || (tool !== 'region' && tool !== 'select' && tool !== 'capture') || focus) return; // kéo vùng / khung chọn / khoanh ảnh
+    if (tool === 'capture') {
+      setCap(null);
+      setCapErr('');
+    }
     setDragFrom({ x: e.clientX, y: e.clientY });
   };
 
@@ -230,7 +251,7 @@ export default function OverlayScreen() {
       return;
     }
     if (onUI(e) || preview) return;
-    if (focus ? !repickRef.current : tool === 'region' || tool === 'select') return; // xem riêng: chỉ đặt điểm khi đang chọn lại
+    if (focus ? !repickRef.current : tool === 'region' || tool === 'select' || tool === 'capture') return; // xem riêng: chỉ đặt điểm khi đang chọn lại
     const screen = inWails ? await MousePos() : toScreenFromClient({ x: e.clientX, y: e.clientY });
     placePoint(screen);
     if (focus) setRepicking(pickingStep() !== null); // kéo thả: còn chờ B thì vẫn đang chọn
@@ -255,6 +276,7 @@ export default function OverlayScreen() {
       return setMulti(add ? [...new Set([...multi, ...inside])] : inside);
     }
     if (r.w < MIN_REGION || r.h < MIN_REGION) return;
+    if (tool === 'capture') return setCap(r);
     const tl = toScreenFromClient(r);
     requestRegion({ ...tl, w: Math.round(r.w * map.kx), h: Math.round(r.h * map.ky) });
   };
@@ -361,6 +383,9 @@ export default function OverlayScreen() {
       : 'Kéo marker để sửa · Esc quay lại'
     : preview ? 'Con trỏ giả, không click thật'
     : tool === 'region' ? 'Kéo để khoanh vùng'
+    : tool === 'capture'
+      ? cap ? 'Enter: dùng ảnh này · kéo lại hoặc Esc: khoanh lại'
+        : `Kéo khung sát quanh nút / chữ cần chờ${captureTargetStep() ? ` (bước ${steps.findIndex((x) => x.id === captureTargetStep()) + 1})` : ' – tạo bước Chờ ảnh mới'}`
     : tool === 'select'
       ? multi.length
         ? `${multi.length} điểm · kéo khung / núm để biến đổi · ${modKeyName}+núm: xiên, phối cảnh`
@@ -383,6 +408,68 @@ export default function OverlayScreen() {
         const tl = toClient(bb);
         return <PageBackdrop kind={pageKind} rect={{ ...tl, w: bb.w / map.kx, h: bb.h / map.ky }} s={1 / map.kx} offset={sim.offset} range={scrollRange(steps)} />;
       })()}
+      {/* Khung "Thử tìm" (bước 25): chỗ giống ảnh mẫu nhất trên màn hình lúc thử */}
+      {!preview && steps.map((s, i) => {
+        const f = finds[s.id];
+        if (!f || (focus && s.id !== focus)) return null;
+        const a = toClient(f), b = toClient({ x: f.x + f.w, y: f.y + f.h });
+        return (
+          <div key={`find${s.id}`} className={`pointer-events-none absolute rounded-sm border-2 border-dashed ${f.found ? 'border-ok bg-ok/15' : 'border-warn bg-warn/10'}`}
+            style={{ left: a.x, top: a.y, width: b.x - a.x, height: b.y - a.y }}>
+            <span className={`absolute -top-6 left-0 rounded px-1.5 py-px font-mono text-[11px] whitespace-nowrap text-black ${f.found ? 'bg-ok' : 'bg-warn'}`}>
+              {i + 1}: {f.found ? 'thấy' : 'giống nhất'} · khớp {f.score}%
+            </span>
+          </div>
+        );
+      })}
+
+      {/* Khoanh ảnh mẫu: tối ngoài khung, nhãn cỡ thật, Dùng ảnh này / Khoanh lại */}
+      {tool === 'capture' && !focus && (() => {
+        const r = dragFrom ? rectOf(dragFrom, cursor) : cap;
+        if (!r || (r.w < 2 && r.h < 2)) return null;
+        const size = { w: Math.round(r.w * map.kx), h: Math.round(r.h * map.ky) };
+        const use = async () => {
+          setCapBusy(true);
+          const err = await applyCapture({ ...toScreenFromClient(r), ...size });
+          setCapBusy(false);
+          if (err) setCapErr(err);
+        };
+        capUseRef.current = use;
+        // Nút nổi trong vùng an toàn (không nằm dưới Dock): dưới khung → trên khung → bên cạnh khung
+        const { top: safeTop, bottom: safeBottom } = safeArea();
+        const BW = 340, BH = 52, G = 12, minTop = safeTop + 56; // chừa thanh gợi ý trên cùng
+        const fitBelow = r.y + r.h + G + BH <= safeBottom;
+        const fitAbove = r.y - G - BH >= minTop;
+        const side = !fitBelow && !fitAbove;
+        const left = side
+          ? (r.x + r.w + G + BW <= window.innerWidth ? r.x + r.w + G : Math.max(r.x - G - BW, 8))
+          : Math.min(Math.max(r.x, 8), window.innerWidth - BW - 8);
+        const top = fitBelow ? r.y + r.h + G : fitAbove ? r.y - G - BH : Math.min(Math.max(r.y, minTop), safeBottom - BH - G);
+        // nhãn cỡ: trên khung, trừ khi nút đang nằm trên khung → xuống dưới khung
+        const labelTop = cap && !dragFrom && !fitBelow && fitAbove ? r.y + r.h + 6 : Math.max(r.y - 30, 4);
+        return (
+          <>
+            <div className="pointer-events-none absolute rounded-[3px] border-2 border-accent shadow-[0_0_0_9999px_rgb(0_0_0/.38)]"
+              style={{ left: r.x, top: r.y, width: r.w, height: r.h }} />
+            <span className="pointer-events-none absolute rounded-md bg-accent px-2 py-[3px] font-mono text-xs text-on-accent"
+              style={{ left: r.x, top: labelTop }}>{size.w} × {size.h}</span>
+            {[[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]].map(([x, y], i) => (
+              <span key={i} className="pointer-events-none absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-[2px] border-2 border-accent bg-white" style={{ left: x, top: y }} />
+            ))}
+            {cap && !dragFrom && (
+              <div data-ui className="absolute flex items-center gap-2 rounded-xl bg-hud/95 p-1.5 shadow-[0_8px_24px_rgb(0_0_0/.4)]"
+                style={{ left, top }}>
+                <button onClick={use} disabled={capBusy} className="btn-primary h-[38px] rounded-lg px-3.5 font-semibold disabled:opacity-60">
+                  {capBusy ? 'Đang chụp…' : <>Dùng ảnh này <span className="font-mono text-[11px] font-normal opacity-75">Enter</span></>}
+                </button>
+                <button onClick={() => { setCap(null); setCapErr(''); }} className="h-[38px] rounded-lg bg-white/10 px-3.5 text-hud-text hover:bg-white/15">Khoanh lại <span className="font-mono text-[11px] opacity-60">Esc</span></button>
+                {capErr && <span className="max-w-[360px] px-1.5 text-xs text-danger-text">{capErr}</span>}
+              </div>
+            )}
+          </>
+        );
+      })()}
+
       {shown && (
         <div className={focus ? 'opacity-30' : ''}>
           <div className="absolute rounded-md border-2 border-dashed border-white bg-white/5"

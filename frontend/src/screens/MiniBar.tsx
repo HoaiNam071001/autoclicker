@@ -28,8 +28,11 @@ export default function MiniBar() {
   }, []);
 
   const elapsed = inWails ? elapsedNow(engine) : sample.elapsedMs;
+  // Đang chờ ảnh / pixel: vòng tiến độ theo thời gian chờ (thời gian tính tiếp giữa 2 lần Go báo).
+  const w = p?.wait;
+  const waitNow = w ? Math.min(w.elapsedMs + (p!.paused ? 0 : Date.now() - engine.receivedAt), w.timeoutMs) : 0;
   // Vô hạn vòng: vòng tiến độ chỉ theo bước trong vòng hiện tại.
-  const progress = !p || p.total === 0 ? 0
+  const progress = w ? waitNow / w.timeoutMs : !p || p.total === 0 ? 0
     : p.loops > 0 ? ((p.loop - 1) * p.total + p.step) / (p.loops * p.total)
     : p.step / p.total;
   // p.step đếm trong các bước đang bật (engine.go)
@@ -46,7 +49,9 @@ export default function MiniBar() {
         : counting ? `Bắt đầu sau ${engine.countdown} giây…`
         : !p ? 'Đang bắt đầu…'
         : `${paused ? 'Tạm dừng · ' : ''}Bước ${p.step} / ${p.total}${cur ? `: ${STEP_LABEL[cur.type]}` : ''}`}
-      lines={[`vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`,
+      lines={[
+        ...(w ? [`${w.kind === 'image' ? 'đang tìm' : 'đang chờ màu'} ${(waitNow / 1000).toFixed(1)} / ${w.timeoutMs / 1000} s   khớp nhất ${w.best}%`] : []),
+        `vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`,
         ...(engine.preset ? [`bộ giá trị: ${engine.preset}`] : [])]}
       canPause={running && !counting} onPause={() => (paused ? ResumeScript() : PauseScript())} onStop={stop} />
   );

@@ -17,7 +17,7 @@ export default function PreviewScreen() {
   return (
     <div data-theme="dark" className="flex min-h-screen flex-col bg-bg text-ink">
       <header className="flex flex-wrap items-center gap-2.5 border-b border-line px-4 py-2.5">
-        <span className="text-accent"><Logo /></span>
+        <Logo />
         <span className="mr-4 text-base font-bold">Kịch bản 1</span>
         <div className="flex gap-1 rounded-[10px] bg-surface p-1">
           {['Chọn điểm', 'Kéo thả', 'Chọn vùng'].map((m, i) => (

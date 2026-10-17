@@ -2,6 +2,7 @@
 // khi đổi vùng. Toán ở transform.ts; ghi điểm (giữ neo, B "lệch so với A", điểm ra ngoài vùng) ở scriptStore.ts.
 // Mọi phép tính làm trên toạ độ màn hình thật; khung vẽ theo toạ độ cửa sổ qua toClient.
 import { MouseEvent as ReactMouseEvent, useEffect, useRef, useState } from 'react';
+import { safeArea } from '../windowMode';
 import {
   align, AlignOp, bbox, center, fromParams, IDENTITY, isNoTf, Mat, NO_TF, perspectiveCorner, rotateAbout, scaleAbout,
   skewXAbout, skewYAbout, TfParams, translate,
@@ -157,15 +158,16 @@ export function TransformFrame({ box, toClient, begin, bad, single }: {
 // Thanh ô nhập số: ΔX ΔY / rộng cao % / xoay / xiên → xem trước, Áp dụng (Enter) ghi; căn chỉnh / chia đều / lật áp ngay.
 const BAR_H = 64;
 const BAR_TOP_MIN = 52; // dưới gợi ý một dòng (thanh công cụ tự ẩn)
-const BAR_BOTTOM_GAP = 90; // chừa Dock / taskbar
+const BAR_BOTTOM_GAP = 10; // cách mép vùng an toàn (đã trừ Dock / taskbar – safeArea)
 
 // Thanh né khung (không che núm / điểm): dưới khung nếu đủ chỗ, không thì trên (chừa núm xoay), không nữa thì sát đáy.
 function barTop(frame: Rect) {
+  const { bottom } = safeArea();
   const below = frame.y + frame.h + 16;
-  if (below + BAR_H <= innerHeight - BAR_BOTTOM_GAP) return Math.max(below, BAR_TOP_MIN);
+  if (below + BAR_H <= bottom - BAR_BOTTOM_GAP) return Math.max(below, BAR_TOP_MIN);
   const above = frame.y - 48 - BAR_H;
   if (above >= BAR_TOP_MIN) return above;
-  return innerHeight - BAR_BOTTOM_GAP - BAR_H;
+  return bottom - BAR_BOTTOM_GAP - BAR_H;
 }
 
 export function TransformBar({ points, tf, setTf, frame }: {

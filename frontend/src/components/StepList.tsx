@@ -13,6 +13,8 @@ import {
 } from '../scriptStore';
 import { fmtMs, fmtPos, Script, Step, STEP_LABEL } from '../types';
 import { stepInputCount } from '../scriptInputs';
+import { templateUrl } from '../imageSteps';
+import { useEngine } from '../engineStore';
 import { openOverlay } from '../windowMode';
 
 import AddStepPalette from './AddStepPalette';
@@ -92,6 +94,9 @@ export default function StepList() {
 // inMulti: có điểm đang chọn nhiều (bước 30) – Shift / ⌘ / Ctrl + click thẻ thêm / bỏ điểm của bước; click thường bỏ chọn nhiều.
 function Card({ step: s, index: i, selected, inMulti, script }: { step: Step; index: number; selected: boolean; inMulti: boolean; script: Script }) {
   const inputs = stepInputCount(script, s.id);
+  const failed = useEngine().failedStep === s.id;
+  // ảnh mẫu thu nhỏ: nhìn danh sách là biết bước nào chờ ảnh nào
+  const tpl = s.template && (s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search'));
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: s.id });
   const iconBtn = 'grid h-7 w-7 place-items-center rounded-md text-muted hover:bg-hover hover:text-ink';
 
@@ -101,8 +106,8 @@ function Card({ step: s, index: i, selected, inMulti, script }: { step: Step; in
         selectStep(s.id);
         setMulti([]);
       }}
-      title={inMulti ? 'Có điểm đang chọn nhiều – Shift / ⌘ + click để bỏ' : undefined}
-      className={`${cardClass(selected)} ${inMulti ? 'outline-2 outline-offset-1 outline-accent' : ''} ${isDragging ? 'z-10 shadow-[0_6px_20px_rgb(0_0_0/.18)]' : ''}`}>
+      title={failed ? 'Lần chạy trước dừng ở bước này' : inMulti ? 'Có điểm đang chọn nhiều – Shift / ⌘ + click để bỏ' : undefined}
+      className={`${cardClass(selected)} ${inMulti ? 'outline-2 outline-offset-1 outline-accent' : ''} ${failed ? 'outline-2 outline-offset-1 outline-danger' : ''} ${isDragging ? 'z-10 shadow-[0_6px_20px_rgb(0_0_0/.18)]' : ''}`}>
       {/* ô icon = tay kéo để sắp xếp */}
       <button ref={setActivatorNodeRef} {...listeners} {...attributes} aria-label={`Kéo để sắp xếp bước ${i + 1}`} title="Kéo để sắp xếp"
         className={`${tileClass(selected)} cursor-grab touch-none active:cursor-grabbing ${s.enabled ? '' : 'opacity-50'}`}>
@@ -110,8 +115,12 @@ function Card({ step: s, index: i, selected, inMulti, script }: { step: Step; in
       </button>
       <CardBody n={String(i + 1).padStart(2, '0')} enabled={s.enabled}
         title={`${STEP_LABEL[s.type]}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`}
-        tags={!s.enabled && <span className="rounded-full bg-soft px-[7px] py-px text-[11px] text-muted">Tắt</span>}
         chips={inputs ? [`${inputs} input`] : undefined}
+        tags={<>
+          {!s.enabled && <span className="rounded-full bg-soft px-[7px] py-px text-[11px] text-muted">Tắt</span>}
+          {failed && <span className="rounded-full bg-danger-soft px-[7px] py-px text-[11px] font-semibold text-danger-text">Dừng ở đây</span>}
+        </>}
+        media={tpl ? <img src={templateUrl(s.template)} alt="Ảnh mẫu" className="h-7 max-w-[72px] rounded border border-line object-contain" /> : undefined}
         detail={fmtPos(s)} delay={`${fmtMs(s.delayAfter)}${s.jitterMs > 0 ? ` ±${s.jitterMs}` : ''}`} />
       {/* nút nổi ở góc phải khi rê chuột – không đẩy bố cục */}
       <span onClick={(e) => e.stopPropagation()} className="absolute inset-y-0 right-2 hidden items-center gap-0.5 group-hover:flex">

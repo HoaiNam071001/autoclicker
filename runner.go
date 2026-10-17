@@ -81,7 +81,17 @@ func (a *App) RunScript(sc Script, values map[string]any, countdown int) error {
 	if errors.Is(err, context.Canceled) {
 		return nil
 	}
+	if err != nil && eng.failed != "" {
+		// frontend chọn bước lỗi; chờ ảnh hết giờ thì kèm chỗ giống nhất để xem lại
+		runtime.EventsEmit(a.ctx, "engine:failed", FailedStep{StepID: eng.failed, Miss: eng.miss})
+	}
 	return err
+}
+
+// FailedStep – bước làm lần chạy dừng vì lỗi (event engine:failed).
+type FailedStep struct {
+	StepID string      `json:"stepId"`
+	Miss   *FindResult `json:"miss,omitempty"` // chờ ảnh hết giờ: chỗ giống nhất
 }
 
 // stopWith dừng kịch bản đang chạy và emit "engine:stopped" kèm lý do (F8, góc màn hình).
