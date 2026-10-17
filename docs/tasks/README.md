@@ -10,7 +10,81 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - **Tiếp theo:** 20: F5 → F6 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17 (tách docs/TASKS.md thành docs/tasks/)
 
-## Tổng quan
+## Tính năng của hệ thống
+
+> ✅ có, chạy được · 🧪 xong code, chờ bạn kiểm tra tay ([checks.md](checks.md)) · 🟡 có một phần · ⬜ chưa làm. Bấm cột *Bước* để xem chi tiết.
+> Cập nhật bảng này khi một tính năng đổi trạng thái (viết tay, khác bảng *Tổng quan* tự sinh ở dưới).
+
+### Soạn kịch bản
+
+| | Tính năng | Ghi chú | Bước |
+|---|---|---|---|
+| 🧪 | Canvas flow kiểu n8n | Kéo node, nối cổng ra → node kế, thả cổng ở chỗ trống để thêm node, tự xếp, zoom, minimap | [20 F4b](phase3/20-flow.md) |
+| ✅ | Bảng thêm node Ctrl/Cmd+K | Tìm không dấu, phím mũi tên, nối vào node đang chọn | [20](phase3/20-flow.md) |
+| ✅ | Sửa node | Tên, mã node (n2), cổng ra, output, bật / tắt, node bắt đầu; copy / paste, nhân bản, chọn nhiều, xoá | [20 F4b](phase3/20-flow.md) |
+| ✅ | Hoàn tác / làm lại | Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z cho mọi thay đổi | [30](phase3/30-sua-nhieu-diem.md) |
+| ✅ | Chọn vùng / toàn màn hình, đặt điểm | Overlay: click hoặc F6, kéo marker, chọn lại điểm, xem riêng một node | [10–13](phase1-mvp.md), [19c](phase2.md) |
+| ✅ | Neo điểm theo cạnh vùng | Điểm bám góc / cạnh / giữa / % – đổi cỡ vùng không lệch | [29](phase3/29-neo-diem.md) |
+| 🟡 | Sửa nhiều điểm cùng lúc | Di chuyển, co giãn, xoay, xiên, căn, lật, ánh xạ khi đổi vùng – **còn** ánh xạ theo 4 điểm mốc | [30](phase3/30-sua-nhieu-diem.md) |
+| ✅ | Input của kịch bản | Ghim trường làm input, `{{biến}}` trong ô chữ, form Chạy, preset, nhớ giá trị lần trước | [21b](phase3/21b-input.md) |
+| ✅ | Lưu / mở kịch bản | File `.json`, mở gần đây, nháp tự lưu, hỏi lưu khi đóng | [21](phase3/21-luu-tai.md) |
+| ⬜ | Ghi macro | Ghi click / kéo / gõ phím thành node, F9 dừng | [24](phase3/24-ghi-macro.md) |
+
+### Node hành động
+
+| | Tính năng | Ghi chú | Bước |
+|---|---|---|---|
+| ✅ | Click / double click / giữ chuột / kéo thả | Nút trái / phải / giữa, số lần click, kéo từ điểm trước, B lệch so với A | [7](phase1-mvp.md), [13](phase1-mvp.md) |
+| ✅ | Ngẫu nhiên hoá | ± ms thời gian chờ, ± px vị trí | [19](phase2.md) |
+| ✅ | Gõ chữ, phím tắt | Tiếng Việt, tổ hợp phím, gõ lần lượt | [7](phase1-mvp.md) |
+| ✅ | Chờ, cuộn, mở URL / app | Cuộn theo nấc tại điểm / tại chuột; mở bằng app chỉ định | [23](phase3/23-cuon-mo-url.md) |
+| 🧪 | Chờ ảnh / click theo ảnh / chờ màu pixel | Khoanh ảnh mẫu, Thử tìm, khác tỷ lệ Retina vẫn tìm được, mọi màn hình | [25](phase3/25-cho-anh.md) |
+| 🧪 | Chờ chữ / click theo chữ (OCR) | Đọc chữ trên màn hình, bỏ dấu, chỗ thứ N – **chỉ macOS**, Windows chưa có | [25e](phase3/25e-ocr.md) |
+| ✅ | Thử lại khi thất bại | Thử lại N lần, nghỉ giữa các lần, hết lượt đi cổng Thất bại | [25b](phase3/25b-khi-that-bai.md), [20](phase3/20-flow.md) |
+| ⬜ | Focus cửa sổ theo tên | Đưa app lên trước | [26](phase3/26-focus-cua-so.md) |
+| ⬜ | Web qua DOM | Tìm phần tử trang bằng chữ / selector (Chrome), bấm bằng chuột thật | [25d](phase3/25d-web-dom.md) |
+
+### Rẽ nhánh & luồng
+
+| | Tính năng | Ghi chú | Bước |
+|---|---|---|---|
+| ✅ | Cổng Thành công / Thất bại, vòng lặp bằng cạnh | Thất bại không nối = dừng báo lỗi; chặn lặp vô hạn 10 000 node / vòng | [20 F1–F2](phase3/20-flow.md) |
+| ✅ | Biến giữa các node | `{{n2.output.x}}`, `{{n2.status}}`, `{{last…}}`, `{{vars…}}`; gợi ý khi gõ `{{` | [20](phase3/20-flow.md) |
+| 🧪 | Nếu | Thấy chữ / ảnh / màu, so giá trị, và / hoặc, đảo, chờ tới khi đúng | [20 F3](phase3/20-flow.md) |
+| 🧪 | Switch theo giá trị / theo màn hình | Bằng / chứa / khớp mẫu; màn nào hiện trước đi cổng đó | [20 F3](phase3/20-flow.md) |
+| 🧪 | Đếm, Kết thúc, Đặt biến | Giới hạn số lần lặp; kết thúc thành công / báo lỗi; gán / cộng biến | [20 F3](phase3/20-flow.md) |
+| 🧪 | Thử node | Xét Nếu / Switch trên màn hình lúc này, khung chỗ thấy trên overlay | [20 F3](phase3/20-flow.md) |
+| ⬜ | Gọi kịch bản khác như một node (subflow) | | [28](phase3/28-mo-rong.md) |
+
+### Chạy
+
+| | Tính năng | Ghi chú | Bước |
+|---|---|---|---|
+| ✅ | Chạy N vòng / vô hạn / theo thời gian | Đếm ngược, F8 chạy / dừng, tạm dừng / tiếp tục, thanh mini | [8](phase1-mvp.md), [16](phase1-mvp.md) |
+| ✅ | Dừng khẩn cấp | Rê chuột vào góc màn hình | [9](phase1-mvp.md) |
+| 🟡 | Xem trước bằng con trỏ giả | Có – **chưa** đi theo nhánh rẽ (làm ở F6) | [19b](phase2.md), [20 F6](phase3/20-flow.md) |
+| ⬜ | Canvas khi chạy + nhật ký từng node | Node đang chạy / xong / lỗi, bảng nhật ký, lời nhắn Kết thúc thành công | [20 F5](phase3/20-flow.md) |
+| ⬜ | Lịch sử chạy, debug | Lưu 50 lần chạy gần nhất, chạy từ node / từng node, breakpoint | [20 F5](phase3/20-flow.md) |
+| ⬜ | Hẹn giờ, thông báo, CLI / API local | Chạy lúc HH:mm, báo Telegram / Discord, lệnh `autoclicker run` | [22](phase3/22-hen-gio-cli-api.md) |
+| ⬜ | Chạy theo từng dòng CSV | | [28](phase3/28-mo-rong.md) |
+
+### AI
+
+| | Tính năng | Ghi chú | Bước |
+|---|---|---|---|
+| ✅ | Mô tả loại node + hướng dẫn flow cho AI | `StepTypes`, `FlowGuide`, kịch bản mẫu – nền cho MCP | [20 F1](phase3/20-flow.md) |
+| ⬜ | AI tạo / sửa kịch bản qua MCP | Claude / ChatGPT / Cursor… ra lệnh bằng lời | [31a](phase3/31-mcp-ai.md) |
+| ⬜ | AI nhìn màn hình, AI tự thử và chạy | Chụp màn hình, khoanh ảnh mẫu; chạy có hỏi quyền | [31b, 31c](phase3/31-mcp-ai.md) |
+
+### Giao diện & nền tảng
+
+| | Tính năng | Ghi chú | Bước |
+|---|---|---|---|
+| ✅ | Giao diện v2, theme sáng / tối | Kiểu Windows 11; UI dựng sẵn cho tính năng *Sắp có* | [27](phase3/27-ui-v2.md), [27b](phase3/27b-ui-sap-co.md) |
+| 🟡 | Đa màn hình / DPI | macOS xong (chờ kiểm tra tay 2 màn); Windows chưa thử | [17](phase1-mvp.md) |
+| ⬜ | Bản Windows (.exe) | Cần máy Windows | [18](phase1-mvp.md) |
+
+## Tổng quan theo bước
 
 > Bảng tự sinh – sau khi tick chạy `python3 scripts/tasks-index.py`. Bấm tên bước để mở file chi tiết.
 
