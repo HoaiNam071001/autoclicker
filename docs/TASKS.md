@@ -6,9 +6,9 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 29 (neo 4 góc) – xong code + test, chờ kiểm tra tay. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 21 → 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
-- **Cập nhật lần cuối:** 2026-10-16
+- **Đang làm:** – (xong 21). Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
+- **Cập nhật lần cuối:** 2026-10-17
 
 ## Quyết định đã chốt
 
@@ -22,6 +22,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - **Neo điểm theo trục** (29): X neo trái / phải, Y neo trên / dưới (thêm giữa, %), lưu offset dương + tên neo, UI hiện dạng ±; làm ngay sau UI (27, 27b), trước 21, để định dạng file có neo ngay từ đầu (không cần chuyển đổi). Biến đổi nhiều điểm (30) làm sau 27 + 21, ghi lại offset theo neo.
 - **UI trước, logic sau** (27b): tính năng chưa có vẫn hiện trong app nhưng tắt + nhãn *Sắp có*; dữ liệu giả chỉ ở màn `#demo` (`frontend/src/demo/`), không thêm loại bước chưa làm vào `types.ts` / `model.go`.
 - **Input của kịch bản** áp vào bản sao trước khi chạy (`resolveInputs`), engine không đổi; giá trị lần trước / preset lưu trên máy, không ghi vào file kịch bản; input trong nhóm lặp dùng cùng giá trị mọi vòng (mỗi vòng một giá trị → CSV, bước 28).
+- **File kịch bản** (21, 2026-10-17): `.json` có `version` (hiện 1); mở file chỉ kiểm tra cấu trúc (`checkScript`), không chạy `validateScript` – bản soạn dở vẫn mở được, lúc Chạy mới kiểm tra đủ. *Lưu thành* đổi tên kịch bản theo tên file. Mỗi lần mở một kịch bản; bản nháp tự lưu ghi cả đường dẫn + cờ chưa lưu. Đóng app chọn *Không lưu* thì xoá nháp.
 - **Gõ chữ / phím tắt đưa vào MVP** (loại bước `type`, `key`) thay vì Phase 2, để model, engine, form làm một lần.
 - Toạ độ lưu theo **toạ độ màn hình thật (robotgo)**. Overlay tự đo độ lệch cửa sổ ↔ màn hình (so `clientX/Y` với `robotgo.Location` khi chuột đứng yên) thay vì tính từ vị trí cửa sổ – Wails macOS đặt cửa sổ dưới menu bar.
 - Cửa sổ luôn **frameless + nền trong suốt** (Wails v2 không đổi được lúc chạy); MainScreen tự vẽ thanh kéo và nút thu nhỏ / đóng.
@@ -234,26 +235,28 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - Xong khi: `#demo` hiện đủ các phần trên ở cả 2 theme, khớp canvas; app thật không có nút nào bấm được mà không chạy; `npm run build` sạch
   - Kết quả: màn mẫu `#demo` (màn soạn đủ loại bước + nhóm, thư viện, inspector từng loại, tab Input, form Chạy, hẹn giờ, ghi macro, debug), `#demo-overlay` (khoanh ảnh, chọn nhiều + biến đổi + ánh xạ), `#demo-minibar` (các trạng thái thanh mini). Code dùng lại khi làm logic: `components/StepCard.tsx`, `components/inputs/*`, `components/steps/*` (model + `StepFields` + `AnchorField`), `ScheduleDialog.tsx`, `AppChrome.tsx`, `MiniBarView`, `LibraryView`. Dữ liệu mẫu chỉ trong `frontend/src/demo/`
   - [x] Người dùng xem `#demo`, `#demo-overlay`, `#demo-minibar` và màn chính (nút tắt + *Sắp có*), góp ý trước khi commit
-- [ ] **29. Neo điểm theo 4 góc vùng** *(người dùng yêu cầu, 2026-10-16)* – Hiện điểm chỉ tính từ góc trên trái của vùng nên điểm ở phía phải / dưới lệch khi đổi vùng. Mỗi trục neo riêng: X neo trái (+) hoặc phải (−), Y neo trên (+) hoặc dưới (−). Ví dụ 4 điểm cách mỗi cạnh 300 px = (+300, +300), (−300, +300), (+300, −300), (−300, −300); đổi vùng thì mỗi điểm bám theo góc của nó.
+- [x] **29. Neo điểm theo 4 góc vùng** *(người dùng yêu cầu, 2026-10-16)* – Hiện điểm chỉ tính từ góc trên trái của vùng nên điểm ở phía phải / dưới lệch khi đổi vùng. Mỗi trục neo riêng: X neo trái (+) hoặc phải (−), Y neo trên (+) hoặc dưới (−). Ví dụ 4 điểm cách mỗi cạnh 300 px = (+300, +300), (−300, +300), (+300, −300), (−300, −300); đổi vùng thì mỗi điểm bám theo góc của nó.
   - [x] Model: `Point` thêm `ax` (`start` = trái | `end` = phải | `center` | `ratio` = theo % rộng), `ay` (tương tự cho trên / dưới); bỏ trống = `start` (file / kịch bản cũ chạy như cũ). Lưu offset dương + neo riêng thay vì dùng dấu (để phân biệt +0 / −0); UI hiện dạng có dấu ±
   - [x] Toàn màn hình (`region = nil`) cũng neo được: chốt **giữ `nil`**, lúc tính thì khung = màn hình chính (`mainScreen`, Go; frontend lấy qua `ScreenBounds`) – kịch bản mang sang máy khác cỡ màn hình vẫn bám góc. Đa màn hình xử lý ở 17
   - [x] Go: một hàm `resolvePoint(p, region)` dùng chung cho engine (`runStep.pt`) và `validateScript` (điểm phải nằm trong vùng); test 4 góc, center, ratio, đổi cỡ vùng, kịch bản cũ không có neo
   - [x] Frontend: `toScreen` / `toRelative` / `endpoints()` trong `scriptStore.ts` tính theo neo (khớp Go); đổi neo giữ nguyên chỗ trên màn hình (tính lại offset)
   - [x] Neo khi đặt điểm: mặc định **tự chọn góc gần nhất** theo từng trục; kéo marker / chọn lại giữ neo hiện tại
-  - [ ] Cài đặt kịch bản *góc gần nhất / luôn trên trái* – chưa làm (cần chỗ lưu cài đặt kịch bản, làm cùng 21)
+  - [x] Cài đặt kịch bản *góc gần nhất / luôn trên trái* – `Script.anchorMode`, chọn trong popup nút "N vòng" (làm cùng 21)
   - [x] Form: ô X / Y có dấu ± – gõ số âm = neo phải / dưới; nút chọn neo dạng lưới 3×3 nhỏ (4 góc, giữa cạnh, tâm) + tuỳ chọn %; danh sách bước hiện toạ độ dạng `(−300, +300)`
   - [x] Overlay: đường mảnh từ marker tới cạnh / góc đang neo (hiện với bước đang chọn hoặc khi giữ Alt); đổi vùng (kéo vùng mới) thấy marker bám theo góc ngay
   - [x] Kéo thả "lệch so với A" (ΔX, ΔY) giữ nguyên – lệch không phụ thuộc neo
   - [x] Nối UI khung từ 27b (ô ±, lưới chọn neo, đường neo trên overlay)
   - Xong khi: đặt 4 điểm ở 4 góc vùng 1000×700, đổi vùng sang 1400×900 → 4 điểm vẫn cách mỗi cạnh đúng 300 px khi chạy thật và trên overlay
-- [ ] **21. Lưu / tải kịch bản** – App chưa lưu gì; thêm `version` trước khi đổi model nhiều.
+- [x] **21. Lưu / tải kịch bản** – App chưa lưu gì; thêm `version` trước khi đổi model nhiều.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
-  - [ ] Model: `Script.version`; file `.json`
-  - [ ] Go: `SaveScript`, `SaveScriptAs`, `OpenScript` qua `runtime.SaveFileDialog` / `OpenFileDialog`; `validateScript` khi mở; danh sách mở gần đây (≤ 5) + bản nháp tự lưu trong `os.UserConfigDir()/autoclicker/`
-  - [ ] Thư viện ở thanh bên [`Main`]: ô tìm, mục đang mở (`bg-hover` + vạch trái 3×16 `bg-accent`), chấm `warn` khi chưa lưu, "Mở gần đây", nút Kịch bản mới / Mở / Lưu
-  - [ ] Nhãn "Chưa lưu" cạnh tên kịch bản; status bar "Bản nháp tự lưu lúc …"; chấm `ok` "Sẵn sàng"
-  - [ ] Phím Ctrl+S, Ctrl+Shift+S, Ctrl+O, Ctrl+N (macOS: Cmd); hỏi lưu khi đóng app / đổi kịch bản
-  - [ ] Test: ghi rồi đọc lại khớp; file hỏng / sai `version` báo lỗi
+  - [x] Model: `Script.version` (`ScriptVersion = 1`), `Script.anchorMode`; file `.json`
+  - [x] Go `storage.go`: `SaveScript` / `SaveScriptAs` / `OpenScript` / `OpenScriptPath` qua `runtime.SaveFileDialog` / `OpenFileDialog`; mở file kiểm tra cấu trúc (`decodeScript` + `checkScript`: version, loại bước, số điểm, neo, số âm; bổ sung slice trống, id trống / trùng); mở gần đây (≤ 5, trong `settings.json`, file mất thì bỏ) + bản nháp `draft.json` (`SaveDraft` / `LoadDraft` / `ClearDraft`) trong `os.UserConfigDir()/autoclicker/`; ghi file tạm rồi đổi tên
+  - [x] Frontend `scriptFile.ts`: cờ `dirty` + `path` trong store (mọi `updateScript` bật cờ), tự ghi nháp sau 800 ms, mở app khôi phục nháp (không có thì kịch bản trống – app thật không còn dữ liệu mẫu)
+  - [x] Thư viện ở thanh bên [`Main`]: ô tìm (lọc cả mở gần đây), chấm `warn` khi chưa lưu, "Mở gần đây" bấm mở được, nút Kịch bản mới / Mở / Lưu
+  - [x] Nhãn "Chưa lưu" theo cờ thật, rê tên kịch bản thấy đường dẫn; status bar "Bản nháp tự lưu lúc …", lỗi lưu / mở; chấm `ok` "Sẵn sàng"
+  - [x] Phím Cmd/Ctrl + S, + Shift + S, + O, + N; hộp thoại `SaveChangesDialog` (Lưu / Không lưu / Huỷ, Enter / Esc) khi kịch bản mới, mở khác, đóng app (`OnBeforeClose` → event `app:confirmClose`, `ConfirmQuit`)
+  - [x] Test `storage_test.go`: ghi rồi đọc lại khớp, file hỏng / thiếu / sai `version` / giá trị lạ báo lỗi, bổ sung mặc định, nháp, mở gần đây, tên file an toàn
+  - [x] Kiểm tra tay trên macOS: lưu / lưu thành / mở / mở gần đây, sửa rồi tắt app mở lại còn nháp, đóng app khi chưa lưu hỏi lưu, file hỏng báo lỗi
   - Xong khi: tắt app mở lại vẫn còn bản nháp; mở / lưu qua hộp thoại trên macOS
 - [ ] **30. Sửa nhiều điểm cùng lúc: di chuyển, co giãn, xoay, xiên** *(người dùng yêu cầu, 2026-10-16)* – Chọn nhiều marker trên overlay (chế độ sửa và tab Xem trước) rồi biến đổi cả nhóm để khớp vùng mới.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
@@ -421,3 +424,5 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-16** – Bước 29 (neo 4 góc): `anchor.go` (`resolvePoint`, `mainScreen`, `ScreenBounds`) + `anchor.ts` cùng công thức; `Point.ax/ay` (`omitempty`, trống = start), ratio lưu 1/10000; `validateScript` báo điểm ngoài vùng; toàn màn hình neo theo màn chính. Frontend: `StepPoint`, đặt điểm neo góc gần nhất, lưới / % đổi neo giữ chỗ (`setAnchor`), `AnchorField` thật trong inspector (điểm, A, B), danh sách hiện ±, overlay vẽ đường neo (bước đang chọn, giữ Alt = mọi điểm), marker bám vùng ngay khi đang kéo. `go test -race` OK (thêm 4 test neo), `npm run build` OK, kiểm tra `anchor.ts` bằng cùng bộ số với test Go, chụp headless inspector + overlay. Chưa kiểm tra tay, chưa commit.
 - **2026-10-17** – Theo yêu cầu: ô chọn neo 3×3 quá nhỏ → bản đồ thu nhỏ vùng / màn hình theo đúng tỷ lệ (`AnchorMap` trong `AnchorField.tsx`, tối đa 268×150) dưới ô X / Y: điểm của bước, 9 chấm neo bấm được (vùng bấm 20 px), đường neo + khoảng cách, điểm còn lại của bước kéo thả vẽ mờ, nhãn cỡ vùng. `npm run build` OK, chụp headless sáng / tối; chưa commit.
 - **2026-10-17** – Theo yêu cầu: bước kéo thả dùng **một** bản đồ chung cho A và B (marker A / B + mũi tên A → B), nút A | B chọn điểm đổi neo; ẩn A khi "từ điểm trước", ẩn B khi "lệch so với A". `AnchorMap` export, nhận `marks` / `arrow`. `npm run build` OK, chụp headless; chưa commit.
+- **2026-10-17** – Người dùng xác nhận kiểm tra tay bước 29 OK → tick. Bước 21 (lưu / tải): `storage.go` (file `.json` có `version`, kiểm tra cấu trúc khi mở, mở gần đây, bản nháp, hỏi lưu khi đóng app qua `OnBeforeClose`), `scriptFile.ts` (cờ chưa lưu, tự ghi nháp, khôi phục khi mở app), `SaveChangesDialog`, thư viện / phím tắt / status bar nối thật; thêm `Script.anchorMode` (mục còn lại của 29). `go test -race` OK (thêm 6 test lưu / đọc), `go build` + `npm run build` OK. Chưa kiểm tra tay, chưa commit.
+- **2026-10-17** – Người dùng xác nhận kiểm tra tay bước 21 OK → tick. Sửa (người dùng báo): gợi ý tên phím (bước Phím tắt) dùng `<datalist>` – WebView macOS vẽ chữ trắng trên nền trắng, không có mô tả → combobox tự vẽ trong `StepForm.tsx` (lọc theo phím đang gõ sau dấu phẩy, ↑ ↓ / Enter / Tab / Esc), mỗi dòng tên phím + mô tả tiếng Việt (`keyLabel` trong `types.ts`). `npm run build` OK, chụp headless sáng / tối thấy rõ chữ.

@@ -3,8 +3,8 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Loop, Play, Stop } from './icons';
 
-export function Toolbar({ name, unsaved, unsavedTitle, loop, loopPanel, running, runDisabled, runTitle, onRun, onPreview, extra }: {
-  name: string;
+export function Toolbar({ name, nameTitle, unsaved, unsavedTitle, loop, loopPanel, running, runDisabled, runTitle, onRun, onPreview, extra }: {
+  name: string; nameTitle?: string;
   unsaved?: boolean; unsavedTitle?: string;
   loop: string; loopPanel: ReactNode; // chữ trên nút "N vòng" + nội dung popup
   running: boolean; runDisabled?: boolean; runTitle?: string; onRun: () => void;
@@ -13,7 +13,7 @@ export function Toolbar({ name, unsaved, unsavedTitle, loop, loopPanel, running,
 }) {
   return (
     <div className="drag flex flex-none flex-wrap items-center gap-3.5 bg-chrome px-[18px] pt-1.5 pb-3">
-      <span className="max-w-[280px] truncate text-[19px] font-semibold" title="Kịch bản">{name}</span>
+      <span className="max-w-[280px] truncate text-[19px] font-semibold" title={nameTitle ?? 'Kịch bản'}>{name}</span>
       {unsaved && (
         <span title={unsavedTitle} className="flex h-[22px] items-center gap-1.5 rounded-full bg-soft px-[9px] text-xs text-muted">
           <span className="h-1.5 w-1.5 rounded-full bg-warn" />Chưa lưu

@@ -1,5 +1,5 @@
 // Inspector – cấu hình bước đang chọn (design v2, cột phải), sửa trực tiếp vào store (bước 15)
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Eye, StepIcon, Target } from './icons';
 import { openOverlay } from '../windowMode';
 import NumInput, { fieldBox } from './NumInput';
@@ -10,7 +10,7 @@ import AnchorField, { AnchorMap } from './steps/AnchorField';
 import {
   boundsOf, changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
 } from '../scriptStore';
-import { fmtKey, isValidKey, KEY_NAMES, KeyMode, Modifier, MouseButton, Step, STEP_LABEL, StepPoint, StepType } from '../types';
+import { fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, Step, STEP_LABEL, StepPoint, StepType } from '../types';
 
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'wait', 'type', 'key'];
 const isMac = navigator.platform.startsWith('Mac');
@@ -174,10 +174,16 @@ export default function StepForm({ step: s, index }: Props) {
 }
 
 // Ô phím chính: nhiều phím cách nhau bằng dấu phẩy / khoảng trắng ("c, t"). Giữ bản nháp khi gõ.
+// Gợi ý tên phím tự vẽ (datalist của WebView macOS chữ trắng trên nền trắng, không có mô tả): lọc theo phím đang gõ
+// (phần sau dấu phẩy cuối) trong cả tên lẫn mô tả; ↑ ↓ chọn, Enter / Tab điền, Esc đóng.
 const parseKeys = (text: string) => text.split(/[\s,]+/).map((k) => k.toLowerCase()).filter(Boolean);
+const KEY_OPTIONS = KEY_NAMES.map((name) => ({ name, label: keyLabel(name) }));
 
 function KeysField({ step: s, onChange }: { step: Step; onChange: (keys: string[]) => void }) {
   const [draft, setDraft] = useState(s.keys.join(', '));
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const listRef = useRef<HTMLUListElement>(null);
   const joined = s.keys.join(',');
   // Chỉ ghi đè bản nháp khi phím bị đổi từ nơi khác (đổi bước, hoàn tác…), không phải do đang gõ.
   useEffect(() => {
@@ -185,22 +191,83 @@ function KeysField({ step: s, onChange }: { step: Step; onChange: (keys: string[
   }, [joined]); // eslint-disable-line react-hooks/exhaustive-deps
   const bad = s.keys.filter((k) => !isValidKey(k));
   const ok = s.keys.length > 0 && bad.length === 0;
+
+  // Phím đang gõ = phần sau dấu phân cách cuối.
+  const start = draft.search(/[^\s,]*$/);
+  const typed = draft.slice(start).toLowerCase();
+  const matches = typed
+    ? KEY_OPTIONS.filter((o) => o.name.includes(typed) || o.label.toLowerCase().includes(typed))
+      .sort((x, y) => Number(!x.name.startsWith(typed)) - Number(!y.name.startsWith(typed)))
+    : KEY_OPTIONS;
+  const shown = open && matches.length > 0;
+
+  useEffect(() => {
+    listRef.current?.children[active]?.scrollIntoView({ block: 'nearest' });
+  }, [active, shown]);
+
+  const edit = (text: string) => {
+    setDraft(text);
+    onChange(parseKeys(text));
+  };
+  const choose = (name: string) => {
+    edit(draft.slice(0, start) + name);
+    setOpen(false);
+  };
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (!shown) {
+      if (e.key === 'ArrowDown') setOpen(true);
+      return;
+    }
+    if (e.key === 'ArrowDown') setActive((active + 1) % matches.length);
+    else if (e.key === 'ArrowUp') setActive((active - 1 + matches.length) % matches.length);
+    else if ((e.key === 'Enter' || e.key === 'Tab') && typed) choose(matches[active].name);
+    else if (e.key === 'Escape') setOpen(false);
+    else return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
-    <label className="col-span-2 flex flex-col gap-1.5 text-muted">Phím
-      <input value={draft} list="key-names" placeholder="enter · hoặc nhiều phím: c, t"
-        onChange={(e) => {
-          setDraft(e.target.value);
-          onChange(parseKeys(e.target.value));
-        }}
-        onBlur={() => setDraft(s.keys.join(', '))}
-        className={`h-8 rounded-control border bg-field px-2.5 font-mono text-[13px] text-ink outline-none ${ok ? 'border-line focus:ring-focus' : 'border-danger'}`} />
-      <datalist id="key-names">{KEY_NAMES.map((k) => <option key={k} value={k} />)}</datalist>
+    <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+      <label htmlFor="key-input">Phím</label>
+      <div className="relative">
+        <input id="key-input" value={draft} placeholder="enter · hoặc nhiều phím: c, t" autoComplete="off" spellCheck={false}
+          role="combobox" aria-expanded={shown} aria-controls="key-options" aria-autocomplete="list"
+          onChange={(e) => {
+            edit(e.target.value);
+            setActive(0);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)} onClick={() => setOpen(true)} onKeyDown={onKeyDown}
+          onBlur={() => {
+            setOpen(false);
+            setDraft(s.keys.join(', '));
+          }}
+          className={`h-8 w-full rounded-control border bg-field px-2.5 font-mono text-[13px] text-ink outline-none ${ok ? 'border-line focus:ring-focus' : 'border-danger'}`} />
+        {shown && (
+          <ul id="key-options" ref={listRef} role="listbox" aria-label="Gợi ý tên phím"
+            className="absolute inset-x-0 top-full z-30 mt-1 max-h-[240px] overflow-y-auto rounded-panel border border-line bg-surface p-1 shadow-[0_8px_28px_rgb(0_0_0/.16)]">
+            {matches.map((o, i) => (
+              <li key={o.name} role="option" aria-selected={i === active}
+                onMouseDown={(e) => {
+                  e.preventDefault(); // giữ focus ô nhập
+                  choose(o.name);
+                }}
+                onMouseEnter={() => setActive(i)}
+                className={`flex cursor-pointer items-center gap-3 rounded-md px-2.5 py-1.5 ${i === active ? 'bg-hover' : ''}`}>
+                <span className="min-w-[88px] font-mono text-[13px] text-ink">{o.name}</span>
+                <span className="min-w-0 flex-1 truncate text-xs text-muted">{o.label}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <span className={`text-xs ${ok ? '' : 'text-danger-text'}`}>
         {s.keys.length === 0 ? 'Chưa có phím – chạy sẽ báo lỗi'
           : bad.length ? `Tên phím không hợp lệ: ${bad.join(', ')} – chọn trong gợi ý hoặc gõ 1 ký tự`
-          : `Sẽ bấm: ${fmtKey(s)}`}
+          : `Sẽ bấm: ${fmtKey(s)} · phím chữ / số: gõ 1 ký tự (a, 1, /)`}
       </span>
-    </label>
+    </div>
   );
 }
 

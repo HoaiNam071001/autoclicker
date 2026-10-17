@@ -7,9 +7,11 @@ import { inWails, openOverlay, setWindowMode } from './windowMode';
 import { runScript } from './engineStore';
 
 // Store kịch bản đang soạn – dùng chung giữa MainScreen và OverlayScreen (hai màn không cùng mount).
-// Chưa lưu xuống đĩa (bước 21).
+// Lưu / mở file và bản nháp tự lưu: scriptFile.ts (bước 21).
 type EditorState = {
   script: Script;
+  path: string | null; // file kịch bản đang mở, null = chưa lưu lần nào
+  dirty: boolean; // có thay đổi chưa lưu xuống file – mọi thay đổi script qua updateScript đều bật cờ này
   selected: string; // id bước đang chọn trong danh sách
   notice: string; // thông báo ngắn gần nhất (đã thêm điểm, điểm ngoài vùng…)
   dragA: Point | null; // điểm A (toạ độ màn hình) đã chọn, đang chờ điểm B của kéo thả
@@ -19,8 +21,11 @@ type EditorState = {
 };
 
 let state: EditorState = {
-  script: { name: 'Kịch bản 1', region: null, loops: 10, maxMinutes: 0, steps: sampleSteps },
-  selected: '3',
+  // app thật: kịch bản trống cho tới khi scriptFile.ts nạp bản nháp; trình duyệt: dữ liệu mẫu
+  script: { version: 1, name: 'Kịch bản 1', region: null, loops: inWails ? 1 : 10, maxMinutes: 0, steps: inWails ? [] : sampleSteps },
+  path: null,
+  dirty: false,
+  selected: inWails ? '' : '3',
   notice: '',
   dragA: null,
   deleted: null,
@@ -34,15 +39,26 @@ const set = (patch: Partial<EditorState>) => {
   listeners.forEach((l) => l());
 };
 
-const subscribe = (l: () => void) => {
+export const subscribe = (l: () => void) => {
   listeners.add(l);
   return () => listeners.delete(l);
 };
 
+export const getEditor = () => state;
 export const useEditor = () => useSyncExternalStore(subscribe, () => state);
 export const useScript = () => useEditor().script;
 
-export const updateScript = (patch: Partial<Script>) => set({ script: { ...state.script, ...patch } });
+export const updateScript = (patch: Partial<Script>) => set({ script: { ...state.script, ...patch }, dirty: true });
+
+// Thay cả kịch bản (mở file, kịch bản mới, khôi phục nháp): bỏ chọn / hoàn tác / điểm A đang chờ của kịch bản cũ.
+export function replaceScript(script: Script, path: string | null, dirty: boolean, notice = '') {
+  set({ script, path, dirty, selected: script.steps[0]?.id ?? '', deleted: null, dragA: null, notice });
+}
+
+// Sau khi lưu: đường dẫn + tên mới (Lưu thành đổi tên theo file), giữ nguyên phần còn lại đang soạn.
+// stillDirty: có sửa thêm trong lúc hộp thoại lưu đang mở.
+export const markSaved = (path: string, name: string, notice: string, stillDirty: boolean) =>
+  set({ script: { ...state.script, name }, path, dirty: stillDirty, notice });
 export const selectStep = (id: string) => set({ selected: id });
 export const setNotice = (notice: string) => set({ notice });
 export const setCountdown = (countdown: boolean) => set({ countdown });
@@ -178,7 +194,8 @@ export const toScreen = (p: StepPoint, region: Rect | null): Point => resolvePoi
 const toRelative = (p: Point, r: Rect | null, like?: StepPoint): StepPoint | null => {
   const b = boundsOf(r);
   if (!insideBounds(p, b)) return null;
-  return like ? anchorPoint(p, b, like.ax, like.ay) : nearestAnchor(p, b);
+  if (like) return anchorPoint(p, b, like.ax, like.ay);
+  return state.script.anchorMode === 'start' ? anchorPoint(p, b, 'start', 'start') : nearestAnchor(p, b);
 };
 
 // Đổi neo điểm thứ index của bước, giữ nguyên chỗ trên màn hình (lưới chọn neo, nút %).

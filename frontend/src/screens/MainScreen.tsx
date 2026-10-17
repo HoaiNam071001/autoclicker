@@ -4,6 +4,8 @@ import { DebugButtons, RecordButton, StatusBar, Toolbar } from '../components/Ap
 import { MousePos, StopScript } from '../../wailsjs/go/main/App';
 import { inWails, openOverlay } from '../windowMode';
 import { removeStep, runCurrent, useEditor } from '../scriptStore';
+import { newScript, openScript, save, useFile } from '../scriptFile';
+import SaveChangesDialog from '../components/SaveChangesDialog';
 import TitleBar from '../components/TitleBar';
 import Library from '../components/Library';
 import StepList from '../components/StepList';
@@ -13,9 +15,13 @@ import { STOP_REASON, useEngine } from '../engineStore';
 import { Point } from '../types';
 
 const MOUSE_POLL_MS = 250;
+const isMac = navigator.platform.startsWith('Mac');
+const modKey = isMac ? '⌘' : 'Ctrl+';
+const clock = (ms: number) => new Date(ms).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
 export default function MainScreen() {
-  const { script, selected, notice } = useEditor();
+  const { script, selected, notice, dirty, path } = useEditor();
+  const { draftAt, error: fileError } = useFile();
   const { steps } = script;
   const cur = steps.find((s) => s.id === selected) ?? steps[0]; // undefined khi chưa có bước nào
   const idx = steps.indexOf(cur) + 1;
@@ -40,12 +46,28 @@ export default function MainScreen() {
     return () => window.removeEventListener('keydown', onKey);
   }, [cur]);
 
+  // Cmd/Ctrl + S lưu, + Shift + S lưu thành, + O mở, + N kịch bản mới (cả khi đang gõ trong ô nhập).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(isMac ? e.metaKey : e.ctrlKey) || e.altKey) return;
+      const k = e.key.toLowerCase();
+      if (k === 's') save(e.shiftKey);
+      else if (k === 'o' && !e.shiftKey) openScript();
+      else if (k === 'n' && !e.shiftKey) newScript();
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     // h-screen + từng cột tự cuộn: thanh tiêu đề và status bar luôn nằm trong cửa sổ.
     <div className="flex h-screen flex-col overflow-hidden bg-bg text-ink">
       <TitleBar />
 
-      <Toolbar name={script.name} unsaved unsavedTitle="Chưa lưu xuống file – Lưu / Mở sắp có (bước 21)"
+      <Toolbar name={script.name} nameTitle={path ?? 'Chưa lưu thành file'} unsaved={dirty}
+        unsavedTitle={`Có thay đổi chưa lưu xuống file (${modKey}S) – bản nháp vẫn tự lưu trên máy`}
         loop={loopSummary(script)} loopPanel={<RunSettings />}
         running={running} onRun={() => (running ? StopScript() : runCurrent())}
         runDisabled={!inWails} runTitle={inWails ? undefined : 'Chỉ chạy được trong app'}
@@ -67,8 +89,11 @@ export default function MainScreen() {
         {hotkeyError && <span className="text-danger-text">{hotkeyError}</span>}
         {lastError && <span className="text-danger-text">Lỗi lần chạy trước: {lastError}</span>}
         {stopReason && <span>{STOP_REASON[stopReason] ?? stopReason}</span>}
+        {fileError && <span className="text-danger-text">{fileError}</span>}
         {notice && <span className="text-accent-text">{notice}</span>}
+        {draftAt && dirty && <span title="Bản nháp lưu trên máy – mở lại app vẫn còn">Bản nháp tự lưu lúc <span className="font-mono">{clock(draftAt)}</span></span>}
       </StatusBar>
+      <SaveChangesDialog />
     </div>
   );
 }

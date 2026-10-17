@@ -33,6 +33,7 @@ func main() {
 		Windows:          &windows.Options{WebviewIsTransparent: true},
 		OnStartup:        app.startup,
 		OnShutdown:       app.shutdown,
+		OnBeforeClose:    app.beforeClose,
 		Bind: []interface{}{
 			app,
 		},

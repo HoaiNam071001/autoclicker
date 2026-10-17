@@ -15,6 +15,8 @@ type App struct {
 	mode     string     // chế độ cửa sổ hiện tại, xem window.go
 	mainRect winRect    // vị trí/kích thước main để khôi phục
 	mainMax  bool       // main đang phóng to (nút phóng to trên thanh tiêu đề) – phóng to lại khi quay về
+	dirty    bool       // kịch bản đang soạn có thay đổi chưa lưu (storage.go)
+	quitting bool       // đã hỏi xong, đóng thật
 }
 
 // NewApp creates a new App application struct

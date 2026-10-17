@@ -59,12 +59,20 @@ type Step struct {
 	Enabled       bool     `json:"enabled"`
 }
 
+// Cách neo điểm mới đặt (Script.AnchorMode).
+const (
+	AnchorNearest = ""      // góc gần nhất theo từng trục (mặc định)
+	AnchorTopLeft = "start" // luôn tính từ góc trên trái
+)
+
 type Script struct {
+	Version    int    `json:"version"` // định dạng file, xem storage.go
 	Name       string `json:"name"`
 	Region     *Rect  `json:"region"`     // nil = toàn màn hình (màn chính); toạ độ điểm neo theo cạnh vùng
 	Loops      int    `json:"loops"`      // 0 = vô hạn
 	MaxMinutes int    `json:"maxMinutes"` // 0 = không giới hạn
 	Steps      []Step `json:"steps"`
+	AnchorMode string `json:"anchorMode,omitempty"` // "" = góc gần nhất | start = luôn trên trái
 }
 
 // NewStep trả bước mới với giá trị mặc định theo loại – dùng cho nút "+ Thêm bước".
@@ -105,5 +113,5 @@ func (a *App) NewStep(stepType string) (Step, error) {
 
 // NewScript trả kịch bản rỗng mặc định.
 func (a *App) NewScript() Script {
-	return Script{Name: "Kịch bản 1", Loops: 1, Steps: []Step{}}
+	return Script{Version: ScriptVersion, Name: "Kịch bản 1", Loops: 1, Steps: []Step{}}
 }

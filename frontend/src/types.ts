@@ -43,12 +43,15 @@ void stepMatchesGo;
 
 // Kịch bản – khớp struct Script trong model.go. Toạ độ điểm tương đối theo region (null = toàn màn hình).
 export interface Script {
+  version: number; // định dạng file (storage.go) – Go ghi khi lưu
   name: string;
   region: Rect | null; // toạ độ màn hình thật (robotgo)
   loops: number; // 0 = vô hạn
   maxMinutes: number; // 0 = không giới hạn
   steps: Step[];
+  anchorMode?: AnchorMode; // điểm mới đặt neo theo: bỏ trống = góc gần nhất, start = luôn trên trái
 }
+export type AnchorMode = 'start';
 const scriptMatchesGo: Same<keyof Script, keyof Fields<main.Script>> = true;
 void scriptMatchesGo;
 
@@ -77,6 +80,19 @@ export const KEY_NAMES = [
   'audio_mute', 'audio_vol_down', 'audio_vol_up', 'audio_play', 'audio_next', 'audio_prev',
 ];
 export const isValidKey = (k: string) => [...k].length === 1 || KEY_NAMES.includes(k);
+
+// Mô tả tiếng Việt cho gợi ý tên phím trong form.
+const FIXED_LABEL: Record<string, string> = {
+  enter: 'Enter – xuống dòng / xác nhận', tab: 'Tab – sang ô kế', esc: 'Esc – thoát / huỷ', space: 'Phím cách',
+  backspace: 'Backspace – xoá lùi', delete: 'Delete – xoá tới', up: '↑ Mũi tên lên', down: '↓ Mũi tên xuống',
+  left: '← Mũi tên trái', right: '→ Mũi tên phải', home: 'Home – đầu dòng', end: 'End – cuối dòng',
+  pageup: 'Page Up – lên một trang', pagedown: 'Page Down – xuống một trang', insert: 'Insert', capslock: 'Caps Lock – bật / tắt chữ hoa',
+  printscreen: 'Print Screen – chụp màn hình', menu: 'Menu ngữ cảnh', num_enter: 'Enter bàn phím số',
+  audio_mute: 'Tắt / bật tiếng', audio_vol_down: 'Giảm âm lượng', audio_vol_up: 'Tăng âm lượng',
+  audio_play: 'Phát / tạm dừng nhạc', audio_next: 'Bài kế tiếp', audio_prev: 'Bài trước',
+};
+export const keyLabel = (k: string) =>
+  FIXED_LABEL[k] ?? (/^f\d+$/.test(k) ? `Phím chức năng ${k.toUpperCase()}` : /^num\d$/.test(k) ? `Số ${k.slice(3)} bàn phím số` : '');
 
 const cap = (k: string) => k[0].toUpperCase() + k.slice(1);
 // chord: "Ctrl + C + T" · sequence: "Ctrl + C → T"

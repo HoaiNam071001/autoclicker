@@ -1,5 +1,5 @@
 // Cài đặt chạy (bước 16): lặp theo số vòng / vô hạn / theo thời gian, đếm ngược trước khi chạy.
-// Hiện trong popup của nút "N vòng" trên thanh công cụ.
+// Hiện trong popup của nút "N vòng" trên thanh công cụ. Kèm cách neo điểm mới đặt (bước 29, lưu trong kịch bản).
 import NumInput from './NumInput';
 import Segmented from './Segmented';
 import { setCountdown, updateScript, useEditor } from '../scriptStore';
@@ -53,6 +53,14 @@ export default function RunSettings() {
         </label>
       )}
       {mode === 'infinite' && <span className="text-[13px] text-muted">Chạy tới khi bấm Dừng / F8</span>}
+      <div className="flex flex-col gap-2 border-t border-line pt-3">
+        <span className="flex flex-col">Neo điểm mới đặt
+          <span className="text-xs text-muted">Điểm bám theo cạnh / góc nào khi đổi vùng – sửa riêng từng điểm trong inspector</span>
+        </span>
+        <Segmented value={script.anchorMode ?? 'nearest'} label="Neo điểm mới đặt" full
+          options={[{ id: 'nearest', label: 'Góc gần nhất' }, { id: 'start', label: 'Luôn trên trái' }]}
+          onChange={(m) => updateScript({ anchorMode: m === 'start' ? 'start' : undefined })} />
+      </div>
       <label className="flex items-center justify-between border-t border-line pt-3">
         Đếm ngược 3 giây trước khi chạy
         <Switch on={countdown} onChange={setCountdown} label="Đếm ngược 3 giây" />

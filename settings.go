@@ -8,7 +8,7 @@ import (
 )
 
 // Cấu hình app (không thuộc kịch bản), lưu ở os.UserConfigDir()/autoclicker/settings.json.
-// Bước 21 dùng chung thư mục này cho bản nháp và danh sách mở gần đây.
+// Bản nháp tự lưu (draft.json, storage.go) nằm cùng thư mục.
 
 const (
 	ThemeLight  = "light"
@@ -17,7 +17,8 @@ const (
 )
 
 type Settings struct {
-	Theme string `json:"theme"` // light | dark | system
+	Theme  string   `json:"theme"`            // light | dark | system
+	Recent []string `json:"recent,omitempty"` // file kịch bản mở / lưu gần đây, mới nhất trước (storage.go)
 }
 
 func defaultSettings() Settings { return Settings{Theme: ThemeSystem} }
@@ -52,12 +53,16 @@ func saveSettings(dir string, s Settings) error {
 	if err != nil {
 		return err
 	}
-	// ghi file tạm rồi đổi tên – tắt app giữa chừng không làm hỏng file cũ
-	tmp := filepath.Join(dir, settingsFile+".tmp")
+	return writeFileAtomic(filepath.Join(dir, settingsFile), b)
+}
+
+// writeFileAtomic ghi file tạm cạnh file đích rồi đổi tên – tắt app giữa chừng không làm hỏng file cũ.
+func writeFileAtomic(path string, b []byte) error {
+	tmp := path + ".tmp"
 	if err := os.WriteFile(tmp, b, 0o644); err != nil {
 		return err
 	}
-	return os.Rename(tmp, filepath.Join(dir, settingsFile))
+	return os.Rename(tmp, path)
 }
 
 func validTheme(t string) bool { return t == ThemeLight || t == ThemeDark || t == ThemeSystem }
@@ -76,6 +81,8 @@ func (a *App) SetTheme(theme string) error {
 	if !validTheme(theme) {
 		return fmt.Errorf("theme không hợp lệ: %q", theme)
 	}
+	settingsMu.Lock()
+	defer settingsMu.Unlock()
 	dir, err := configDir()
 	if err != nil {
 		return fmt.Errorf("không mở được thư mục cấu hình: %w", err)
