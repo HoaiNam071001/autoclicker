@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3, F5 xong code – sang F6. Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 20: F6 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
+- **Đang làm:** 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3, F5 xong code – sang F5b (toạ độ nhận biến). Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 20: F5b → F6 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17 (20 F5 xong code)
 
 ## Tính năng của hệ thống
@@ -49,6 +49,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | | Tính năng | Ghi chú | Bước |
 |---|---|---|---|
 | ✅ | Cổng Thành công / Thất bại, vòng lặp bằng cạnh | Thất bại không nối = dừng báo lỗi; chặn lặp vô hạn 10 000 node / vòng | [20 F1–F2](phase3/20-flow.md) |
+| ⬜ | Toạ độ lấy từ biến | Click / kéo / cuộn / chờ pixel tại `{{n2.output.x}}` (+ lệch px) – vd click cạnh chữ vừa tìm thấy | [20 F5b](phase3/20-flow.md) |
 | ✅ | Biến giữa các node | `{{n2.output.x}}`, `{{n2.status}}`, `{{last…}}`, `{{vars…}}`; gợi ý khi gõ `{{` | [20](phase3/20-flow.md) |
 | 🧪 | Nếu | Thấy chữ / ảnh / màu, so giá trị, và / hoặc, đảo, chờ tới khi đúng | [20 F3](phase3/20-flow.md) |
 | 🧪 | Switch theo giá trị / theo màn hình | Bằng / chứa / khớp mẫu; màn nào hiện trước đi cổng đó | [20 F3](phase3/20-flow.md) |
@@ -105,7 +106,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 🧪 chờ kiểm tra tay | [25. Chờ ảnh, click theo ảnh, chờ pixel](phase3/25-cho-anh.md) | 8 / 8 | [1 việc](checks.md) |
 | 🧪 chờ kiểm tra tay | [25e. Tìm theo chữ (OCR)](phase3/25e-ocr.md) | 5 / 5 | [1 việc](checks.md) |
 | ✅ xong | [25b. Khi thất bại](phase3/25b-khi-that-bai.md) | 4 / 4 |  |
-| 🟡 đang làm | [20. Flow kiểu n8n – mỗi bước là một module, rẽ nhánh theo kết quả](phase3/20-flow.md) | 44 / 48 | [8 việc](checks.md) |
+| 🟡 đang làm | [20. Flow kiểu n8n – mỗi bước là một module, rẽ nhánh theo kết quả](phase3/20-flow.md) | 44 / 55 | [8 việc](checks.md) |
 | ⬜ chưa làm | [26. Focus cửa sổ theo tên](phase3/26-focus-cua-so.md) | 0 / 3 |  |
 | ⬜ chưa làm | [25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật](phase3/25d-web-dom.md) | 0 / 9 |  |
 | ⬜ chưa làm | [22. Hẹn giờ + thông báo + CLI / API local](phase3/22-hen-gio-cli-api.md) | 0 / 5 |  |
