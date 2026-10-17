@@ -58,6 +58,7 @@ var pinFields = map[string]string{
 	"jitterPx":      "int",
 	"amount":        "int",
 	"timeoutMs":     "int",
+	"repeat":        "int",
 	"threshold":     "int",
 	"enabled":       "bool",
 }
@@ -85,12 +86,16 @@ var varRe = regexp.MustCompile(`\\\{\{|\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}`)
 type ScriptError struct {
 	Step   int    `json:"step,omitempty"` // thứ tự bước từ 1, 0 = không thuộc bước nào
 	StepID string `json:"stepId,omitempty"`
+	Path   string `json:"path,omitempty"` // đường dẫn bước ("3.2" – bước trong khối); trống = như Step
 	Field  string `json:"field,omitempty"`
 	Input  string `json:"input,omitempty"` // key input liên quan
 	Msg    string `json:"message"`
 }
 
 func (e *ScriptError) Error() string {
+	if e.Path != "" {
+		return fmt.Sprintf("bước %s: %s", e.Path, e.Msg)
+	}
 	if e.Step > 0 {
 		return fmt.Sprintf("bước %d: %s", e.Step, e.Msg)
 	}
@@ -99,6 +104,18 @@ func (e *ScriptError) Error() string {
 
 func stepErr(i int, s Step, field, format string, a ...any) *ScriptError {
 	return &ScriptError{Step: i + 1, StepID: s.ID, Field: field, Msg: fmt.Sprintf(format, a...)}
+}
+
+// pathErr – như stepErr cho bước ở bất kỳ đâu trong cây (path "3.2").
+func pathErr(path string, s Step, field, format string, a ...any) *ScriptError {
+	return &ScriptError{Step: rootNum(path), Path: path, StepID: s.ID, Field: field, Msg: fmt.Sprintf(format, a...)}
+}
+
+// rootNum – thứ tự bước gốc chứa bước ở path ("3.2" → 3).
+func rootNum(path string) int {
+	head, _, _ := strings.Cut(path, ".")
+	n, _ := strconv.Atoi(head)
+	return n
 }
 
 func inputErr(in ScriptInput, format string, a ...any) *ScriptError {
@@ -116,9 +133,10 @@ func inputName(in ScriptInput) string {
 // Ghim vào bước không còn (sửa tay file) thì bỏ ghim đó. Không bắt buộc đã có bước dùng – bản soạn dở vẫn mở được.
 func checkInputs(sc *Script) error {
 	ids := map[string]bool{}
-	for _, s := range sc.Steps {
+	walkSteps(sc.Steps, "", func(s *Step, _ string) error {
 		ids[s.ID] = true
-	}
+		return nil
+	})
 	seen := map[string]bool{}
 	for i := range sc.Inputs {
 		in := &sc.Inputs[i]
@@ -184,45 +202,30 @@ func resolveInputs(sc Script, values map[string]any) (Script, error) {
 	}
 
 	out := sc
-	out.Steps = slices.Clone(sc.Steps)
-	index := map[string]int{}
-	for i, s := range out.Steps {
-		index[s.ID] = i
-	}
+	out.Steps = cloneSteps(sc.Steps)
+	byID := map[string]*Step{}
+	paths := map[string]string{}
+	walkSteps(out.Steps, "", func(s *Step, path string) error {
+		byID[s.ID], paths[s.ID] = s, path
+		return nil
+	})
 	used := map[string]bool{}
 	for _, in := range sc.Inputs {
 		for _, t := range in.Targets {
-			i, ok := index[t.StepID]
+			s, ok := byID[t.StepID]
 			if !ok {
 				continue // bước đã xoá (vẫn giữ ghim để hoàn tác xoá bước thì ghim quay lại)
 			}
 			used[in.Key] = true
 			if v, ok := vals[in.Key]; ok {
-				if err := setStepField(&out.Steps[i], t.Field, v); err != nil {
-					return Script{}, stepErr(i, out.Steps[i], t.Field, "%v", err)
+				if err := setStepField(s, t.Field, v); err != nil {
+					return Script{}, pathErr(paths[s.ID], *s, t.Field, "%v", err)
 				}
 			}
 		}
 	}
-	for i := range out.Steps {
-		s := &out.Steps[i]
-		var field *string
-		name, escape := "", false
-		switch s.Type {
-		case StepText:
-			field, name = &s.Text, "text"
-		case StepWaitImage, StepClickImage:
-			if s.FindBy != FindByText {
-				continue
-			}
-			field, name = &s.FindText, "findText"
-		case StepOpen:
-			// URL: mã hoá giá trị (dấu cách, tiếng Việt, &) để không làm hỏng URL
-			field, name, escape = &s.Target, "target", targetKind(s.Target) == targetURL
-		default:
-			continue
-		}
-		text, err := expandVars(*field, func(key string) (string, bool) {
+	expand := func(text string, escape bool) (string, error) {
+		return expandVars(text, func(key string) (string, bool) {
 			if _, ok := byKey[key]; !ok {
 				return "", false
 			}
@@ -232,10 +235,45 @@ func resolveInputs(sc Script, values map[string]any) (Script, error) {
 			}
 			return valueString(vals[key]), true
 		})
-		if err != nil {
-			return Script{}, stepErr(i, *s, name, "%v", err)
+	}
+	err := walkSteps(out.Steps, "", func(s *Step, path string) error {
+		// ô chữ nhận {{biến}}: gõ chữ, URL / app của bước Mở, chữ cần tìm, 2 vế so sánh và chữ cần tìm trong điều kiện
+		fields := map[string]*string{}
+		escape := false
+		switch s.Type {
+		case StepText:
+			fields["text"] = &s.Text
+		case StepOpen:
+			// URL: mã hoá giá trị (dấu cách, tiếng Việt, &) để không làm hỏng URL
+			fields["target"], escape = &s.Target, targetKind(s.Target) == targetURL
+		case StepWaitImage, StepClickImage:
+			if s.FindBy == FindByText {
+				fields["findText"] = &s.FindText
+			}
 		}
-		*field = text
+		for name, f := range fields {
+			text, err := expand(*f, escape)
+			if err != nil {
+				return pathErr(path, *s, name, "%v", err)
+			}
+			*f = text
+		}
+		if s.Cond == nil {
+			return nil
+		}
+		return walkConds(s.Cond, func(c *Cond) error {
+			for name, f := range map[string]*string{"cond.left": &c.Left, "cond.right": &c.Right, "cond.findText": &c.FindText} {
+				text, err := expand(*f, false)
+				if err != nil {
+					return pathErr(path, *s, name, "%v", err)
+				}
+				*f = text
+			}
+			return nil
+		})
+	})
+	if err != nil {
+		return Script{}, err
 	}
 	for _, in := range sc.Inputs {
 		if !used[in.Key] {
@@ -384,6 +422,11 @@ func setStepField(s *Step, field string, v any) error {
 			return errors.New("độ khớp tối thiểu phải trong 1–100%")
 		}
 		s.Threshold = n
+	case "repeat":
+		if n < 1 {
+			return errors.New("số lần lặp phải ≥ 1")
+		}
+		s.Repeat = n
 	case "amount":
 		if n < 1 {
 			return errors.New("số nấc cuộn phải ≥ 1")

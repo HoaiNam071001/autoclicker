@@ -88,7 +88,7 @@ func TestValidateOnFail(t *testing.T) {
 		f    OnFail
 		want string
 	}{
-		{OnFail{Action: FailGoto, Goto: "mất"}, "không còn trong kịch bản"},
+		{OnFail{Action: FailGoto, Goto: "mất"}, "không còn"},
 		{OnFail{Action: FailGoto, Goto: sc.Steps[0].ID}, "chính bước này"},
 		{OnFail{Action: FailGoto, Goto: "t"}, "đang tắt"},
 		{OnFail{Action: FailStop, Retries: 101}, "0–100"},
@@ -98,7 +98,7 @@ func TestValidateOnFail(t *testing.T) {
 			t.Errorf("%+v: %v", c.f, err)
 		}
 	}
-	if err := checkStep(&Step{Type: StepWait, OnFail: &OnFail{Action: "else"}}); err == nil {
+	if err := checkStep(&Step{Type: StepWait, OnFail: &OnFail{Action: "lạ"}}); err == nil {
 		t.Error("action lạ phải báo lỗi khi mở file")
 	}
 }

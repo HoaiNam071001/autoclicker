@@ -86,6 +86,9 @@ export const STEP_ICON = {
   open: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18',
   focusWindow: 'M4 5h16v14H4zM4 9h16',
   group: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+  if: 'M6 3v6M6 9c0 4 12 2 12 8M6 9c0 4 0 8 0 12M18 17v4M15 6l3-3 3 3', // rẽ nhánh
+  break: 'M4 12h10M10 7l5 5-5 5M19 4v16', // thoát ra
+  stop: 'M7 4h10l3 3v10l-3 3H7l-3-3V7zM9 12h6', // biển dừng
 } as const;
 export type StepIconName = keyof typeof STEP_ICON;
 

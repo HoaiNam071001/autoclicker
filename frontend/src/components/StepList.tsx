@@ -11,7 +11,7 @@ import { Copy, Power, Region, StepIcon, Trash } from './icons';
 import {
   duplicateStep, moveStep, removeStep, selectStep, setMulti, setRegion, toggleMultiStep, toggleStep, undoDelete, useEditor,
 } from '../scriptStore';
-import { fmtMs, fmtPos, OnFail, Script, Step, STEP_LABEL } from '../types';
+import { findStep, fmtMs, fmtPos, OnFail, Script, Step, STEP_LABEL } from '../types';
 import { stepInputCount } from '../scriptInputs';
 import { templateUrl } from '../imageSteps';
 import { useEngine } from '../engineStore';
@@ -101,7 +101,8 @@ function failChip(f: OnFail, script: Script) {
 
 function Card({ step: s, index: i, selected, inMulti, script }: { step: Step; index: number; selected: boolean; inMulti: boolean; script: Script }) {
   const inputs = stepInputCount(script, s.id);
-  const failed = useEngine().failedStep === s.id;
+  const failedId = useEngine().failedStep;
+  const failed = !!failedId && (failedId === s.id || !!findStep(s.children ?? [], failedId) || !!findStep(s.else ?? [], failedId)); // lỗi ở bước con → viền khối
   // ảnh mẫu thu nhỏ: nhìn danh sách là biết bước nào chờ ảnh nào
   const tpl = s.template && s.findBy !== 'text' && (s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search'));
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: s.id });

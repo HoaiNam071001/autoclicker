@@ -14,6 +14,9 @@ export type Progress = {
   clicks: number;
   elapsedMs: number; // không tính thời gian tạm dừng
   paused: boolean;
+  path?: string; // đường dẫn bước đang chạy ("3.2" trong khối)
+  stepId?: string;
+  block?: string; // khối lặp đang chạy, vd "Cuộn tìm · lặp 2 / 5"
   retry?: number; // đang thử lại lần thứ mấy (0 / trống = lần đầu)
   retries?: number; // số lần thử lại tối đa của bước hiện tại
   wait?: { kind: 'image' | 'text' | 'pixel'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (imagestep.go)

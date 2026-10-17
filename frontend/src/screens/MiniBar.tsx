@@ -4,7 +4,7 @@ import { PauseScript, ResumeScript, StopScript } from '../../wailsjs/go/main/App
 import { Pause, Play, Stop, StepIcon, StepIconName } from '../components/icons';
 import { elapsedNow, fmtElapsed, Progress, useEngine } from '../engineStore';
 import { useScript } from '../scriptStore';
-import { STEP_LABEL } from '../types';
+import { findStep, STEP_LABEL } from '../types';
 import { inWails, setWindowMode } from '../windowMode';
 
 // Số mẫu khi xem trên trình duyệt (#minibar)
@@ -36,7 +36,7 @@ export default function MiniBar() {
     : p.loops > 0 ? ((p.loop - 1) * p.total + p.step) / (p.loops * p.total)
     : p.step / p.total;
   // p.step đếm trong các bước đang bật (engine.go)
-  const cur = p && p.step > 0 ? steps.filter((s) => s.enabled)[p.step - 1] : undefined;
+  const cur = p?.stepId ? findStep(steps, p.stepId) : p && p.step > 0 ? steps.filter((s) => s.enabled)[p.step - 1] : undefined;
 
   const stop = () => {
     StopScript();
@@ -48,8 +48,9 @@ export default function MiniBar() {
       title={!running ? 'Chưa chạy'
         : counting ? `Bắt đầu sau ${engine.countdown} giây…`
         : !p ? 'Đang bắt đầu…'
-        : `${paused ? 'Tạm dừng · ' : ''}Bước ${p.step} / ${p.total}${cur ? `: ${STEP_LABEL[cur.type]}` : ''}`}
+        : `${paused ? 'Tạm dừng · ' : ''}Bước ${p.path && p.path.includes('.') ? p.path : p.step} / ${p.total}${cur ? `: ${STEP_LABEL[cur.type]}` : ''}`}
       lines={[
+        ...(p?.block ? [p.block] : []),
         ...(p?.retry ? [`thử lại ${p.retry} / ${p.retries}`] : []),
         ...(w ? [`${w.kind === 'image' ? 'đang tìm' : w.kind === 'text' ? 'đang tìm chữ' : 'đang chờ màu'} ${(waitNow / 1000).toFixed(1)} / ${w.timeoutMs / 1000} s${w.kind === 'text' ? '' : `   khớp nhất ${w.best}%`}`] : []),
         `vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`,
