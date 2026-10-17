@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 20 – flow kiểu n8n: F0 (gỡ bước 20 cũ) xong, tiếp F1 (model flow + `StepResult`). Chờ kiểm tra tay 25 / 25b / 25e. 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 20 F1 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
+- **Đang làm:** 20 – flow kiểu n8n: F0 xong, đang F4a (thiết kế canvas + `#demo-flow`). Chờ kiểm tra tay 25 / 25b / 25e. 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 20: F4a → F1 → F2 → F4b → F3 → F5 → F6 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17 (bỏ cây khối 20a–20c, plan mới cho 20: flow kiểu n8n)
 
 ## Quyết định đã chốt
@@ -29,7 +29,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - **UI trước, logic sau** (27b): tính năng chưa có vẫn hiện trong app nhưng tắt + nhãn *Sắp có*; dữ liệu giả chỉ ở màn `#demo` (`frontend/src/demo/`), không thêm loại bước chưa làm vào `types.ts` / `model.go`.
 - **Input của kịch bản** áp vào bản sao trước khi chạy (`resolveInputs`), engine không đổi; giá trị lần trước / preset lưu trên máy, không ghi vào file kịch bản; input trong nhóm lặp dùng cùng giá trị mọi vòng (mỗi vòng một giá trị → CSV, bước 28).
 - **File kịch bản** (21, 2026-10-17): `.json` có `version` (hiện 1); mở file chỉ kiểm tra cấu trúc (`checkScript`), không chạy `validateScript` – bản soạn dở vẫn mở được, lúc Chạy mới kiểm tra đủ. *Lưu thành* đổi tên kịch bản theo tên file. Mỗi lần mở một kịch bản; bản nháp tự lưu ghi cả đường dẫn + cờ chưa lưu. Đóng app chọn *Không lưu* thì xoá nháp.
-- **Rẽ nhánh = flow kiểu n8n** (20, 2026-10-17 – thay bản cây khối): kịch bản là đồ thị node + cạnh; mỗi node trả `StepResult` (status, cổng ra, output, lỗi, log), cạnh nối theo cổng ra (`success` / `fail` / `true` / `false` / case…). Cổng `fail` không nối = dừng kịch bản báo lỗi. Soạn trên canvas (`@xyflow/react`), bỏ danh sách bước kéo thả. File version 3 (cây khối) không hỗ trợ; v1 / v2 tự đổi sang flow (version 4).
+- **Rẽ nhánh = flow kiểu n8n** (20, 2026-10-17 – thay bản cây khối): kịch bản là đồ thị node + cạnh; mỗi node trả `StepResult` (status, cổng ra, output, lỗi, log), cạnh nối theo cổng ra (`success` / `fail` / `true` / `false` / case…). Cổng `fail` không nối = dừng kịch bản báo lỗi. Soạn trên canvas (`@xyflow/react`), bỏ danh sách bước kéo thả. File kịch bản cũ (version < 4) bỏ, không chuyển đổi.
 - **Gõ chữ / phím tắt đưa vào MVP** (loại bước `type`, `key`) thay vì Phase 2, để model, engine, form làm một lần.
 - Toạ độ lưu theo **toạ độ màn hình thật (robotgo)**. Overlay tự đo độ lệch cửa sổ ↔ màn hình (so `clientX/Y` với `robotgo.Location` khi chuột đứng yên) thay vì tính từ vị trí cửa sổ – Wails macOS đặt cửa sổ dưới menu bar.
 - Cửa sổ luôn **frameless + nền trong suốt** (Wails v2 không đổi được lúc chạy); MainScreen tự vẽ thanh kéo và nút thu nhỏ / đóng.
@@ -349,17 +349,36 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] Test `TestOnFailRetry`, `TestOnFailNextSkipsStaleClick`, `TestOnFailGoto`, `TestValidateOnFail`; mô tả cho AI ở `commonFieldsDoc` (`steptypes.go`)
   - [ ] Kiểm tra tay: chờ chữ không thấy → thử lại 2 lần → nhảy tới bước cuộn rồi quay lại
   - Không làm: `skipGroup` (bước 20 dùng *Thoát khối* thay)
-- [ ] **20. Flow kiểu n8n – mỗi bước là một module, rẽ nhánh theo kết quả** *(người dùng chốt 2026-10-17, thay bản "cây khối" 20a–20c đã revert)* – Kịch bản thành **đồ thị node + cạnh**: mỗi node chạy xong trả về một `StepResult` chung (status, cổng ra, output, lỗi, log); cạnh nối từ **cổng ra** của node này sang node kế → luồng thành công / thất bại, if / else, switch case, vòng lặp đều là cạnh. Soạn trên **canvas kéo nối như n8n**. Gộp 25c (debug + lịch sử chạy) vào F5.
+- [ ] **20. Flow kiểu n8n – mỗi bước là một module, rẽ nhánh theo kết quả** *(người dùng chốt 2026-10-17, thay bản "cây khối" 20a–20c đã revert)* – Kịch bản thành **đồ thị node + cạnh**: mỗi node chạy xong trả về một `StepResult` chung (status, cổng ra, output, lỗi, log); cạnh nối từ **cổng ra** của node này sang node kế → luồng thành công / thất bại, if / else, switch case, vòng lặp đều là cạnh. Soạn trên **canvas kéo nối như n8n**. Gồm cả debug + lịch sử chạy (25c cũ, ở F5).
+  - **Thứ tự làm:** F0 → **F4a** (thiết kế + `#demo-flow`, dữ liệu giả) → F1 (model) → F2 (engine) → **F4b** (nối canvas vào app, bỏ danh sách bước cũ) → F3 (node điều khiển: engine + inspector cùng lúc) → F5 (chạy + nhật ký + debug) → F6 (xem trước, thanh mini) → F7 (MCP). Lý do: duyệt giao diện sớm khi sửa còn rẻ; canvas thay danh sách ngay sau khi engine chạy được để app không bị "nửa cũ nửa mới" lâu
+  - **File cũ:** bỏ, không chuyển đổi *(người dùng chốt 2026-10-17)* – `ScriptVersion` 4, file version < 4 và `draft.json` cũ báo "Kịch bản tạo bằng bản cũ, không mở được" (nháp cũ xoá luôn). Bỏ hẳn `onFail.action` / `goto` (thay bằng cạnh `fail`), không giữ code tương thích
   - **Nguyên tắc:**
-    - `Step` giữ nguyên làm **node** (mọi trường bước hiện có dùng lại), `Script.steps` = danh sách node (thứ tự trong mảng không còn nghĩa chạy); thêm `Script.start` + `Script.edges`
-    - Cổng ra không nối: `fail` → **dừng kịch bản, báo lỗi** (an toàn như bây giờ); `success` / cổng khác → **kết thúc thành công**. Node tắt → `skipped`, đi theo cổng `success`
-    - Vòng lặp = cạnh quay lại; chặn lặp vô hạn bằng node *Đếm* + giới hạn tổng 10 000 lần chạy node mỗi vòng
+    - `Step` giữ nguyên làm **node** (mọi trường bước hiện có dùng lại), `Script.steps` = danh sách node (thứ tự trong mảng không có nghĩa chạy); thêm `Script.start` + `Script.edges`
+    - Cổng ra không nối: `fail` → **dừng kịch bản, báo lỗi**; `success` / cổng khác → **kết thúc thành công**. Node tắt → `skipped`, đi theo cổng `success`
+    - Vòng lặp = cạnh quay lại; chặn lặp vô hạn bằng node *Đếm* + giới hạn 10 000 lần chạy node mỗi vòng
     - Node sau đọc kết quả node trước bằng biến: `{{n2.output.x}}`, `{{n2.status}}`, `{{n2.error.message}}`, `{{last.output.text}}`, `{{vars.ten}}` – `n2` là mã ngắn của node (`ref`, tự đặt n1, n2…, sửa được, duy nhất)
-    - "Bước trước" không còn cố định trong đồ thị → *Click theo kết quả bước trước* đổi thành chọn node nguồn (`imageFrom: "n2"`); *Kéo từ chỗ chuột dừng* lấy vị trí chuột lúc chạy
+    - *Click theo kết quả bước trước* → chọn node nguồn (`imageFrom: "n2"`); *Kéo từ chỗ chuột dừng* lấy vị trí chuột lúc chạy
     - Lặp N vòng cả kịch bản, tạm dừng / dừng / F8, failsafe giữ nguyên
+  - **Chia module** (mỗi file một việc; phần thuần có test riêng; Go và TS cùng tên khái niệm):
+
+    | Module | Go | Frontend | Việc |
+    |---|---|---|---|
+    | Model flow | `flow.go` | `types.ts` (+ `flow.ts`) | `Edge`, `StepResult`, `StepError`, `portsOf(step)`, hằng cổng / status / mã lỗi |
+    | Thứ tự hiển thị | `flow.go` `flowOrder` | `flow.ts` `flowOrder` | đánh số node (marker, Xem trước, form Chạy) – hai bên cùng công thức, test cùng dữ liệu |
+    | Kiểm tra | `flowcheck.go` | – | `validateFlow` (cạnh, cổng, `ref`, biến, `imageFrom`, node không tới được) |
+    | Engine | `flowrun.go` | – | `runFlow`, `execNode`, thử lại, giới hạn lặp, event |
+    | Biến lúc chạy | `vars.go` | `flowVars.ts` | thay `{{nX.output…}}` / `{{vars…}}`, gợi ý biến cho ô nhập |
+    | Node điều khiển | `nodes.go` (+ `cond.go`) | `components/flow/nodes/*` | `if`, `switch`, `switchScreen`, `counter`, `end`, `setVar`; Thử node |
+    | Sửa đồ thị | – | `flowEdit.ts` | thêm / xoá / nối / cắt cạnh, chèn node giữa cạnh, copy / paste, đặt bắt đầu (thuần, có test) |
+    | Xếp tự động | – | `flowLayout.ts` | `elkjs` → vị trí node |
+    | Canvas | – | `components/flow/FlowCanvas.tsx`, `NodeCard.tsx`, `FlowEdge.tsx`, `PortField.tsx` | `@xyflow/react`, thẻ node, cạnh có nhãn cổng, mục Cổng ra trong inspector |
+    | Nhật ký chạy | `runlog.go` | `components/flow/RunLog.tsx`, `runStore.ts` | lưu / đọc lịch sử chạy, bảng nhật ký |
+    | Store | – | `scriptStore.ts` | gọi `flowEdit` + hoàn tác / làm lại (không tự sửa cạnh trong store) |
+    | Mẫu | – | `demo/flowDemo.ts`, màn `#demo-flow` | dữ liệu giả đủ mọi trạng thái |
+
   - **Ví dụ JSON** (đích của F1–F3):
     ```json
-    { "version": 4, "start": "n1",
+    { "version": 4, "start": "a1",
       "steps": [
         { "id": "a1", "ref": "n1", "type": "open", "target": "facebook.com" },
         { "id": "a2", "ref": "n2", "type": "waitImage", "name": "Tìm nút Nhắn tin", "findBy": "text", "findText": "Nhắn tin", "timeoutMs": 3000 },
@@ -386,39 +405,47 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
     | Sau này | `subflow` – gọi một kịch bản khác như một node (thay cho Nhóm) | `success` / `fail` | output của node `end` bên trong |
 
   - [x] **F0. Gỡ bước 20 cũ** *(2026-10-17)*: revert 3 commit 20a / 20b / 20c (`60dcfe2`, `956ec76`, `d5882a7`), giữ 2 commit sửa lỗi sau đó (overlay theo màn chứa vùng, `stepLabel`). Code điều kiện (`evalCond`, `compareValues`, `condtest.go` / `TestCond`, `CondEditor`) **lấy lại từ lịch sử git** ở F3, không viết lại
+  - [ ] **F4a. Thiết kế canvas + màn mẫu `#demo-flow`** (dữ liệu giả, chưa nối Go)
+    - [ ] `design/DESIGN.md` thêm phần *Canvas flow*: nền canvas (lưới chấm), thẻ node (cỡ, ô icon, tên, mã `n2`, chip tóm tắt), cổng vào / ra + nhãn cổng (`success` màu `ok`, `fail` màu `danger`, case trung tính), cạnh (cong, mũi tên, nhãn, nút × khi rê), node bắt đầu / tắt / đang chọn / cảnh báo / đang chạy / xong / lỗi, minimap + nút zoom, cả 2 theme; token mới (nếu có) thêm cả `theme.css` + `style.css`
+    - [ ] Cài `@xyflow/react` + `elkjs`; `components/flow/NodeCard.tsx`, `FlowEdge.tsx`, `FlowCanvas.tsx` nhận dữ liệu qua props (dùng lại được ở F4b)
+    - [ ] `demo/flowDemo.ts`: ví dụ Facebook ở trên + 1 node If, 1 Switch theo màn hình, 1 Đếm, 1 Kết thúc, node tắt, node cảnh báo; công tắc xem trạng thái "đang chạy" (node chạy / xong / lỗi, cạnh đã đi) và bảng Nhật ký mẫu
+    - [ ] Màn `#demo-flow`: bố cục 3 cột (thư viện | canvas | inspector có mục Cổng ra), Ctrl+K khi kéo cổng ra chỗ trống (giao diện)
+    - [ ] Chụp headless cả 2 theme; `npm run build` sạch
+    - [ ] Người dùng duyệt `#demo-flow`, góp ý trước khi làm F1
   - [ ] **F1. Model flow + kết quả** (Go + TS, chưa UI – sửa bằng JSON / test)
-    - [ ] `model.go`: `Script.start`, `Script.edges []Edge {id, from, port, to}`; `Step.ref`, `Step.name`, `Step.pos {x, y}` (vị trí trên canvas), `Step.imageFrom`; `onFail` thu gọn còn `retry {count, delayMs}` (bỏ `action` / `goto` – thay bằng cạnh `fail`)
-    - [ ] `flow.go`: `StepResult {nodeId, ref, status: success | fail | skipped | cancelled, port, output map, error {code, message}, logs [{t, level, msg}], attempts, startedAt, durationMs}`; mã lỗi `not_found | timeout | permission | invalid_input | cancelled | internal`; `portsOf(step)` – danh sách cổng ra hợp lệ theo loại node
-    - [ ] `ScriptVersion` 4; `checkScript` đổi file v1 / v2 (danh sách phẳng) thành chuỗi node nối `success`, `onFail next` → cạnh `fail` sang node kế, `goto` → cạnh `fail` sang node đích, `stop` → không nối; tự đặt `ref` + `pos` (xếp hàng ngang). File version 3 (khối của 20 cũ) báo "không hỗ trợ"
-    - [ ] `validateFlow`: có `start`; cạnh trỏ node có thật, cổng đúng loại node, mỗi cổng tối đa 1 cạnh; `ref` duy nhất; biến `{{nX…}}` trỏ node có thật; `imageFrom` là node chờ ảnh / chữ; node không đi tới được từ `start` → cảnh báo (không chặn chạy). Lỗi trả `nodeId` + `ref`
-    - [ ] `flowOrder(script)`: thứ tự hiển thị (duyệt từ `start`, ưu tiên cổng `success` / `true` / case đầu) – dùng đánh số marker overlay, Xem trước, danh sách trong form Chạy; `frontend/src/flow.ts` cùng công thức (như `anchor.ts`), test hai bên cùng kết quả
-    - [ ] `types.ts` khớp Go (tsc kiểm tra); `steptypes.go`: mỗi loại ghi cổng ra + output, ví dụ JSON qua được `validateFlow`
-    - [ ] Test: đổi file v1 / v2 (có `onFail` next / goto / stop), `validateFlow` từng lỗi, `flowOrder` có vòng lặp
-  - [ ] **F2. Engine chạy theo đồ thị**
-    - [ ] `runFlow`: từ `start` → `execNode` trả `StepResult` → chọn cạnh theo `port` → node kế; hết cạnh = kết thúc theo quy tắc ở trên. `runStep` đổi từ trả `error` sang trả `StepResult` (giữ hàm cũ bên trong, bọc lại); thử lại theo `retry`, mỗi lần ghi log
-    - [ ] Ngữ cảnh chạy: `results[nodeId]` (lần chạy gần nhất), `vars`, `last`; thay `{{nX.output…}}` / `{{vars…}}` **lúc chạy từng node** (input `{{key}}` vẫn thay trước qua `resolveInputs`); output chờ ảnh / chữ thay cho "chỗ thấy cũ" của click theo ảnh
-    - [ ] Giới hạn 10 000 lần chạy node mỗi vòng → lỗi rõ ràng "có thể lặp vô hạn ở n2 → n5 → n4"
-    - [ ] Event: `engine:progress` thêm `nodeId`, `ref`, `port` vừa đi; event mới `engine:node` gửi `StepResult` mỗi node xong
-    - [ ] Test bằng input giả: nhánh `fail` có / không nối, thử lại rồi qua `fail`, vòng lặp + đếm, node tắt, biến từ output, dừng / tạm dừng giữa vòng, giới hạn 10 000
-  - [ ] **F3. Node điều khiển**
-    - [ ] Lấy lại `Cond`, `evalCond`, `compareValues` (từ `60dcfe2`) cho `if`; `switch`, `switchScreen` (dùng lại tìm ảnh / chữ, chụp một lần rồi so mọi case), `counter`, `end`, `setVar`
-    - [ ] **Thử node** (lấy lại `condtest.go` / `TestCond` từ `d5882a7`, mở rộng): chạy riêng `if` / `switch` / `switchScreen` trên màn hình lúc này → cổng sẽ đi + chi tiết từng phần
-    - [ ] `checkStep` / `steptypes.go` / test cho từng loại
-  - [ ] **F4. Canvas soạn flow (n8n)**
-    - [ ] Thiết kế trước: thêm phần *Canvas flow* vào `design/DESIGN.md` (thẻ node, cổng, cạnh, nhãn cổng, node đang chạy / lỗi / tắt, minimap, cả 2 theme) + màn mẫu `#demo-flow` cho người dùng duyệt trước khi nối logic
-    - [ ] Thư viện `@xyflow/react` (React Flow, MIT) + `elkjs` tự xếp; bố cục 3 cột giữ nguyên: thư viện | canvas | inspector. Bỏ `StepList.tsx` + `@dnd-kit/*`
-    - [ ] Thẻ node: kiểu `StepCard` (ô icon, tên, chip toạ độ / thời gian, chip `n2`); cổng vào bên trái, cổng ra bên phải có nhãn – `success` màu `ok`, `fail` màu `danger`, case trung tính; node bắt đầu có cờ *Bắt đầu*; badge cảnh báo (thiếu dữ liệu, không đi tới được)
-    - [ ] Thao tác: kéo node; kéo từ cổng sang node = nối; **kéo cổng ra chỗ trống → Ctrl+K** thêm node đã nối sẵn; Ctrl+K khi đang chọn node = chèn vào sau cổng `success` (A → B thành A → mới → B); chọn cạnh + Delete / nút × trên cạnh; khung chọn nhiều (Shift + kéo) – nối vào chọn nhiều điểm sẵn có (bước 30); Ctrl+C / V cả node + cạnh bên trong; bật / tắt; *Đặt làm bắt đầu*; nút *Sắp xếp lại*, vừa màn hình, zoom, minimap
-    - [ ] Inspector: `StepForm` giữ cho node hành động + mục *Khi thất bại* (thử lại N lần, nghỉ X ms) + mục **Cổng ra** (mỗi cổng một ô chọn node đích – thay cho kéo, dùng được bằng bàn phím); `ref` sửa được; ô `{{…}}` gợi ý cả output các node (`VarTextInput`)
-    - [ ] Store (`scriptStore.ts`): node + cạnh + vị trí; hoàn tác / làm lại tính cả cạnh và vị trí (kéo node gộp thành 1 lần); tự lưu nháp như cũ
-    - [ ] Overlay: marker đánh số theo `flowOrder` (`n2`), chọn node trên canvas → xem riêng điểm của node đó
-  - [ ] **F5. Lúc chạy + nhật ký + debug** *(thay bước 25c cũ – chạy từ bước / từng bước / breakpoint, nhật ký, lịch sử chạy)*
+    - [ ] `model.go`: `Script.start`, `Script.edges []Edge {id, from, port, to}`; `Step.ref`, `Step.name`, `Step.pos {x, y}`, `Step.imageFrom`; `onFail` thành `retry {count, delayMs}`
+    - [ ] `flow.go`: `StepResult {nodeId, ref, status: success | fail | skipped | cancelled, port, output, error {code, message}, logs [{t, level, msg}], attempts, startedAt, durationMs}`; mã lỗi `not_found | timeout | permission | invalid_input | cancelled | internal`; `portsOf`; `flowOrder` (duyệt từ `start`, ưu tiên `success` / `true` / case đầu)
+    - [ ] `storage.go`: `ScriptVersion` 4, file < 4 báo không mở được; `NewScript` tạo sẵn `start`
+    - [ ] `flowcheck.go` `validateFlow`: có `start`; cạnh trỏ node có thật, cổng đúng loại node, mỗi cổng tối đa 1 cạnh; `ref` duy nhất; `{{nX…}}` trỏ node có thật; `imageFrom` là node chờ ảnh / chữ; node không tới được → cảnh báo (không chặn chạy). Lỗi trả `nodeId` + `ref`
+    - [ ] `types.ts` khớp Go (tsc kiểm tra), `flow.ts` (`portsOf`, `flowOrder`); `steptypes.go` ghi cổng ra + output mỗi loại, ví dụ qua được `validateFlow`
+    - [ ] Test: `validateFlow` từng lỗi, `flowOrder` có vòng lặp (Go + TS cùng kết quả), file cũ bị từ chối
+  - [ ] **F2. Engine chạy theo đồ thị** (`flowrun.go`, `vars.go`)
+    - [ ] `runFlow`: từ `start` → `execNode` trả `StepResult` → cạnh theo `port` → node kế; hết cạnh kết thúc theo quy tắc. `runStep` bọc lại để trả `StepResult`; thử lại theo `retry`, mỗi lần ghi log; thay `runWithRetry` / `goto` cũ
+    - [ ] Ngữ cảnh chạy: `results[nodeId]`, `vars`, `last`; thay `{{nX.output…}}` / `{{vars…}}` lúc chạy từng node (input `{{key}}` vẫn qua `resolveInputs`); click theo ảnh lấy chỗ thấy từ output node `imageFrom`
+    - [ ] Giới hạn 10 000 lần chạy node mỗi vòng → lỗi "có thể lặp vô hạn ở n2 → n5 → n4"
+    - [ ] Event: `engine:progress` thêm `nodeId`, `ref`, `port`; event mới `engine:node` gửi `StepResult`
+    - [ ] Test bằng input giả: `fail` có / không nối, thử lại rồi qua `fail`, vòng lặp, node tắt, biến từ output, dừng / tạm dừng, giới hạn 10 000
+  - [ ] **F4b. Nối canvas vào app** (bỏ danh sách bước cũ)
+    - [ ] `MainScreen`: cột giữa thành `FlowCanvas`; bỏ `StepList.tsx` + `@dnd-kit/*`; thẻ / màu theo F4a
+    - [ ] `flowEdit.ts` (thuần, có test): nối / cắt cạnh, xoá node kèm cạnh, chèn node giữa cạnh (A → B thành A → mới → B), copy / paste node + cạnh bên trong, đặt bắt đầu; `flowLayout.ts` (`elkjs`, nút *Sắp xếp lại*)
+    - [ ] Thao tác: kéo node; kéo cổng sang node = nối; **kéo cổng ra chỗ trống → Ctrl+K** thêm node đã nối; Ctrl+K khi đang chọn node = chèn sau cổng `success`; Delete xoá node / cạnh; Shift + kéo chọn nhiều (nối vào chọn nhiều điểm của bước 30); bật / tắt; vừa màn hình, zoom, minimap
+    - [ ] Inspector: `StepForm` + *Khi thất bại* (thử lại N lần, nghỉ X ms) + **Cổng ra** (mỗi cổng một ô chọn node đích – thay cho kéo, dùng được bằng bàn phím); sửa `ref`; `VarTextInput` gợi ý cả output các node
+    - [ ] `scriptStore.ts`: node + cạnh + vị trí qua `flowEdit`; hoàn tác / làm lại tính cả cạnh, vị trí (kéo node = 1 lần); tự lưu nháp như cũ
+    - [ ] Overlay: marker đánh số theo `flowOrder`; chọn node trên canvas → xem riêng điểm của node
+    - [ ] Badge cảnh báo trên node lấy từ `validateFlow`
+    - [ ] Kiểm tra tay: soạn ví dụ Facebook bằng canvas (chỉ node hành động + cạnh `fail` quay lại), chạy thật
+  - [ ] **F3. Node điều khiển** (`nodes.go`, `cond.go`, `components/flow/nodes/*`)
+    - [ ] Lấy lại `Cond`, `evalCond`, `compareValues` (từ `60dcfe2`) và `CondEditor` (từ `d5882a7`) cho `if`
+    - [ ] `switch`, `switchScreen` (chụp một lần rồi so mọi case), `counter`, `end`, `setVar` – mỗi loại: engine + `checkStep` + `steptypes.go` + inspector + thẻ node + test
+    - [ ] **Thử node** (lấy lại `condtest.go` / `TestCond`, mở rộng): chạy riêng `if` / `switch` / `switchScreen` trên màn hình lúc này → cổng sẽ đi + chi tiết từng phần, khung chỗ thấy trên overlay
+    - [ ] Ctrl+K nhóm *Rẽ nhánh & luồng*
+  - [ ] **F5. Lúc chạy + nhật ký + debug** *(thay bước 25c cũ)* (`runlog.go`, `RunLog.tsx`, `runStore.ts`)
     - [ ] Canvas khi chạy: node đang chạy viền `accent` + vòng tiến độ, xong tô `ok` / `danger`, cạnh vừa đi sáng lên, số lần đi qua trên node
-    - [ ] Bảng **Nhật ký** dưới canvas: mỗi dòng một node đã chạy (giờ, `n2`, tên, status, ms, cổng đi) → bấm mở output / lỗi / log / ảnh chụp lúc lỗi; bấm dòng → chọn node trên canvas
-    - [ ] Lưu mỗi lần chạy `UserConfigDir/autoclicker/runs/<kịch bản>/<thời gian>.json` (`StepResult[]`, input đã dùng, nguồn: người dùng / hẹn giờ / CLI / AI, kết quả cuối) + PNG khi node lỗi / hết giờ; giữ 50 lần gần nhất mỗi kịch bản; mục *Lịch sử* trong thư viện mở lại nhật ký cũ (tô đường đã đi lên canvas)
-    - [ ] Debug: chạy từ node đang chọn, chạy từng node (Tiếp / F10), breakpoint trên node; `RunNode` là hàm Go riêng (dùng cho Thử node và MCP)
+    - [ ] Bảng **Nhật ký** dưới canvas: mỗi dòng một node đã chạy (giờ, `n2`, tên, status, ms, cổng đi) → bấm mở output / lỗi / log / ảnh lúc lỗi; bấm dòng → chọn node
+    - [ ] Lưu mỗi lần chạy `UserConfigDir/autoclicker/runs/<kịch bản>/<thời gian>.json` (`StepResult[]`, input đã dùng, nguồn: người dùng / hẹn giờ / CLI / AI, kết quả cuối) + PNG khi node lỗi / hết giờ; giữ 50 lần gần nhất mỗi kịch bản; mục *Lịch sử* trong thư viện mở lại (tô đường đã đi)
+    - [ ] Debug: chạy từ node đang chọn, chạy từng node (Tiếp / F10), breakpoint; `RunNode` là hàm Go riêng (Thử node và MCP dùng chung)
   - [ ] **F6. Xem trước, thanh mini**
-    - [ ] Xem trước (`Simulation.tsx`) đi theo đồ thị: mặc định `success` / `true` / case đầu; mỗi node rẽ nhánh có công tắc "giả sử thất bại" / chọn case; Đếm chạy 1 vòng rồi `done`; đường đang mô phỏng tô trên canvas
+    - [ ] Xem trước (`Simulation.tsx`) đi theo đồ thị: mặc định `success` / `true` / case đầu; node rẽ nhánh có công tắc "giả sử thất bại" / chọn case; Đếm chạy 1 vòng rồi `done`; đường đang mô phỏng tô trên canvas
     - [ ] Thanh mini: "n2 · Tìm nút Nhắn tin · thất bại → n5 Đếm (3 / 10)"
   - [ ] **F7. Chuẩn bị cho MCP (31):** JSON flow là định dạng duy nhất; `get_step_types` trả cổng ra + output từng loại; `validateFlow` lỗi có `nodeId` / `ref`; kết quả chạy trả `StepResult[]` để AI đọc lỗi và tự sửa kịch bản
   - Sau này (28): đọc chữ trong vùng / clipboard vào biến (`setVar` từ OCR), lặp theo từng dòng CSV, `subflow`
@@ -608,3 +635,4 @@ Người dùng gõ trên Claude: *"tạo kịch bản mở bài Tinh Hà Say 2 t
 - **2026-10-17** – Sửa (người dùng báo): bước tìm theo chữ hiện đúng tên "Chờ chữ" / "Click theo chữ" (`stepLabel`). `npm run build`, `npm test` OK.
 - **2026-10-17** – Người dùng thấy cây khối (20a–20c) khác kỳ vọng → revert 3 commit `60dcfe2`, `956ec76`, `d5882a7` (giữ 2 bản sửa overlay / `stepLabel` sau đó); viết lại plan 20 thành flow kiểu n8n (node + cạnh, `StepResult`, canvas, F1–F7, gộp 25c). `go test ./...`, `npm run build`, `npm test` (25) OK sau revert.
 - **2026-10-17** – Sắp lại các mục Phase 3 theo đúng thứ tự làm (20 lên ngay sau 25b, trước 26 / 25d; 25e vào bảng thứ tự); bỏ mục 25c riêng – nội dung nằm trong 20 F5.
+- **2026-10-17** – Theo yêu cầu: sắp lại thứ tự trong 20 – F4a (thiết kế + `#demo-flow`) lên đầu, F4b (nối canvas) ngay sau engine, rồi mới F3; bỏ chuyển đổi file kịch bản cũ (version < 4 không mở được); thêm bảng chia module Go / frontend.
