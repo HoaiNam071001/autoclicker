@@ -615,7 +615,7 @@ function TextSearchFields({ step: s }: { step: Step }) {
         </span>
       </div>
       <span className={hint}>
-        “Cả dòng”: chỉ khớp ô / nút chỉ có đúng chữ này (tránh khớp trong câu dài) – nhưng máy có thể gộp các nút sát nhau cùng hàng (vd thanh menu) thành một dòng, khi đó để tắt. “Bỏ qua dấu”: khi máy đọc sai dấu.
+        “Cả dòng”: chỉ khớp ô / nút chỉ có đúng chữ này (tránh khớp trong câu dài). “Bỏ qua dấu”: khi máy đọc sai dấu.
         Chữ hiện nhiều lần → chỗ thứ mấy tính từ trên xuống, trái sang phải.
       </span>
       <button onClick={() => testFind(s.id)} disabled={empty || busy === s.id}

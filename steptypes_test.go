@@ -29,7 +29,7 @@ func TestStepTypeDocs(t *testing.T) {
 			}
 		}
 	}
-	for _, typ := range []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen, StepWaitImage, StepClickImage, StepWaitPixel, StepIf, StepGroup, StepBreak, StepStop} {
+	for _, typ := range []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen, StepWaitImage, StepClickImage, StepWaitPixel} {
 		if _, err := (&App{}).NewStep(typ); err != nil {
 			t.Errorf("NewStep(%s): %v", typ, err)
 		}

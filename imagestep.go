@@ -123,7 +123,7 @@ func (e *engine) findImage(ctx context.Context, s Step) (Point, error) {
 	})
 	if errors.Is(err, errTimeout) {
 		e.miss = &miss
-		return Point{}, &notFound{fmt.Sprintf("không thấy ảnh mẫu sau %s (khớp nhất %d%%, cần %d%%)", fmtSeconds(s.TimeoutMs), best, s.Threshold)}
+		return Point{}, fmt.Errorf("không thấy ảnh mẫu sau %s (khớp nhất %d%%, cần %d%%)", fmtSeconds(s.TimeoutMs), best, s.Threshold)
 	}
 	if err != nil {
 		return Point{}, err
@@ -150,7 +150,7 @@ func (e *engine) findTextStep(ctx context.Context, s Step, area Rect) (Point, er
 	})
 	if errors.Is(err, errTimeout) {
 		e.miss = &FindResult{Area: area, Read: read}
-		return Point{}, &notFound{fmt.Sprintf("không thấy chữ “%s” sau %s%s", s.FindText, fmtSeconds(s.TimeoutMs), readHint(read))}
+		return Point{}, fmt.Errorf("không thấy chữ “%s” sau %s%s", s.FindText, fmtSeconds(s.TimeoutMs), readHint(read))
 	}
 	if err != nil {
 		return Point{}, err
@@ -241,7 +241,7 @@ func (e *engine) waitPixel(ctx context.Context, s Step) error {
 		return d <= s.Tolerance, 100 - d*100/255, nil
 	})
 	if errors.Is(err, errTimeout) {
-		return &notFound{fmt.Sprintf("điểm X %d Y %d vẫn màu %s sau %s (cần %s ± %d)", p.X, p.Y, last, fmtSeconds(s.TimeoutMs), s.Color, s.Tolerance)}
+		return fmt.Errorf("điểm X %d Y %d vẫn màu %s sau %s (cần %s ± %d)", p.X, p.Y, last, fmtSeconds(s.TimeoutMs), s.Color, s.Tolerance)
 	}
 	return err
 }

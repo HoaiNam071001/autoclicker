@@ -20,12 +20,6 @@ const commonFieldsDoc = `id (ổn định, để sửa / nhảy tới), type, en
 	`"goto" nhảy tới bước có id = goto (trước hoặc sau; tối đa 1000 lần nhảy mỗi vòng). ` +
 	`Vd {"retries":2,"action":"goto","goto":"s5"}.`
 
-// condDoc – mô tả Cond (điều kiện của khối if / group).
-const condDoc = `cond.kind: "image" (template, threshold…), "text" (findText, textExact, textNoAccent, occurrence), "pixel" (points[0], color, tolerance) – ` +
-	`cùng trường với waitImage / waitPixel, waitMs = chờ tối đa trước khi kết luận không thấy (0 = xem một lần), thấy thì clickImage prev click được; ` +
-	`"input": so left op right (op eq | ne | contains | gt | lt | empty; left / right nhận {{biến}}, vd left "{{ten}}"); ` +
-	`"result": bước chạy ngay trước thành công (dùng với onFail next); "all" / "any": conds là danh sách điều kiện con (và / hoặc). not: đảo kết quả.`
-
 var stepTypeDocs = []StepTypeDoc{
 	{StepClick, "Click", "Click chuột Clicks lần tại points[0] (neo theo cạnh vùng, xem anchor.go).",
 		[]string{"points[1]", "button", "clicks", "clickInterval", "jitterPx"}, []string{"clicks", "clickInterval", "jitterPx", "delayAfter", "jitterMs", "enabled"},
@@ -63,18 +57,6 @@ var stepTypeDocs = []StepTypeDoc{
 	{StepWaitPixel, "Chờ màu pixel", "Chờ tới khi điểm points[0] có màu color (#RRGGBB), mỗi kênh lệch ≤ tolerance. Hết timeoutMs thì dừng. Không di chuột.",
 		[]string{"points[1]", "color", "tolerance", "timeoutMs", "intervalMs"}, []string{"timeoutMs", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","type":"waitPixel","points":[{"x":640,"y":300}],"color":"#1877F2","tolerance":10,"timeoutMs":5000,"intervalMs":100,"delayAfter":300,"enabled":true}`},
-	{StepIf, "Nếu", "Khối điều kiện: cond đúng → chạy children, sai → chạy else (else có thể chứa một if khác = \"nếu không, nếu\"). " + condDoc,
-		[]string{"cond", "children", "else"}, []string{"delayAfter", "enabled"},
-		`{"id":"b1","type":"if","cond":{"kind":"text","findText":"Nhắn tin","waitMs":3000,"intervalMs":250},"children":[{"id":"b2","type":"clickImage","imageSource":"prev","button":"left","delayAfter":500,"enabled":true}],"else":[{"id":"b3","type":"scroll","direction":"down","amount":3,"delayAfter":500,"enabled":true}],"delayAfter":0,"enabled":true}`},
-	{StepGroup, "Nhóm / Lặp", "Khối chạy children: loopMode \"\" = repeat lần (≥ 1, 1 = chỉ gom nhóm, name là tên); \"until\" = lặp đến khi cond đúng; \"while\" = lặp khi cond còn đúng (cả hai xét cond trước mỗi vòng); maxLoops chặn lặp vô hạn (0 = 100, vượt → bước thất bại). Bước break bên trong thoát khối.",
-		[]string{"name", "repeat", "loopMode", "cond", "maxLoops", "children"}, []string{"repeat", "delayAfter", "enabled"},
-		`{"id":"g1","type":"group","name":"Cuộn tìm nút","loopMode":"until","cond":{"kind":"text","findText":"Xem lịch sử"},"maxLoops":10,"children":[{"id":"g2","type":"scroll","direction":"down","amount":3,"delayAfter":800,"enabled":true}],"delayAfter":0,"enabled":true}`},
-	{StepBreak, "Thoát khối lặp", "Thoát khối group gần nhất chứa nó (thường đặt trong một if). Chỉ hợp lệ bên trong group.",
-		[]string{}, []string{"enabled"},
-		`{"id":"x1","type":"break","delayAfter":0,"enabled":true}`},
-	{StepStop, "Dừng kịch bản", "Dừng cả kịch bản ngay (không chạy các vòng sau). stopError true = báo lỗi kèm message; false = kết thúc bình thường.",
-		[]string{"message", "stopError"}, []string{"enabled"},
-		`{"id":"x2","type":"stop","message":"Không tìm thấy người nhận","stopError":true,"delayAfter":0,"enabled":true}`},
 }
 
 // StepTypes trả mô tả các loại bước app đang hỗ trợ.

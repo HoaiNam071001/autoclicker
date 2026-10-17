@@ -20,62 +20,7 @@ const (
 	StepWaitImage  = "waitImage"  // chờ tới khi thấy ảnh mẫu Template trên màn hình (imagestep.go)
 	StepClickImage = "clickImage" // click vào chỗ thấy ảnh: kết quả bước chờ ảnh trước (ImageSource prev) hoặc tự tìm
 	StepWaitPixel  = "waitPixel"  // chờ tới khi điểm Points[0] có màu Color (± Tolerance)
-
-	// Khối (bước 20, blocks.go): có bước con Children / Else.
-	StepIf    = "if"    // Nếu Cond đúng → Children, không thì Else
-	StepGroup = "group" // Nhóm / Lặp: Children chạy Repeat lần, hoặc lặp đến khi / khi còn Cond (LoopMode)
-	StepBreak = "break" // thoát khối lặp gần nhất chứa nó
-	StepStop  = "stop"  // dừng kịch bản (StopError: báo lỗi kèm Message)
 )
-
-// Cách lặp của khối group (Step.LoopMode).
-const (
-	LoopCount = ""      // Repeat lần
-	LoopUntil = "until" // lặp đến khi Cond đúng (xét trước mỗi vòng – đúng ngay thì không chạy lần nào)
-	LoopWhile = "while" // lặp khi Cond còn đúng (xét trước mỗi vòng)
-)
-
-const defaultMaxLoops = 100 // until / while: số vòng tối đa khi MaxLoops = 0
-
-// Cond – điều kiện của khối if / lặp. Kind image / text / pixel dùng cùng trường với bước Chờ ảnh / chữ / pixel;
-// WaitMs = chờ tối đa trước khi kết luận "không thấy" (0 = xem một lần).
-type Cond struct {
-	Kind string `json:"kind"`          // image | text | pixel | input | result | all | any
-	Not  bool   `json:"not,omitempty"` // đảo kết quả
-
-	Template      string  `json:"template,omitempty"`
-	TemplateScale float64 `json:"templateScale,omitempty"`
-	Threshold     int     `json:"threshold,omitempty"`
-	SearchArea    string  `json:"searchArea,omitempty"`
-	FindText      string  `json:"findText,omitempty"` // nhận {{biến}}
-	TextExact     bool    `json:"textExact,omitempty"`
-	TextNoAccent  bool    `json:"textNoAccent,omitempty"`
-	Occurrence    int     `json:"occurrence,omitempty"`
-	Points        []Point `json:"points,omitempty"` // pixel: points[0]
-	Color         string  `json:"color,omitempty"`
-	Tolerance     int     `json:"tolerance,omitempty"`
-	WaitMs        int     `json:"waitMs,omitempty"`
-	IntervalMs    int     `json:"intervalMs,omitempty"`
-
-	Left  string `json:"left,omitempty"`  // input: vế trái, thường {{key}}; nhận {{biến}}
-	Op    string `json:"op,omitempty"`    // input: eq | ne | contains | gt | lt | empty
-	Right string `json:"right,omitempty"` // input: vế phải (không dùng với empty); nhận {{biến}}
-
-	Conds []Cond `json:"conds,omitempty"` // all (và) / any (hoặc)
-}
-
-// Kind của Cond.
-const (
-	CondImage  = "image"
-	CondText   = "text"
-	CondPixel  = "pixel"
-	CondInput  = "input"
-	CondResult = "result" // bước vừa chạy trước đó (cùng danh sách hoặc ngoài khối) thành công
-	CondAll    = "all"
-	CondAny    = "any"
-)
-
-var condOps = []string{"eq", "ne", "contains", "gt", "lt", "empty"}
 
 // Nguồn vị trí của bước click theo ảnh (Step.ImageSource).
 const (
@@ -146,15 +91,6 @@ type Step struct {
 	TextExact     bool    `json:"textExact,omitempty"`    // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
 	TextNoAccent  bool    `json:"textNoAccent,omitempty"` // FindBy text: bỏ qua dấu
 	Occurrence    int     `json:"occurrence,omitempty"`   // FindBy text: chỗ thứ mấy (trên → dưới, trái → phải); 0 = chỗ đầu
-	Children      []Step  `json:"children,omitempty"`     // if: nhánh đúng; group: thân khối
-	Else          []Step  `json:"else,omitempty"`         // if: nhánh sai; bước khác: chạy khi thất bại (OnFail.Action else)
-	Cond          *Cond   `json:"cond,omitempty"`         // if; group until / while
-	Name          string  `json:"name,omitempty"`         // group: tên hiện trên khung
-	Repeat        int     `json:"repeat,omitempty"`       // group LoopCount: số lần (≥ 1)
-	LoopMode      string  `json:"loopMode,omitempty"`     // group: "" = Repeat lần | until | while
-	MaxLoops      int     `json:"maxLoops,omitempty"`     // group until / while: tối đa (0 = 100)
-	Message       string  `json:"message,omitempty"`      // stop: lời nhắn
-	StopError     bool    `json:"stopError,omitempty"`    // stop: true = báo lỗi (mặc định: dừng bình thường)
 	OnFail        *OnFail `json:"onFail,omitempty"`       // bước thất bại (không thấy ảnh / chữ / màu, lỗi): nil = dừng kịch bản
 	Color         string  `json:"color,omitempty"`        // waitPixel: #RRGGBB
 	Tolerance     int     `json:"tolerance,omitempty"`    // waitPixel: sai số mỗi kênh màu (0–255)
@@ -164,9 +100,10 @@ type Step struct {
 const FindByText = "text"
 
 // OnFail – làm gì khi bước thất bại: thử lại thêm Retries lần, vẫn không được thì Action.
+// (Bước 20 thêm Action "else" = chạy các bước nhánh khác rồi đi tiếp – xem docs/TASKS.md.)
 type OnFail struct {
 	Retries int    `json:"retries,omitempty"` // 0 = không thử lại
-	Action  string `json:"action"`            // stop | next | goto | else
+	Action  string `json:"action"`            // stop | next | goto
 	Goto    string `json:"goto,omitempty"`    // action goto: id bước nhảy tới (cùng danh sách, trước hoặc sau)
 }
 
@@ -174,7 +111,6 @@ const (
 	FailStop = "stop" // dừng kịch bản, báo lỗi (mặc định)
 	FailNext = "next" // bỏ qua, sang bước sau
 	FailGoto = "goto" // nhảy tới bước Goto
-	FailElse = "else" // chạy các bước Step.Else rồi đi tiếp
 )
 
 const maxRetries = 100
@@ -235,13 +171,6 @@ func (a *App) NewStep(stepType string) (Step, error) {
 		s.Threshold, s.TimeoutMs, s.IntervalMs, s.DelayAfter = 90, 10000, 250, 300
 	case StepClickImage:
 		s.ImageSource, s.Threshold, s.TimeoutMs, s.IntervalMs = ImageFromPrev, 90, 10000, 250
-	case StepIf:
-		s.Cond = &Cond{Kind: CondText, IntervalMs: 250}
-		s.Children, s.Else, s.DelayAfter = []Step{}, []Step{}, 0
-	case StepGroup:
-		s.Repeat, s.Children, s.DelayAfter = 1, []Step{}, 0
-	case StepBreak, StepStop:
-		s.DelayAfter = 0
 	case StepWaitPixel:
 		s.Points = []Point{{}}
 		s.Color, s.Tolerance, s.TimeoutMs, s.IntervalMs, s.DelayAfter = "#000000", 10, 5000, 100, 300

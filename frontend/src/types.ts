@@ -9,24 +9,11 @@ export type Point = { x: number; y: number };
 export type StepPoint = Point & { ax?: Anchor; ay?: Anchor };
 export type Rect = { x: number; y: number; w: number; h: number };
 // Khi bước thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm retries lần, rồi action. Khớp OnFail trong model.go.
-export type OnFail = { retries?: number; action: 'stop' | 'next' | 'goto' | 'else'; goto?: string };
+export type OnFail = { retries?: number; action: 'stop' | 'next' | 'goto'; goto?: string };
 // Bước có thể "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại
 export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'open'];
 
-export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel'
-  | 'if' | 'group' | 'break' | 'stop'; // khối (bước 20, blocks.go) – chưa có UI soạn (20b), mở file có khối vẫn chạy được
-
-// Điều kiện của khối Nếu / Lặp – khớp Cond trong model.go.
-export type Cond = {
-  kind: 'image' | 'text' | 'pixel' | 'input' | 'result' | 'all' | 'any';
-  not?: boolean;
-  template?: string; templateScale?: number; threshold?: number; searchArea?: string;
-  findText?: string; textExact?: boolean; textNoAccent?: boolean; occurrence?: number;
-  points?: StepPoint[]; color?: string; tolerance?: number;
-  waitMs?: number; intervalMs?: number; // chờ tối đa trước khi kết luận "không thấy" (0 = xem một lần)
-  left?: string; op?: string; right?: string; // input: so 2 vế, nhận {{biến}}
-  conds?: Cond[]; // all / any
-};
+export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel';
 export type ScrollDirection = 'up' | 'down' | 'left' | 'right';
 export type MouseButton = 'left' | 'right' | 'center';
 export type Modifier = 'cmd' | 'ctrl' | 'alt' | 'shift';
@@ -71,24 +58,13 @@ export interface Step {
   textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
   textNoAccent?: boolean; // bỏ qua dấu
   occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu
-  children?: Step[]; // if: nhánh đúng; group: thân khối
-  else?: Step[]; // if: nhánh sai; bước khác: chạy khi thất bại (onFail.action 'else')
-  cond?: Cond; // if; group until / while
-  name?: string; // group: tên
-  repeat?: number; // group: số lần
-  loopMode?: string; // group: '' = repeat lần | until | while
-  maxLoops?: number; // group until / while: tối đa (0 = 100)
-  message?: string; // stop: lời nhắn
-  stopError?: boolean; // stop: báo lỗi
   onFail?: OnFail; // bước thất bại: bỏ trống = dừng kịch bản (engine.go runWithRetry)
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
 }
 
 // Kiểm tra lúc type-check: Step phải khớp struct Go (model.go) – thiếu/thừa/sai kiểu field là tsc báo lỗi.
-// bỏ hàm (convertValues của class sinh từ Go) ở mọi tầng – Step có bước con / điều kiện lồng nhau
-type Fields<T> = { [K in keyof T as T[K] extends Function ? never : K]: DeepFields<T[K]> };
-type DeepFields<T> = T extends (infer U)[] ? DeepFields<U>[] : T extends object ? Fields<T> : T;
+type Fields<T> = { [K in keyof T as T[K] extends Function ? never : K]: T[K] };
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const stepMatchesGo: [Step extends Fields<main.Step> ? true : false, Same<keyof Step, keyof Fields<main.Step>>] = [true, true];
 void stepMatchesGo;
@@ -156,10 +132,6 @@ export const STEP_LABEL: Record<StepType, string> = {
   waitImage: 'Chờ ảnh',
   clickImage: 'Click theo ảnh',
   waitPixel: 'Chờ màu pixel',
-  if: 'Nếu',
-  group: 'Nhóm / Lặp',
-  break: 'Thoát khối lặp',
-  stop: 'Dừng kịch bản',
 };
 
 export const SCROLL_ARROW: Record<ScrollDirection, string> = { up: '↑', down: '↓', left: '←', right: '→' };
@@ -229,36 +201,5 @@ export const fmtPos = (s: Step) =>
         ? (s.findText?.trim() ? `chữ “${s.findText}”${(s.occurrence ?? 0) > 1 ? ` (chỗ thứ ${s.occurrence})` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa nhập chữ cần tìm')
         : s.template ? `khớp ≥ ${s.threshold}% · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa có ảnh mẫu'}`
     : s.type === 'clickImage' ? `chỗ bước trước thấy ảnh${s.dx || s.dy ? ` ${fmtSigned(s.dx ?? 0)},${fmtSigned(s.dy ?? 0)}` : ''}`
-    : s.type === 'if' ? `${s.cond ? fmtCond(s.cond) : '—'} → ${s.children?.length ?? 0} bước · nếu không: ${s.else?.length ?? 0} bước`
-    : s.type === 'group' ? `${s.name ? `${s.name} · ` : ''}${!s.loopMode ? `lặp ×${s.repeat ?? 1}` : `lặp ${s.loopMode === 'until' ? 'đến khi' : 'khi'} ${s.cond ? fmtCond(s.cond) : '—'}`} · ${s.children?.length ?? 0} bước`
-    : s.type === 'stop' ? (s.message || (s.stopError ? 'báo lỗi' : 'kết thúc bình thường'))
-    : s.type === 'break' ? 'thoát khối lặp gần nhất'
     : s.type === 'waitPixel' && s.points[0] ? `${fmtPoint(s.points[0])} = ${s.color} ±${s.tolerance} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`
     : s.points[0] ? fmtPoint(s.points[0]) : '—';
-
-// Điều kiện dạng chữ ngắn: thấy chữ “Gửi”, không thấy ảnh, {{ten}} = Lan…
-const OP_TEXT: Record<string, string> = { eq: '=', ne: '≠', contains: 'chứa', gt: '>', lt: '<', empty: 'trống' };
-export function fmtCond(c: Cond): string {
-  const no = c.not ? 'không ' : '';
-  switch (c.kind) {
-    case 'text': return `${no}thấy chữ “${c.findText ?? ''}”`;
-    case 'image': return `${no}thấy ảnh`;
-    case 'pixel': return `điểm ${c.not ? 'khác' : 'có'} màu ${c.color ?? ''}`;
-    case 'input': return `${c.not ? 'không: ' : ''}${c.left ?? ''} ${OP_TEXT[c.op ?? ''] ?? c.op} ${c.op === 'empty' ? '' : c.right ?? ''}`.trim();
-    case 'result': return `bước trước ${c.not ? 'thất bại' : 'thành công'}`;
-    default: return `${c.not ? 'không: ' : ''}${(c.conds ?? []).map(fmtCond).join(c.kind === 'all' ? ' và ' : ' hoặc ')}`;
-  }
-}
-
-// Bước gốc (cấp ngoài cùng) chứa bước id – danh sách bước chưa hiện bước con (20b) thì chọn khối chứa nó.
-export const rootOf = (steps: Step[], id: string) => steps.find((s) => findStep([s], id));
-
-// Tìm bước theo id trong cả cây (bước con của khối Nếu / Nhóm, nhánh khi thất bại).
-export function findStep(steps: Step[], id: string): Step | undefined {
-  for (const s of steps) {
-    if (s.id === id) return s;
-    const c = findStep(s.children ?? [], id) ?? findStep(s.else ?? [], id);
-    if (c) return c;
-  }
-  return undefined;
-}

@@ -1,89 +1,5 @@
 export namespace main {
 	
-	export class Point {
-	    x: number;
-	    y: number;
-	    ax?: string;
-	    ay?: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new Point(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.x = source["x"];
-	        this.y = source["y"];
-	        this.ax = source["ax"];
-	        this.ay = source["ay"];
-	    }
-	}
-	export class Cond {
-	    kind: string;
-	    not?: boolean;
-	    template?: string;
-	    templateScale?: number;
-	    threshold?: number;
-	    searchArea?: string;
-	    findText?: string;
-	    textExact?: boolean;
-	    textNoAccent?: boolean;
-	    occurrence?: number;
-	    points?: Point[];
-	    color?: string;
-	    tolerance?: number;
-	    waitMs?: number;
-	    intervalMs?: number;
-	    left?: string;
-	    op?: string;
-	    right?: string;
-	    conds?: Cond[];
-	
-	    static createFrom(source: any = {}) {
-	        return new Cond(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.kind = source["kind"];
-	        this.not = source["not"];
-	        this.template = source["template"];
-	        this.templateScale = source["templateScale"];
-	        this.threshold = source["threshold"];
-	        this.searchArea = source["searchArea"];
-	        this.findText = source["findText"];
-	        this.textExact = source["textExact"];
-	        this.textNoAccent = source["textNoAccent"];
-	        this.occurrence = source["occurrence"];
-	        this.points = this.convertValues(source["points"], Point);
-	        this.color = source["color"];
-	        this.tolerance = source["tolerance"];
-	        this.waitMs = source["waitMs"];
-	        this.intervalMs = source["intervalMs"];
-	        this.left = source["left"];
-	        this.op = source["op"];
-	        this.right = source["right"];
-	        this.conds = this.convertValues(source["conds"], Cond);
-	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
-	}
 	export class Rect {
 	    x: number;
 	    y: number;
@@ -216,6 +132,24 @@ export namespace main {
 	        this.goto = source["goto"];
 	    }
 	}
+	export class Point {
+	    x: number;
+	    y: number;
+	    ax?: string;
+	    ay?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Point(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.x = source["x"];
+	        this.y = source["y"];
+	        this.ax = source["ax"];
+	        this.ay = source["ay"];
+	    }
+	}
 	export class Step {
 	    id: string;
 	    type: string;
@@ -253,15 +187,6 @@ export namespace main {
 	    textExact?: boolean;
 	    textNoAccent?: boolean;
 	    occurrence?: number;
-	    children?: Step[];
-	    else?: Step[];
-	    cond?: Cond;
-	    name?: string;
-	    repeat?: number;
-	    loopMode?: string;
-	    maxLoops?: number;
-	    message?: string;
-	    stopError?: boolean;
 	    onFail?: OnFail;
 	    color?: string;
 	    tolerance?: number;
@@ -308,15 +233,6 @@ export namespace main {
 	        this.textExact = source["textExact"];
 	        this.textNoAccent = source["textNoAccent"];
 	        this.occurrence = source["occurrence"];
-	        this.children = this.convertValues(source["children"], Step);
-	        this.else = this.convertValues(source["else"], Step);
-	        this.cond = this.convertValues(source["cond"], Cond);
-	        this.name = source["name"];
-	        this.repeat = source["repeat"];
-	        this.loopMode = source["loopMode"];
-	        this.maxLoops = source["maxLoops"];
-	        this.message = source["message"];
-	        this.stopError = source["stopError"];
 	        this.onFail = this.convertValues(source["onFail"], OnFail);
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];

@@ -20,8 +20,7 @@ import (
 // ScriptVersion – định dạng file kịch bản hiện tại. Tăng khi đổi model theo cách file cũ không đọc đúng được,
 // và thêm bước chuyển đổi trong decodeScript.
 // 2 (bước 21b): thêm inputs – app cũ không biết inputs nên không được mở file mới.
-// 3 (bước 20): khối điều kiện (children / else / cond), onFail – file 1, 2 mở bình thường.
-const ScriptVersion = 3
+const ScriptVersion = 2
 
 const (
 	draftFile  = "draft.json"
@@ -88,19 +87,16 @@ func checkScript(sc *Script) error {
 	}
 	ids := map[string]bool{}
 	n := 0
-	err := walkSteps(sc.Steps, "", func(s *Step, path string) error {
+	for i := range sc.Steps {
+		s := &sc.Steps[i]
 		if err := checkStep(s); err != nil {
-			return fmt.Errorf("bước %s: %w", path, err)
+			return fmt.Errorf("bước %d: %w", i+1, err)
 		}
 		for s.ID == "" || ids[s.ID] { // id trống / trùng (sửa tay file) → đặt id mới
 			n++
 			s.ID = fmt.Sprintf("f%d", n)
 		}
 		ids[s.ID] = true
-		return nil
-	})
-	if err != nil {
-		return err
 	}
 	return checkInputs(sc)
 }
@@ -112,7 +108,7 @@ func checkStep(s *Step) error {
 		need = 1
 	case StepDrag:
 		need = 2
-	case StepWait, StepText, StepKey, StepOpen, StepScroll, StepWaitImage, StepClickImage, StepIf, StepGroup, StepBreak, StepStop:
+	case StepWait, StepText, StepKey, StepOpen, StepScroll, StepWaitImage, StepClickImage:
 	default:
 		return fmt.Errorf("loại bước không hợp lệ: %q", s.Type)
 	}
@@ -122,25 +118,8 @@ func checkStep(s *Step) error {
 	if s.ImageSource != "" && s.ImageSource != ImageFromPrev && s.ImageSource != ImageFromSearch {
 		return fmt.Errorf("nguồn vị trí ảnh không hợp lệ: %q", s.ImageSource)
 	}
-	if !isBlock(s.Type) && len(s.Children) > 0 {
-		return errors.New("chỉ khối Nếu / Nhóm mới có bước con")
-	}
-	if s.LoopMode != LoopCount && s.LoopMode != LoopUntil && s.LoopMode != LoopWhile {
-		return fmt.Errorf("cách lặp không hợp lệ: %q", s.LoopMode)
-	}
-	if s.Repeat < 0 || s.MaxLoops < 0 {
-		return errors.New("số lần lặp không được âm")
-	}
-	if s.Cond != nil {
-		if err := walkConds(s.Cond, checkCond); err != nil {
-			return err
-		}
-	}
-	if s.Children == nil && isBlock(s.Type) {
-		s.Children = []Step{}
-	}
 	if f := s.OnFail; f != nil {
-		if f.Action != FailStop && f.Action != FailNext && f.Action != FailGoto && f.Action != FailElse {
+		if f.Action != FailStop && f.Action != FailNext && f.Action != FailGoto {
 			return fmt.Errorf("cách xử lý khi thất bại không hợp lệ: %q", f.Action)
 		}
 		if f.Retries < 0 || f.Retries > maxRetries {
@@ -194,28 +173,6 @@ func checkStep(s *Step) error {
 	}
 	if s.Modifiers == nil {
 		s.Modifiers = []string{}
-	}
-	return nil
-}
-
-// checkCond (mở file): cấu trúc điều kiện đúng; đủ dữ liệu hay chưa thì lúc chạy mới kiểm tra.
-func checkCond(c *Cond) error {
-	if !slices.Contains([]string{CondImage, CondText, CondPixel, CondInput, CondResult, CondAll, CondAny}, c.Kind) {
-		return fmt.Errorf("loại điều kiện không hợp lệ: %q", c.Kind)
-	}
-	if c.Op != "" && !slices.Contains(condOps, c.Op) {
-		return fmt.Errorf("phép so không hợp lệ: %q", c.Op)
-	}
-	if c.SearchArea != "" && c.SearchArea != "screen" {
-		return fmt.Errorf("vùng tìm không hợp lệ: %q", c.SearchArea)
-	}
-	if c.Threshold < 0 || c.Threshold > 100 || c.Tolerance < 0 || c.Tolerance > 255 || c.TemplateScale < 0 || c.WaitMs < 0 || c.IntervalMs < 0 || c.Occurrence < 0 {
-		return errors.New("điều kiện có số ngoài khoảng cho phép")
-	}
-	for _, p := range c.Points {
-		if !validAnchor(p.Ax) || !validAnchor(p.Ay) {
-			return errors.New("điều kiện có điểm neo không hợp lệ")
-		}
 	}
 	return nil
 }
