@@ -5,7 +5,10 @@ Desktop app tự động click theo kịch bản (chọn vùng, chọn điểm, 
 ## Bắt đầu mỗi session
 
 1. Đọc **`docs/TASKS.md`**: mục *Trạng thái hiện tại* cho biết đang làm bước nào, *Quyết định đã chốt* là các lựa chọn không cần bàn lại, *Nhật ký* là lịch sử. Thiết kế UI v2 (token, thành phần, icon, artboard) ở **`design/DESIGN.md`** + `design/theme.css`.
-2. Xong một bước (hoặc chuyển sang bước mới) → cập nhật `docs/TASKS.md`: tick `[x]`, sửa *Trạng thái hiện tại*, thêm 1 dòng vào *Nhật ký* (ngày tuyệt đối, kết quả kiểm tra).
+2. Xong một bước (hoặc chuyển sang bước mới) → cập nhật `docs/TASKS.md` **trước khi commit / kết thúc session**: tick `[x]`, sửa *Trạng thái hiện tại*, thêm 1 dòng vào *Nhật ký* (ngày tuyệt đối, kết quả kiểm tra). Quy ước tick:
+   - Mục con làm xong là tick ngay; việc mới phát sinh (sửa theo người dùng báo, việc để sau) thêm thành mục con `[ ]` / `[x]`, không chỉ ghi ở chat.
+   - Mục cha tick khi hết phần code; còn *Kiểm tra tay* thì để dòng đó `[ ]` riêng (không giữ cả mục cha chưa tick vì chờ kiểm tra tay). Còn việc code chưa làm thì mục cha để `[ ]`.
+   - Trước khi kết thúc, rà lại các mục cha có mọi mục con code đã `[x]` mà chưa tick.
 3. Người dùng trao đổi bằng **tiếng Việt** – trả lời, comment UI và tài liệu bằng tiếng Việt; tên biến/hàm bằng tiếng Anh.
 
 ## Lệnh
