@@ -7,7 +7,7 @@ import {
   align, AlignOp, bbox, center, fromParams, IDENTITY, isNoTf, Mat, NO_TF, perspectiveCorner, rotateAbout, scaleAbout,
   skewXAbout, skewYAbout, TfParams, translate,
 } from '../transform';
-import { mappingOutside, moveSelectedTo, RegionMapMode, transformSelected } from '../scriptStore';
+import { mappingOutside, moveSelectedTo, RegionMapMode, transformSelected } from '../store';
 import { Point, Rect } from '../types';
 
 const isMac = navigator.platform.startsWith('Mac');

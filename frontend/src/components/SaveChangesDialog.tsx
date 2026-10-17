@@ -2,7 +2,7 @@
 // Enter = Lưu, Esc = Huỷ.
 import { useEffect } from 'react';
 import { answerPending, useFile } from '../scriptFile';
-import { useEditor } from '../scriptStore';
+import { useEditor } from '../store';
 
 const WHY = { new: 'tạo kịch bản mới', open: 'mở kịch bản khác', recent: 'mở kịch bản khác', quit: 'đóng app' };
 

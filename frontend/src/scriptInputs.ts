@@ -1,7 +1,8 @@
 // Input của kịch bản (bước 21b) – thao tác trên store: ghim trường, tạo / sửa / xoá input, tính bước nào dùng input.
 // Giá trị thật áp lúc chạy ở Go (resolveInputs, inputs.go). Trường đã ghim luôn giữ bằng giá trị mặc định của input,
 // nên Xem trước / overlay không cần resolve vẫn đúng với lần chạy dùng mặc định.
-import { getEditor, updateScript } from './scriptStore';
+import { flowOrder } from './flow/model';
+import { getEditor, updateScript } from './store';
 import { InputType, InputValue, PinField, Script, ScriptInput, Step, stepLabel } from './types';
 import { InputView, isValidKey, splitVars, varsIn } from './components/inputs/model';
 import type { RunSection } from './components/inputs/RunDialog';
@@ -31,7 +32,8 @@ export const varText = (s: Step) => (s.type === 'type' ? s.text : s.type === 'op
 const withVarText = (s: Step, text: string): Step =>
   s.type === 'type' ? { ...s, text } : s.type === 'open' ? { ...s, target: text } : s;
 const setInputs = (inputs: ScriptInput[]) => updateScript({ inputs: inputs.length ? inputs : undefined });
-const stepNo = (sc: Script, id: string) => String(sc.steps.findIndex((s) => s.id === id) + 1).padStart(2, '0');
+// Mã node (n2) hiện cạnh input / trong form Chạy
+const stepNo = (sc: Script, id: string) => sc.steps.find((s) => s.id === id)?.ref || '?';
 
 const uniqueKey = (base: string, inputs: ScriptInput[]) => {
   let k = base;
@@ -205,7 +207,7 @@ export function runSections(sc: Script): RunSection[] {
         title: steps.length ? [...new Set(steps.map((s) => stepLabel(s)))].join(', ') : 'Chưa bước nào dùng',
         keys: [],
         template: steps.find((s) => s.type === 'type')?.text,
-        order: steps.length ? sc.steps.indexOf(steps[0]) : Infinity,
+        order: steps.length ? flowOrder(sc).indexOf(steps[0].id) : Infinity,
       };
       groups.set(id, g);
     }

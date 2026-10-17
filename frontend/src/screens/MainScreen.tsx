@@ -1,9 +1,9 @@
-// Màn soạn kịch bản (design v2, artboard Main): thanh tiêu đề, thanh công cụ, thư viện | danh sách bước | inspector, status bar
+// Màn soạn kịch bản (design v2, artboard Main): thanh tiêu đề, thanh công cụ, thư viện | canvas flow | inspector, status bar
 import { useEffect, useState } from 'react';
 import { DebugButtons, RecordButton, StatusBar, Toolbar } from '../components/AppChrome';
 import { MousePos, StopScript } from '../../wailsjs/go/main/App';
 import { inWails, openOverlay } from '../windowMode';
-import { removeStep, useEditor } from '../scriptStore';
+import { useEditor } from '../store';
 import { closeRunForm, deletePreset, loadMemory, savePreset, startRun, submitRun, useRunForm } from '../runForm';
 import { inputViews, runSections } from '../scriptInputs';
 import RunDialog from '../components/inputs/RunDialog';
@@ -11,7 +11,7 @@ import { newScript, openScript, save, useFile } from '../scriptFile';
 import SaveChangesDialog from '../components/SaveChangesDialog';
 import TitleBar from '../components/TitleBar';
 import Library from '../components/Library';
-import StepList from '../components/StepList';
+import FlowEditor from '../components/flow/FlowEditor';
 import StepForm from '../components/StepForm';
 import RunSettings, { loopSummary } from '../components/RunSettings';
 import { STOP_REASON, useEngine } from '../engineStore';
@@ -26,8 +26,7 @@ export default function MainScreen() {
   const { script, selected, notice, dirty, path, countdown: editorCountdown } = useEditor();
   const { draftAt, error: fileError } = useFile();
   const { steps } = script;
-  const cur = steps.find((s) => s.id === selected) ?? steps[0]; // undefined khi chưa có bước nào
-  const idx = steps.indexOf(cur) + 1;
+  const cur = steps.find((s) => s.id === selected); // undefined khi chưa chọn node nào
   const { running, lastError, stopReason, hotkeyError } = useEngine();
   const runForm = useRunForm();
   const autoRun = !!script.inputs?.length && !!runForm.memory.autoRun;
@@ -42,17 +41,6 @@ export default function MainScreen() {
     const id = setInterval(() => MousePos().then(setMouse), MOUSE_POLL_MS);
     return () => clearInterval(id);
   }, []);
-
-  // Delete / Backspace xoá bước đang chọn (trừ khi đang gõ trong ô nhập).
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const el = e.target as HTMLElement;
-      if ((e.key !== 'Delete' && e.key !== 'Backspace') || el.closest('input, textarea, select')) return;
-      if (cur) removeStep(cur.id);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [cur]);
 
   // Cmd/Ctrl + S lưu, + Shift + S lưu thành, + O mở, + N kịch bản mới (cả khi đang gõ trong ô nhập).
   useEffect(() => {
@@ -85,12 +73,12 @@ export default function MainScreen() {
 
       <div className="flex min-h-0 flex-1 border-t border-line">
         <Library />
-        <StepList />
+        <FlowEditor />
         {cur ? (
-          <StepForm step={cur} index={idx} />
+          <StepForm key={cur.id} step={cur} />
         ) : (
           <aside className="grid w-[340px] flex-none place-items-center border-l border-line bg-surface p-4 text-center text-muted">
-            Chọn hoặc thêm một bước để cấu hình
+            Chọn một node trên canvas để cấu hình
           </aside>
         )}
       </div>

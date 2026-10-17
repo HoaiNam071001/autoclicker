@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { addConnected, connect, disconnect, Edge, reachable, removeNode } from './flowEdit';
+import { addConnected, chain, connect, disconnect, Edge, insertNode, nextRef, pruneEdges, reachable, removeNode } from './edit';
+import { makeStep } from '../types';
 
 const e = (id: string, from: string, port: string, to: string): Edge => ({ id, from, port, to });
 
@@ -42,5 +43,34 @@ describe('flowEdit', () => {
   it('reachable đi theo cả vòng lặp', () => {
     const edges = [e('1', 'a', 'success', 'b'), e('2', 'b', 'fail', 'a'), e('3', 'c', 'success', 'a')];
     expect([...reachable(edges, 'a')].sort()).toEqual(['a', 'b']);
+  });
+});
+
+describe('flowEdit – kịch bản', () => {
+  const node = (id: string, ref = '') => makeStep({ id, ref, type: 'wait' });
+
+  it('nextRef lấy số nhỏ nhất chưa dùng', () => {
+    expect(nextRef([node('a', 'n1'), node('b', 'n3')])).toBe('n2');
+    expect(nextRef([])).toBe('n1');
+  });
+
+  it('insertNode: node đầu thành start; nối từ cổng, chèn giữa', () => {
+    let g = insertNode({ steps: [], edges: [], start: '' }, node('a'), null);
+    expect(g.start).toBe('a');
+    g = insertNode(g, node('b'), { from: 'a', port: 'success' });
+    g = insertNode(g, node('c'), { from: 'a', port: 'success' });
+    expect(g.edges.map((e) => `${e.from}.${e.port}>${e.to}`).sort()).toEqual(['a.success>c', 'c.success>b']);
+    // start trỏ node đã xoá → node mới thành start
+    expect(insertNode({ steps: [node('x')], edges: [], start: 'gone' }, node('y'), null).start).toBe('y');
+  });
+
+  it('pruneEdges bỏ cạnh của cổng không còn / node không còn', () => {
+    const steps = [node('a'), node('b')];
+    const edges = [e('1', 'a', 'success', 'b'), e('2', 'a', 'true', 'b'), e('3', 'a', 'fail', 'x')];
+    expect(pruneEdges(steps, edges).map((x) => x.id)).toEqual(['1']);
+  });
+
+  it('chain nối success theo thứ tự', () => {
+    expect(chain(['a', 'b', 'c']).map((x) => `${x.from}>${x.to}`)).toEqual(['a>b', 'b>c']);
   });
 });

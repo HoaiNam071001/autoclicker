@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { makeStep, Script } from './types';
+import { chain } from './flow/edit';
 
-// scriptStore cần window (trình duyệt) – thay bằng store giả chỉ giữ kịch bản.
+// store cần window (trình duyệt) – thay bằng store giả chỉ giữ kịch bản.
 const store = vi.hoisted(() => ({ script: null as unknown as Script }));
-vi.mock('./scriptStore', () => ({
+vi.mock('./store', () => ({
   getEditor: () => ({ script: store.script }),
   updateScript: (p: Partial<Script>) => {
     store.script = { ...store.script, ...p };
@@ -15,11 +16,11 @@ const {
 } = await import('./scriptInputs');
 
 const base = (): Script => ({
-  version: 4, name: 'K', region: null, loops: 1, maxMinutes: 0, start: '', edges: [],
+  version: 4, name: 'K', region: null, loops: 1, maxMinutes: 0, start: 'a', edges: chain(['a', 'b', 'c']),
   steps: [
-    makeStep({ id: 'a', type: 'click', points: [{ x: 1, y: 1 }], delayAfter: 500 }),
-    makeStep({ id: 'b', type: 'type', text: 'xin chào {{M1}}' }),
-    makeStep({ id: 'c', type: 'click', points: [{ x: 2, y: 2 }], delayAfter: 800 }),
+    makeStep({ id: 'a', ref: 'n1', type: 'click', points: [{ x: 1, y: 1 }], delayAfter: 500 }),
+    makeStep({ id: 'b', ref: 'n2', type: 'type', text: 'xin chào {{M1}}' }),
+    makeStep({ id: 'c', ref: 'n3', type: 'click', points: [{ x: 2, y: 2 }], delayAfter: 800 }),
   ],
 });
 
@@ -96,8 +97,8 @@ describe('bước dùng input', () => {
     pinToInput('c', 'delayAfter', 'delay_1');
     addInput({ key: 'thua' });
     expect(runSections(store.script)).toEqual([
-      { steps: '01, 03', title: 'Click', keys: ['delay_1'], template: undefined },
-      { steps: '02', title: 'Gõ chữ', keys: ['M1'], template: 'xin chào {{M1}}' },
+      { steps: 'n1, n3', title: 'Click', keys: ['delay_1'], template: undefined },
+      { steps: 'n2', title: 'Gõ chữ', keys: ['M1'], template: 'xin chào {{M1}}' },
       { steps: '—', title: 'Chưa bước nào dùng', keys: ['thua'], template: undefined },
     ]);
   });

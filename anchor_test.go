@@ -41,7 +41,7 @@ func TestAnchorsFollowRegionResize(t *testing.T) {
 		for _, p := range pts {
 			sc.Steps = append(sc.Steps, step(StepClick, func(s *Step) { s.Points = []Point{p} }))
 		}
-		if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
+		if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 			t.Fatal(err)
 		}
 		var moves []string
@@ -66,7 +66,7 @@ func TestAnchorFullScreen(t *testing.T) {
 	sc := Script{Loops: 1, Steps: []Step{
 		step(StepClick, func(s *Step) { s.Points = []Point{{X: 10, Y: 10, Ax: AnchorEnd, Ay: AnchorEnd}} }),
 	}}
-	e := newEngine(in, sc, nil)
+	e := newEngine(in, linear(sc), nil)
 	e.screen = Rect{W: 1440, H: 900}
 	if err := e.run(context.Background()); err != nil {
 		t.Fatal(err)
@@ -81,7 +81,7 @@ func TestValidatePointOutsideRegion(t *testing.T) {
 	sc := Script{Loops: 1, Region: &r, Steps: []Step{
 		step(StepClick, func(s *Step) { s.Points = []Point{{X: 1200, Y: 10}} }),
 	}}
-	if err := validateScript(sc, Rect{}); err == nil || !strings.Contains(err.Error(), "ngoài vùng") {
+	if err := validateScript(linear(sc), Rect{}); err == nil || !strings.Contains(err.Error(), "ngoài vùng") {
 		t.Errorf("err = %v", err)
 	}
 	// B lệch so với A không bị kiểm tra theo vùng
@@ -89,7 +89,7 @@ func TestValidatePointOutsideRegion(t *testing.T) {
 		s.Points = []Point{{X: 900, Y: 10}, {X: 500, Y: 0}}
 		s.DragRelative = true
 	})}
-	if err := validateScript(sc, Rect{}); err != nil {
+	if err := validateScript(linear(sc), Rect{}); err != nil {
 		t.Errorf("err = %v", err)
 	}
 }

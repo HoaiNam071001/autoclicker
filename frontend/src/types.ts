@@ -216,7 +216,8 @@ export const sampleSteps: Step[] = [
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);
 const fmtSigned = (v: number) => (v > 0 ? `+${v}` : `${v}`);
 const fmtPair = (p: StepPoint) => `${fmtAxis(p.x, p.ax)}, ${fmtAxis(p.y, p.ay)}`;
-export const fmtPos = (s: Step) =>
+// refOf: id node → mã (n2) để ghi nguồn chỗ thấy của click theo ảnh.
+export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
   s.type === 'drag'
     ? `${s.dragFromPrev ? 'Từ điểm trước' : `A ${fmtPair(s.points[0])}`} → ${
       s.dragRelative ? `Δ ${fmtSigned(s.points[1].x)},${fmtSigned(s.points[1].y)}` : `B ${fmtPair(s.points[1])}`}`
@@ -228,6 +229,6 @@ export const fmtPos = (s: Step) =>
       ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.findBy === 'text'
         ? (s.findText?.trim() ? `chữ “${s.findText}”${(s.occurrence ?? 0) > 1 ? ` (chỗ thứ ${s.occurrence})` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa nhập chữ cần tìm')
         : s.template ? `khớp ≥ ${s.threshold}% · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa có ảnh mẫu'}`
-    : s.type === 'clickImage' ? `chỗ bước trước thấy ảnh${s.dx || s.dy ? ` ${fmtSigned(s.dx ?? 0)},${fmtSigned(s.dy ?? 0)}` : ''}`
+    : s.type === 'clickImage' ? `chỗ ${s.imageFrom ? refOf(s.imageFrom) : '(chưa chọn node)'} thấy${s.dx || s.dy ? ` ${fmtSigned(s.dx ?? 0)},${fmtSigned(s.dy ?? 0)}` : ''}`
     : s.type === 'waitPixel' && s.points[0] ? `${fmtPoint(s.points[0])} = ${s.color} ±${s.tolerance} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`
     : s.points[0] ? fmtPoint(s.points[0]) : '—';

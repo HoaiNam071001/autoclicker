@@ -23,7 +23,6 @@ func (e *notFoundErr) Error() string { return e.msg }
 // Hết thời gian là kết thúc bình thường (nil); bị huỷ trả ctx.Err().
 // MaxMinutes tính theo đồng hồ thật, kể cả lúc tạm dừng.
 func (e *engine) run(ctx context.Context) error {
-	linearToFlow(&e.sc)
 	sc := e.sc
 	if err := validateScript(sc, e.screen); err != nil {
 		return err

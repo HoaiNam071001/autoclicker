@@ -11,8 +11,8 @@ import FlowCanvas from '../components/flow/FlowCanvas';
 import RunLog from '../components/flow/RunLog';
 import { FlowNodeView } from '../components/flow/model';
 import FlowDemoInspector from '../demo/FlowDemoInspector';
-import { addConnected, connect, disconnect, Edge, reachable, removeEdge, removeNode } from '../flowEdit';
-import { layoutFlow, Positions } from '../flowLayout';
+import { addConnected, connect, disconnect, Edge, reachable, removeEdge, removeNode } from '../flow/edit';
+import { layoutFlow, Positions } from '../flow/layout';
 import { demoInputs, demoLibrary } from '../demo/demoScript';
 import {
   DemoFlowNode, demoFlowEdges, demoFlowNodes, demoFlowStart, DemoRun, failedRun, newDemoNode, portsOf, runningRun,

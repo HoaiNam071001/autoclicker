@@ -2,7 +2,8 @@
 // Store (F4b) và màn mẫu #demo-flow đều gọi qua đây; hoàn tác / làm lại do nơi gọi lo.
 // Quy tắc: mỗi cổng ra tối đa 1 cạnh; không nối node vào chính nó qua cùng một cạnh vô nghĩa (cho phép vòng lặp qua node khác).
 
-import type { Edge } from './types';
+import type { Edge, Script, Step } from '../types';
+import { PORT_SUCCESS, portsOf } from './model';
 
 export type { Edge };
 export type Graph<N extends { id: string }> = { nodes: N[]; edges: Edge[] };
@@ -57,3 +58,41 @@ export function reachable(edges: Edge[], start: string): Set<string> {
   }
   return seen;
 }
+
+// ---- Thao tác trên kịch bản (node = Step) ----
+
+type FlowGraph = Pick<Script, 'steps' | 'edges' | 'start'>;
+
+// Mã node mới: n + số nhỏ nhất chưa dùng (n1, n2…) – khớp fixRefs trong storage.go.
+export function nextRef(nodes: Pick<Step, 'ref'>[]): string {
+  const used = new Set(nodes.map((n) => n.ref));
+  let i = 1;
+  while (used.has(`n${i}`)) i++;
+  return `n${i}`;
+}
+
+// Chỗ node mới nối vào: cổng ra của một node có sẵn.
+export type InsertAt = { from: string; port: string };
+
+// Thêm node: kịch bản chưa có node bắt đầu (hoặc start trỏ node đã xoá) → node mới thành start; có `at` → nối từ cổng đó,
+// cổng đã có cạnh A → B thì chèn vào giữa (A → mới → B, đi tiếp qua cổng success của node mới).
+export function insertNode(g: FlowGraph, node: Step, at: InsertAt | null): FlowGraph {
+  const steps = [...g.steps, node];
+  const start = g.steps.some((s) => s.id === g.start) ? g.start : node.id;
+  if (!at || !g.steps.some((s) => s.id === at.from)) return { steps, edges: g.edges, start };
+  const r = addConnected({ nodes: g.steps, edges: g.edges }, node, at.from, at.port, portsOf(node).includes(PORT_SUCCESS) ? PORT_SUCCESS : undefined);
+  return { steps, edges: r.edges, start };
+}
+
+// Đổi loại node: bỏ cạnh đi ra từ cổng loại mới không có.
+export function pruneEdges(steps: Step[], edges: Edge[]): Edge[] {
+  const byId = new Map(steps.map((s) => [s.id, s]));
+  return edges.filter((e) => {
+    const s = byId.get(e.from);
+    return !!s && byId.has(e.to) && portsOf(s).includes(e.port);
+  });
+}
+
+// Nối các node thành chuỗi success theo thứ tự (dữ liệu mẫu, test).
+export const chain = (ids: string[]): Edge[] =>
+  ids.slice(1).map((to, i) => ({ id: `c${i}`, from: ids[i], port: PORT_SUCCESS, to }));

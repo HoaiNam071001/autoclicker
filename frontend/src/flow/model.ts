@@ -1,6 +1,6 @@
 // Flow (bước 20) – phần dùng chung với Go (flow.go): cổng ra theo loại node, thứ tự hiển thị node.
-// flowOrder phải cùng công thức với flow.go – test chung dữ liệu ../testdata/flow_order.json.
-import type { Edge, Script, Step } from './types';
+// flowOrder phải cùng công thức với flow.go – test chung dữ liệu testdata/flow_order.json (gốc repo).
+import type { Edge, Step } from '../types';
 
 export const PORT_SUCCESS = 'success';
 export const PORT_FAIL = 'fail';
@@ -10,9 +10,18 @@ export const portsOf = (_s: Pick<Step, 'type'>): string[] => [PORT_SUCCESS, PORT
 
 export const edgeOut = (edges: Edge[], from: string, port: string) => edges.find((e) => e.from === from && e.port === port)?.to ?? '';
 
+// Các node theo thứ tự hiển thị (xem trước, danh sách trong form Chạy).
+export const orderedSteps = <S extends Pick<Step, 'id' | 'type'>>(sc: { steps: S[]; start: string; edges: Edge[] }): S[] => {
+  const byId = new Map(sc.steps.map((s) => [s.id, s]));
+  return flowOrder(sc).map((id) => byId.get(id)!);
+};
+
 // Thứ tự hiển thị: duyệt sâu từ start, mỗi node đi các cổng theo thứ tự portsOf (nhánh success trước), node đã gặp bỏ qua;
 // node không đi tới được xếp cuối theo thứ tự trong mảng.
-export function flowOrder(sc: Pick<Script, 'start' | 'steps' | 'edges'>): string[] {
+// Đồ thị tối thiểu để duyệt: node chỉ cần id + loại (cổng ra theo loại).
+export type FlowShape = { start: string; steps: Pick<Step, 'id' | 'type'>[]; edges: Edge[] };
+
+export function flowOrder(sc: FlowShape): string[] {
   const byId = new Map(sc.steps.map((s) => [s.id, s]));
   const seen = new Set<string>();
   const order: string[] = [];

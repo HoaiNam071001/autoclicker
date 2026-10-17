@@ -75,7 +75,7 @@ func TestWaitTextThenClick(t *testing.T) {
 	in := &fakeInput{}
 	sc := textScript("gửi", step(StepClickImage, func(s *Step) { s.Dx = 5 }))
 	sc.Steps[0].Occurrence = 2
-	e := newEngine(in, sc, nil)
+	e := newEngine(in, linear(sc), nil)
 	e.scr, e.ocr = &fakeScreen{frames: []image.Image{retina}}, ocr
 	if err := e.run(context.Background()); err != nil {
 		t.Fatal(err)
@@ -87,7 +87,7 @@ func TestWaitTextThenClick(t *testing.T) {
 }
 
 func TestWaitTextTimeout(t *testing.T) {
-	e := newEngine(&fakeInput{}, textScript("Xem lịch sử"), nil)
+	e := newEngine(&fakeInput{}, linear(textScript("Xem lịch sử")), nil)
 	e.sc.Steps[0].TimeoutMs = 5
 	e.scr, e.ocr = &fakeScreen{frames: []image.Image{image.NewRGBA(image.Rect(0, 0, 400, 300))}},
 		&fakeOCR{reads: [][]TextLine{{line("Xem lich su", 0, 0, 100, 20)}}}
@@ -102,7 +102,7 @@ func TestWaitTextTimeout(t *testing.T) {
 
 func TestValidateTextStep(t *testing.T) {
 	sc := textScript("  ")
-	if err := validateScript(sc, Rect{W: 1920, H: 1080}); err == nil || !strings.Contains(err.Error(), "chưa nhập chữ") {
+	if err := validateScript(linear(sc), Rect{W: 1920, H: 1080}); err == nil || !strings.Contains(err.Error(), "chưa nhập chữ") {
 		t.Errorf("chữ trống: %v", err)
 	}
 	sc = textScript("Gửi cho {{ten}}")

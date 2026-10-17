@@ -3,10 +3,10 @@ import { MouseEvent, ReactNode, useCallback, useEffect, useRef, useState } from 
 import { Displays, MousePos, SetOverlayDisplay } from '../../wailsjs/go/main/App';
 import { main } from '../../wailsjs/go/models';
 import {
-  boundsOf, cancelDragA, cancelPick, endpoints, getEditor, hasPoints, movePoint, pickingStep, placePoint, placingType, pointKey,
+  boundsOf, cancelDragA, cancelPick, endpoints, getEditor, hasPoints, movePoint, pickingStep, placePoint, placingType, pointKey, refOf,
   regionMapping, RegionMapMode, selectableIndexes, selectStep, setDragMode, setFocusLock, setMulti, setRegion, setRegionMapped, startPick,
   transformedSteps, transformSelected, useEditor,
-} from '../scriptStore';
+} from '../store';
 import { frameRect, MapDialog, modKeyName, paramsPreview, TransformBar, TransformFrame, useTransformGesture } from '../components/TransformTool';
 import { bbox, NO_TF, TfParams, translate } from '../transform';
 import { Point, Rect, SCROLL_ARROW, scrollDelta, STEP_LABEL, stepLabel, StepPoint } from '../types';
@@ -61,7 +61,8 @@ function markersOf(ends: ReturnType<typeof endpoints>): [string, Point][] {
 }
 
 export default function OverlayScreen() {
-  const { script: { region, steps }, selected, notice, dragA, multi } = useEditor();
+  const { script, selected, notice, dragA, multi } = useEditor();
+  const { region, steps } = script;
   const [picking] = useState(pickingStep); // id bước đang chọn lại điểm (nút ⌖), null = thêm bước mới
   const [tool, setTool] = useState<OverlayTool>(overlayTool);
   const [cursor, setCursor] = useState<Point>({ x: -100, y: -100 });
@@ -92,7 +93,7 @@ export default function OverlayScreen() {
   };
   const preview = tool === 'preview';
   const [speed, setSpeed] = useState(1);
-  const { sim, start: startSim, stop: stopSim } = useSimulation(steps, region, speed);
+  const { sim, start: startSim, stop: stopSim } = useSimulation(script, region, speed);
   const pageKind = usePageKind();
   const simRef = useRef({ running: false, stop: stopSim });
   simRef.current = { running: sim.running, stop: stopSim };
@@ -334,7 +335,7 @@ export default function OverlayScreen() {
   // Nhãn kích thước vùng theo toạ độ thật (robotgo), không phải px trong cửa sổ.
   const shownSize = regionDrag && shown ? { w: Math.round(shown.w * map.kx), h: Math.round(shown.h * map.ky) } : shownRegion;
 
-  // Marker của các bước đang bật, đánh số giống danh sách bước; kéo thả có A và B.
+  // Marker của các node đang bật, ghi mã node (n2); kéo thả có A và B.
   // Marker đang kéo vẽ theo con trỏ; đường nối cũng đi theo.
   // ghost: điểm A của bước kéo "từ điểm trước" – trùng marker bước trước nên không vẽ, chỉ dùng cho đường nối.
   // pt: điểm đã lưu (có neo) – không có với A "từ điểm trước" và B "lệch so với A".
@@ -344,19 +345,19 @@ export default function OverlayScreen() {
   const liveRegion = regionDrag && shown && shown.w >= MIN_REGION && shown.h >= MIN_REGION
     ? { ...toScreenFromClient(shown), w: Math.round(shown.w * map.kx), h: Math.round(shown.h * map.ky) } : shownRegion;
   // Xem trước bằng đúng logic ghi thật: chờ đổi vùng → điểm theo cách đang chọn; đang kéo khung / nhập số → điểm sau biến đổi.
-  const committed = endpoints(steps, region);
+  const committed = endpoints(script, region);
   const selScreen = new Map(markersOf(committed).filter(([k]) => multi.includes(k)));
   const liveMat = tool === 'select' && !pending ? gesture.live ?? paramsPreview(tf, [...selScreen.values()]) : null;
   const view = pending ? regionMapping(pending.to, mapMode) : liveMat ? transformedSteps(liveMat) : { steps, outside: 0 };
   const viewSteps = view.steps;
-  const ends = endpoints(viewSteps, liveRegion);
+  const ends = endpoints({ ...script, steps: viewSteps }, liveRegion);
   viewSteps.forEach((s, i) => {
     const e = ends.get(s.id);
     if (!e) return;
     const pts = s.type === 'drag' ? [e.start, e.end] : [e.start];
     pts.forEach((p, j) => {
       if (!p) return;
-      const label = s.type === 'drag' ? `${i + 1}${j === 0 ? 'A' : 'B'}` : `${i + 1}`;
+      const label = s.type === 'drag' ? `${s.ref}${j === 0 ? 'A' : 'B'}` : s.ref;
       const dragging = moving?.moved && moving.id === s.id && moving.index === j;
       markers.push({
         id: s.id, index: j, key: pointKey(s.id, j), label, at: dragging ? cursor : toClient(p), scr: p, drag: s.type === 'drag',
@@ -389,11 +390,10 @@ export default function OverlayScreen() {
     const raw = toClient({ x: at.x + d.x, y: at.y + d.y });
     const tip = { x: Math.min(Math.max(raw.x, 12), window.innerWidth - 12), y: Math.min(Math.max(raw.y, 12), window.innerHeight - 12) };
     return [{ id: s.id, a, tip, cut: tip.x !== raw.x || tip.y !== raw.y,
-      text: `${i + 1}: cuộn ${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount} nấc ≈ ${Math.abs(d.x || d.y)} px` }];
+      text: `${s.ref}: cuộn ${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount} nấc ≈ ${Math.abs(d.x || d.y)} px` }];
   });
   const screenCursor = toScreenFromClient(cursor);
-  const focusIdx = focus ? steps.findIndex((x) => x.id === focus) + 1 : 0;
-  const focusStep = focusIdx > 0 ? steps[focusIdx - 1] : null;
+  const focusStep = focus ? steps.find((x) => x.id === focus) ?? null : null;
   const focusEnds = focus ? ends.get(focus) : undefined;
   const hint = focus && focusStep
     ? repicking
@@ -405,7 +405,7 @@ export default function OverlayScreen() {
     : tool === 'region' ? 'Kéo để khoanh vùng'
     : tool === 'capture'
       ? cap ? 'Enter: dùng ảnh này · kéo lại hoặc Esc: khoanh lại'
-        : `Kéo khung sát quanh nút / chữ cần chờ${captureTargetStep() ? ` (bước ${steps.findIndex((x) => x.id === captureTargetStep()) + 1})` : ' – tạo bước Chờ ảnh mới'}`
+        : `Kéo khung sát quanh nút / chữ cần chờ${captureTargetStep() ? ` (${refOf(captureTargetStep()!)})` : ' – tạo bước Chờ ảnh mới'}`
     : tool === 'select'
       ? multi.length
         ? `${multi.length} điểm · kéo khung / núm để biến đổi · ${modKeyName}+núm: xiên, phối cảnh`
@@ -414,7 +414,7 @@ export default function OverlayScreen() {
       ? (dragA ? 'Click điểm B · Esc huỷ A' : `Click điểm A${picking ? ' (chọn lại)' : ''}`)
     : picking ? 'Click để đặt lại điểm'
     : `Click / F6: thêm ${STEP_LABEL[placingType()].toLowerCase()} · kéo marker để dời`;
-  const toolName = focus && focusStep ? `Bước ${focusIdx}` : preview ? 'Xem trước' : TOOLS.find((t) => t.id === tool)?.label ?? '';
+  const toolName = focus && focusStep ? `Node ${focusStep.ref}` : preview ? 'Xem trước' : TOOLS.find((t) => t.id === tool)?.label ?? '';
 
   return (
     // HUD luôn tối (design v2): data-theme="dark" cho mọi token bên trong
@@ -437,7 +437,7 @@ export default function OverlayScreen() {
           <div key={`find${s.id}`} className={`pointer-events-none absolute rounded-sm border-2 border-dashed ${f.found ? 'border-ok bg-ok/15' : 'border-warn bg-warn/10'}`}
             style={{ left: a.x, top: a.y, width: b.x - a.x, height: b.y - a.y }}>
             <span className={`absolute -top-6 left-0 rounded px-1.5 py-px font-mono text-[11px] whitespace-nowrap text-black ${f.found ? 'bg-ok' : 'bg-warn'}`}>
-              {i + 1}: {f.found ? 'thấy' : 'giống nhất'} · khớp {f.score}%
+              {s.ref}: {f.found ? 'thấy' : 'giống nhất'} · khớp {f.score}%
             </span>
           </div>
         );
@@ -620,8 +620,8 @@ export default function OverlayScreen() {
         {focus && focusStep ? (
           <>
             <span className="flex items-center gap-2 px-2.5 font-semibold">
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-accent text-[13px] text-on-accent">{focusIdx}</span>
-              Bước {focusIdx} · {stepLabel(focusStep)}
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-accent text-[13px] text-on-accent">{focusStep.ref}</span>
+              {focusStep.ref} · {stepLabel(focusStep)}
             </span>
             <button onClick={() => { if (repicking) { cancelPick(); setRepicking(false); } else { startPick(focus); setRepicking(true); } }}
               className={`${toolBtn} ${repicking ? 'bg-white/14 text-white' : 'hover:bg-white/6'}`}>

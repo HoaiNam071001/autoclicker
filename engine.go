@@ -20,7 +20,6 @@ const scrollGapMs = 30
 // Lỗi là *ScriptError (bước / trường) để UI và AI biết chỗ sửa.
 // screen: khung màn hình khi Region = nil; W = 0 thì bỏ qua kiểm tra điểm nằm trong vùng (không biết màn hình).
 func validateScript(sc Script, screen Rect) error {
-	linearToFlow(&sc)
 	if err := validateFlow(sc); err != nil {
 		return err
 	}

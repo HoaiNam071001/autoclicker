@@ -2,7 +2,6 @@ package main
 
 import (
 	"regexp"
-	"slices"
 	"time"
 )
 
@@ -150,31 +149,4 @@ func reachableFrom(sc Script) map[string]bool {
 		}
 	}
 	return seen
-}
-
-// linearToFlow – CẦU NỐI TẠM tới bước 20 F4b (canvas thay danh sách bước): danh sách bước cũ chưa có start / cạnh thì
-// nối thành chuỗi theo thứ tự mảng (success → node kế), click theo ảnh chưa chọn node nguồn thì lấy node chờ ảnh / chữ
-// gần nhất phía trước, node chưa có mã thì đặt n1, n2… Kịch bản đã có start hoặc cạnh giữ nguyên. Sửa trên bản sao
-// mảng node (không đụng kịch bản của nơi gọi). Gọi ở đầu validateScript và engine.run. Xoá ở F4b.
-func linearToFlow(sc *Script) {
-	if sc.Start != "" || len(sc.Edges) > 0 || len(sc.Steps) == 0 {
-		return
-	}
-	sc.Steps = slices.Clone(sc.Steps)
-	fixRefs(sc.Steps)
-	sc.Edges = nil
-	sc.Start = sc.Steps[0].ID
-	for i := 0; i+1 < len(sc.Steps); i++ {
-		sc.Edges = append(sc.Edges, Edge{ID: "auto" + sc.Steps[i].ID, From: sc.Steps[i].ID, Port: PortSuccess, To: sc.Steps[i+1].ID})
-	}
-	src := ""
-	for i := range sc.Steps {
-		s := &sc.Steps[i]
-		if s.Type == StepClickImage && s.ImageSource != ImageFromSearch && s.ImageFrom == "" {
-			s.ImageFrom = src
-		}
-		if s.Enabled && (s.Type == StepWaitImage || s.Type == StepClickImage && s.ImageSource == ImageFromSearch) {
-			src = s.ID
-		}
-	}
 }

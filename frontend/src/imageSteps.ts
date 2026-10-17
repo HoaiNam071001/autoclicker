@@ -4,7 +4,7 @@ import { useSyncExternalStore } from 'react';
 import { CaptureTemplate, FindImage, PixelColorAt, RequestScreenCapture, ScreenCaptureAllowed } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { main } from '../wailsjs/go/models';
-import { addStep, getEditor, selectStep, setNotice, toScreen, updateStep } from './scriptStore';
+import { addStep, getEditor, selectStep, setNotice, toScreen, updateStep } from './store';
 import { errorText } from './engineStore';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
 import { Rect } from './types';

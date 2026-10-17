@@ -8,7 +8,7 @@ import {
 import NodeCard, { CardNode } from './NodeCard';
 import FlowEdge, { edgeColor, FlowEdgeType } from './FlowEdge';
 import { FlowEdgeView, FlowNodeView } from './model';
-import type { Positions } from '../../flowLayout';
+import type { Positions } from '../../flow/layout';
 
 export type FlowCanvasProps = {
   nodes: FlowNodeView[];
@@ -16,7 +16,7 @@ export type FlowCanvasProps = {
   start: string;
   positions: Positions;
   selected: string | null;
-  onSelect: (id: string | null) => void;
+  onSelect: (id: string | null, additive?: boolean) => void; // additive: Shift / ⌘ / Ctrl + click (chọn nhiều điểm)
   onMove: (id: string, pos: { x: number; y: number }) => void;
   onConnect: (from: string, port: string, to: string) => void;
   onDeleteEdge: (id: string) => void;
@@ -101,7 +101,7 @@ function Canvas({
     <ReactFlow className="flow-canvas" nodes={rfNodes} edges={rfEdges} nodeTypes={nodeTypes} edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}
       onNodeDragStop={(_, n) => onMove(n.id, { x: Math.round(n.position.x), y: Math.round(n.position.y) })}
-      onNodeClick={(_, n) => { setEdgeSel(null); onSelect(n.id); }}
+      onNodeClick={(e, n) => { setEdgeSel(null); onSelect(n.id, e.shiftKey || e.metaKey || e.ctrlKey); }}
       onEdgeClick={(_, e) => { setEdgeSel(e.id); onSelect(null); }}
       onPaneClick={() => { setEdgeSel(null); onSelect(null); }}
       onConnect={(c) => c.sourceHandle && onConnect(c.source, c.sourceHandle, c.target)}

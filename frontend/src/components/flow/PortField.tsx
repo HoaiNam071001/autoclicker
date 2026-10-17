@@ -57,7 +57,8 @@ export function RetryPanel({ value, onChange }: { value: Retry; onChange: (v: Re
   );
 }
 
-export type OutputField = { key: string; desc: string };
+import type { OutputField } from '../../flow/view';
+export type { OutputField };
 export function OutputsPanel({ refName, fields }: { refName: string; fields: OutputField[] }) {
   const [copied, setCopied] = useState('');
   if (!fields.length) return null;

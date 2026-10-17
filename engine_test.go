@@ -66,7 +66,7 @@ func TestRunClickLoopsAndRegion(t *testing.T) {
 			step(StepClick, func(s *Step) { s.Enabled = false }),
 		},
 	}
-	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
+	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	one := []string{"move 110,70", "click left false", "move 110,70", "click left false", "move 101,52", "click right true"}
@@ -81,7 +81,7 @@ func TestRunDrag(t *testing.T) {
 	sc := Script{Loops: 1, Steps: []Step{
 		step(StepDrag, func(s *Step) { s.Points = []Point{{X: 0, Y: 0}, {X: 100, Y: 40}}; s.DragMs = 40 }),
 	}}
-	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
+	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	got := in.lines()
@@ -97,7 +97,7 @@ func TestRunTypeAndKey(t *testing.T) {
 		step(StepText, func(s *Step) { s.Text = "Gõ" }),
 		step(StepKey, func(s *Step) { s.Keys = []string{"v"}; s.Modifiers = []string{"cmd", "shift"} }),
 	}}
-	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
+	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	want := []string{"type G", "type õ",
@@ -114,7 +114,7 @@ func TestStopInfiniteLoopReleasesButton(t *testing.T) {
 	}}
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error)
-	go func() { done <- newEngine(in, sc, nil).run(ctx) }()
+	go func() { done <- newEngine(in, linear(sc), nil).run(ctx) }()
 	time.Sleep(30 * time.Millisecond)
 	cancel()
 
@@ -141,7 +141,7 @@ func TestValidateScript(t *testing.T) {
 		"không hợp lệ":               {Steps: []Step{{Type: "scroll", Enabled: true}}},
 	}
 	for want, sc := range cases {
-		err := validateScript(sc, Rect{})
+		err := validateScript(linear(sc), Rect{})
 		if err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("muốn lỗi chứa %q, nhận %v", want, err)
 		}
@@ -156,7 +156,7 @@ func TestPauseResumeAndProgress(t *testing.T) {
 	}}
 	var mu sync.Mutex
 	var progs []Progress
-	eng := newEngine(in, sc, func(p Progress) { mu.Lock(); progs = append(progs, p); mu.Unlock() })
+	eng := newEngine(in, linear(sc), func(p Progress) { mu.Lock(); progs = append(progs, p); mu.Unlock() })
 
 	done := make(chan error)
 	go func() { done <- eng.run(context.Background()) }()
@@ -207,7 +207,7 @@ func TestKeyChordAndSequence(t *testing.T) {
 			s.Modifiers = []string{"ctrl"}
 			s.KeyMode = mode
 		})}}
-		if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
+		if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 			t.Fatal(err)
 		}
 		if got := in.lines(); !reflect.DeepEqual(got, want) {
@@ -231,7 +231,7 @@ func TestKeyCancelReleasesAll(t *testing.T) {
 }
 
 func TestJitter(t *testing.T) {
-	e := newEngine(&fakeInput{}, Script{}, nil)
+	e := newEngine(&fakeInput{}, linear(Script{}), nil)
 	e.intN = func(n int) int { return 0 } // lệch nhỏ nhất
 	if got := e.jitter(100, 5); got != 95 {
 		t.Errorf("jitter min = %d, muốn 95", got)
@@ -256,7 +256,7 @@ func TestRunJitterPositionsInBounds(t *testing.T) {
 	sc := Script{Loops: 1, Steps: []Step{
 		step(StepClick, func(s *Step) { s.Points = []Point{{X: 500, Y: 300}}; s.Clicks = 200; s.JitterPx = 4 }),
 	}}
-	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
+	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	seen := map[string]bool{}
@@ -290,7 +290,7 @@ func TestDragFromPrevAndRelative(t *testing.T) {
 			s.DragFromPrev, s.DragMs = true, 10
 		}),
 	}}
-	if err := newEngine(in, sc, nil).run(context.Background()); err != nil {
+	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	want := []string{
@@ -308,7 +308,7 @@ func TestDragFromPrevNeedsPrevPoint(t *testing.T) {
 		step(StepKey, nil),
 		step(StepDrag, func(s *Step) { s.DragFromPrev = true }),
 	}}
-	err := newEngine(&fakeInput{}, sc, nil).run(context.Background())
+	err := newEngine(&fakeInput{}, linear(sc), nil).run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "n2: kéo từ điểm trước đó") {
 		t.Errorf("muốn lỗi thiếu điểm trước, nhận %v", err)
 	}

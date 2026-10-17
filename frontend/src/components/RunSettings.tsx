@@ -2,7 +2,7 @@
 // Hiện trong popup của nút "N vòng" trên thanh công cụ. Kèm cách neo điểm mới đặt (bước 29, lưu trong kịch bản).
 import NumInput from './NumInput';
 import Segmented from './Segmented';
-import { setCountdown, updateScript, useEditor } from '../scriptStore';
+import { setCountdown, updateScript, useEditor } from '../store';
 import { Script } from '../types';
 import { ScheduleRow } from './ScheduleDialog';
 

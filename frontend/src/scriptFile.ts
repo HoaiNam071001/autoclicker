@@ -6,7 +6,7 @@ import {
   ClearDraft, ConfirmQuit, LoadDraft, NewScript, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetDirty,
 } from '../wailsjs/go/main/App';
 import { main } from '../wailsjs/go/models';
-import { getEditor, markSaved, replaceScript, subscribe } from './scriptStore';
+import { getEditor, markSaved, replaceScript, subscribe } from './store';
 import { inWails, setWindowMode } from './windowMode';
 import { Script } from './types';
 

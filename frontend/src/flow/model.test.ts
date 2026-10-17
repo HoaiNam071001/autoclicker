@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { flowOrder } from './flow';
-import type { Script } from './types';
-import data from '../../testdata/flow_order.json';
+import { flowOrder } from './model';
+import type { Script } from '../types';
+import data from '../../../testdata/flow_order.json';
 
 // Cùng dữ liệu với TestFlowOrderShared (flowrun_test.go) – Go và TS phải đánh số node giống nhau.
 const cases = data as unknown as { name: string; script: Pick<Script, 'start' | 'steps' | 'edges'>; order: string[] }[];

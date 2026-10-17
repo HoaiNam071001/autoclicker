@@ -4,7 +4,7 @@ import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { GetInputMemory, SaveInputMemory, ValidateScript } from '../wailsjs/go/main/App';
 import { main } from '../wailsjs/go/models';
-import { getEditor } from './scriptStore';
+import { getEditor } from './store';
 import { errorText, runScript } from './engineStore';
 import { parseValue } from './scriptInputs';
 import { inWails, setWindowMode } from './windowMode';

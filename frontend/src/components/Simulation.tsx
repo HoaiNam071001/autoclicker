@@ -1,7 +1,8 @@
 // Xem trước kịch bản: con trỏ giả chạy theo các bước trên overlay, không điều khiển chuột thật.
 import { useEffect, useRef, useState } from 'react';
-import { boundsOf, endpoints } from '../scriptStore';
-import { fmtKey, Point, Rect, SCROLL_ARROW, scrollDelta, ScrollDirection, Step, STEP_LABEL, stepLabel } from '../types';
+import { boundsOf, endpoints } from '../store';
+import { orderedSteps } from '../flow/model';
+import { fmtKey, Point, Rect, SCROLL_ARROW, scrollDelta, ScrollDirection, Step, stepLabel, Script } from '../types';
 import { fmtScreens } from './steps/ScrollMap';
 import { MockPage, unitText, usePageKind } from './MockPage';
 
@@ -54,7 +55,9 @@ export function scrollRange(steps: Step[]) {
 
 class Stopped extends Error {}
 
-export function useSimulation(steps: Step[], region: Rect | null, speed: number) {
+// Xem trước đi theo thứ tự hiển thị của flow (nhánh chính – cổng success trước); rẽ nhánh theo lựa chọn: bước 20 F6.
+export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges'>, region: Rect | null, speed: number) {
+  const steps = orderedSteps(sc);
   const [sim, setSim] = useState<SimState>(idle);
   const token = useRef(0); // tăng lên để huỷ lượt chạy đang dở
   const speedRef = useRef(speed);
@@ -120,7 +123,7 @@ export function useSimulation(steps: Step[], region: Rect | null, speed: number)
     };
 
     setSim({ ...idle, running: true });
-    const ends = endpoints(steps, region);
+    const ends = endpoints(sc, region);
     try {
       for (const [i, s] of steps.entries()) {
         if (!s.enabled) continue;

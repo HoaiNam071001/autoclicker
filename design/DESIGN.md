@@ -154,7 +154,7 @@ Soạn kịch bản dạng node + cạnh kiểu n8n (`@xyflow/react`). Xem mẫu
 | `StepInputs` | Bước gõ chữ: biến `{{…}}`, gợi ý, nút ghim | `components/StepForm.tsx`; thêm `components/VarTextInput.tsx`, `components/PinButton.tsx` |
 | `InputsTab` | Tab Input của kịch bản | thêm `components/InputsPanel.tsx` |
 | `RunDialog` / `RunDialogDark` | Form Chạy kịch bản | thêm `components/RunDialog.tsx`; nút Chạy / F8 mở form khi kịch bản có input |
-| *(chưa có artboard)* Canvas flow | Soạn flow node + cạnh, nhật ký chạy | `components/flow/*` (`FlowCanvas`, `NodeCard`, `FlowEdge`, `PortField`, `RunLog`, `nodes/ControlFields`), mẫu `screens/DemoFlow.tsx` (`#demo-flow`) |
+| *(chưa có artboard)* Canvas flow | Soạn flow node + cạnh, nhật ký chạy | `components/flow/FlowEditor.tsx` (màn chính), `components/flow/*` (`FlowCanvas`, `NodeCard`, `FlowEdge`, `PortField`, `RunLog`, `nodes/ControlFields`), mẫu `screens/DemoFlow.tsx` (`#demo-flow`) |
 
 ## Đổi tên token từ bản cũ
 

@@ -2,7 +2,7 @@
 // lịch sử chạy, Kịch bản mới / Mở / Lưu. Thu gọn / mở rộng bằng nút ở đầu cột hoặc Ctrl/Cmd+B (nhớ bằng localStorage).
 // Giao diện dựng ở bước 27b; lưu / mở nối ở bước 21 (scriptFile.ts); lịch sử ở 25c, hẹn giờ ở 22 – app thật hiện "Sắp có".
 import { ReactNode, useEffect, useState } from 'react';
-import { useEditor } from '../scriptStore';
+import { useEditor } from '../store';
 import { fileName, newScript, openRecent, openScript, save, useFile } from '../scriptFile';
 import { inWails } from '../windowMode';
 import { SidebarToggle } from './icons';

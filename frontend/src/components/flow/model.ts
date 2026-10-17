@@ -50,7 +50,7 @@ export type RunRow = {
   logs?: LogLine[];
 };
 
-// Cỡ thẻ node – cố định để xếp tự động (flowLayout.ts) không cần đo DOM. NodeCard dùng đúng các số này.
+// Cỡ thẻ node – cố định để xếp tự động (flow/layout.ts) không cần đo DOM. NodeCard dùng đúng các số này.
 export const NODE_W = 248;
 export const NODE_HEAD = 56; // phần icon + tên + chi tiết
 export const PORT_ROW = 24; // mỗi cổng ra một dòng

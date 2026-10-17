@@ -1,9 +1,9 @@
 // Bảng thêm bước (design v2, artboard AddStep) – mở bằng "+ Thêm bước" hoặc Ctrl/Cmd+K.
-// Ô tìm (không dấu cũng được), 4 nhóm, phím mũi tên + Enter; bước mới chèn sau bước đang chọn.
+// Ô tìm (không dấu cũng được), các nhóm, phím mũi tên + Enter; node mới nối theo chỗ đã đặt (store insertAt).
 // Loại chưa làm hiện nhãn "Sắp có" và không chọn được (logic ở các bước sau).
 import { KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { StepIcon, StepIconName } from './icons';
-import { addPointStep, addStep } from '../scriptStore';
+import { addPointStep, addStep, getEditor, insertTarget } from '../store';
 import { addImageStep, addTextStep } from '../imageSteps';
 
 export type PaletteItem = { icon: StepIconName; label: string; keywords: string; run?: () => unknown; soon?: string };
@@ -40,7 +40,16 @@ const GROUPS: PaletteGroup[] = [
     name: 'Ứng dụng & cấu trúc', items: [
       { icon: 'open', label: 'Mở URL / app', keywords: 'url web link trinh duyet ung dung open youtube', run: () => addStep('open') },
       { icon: 'focusWindow', label: 'Focus cửa sổ', keywords: 'window cua so ung dung', soon: 'bước 26' },
-      { icon: 'group', label: 'Nhóm bước', keywords: 'group lap lai repeat', soon: 'bước 20' },
+    ],
+  },
+  {
+    name: 'Rẽ nhánh & luồng', items: [
+      { icon: 'if', label: 'Nếu', keywords: 'if dieu kien re nhanh else', soon: 'bước 20 F3' },
+      { icon: 'switchScreen', label: 'Switch theo màn hình', keywords: 'switch case man hinh thay', soon: 'bước 20 F3' },
+      { icon: 'switch', label: 'Switch theo giá trị', keywords: 'switch case gia tri bien', soon: 'bước 20 F3' },
+      { icon: 'counter', label: 'Đếm', keywords: 'counter lap loop dem', soon: 'bước 20 F3' },
+      { icon: 'end', label: 'Kết thúc', keywords: 'end stop dung ket thuc', soon: 'bước 20 F3' },
+      { icon: 'setVar', label: 'Đặt biến', keywords: 'set var bien gan', soon: 'bước 20 F3' },
     ],
   },
 ];
@@ -49,18 +58,26 @@ const COLS = 3;
 // So khớp không dấu: "cuon" tìm được "Cuộn".
 const fold = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 
-export default function AddStepPalette({ onClose }: { onClose: () => void }) {
+// onCancel: đóng mà không chọn (Esc, bấm ra ngoài) – bỏ chỗ nối đã đặt (store insertAt).
+export default function AddStepPalette({ onClose, onCancel }: { onClose: () => void; onCancel?: () => void }) {
+  const at = insertTarget();
+  const from = at && getEditor().script.steps.find((s) => s.id === at.from);
   return (
-    <PaletteView groups={GROUPS} onClose={onClose}
-      footer={<><span><span className="font-mono">Enter</span> thêm sau bước đang chọn</span><span className="ml-auto">Click / Double / Giữ / Kéo thả mở overlay chọn điểm</span></>} />
+    <PaletteView groups={GROUPS} onClose={onClose} onCancel={onCancel}
+      context={from ? <>Nối từ <span className="font-mono">{from.ref}</span> · cổng {at.port === 'fail' ? 'Thất bại' : at.port === 'success' ? 'Thành công' : at.port}</> : 'Node mới đứng riêng – kéo từ cổng của node khác để nối'}
+      footer={<><span><span className="font-mono">Enter</span> thêm node</span><span className="ml-auto">Click / Double / Giữ / Kéo thả mở overlay chọn điểm</span></>} />
   );
 }
 
 // Phần hiển thị của bảng – dùng chung cho Ctrl+K màn chính và bảng thêm node của canvas flow (bước 20).
 // context: dòng ghi bước / node mới sẽ nối vào đâu (vd "Nối từ n2 · Thất bại").
-export function PaletteView({ groups: all, onClose, footer, context }: {
-  groups: PaletteGroup[]; onClose: () => void; footer?: ReactNode; context?: ReactNode;
+export function PaletteView({ groups: all, onClose, onCancel, footer, context }: {
+  groups: PaletteGroup[]; onClose: () => void; onCancel?: () => void; footer?: ReactNode; context?: ReactNode;
 }) {
+  const cancel = () => {
+    onCancel?.();
+    onClose();
+  };
   const [q, setQ] = useState('');
   const groups = useMemo(() => {
     const words = fold(q).split(/\s+/).filter(Boolean);
@@ -90,14 +107,14 @@ export function PaletteView({ groups: all, onClose, footer, context }: {
       pick(flat[sel]);
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      onClose();
+      cancel();
     }
   };
 
   let n = -1; // chỉ số trong flat khi vẽ
   return (
     <div className="fixed inset-0 z-30 flex items-start justify-center bg-black/20 px-4 pt-[10vh]"
-      onMouseDown={(e) => { if (!panel.current?.contains(e.target as Node)) onClose(); }}>
+      onMouseDown={(e) => { if (!panel.current?.contains(e.target as Node)) cancel(); }}>
       <div ref={panel} role="dialog" aria-label="Thêm bước" onKeyDown={onKey}
         className="flex max-h-[80vh] w-[680px] max-w-full flex-col overflow-hidden rounded-panel border border-line bg-surface text-ink shadow-[0_16px_48px_rgb(0_0_0/.22)]">
         {context && <div className="mx-3.5 mt-3 -mb-1.5 text-xs text-muted">{context}</div>}

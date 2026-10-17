@@ -79,7 +79,7 @@ func TestWaitImageThenClick(t *testing.T) {
 	scr := &fakeScreen{frames: []image.Image{without, without, with}}
 	in := &fakeInput{}
 	sc := imageScript(tpl, 1, step(StepClickImage, func(s *Step) { s.Dx = 5 }))
-	e := newEngine(in, sc, nil)
+	e := newEngine(in, linear(sc), nil)
 	e.scr = scr
 	if err := e.run(context.Background()); err != nil {
 		t.Fatal(err)
@@ -98,7 +98,7 @@ func TestWaitImageAcrossScales(t *testing.T) {
 		_, tpl := screenWithButton(c.tplScale, true)
 		screen, _ := screenWithButton(c.screenScale, true)
 		in := &fakeInput{}
-		e := newEngine(in, imageScript(tpl, float64(c.tplScale), step(StepClickImage, nil)), nil)
+		e := newEngine(in, linear(imageScript(tpl, float64(c.tplScale), step(StepClickImage, nil))), nil)
 		e.scr = &fakeScreen{frames: []image.Image{screen}}
 		if err := e.run(context.Background()); err != nil {
 			t.Fatalf("mẫu %dx, màn %dx: %v", c.tplScale, c.screenScale, err)
@@ -114,7 +114,7 @@ func TestWaitImageTimeout(t *testing.T) {
 	sc := imageScript(tpl, 1)
 	sc.Steps[0].TimeoutMs, sc.Steps[0].IntervalMs = 60, 20
 	var last Progress
-	e := newEngine(&fakeInput{}, sc, func(p Progress) {
+	e := newEngine(&fakeInput{}, linear(sc), func(p Progress) {
 		if p.Wait != nil {
 			last = p
 		}
@@ -139,13 +139,13 @@ func TestWaitPixel(t *testing.T) {
 		s.Points[0] = Point{X: 10, Y: 20}
 		s.Color, s.Tolerance, s.IntervalMs = hexColor(blue), 10, 1
 	})}}
-	e := newEngine(&fakeInput{}, sc, nil)
+	e := newEngine(&fakeInput{}, linear(sc), nil)
 	e.scr = scr
 	if err := e.run(context.Background()); err != nil || scr.pixels != 2 {
 		t.Fatalf("muốn thấy ở lần đọc thứ 2: %v, đọc %d lần", err, scr.pixels)
 	}
 	sc.Steps[0].Tolerance, sc.Steps[0].TimeoutMs, sc.Steps[0].IntervalMs = 2, 30, 10
-	e = newEngine(&fakeInput{}, sc, nil)
+	e = newEngine(&fakeInput{}, linear(sc), nil)
 	e.scr = &fakeScreen{colors: []color.RGBA{{30, 115, 240, 255}}}
 	if err := e.run(context.Background()); err == nil || !strings.Contains(err.Error(), "vẫn màu #1E73F0") {
 		t.Fatalf("muốn lỗi hết giờ kèm màu hiện tại, có %v", err)
@@ -162,13 +162,13 @@ func TestValidateImageSteps(t *testing.T) {
 		"màu sai":                                      {step(StepWaitPixel, func(s *Step) { s.Color = "xanh" })},
 	}
 	for name, steps := range cases {
-		if err := validateScript(Script{Steps: steps}, Rect{}); err == nil {
+		if err := validateScript(linear(Script{Steps: steps}), Rect{}); err == nil {
 			t.Errorf("%s: muốn lỗi", name)
 		}
 	}
 	ok := []Step{step(StepWaitImage, func(s *Step) { s.Template = tpl }), step(StepClickImage, nil),
 		step(StepDrag, func(s *Step) { s.DragFromPrev = true })}
-	if err := validateScript(Script{Steps: ok}, Rect{}); err != nil {
+	if err := validateScript(linear(Script{Steps: ok}), Rect{}); err != nil {
 		t.Errorf("chờ ảnh → click theo ảnh → kéo từ điểm trước: %v", err)
 	}
 }
