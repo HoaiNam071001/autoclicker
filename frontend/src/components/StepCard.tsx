@@ -32,7 +32,7 @@ export function CardBody({ n, title, detail, delay, enabled = true, tags, chips,
         <span key={c} className="rounded-[5px] border border-line px-2 py-0.5 text-xs whitespace-nowrap text-muted group-hover:invisible">{c}</span>
       ))}
       {/* invisible (không phải hidden) để giữ nguyên chiều rộng – rê chuột không làm thẻ nhảy */}
-      <span className="rounded-[5px] bg-soft px-2 py-[3px] font-mono text-xs whitespace-nowrap text-muted group-hover:invisible">{delay}</span>
+      {delay && <span className="rounded-[5px] bg-soft px-2 py-[3px] font-mono text-xs whitespace-nowrap text-muted group-hover:invisible">{delay}</span>}
     </>
   );
 }

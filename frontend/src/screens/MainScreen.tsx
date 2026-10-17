@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { DebugButtons, RecordButton, StatusBar, Toolbar } from '../components/AppChrome';
 import { MousePos, StopScript } from '../../wailsjs/go/main/App';
 import { inWails, openOverlay } from '../windowMode';
-import { removeStep, useEditor } from '../scriptStore';
+import { pathOf, removeStep, stepById, useEditor } from '../scriptStore';
 import { closeRunForm, deletePreset, loadMemory, savePreset, startRun, submitRun, useRunForm } from '../runForm';
 import { inputViews, runSections } from '../scriptInputs';
 import RunDialog from '../components/inputs/RunDialog';
@@ -26,8 +26,8 @@ export default function MainScreen() {
   const { script, selected, notice, dirty, path, countdown: editorCountdown } = useEditor();
   const { draftAt, error: fileError } = useFile();
   const { steps } = script;
-  const cur = steps.find((s) => s.id === selected) ?? steps[0]; // undefined khi chưa có bước nào
-  const idx = steps.indexOf(cur) + 1;
+  const cur = (selected && stepById(selected)) || steps[0]; // undefined khi chưa có bước nào; tìm cả bước trong khối
+  const idx = cur ? pathOf(cur.id) : '';
   const { running, lastError, stopReason, hotkeyError } = useEngine();
   const runForm = useRunForm();
   const autoRun = !!script.inputs?.length && !!runForm.memory.autoRun;

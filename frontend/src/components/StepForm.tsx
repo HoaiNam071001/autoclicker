@@ -11,7 +11,7 @@ import InputsPanel from './inputs/InputsPanel';
 import AnchorField, { AnchorMap } from './steps/AnchorField';
 import ScrollMap from './steps/ScrollMap';
 import {
-  boundsOf, changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, setScrollAt, toggleStep, toScreen, updateStep, useScript,
+  boundsOf, changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, setScrollAt, stepById, toggleStep, toScreen, updateStep, useScript,
 } from '../scriptStore';
 import {
   addInput, compatibleInputs, inputViews, moveInput, pinField, pinnedInput, pinToInput, removeInput, setPinnedValue, unpinField, updateInput,
@@ -19,9 +19,10 @@ import {
 import { loadMemory, stopAutoRun, useRunForm } from '../runForm';
 import {
   fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, PinField, SCROLL_NOTCH_PX, ScrollDirection, Step, STEP_LABEL,
-  StepPoint, StepType, CAN_FAIL, OnFail,
+  StepPoint, StepType, CAN_FAIL, Cond, OnFail,
 } from '../types';
 import { insideBounds } from '../anchor';
+import { flatOf, flatten } from '../stepTree';
 import { checkCapture, pickColor, requestCapture, startCapture, templateUrl, testFind, useImageState } from '../imageSteps';
 
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel'];
@@ -41,7 +42,7 @@ const KEY_MODES: { id: KeyMode; label: string; hint: string }[] = [
 const selectBox = `${fieldBox} w-full text-ink`;
 const hint = 'text-xs text-muted';
 
-type Props = { step: Step; index: number };
+type Props = { step: Step; index: string };
 
 export default function StepForm({ step: s, index }: Props) {
   const script = useScript();
@@ -78,11 +79,13 @@ export default function StepForm({ step: s, index }: Props) {
 
       {tab === 'inputs' ? <InputsTab /> : <>
 
-      <label className="flex flex-col gap-1.5 text-muted">Hành động
-        <select value={s.type} onChange={(e) => changeStepType(s.id, e.target.value as StepType)} className={selectBox}>
-          {TYPES.map((t) => <option key={t} value={t}>{STEP_LABEL[t]}</option>)}
-        </select>
-      </label>
+      {TYPES.includes(s.type) && (
+        <label className="flex flex-col gap-1.5 text-muted">Hành động
+          <select value={s.type} onChange={(e) => changeStepType(s.id, e.target.value as StepType)} className={selectBox}>
+            {TYPES.map((t) => <option key={t} value={t}>{STEP_LABEL[t]}</option>)}
+          </select>
+        </label>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         {mouse && (
@@ -158,7 +161,8 @@ export default function StepForm({ step: s, index }: Props) {
         {s.type === 'waitImage' && <ImageSearchFields step={s} />}
         {s.type === 'clickImage' && <ClickImageFields step={s} />}
         {s.type === 'waitPixel' && <WaitPixelFields step={s} setPoint={setPoint} />}
-        {CAN_FAIL.includes(s.type) && <OnFailFields step={s} />}
+        {(s.type === 'if' || s.type === 'group' || s.type === 'stop' || s.type === 'break') && <BlockFields step={s} />}
+        {CAN_FAIL.includes(s.type) && (s.type !== 'group' || !!s.loopMode) && <OnFailFields step={s} />}
 
         {s.type === 'open' && (
           <>
@@ -646,19 +650,27 @@ function TextSearchFields({ step: s }: { step: Step }) {
   );
 }
 
-// Khi thất bại: thử lại N lần, rồi dừng / bỏ qua / nhảy tới bước (engine.go runWithRetry).
+// Khi thất bại: thử lại N lần, rồi dừng / bỏ qua / nhảy tới bước / chạy bước khác (engine.go runWithRetry, blocks.go).
 function OnFailFields({ step: s }: { step: Step }) {
   const { steps } = useScript();
   const f: OnFail = s.onFail ?? { action: 'stop' };
+  const me = flatOf(steps, s.id);
+  // nhảy tới bước chỉ trong cùng danh sách (cùng khối)
+  const siblings = (me?.loc.parent ? (me.loc.branch === 'else' ? stepById(me.loc.parent)?.else : stepById(me.loc.parent)?.children) : steps) ?? [];
   const set = (patch: Partial<OnFail>) => {
     const next = { ...f, ...patch };
     if (next.action !== 'goto') delete next.goto;
     if (!next.retries) delete next.retries;
-    updateStep(s.id, { onFail: next.action === 'stop' && !next.retries ? undefined : next });
+    updateStep(s.id, {
+      onFail: next.action === 'stop' && !next.retries ? undefined : next,
+      ...(next.action === 'else' && !s.else ? { else: [] } : {}),
+    });
   };
-  const what = s.type === 'open' ? 'mở không được' : s.type === 'waitPixel' ? 'không đổi màu' : 'không thấy';
-  const target = steps.findIndex((x) => x.id === f.goto);
-  const others = steps.map((x, j) => ({ x, j })).filter(({ x }) => x.id !== s.id);
+  const what = s.type === 'open' ? 'mở không được' : s.type === 'waitPixel' ? 'không đổi màu' : s.type === 'group' ? 'lặp quá số vòng' : 'không thấy';
+  const pathAt = (id?: string) => (id ? flatOf(steps, id)?.path : undefined);
+  const target = siblings.findIndex((x) => x.id === f.goto);
+  const myIdx = siblings.findIndex((x) => x.id === s.id);
+  const others = siblings.filter((x) => x.id !== s.id);
   return (
     <Field label={`Khi ${what}`} wide group>
       <div className="flex flex-wrap items-center gap-2 text-[13px] text-ink">
@@ -667,25 +679,177 @@ function OnFailFields({ step: s }: { step: Step }) {
         </span>
         <span className="text-muted">{f.retries ? 'vẫn không được thì' : 'rồi'}</span>
       </div>
-      <Segmented value={f.action} full label={`Khi ${what}`}
-        onChange={(action: OnFail['action']) => set({ action, ...(action === 'goto' && !f.goto ? { goto: others.find(({ j }) => j > steps.indexOf(s))?.x.id ?? others[0]?.x.id } : {}) })}
-        options={[{ id: 'stop', label: 'Dừng kịch bản' }, { id: 'next', label: 'Bỏ qua' }, { id: 'goto', label: 'Nhảy tới bước' }]} />
+      <select value={f.action} aria-label={`Khi ${what}`} className={selectBox}
+        onChange={(e) => {
+          const action = e.target.value as OnFail['action'];
+          set({ action, ...(action === 'goto' && !f.goto ? { goto: siblings[myIdx + 1]?.id ?? others[0]?.id } : {}) });
+        }}>
+        <option value="stop">Dừng kịch bản</option>
+        <option value="next">Bỏ qua, sang bước sau</option>
+        <option value="else">Chạy các bước khác rồi đi tiếp</option>
+        <option value="goto" disabled={!others.length}>Nhảy tới bước…</option>
+      </select>
       {f.action === 'goto' && (
         <select value={f.goto ?? ''} onChange={(e) => set({ goto: e.target.value })}
           className={`${selectBox} ${target < 0 ? 'border-danger' : ''}`}>
           {target < 0 && <option value="">— chọn bước —</option>}
-          {others.map(({ x, j }) => (
-            <option key={x.id} value={x.id}>Bước {j + 1} · {STEP_LABEL[x.type]}{x.enabled ? '' : ' (đang tắt)'}</option>
+          {others.map((x) => (
+            <option key={x.id} value={x.id}>Bước {pathAt(x.id)} · {STEP_LABEL[x.type]}{x.enabled ? '' : ' (đang tắt)'}</option>
           ))}
         </select>
       )}
       <span className={`text-xs ${f.action === 'goto' && target < 0 ? 'text-danger-text' : 'text-muted'}`}>
         {f.action === 'stop' ? `Dừng cả kịch bản, báo lỗi ở bước này${f.retries ? ` (sau ${f.retries + 1} lần thử)` : ''}.`
           : f.action === 'next' ? `Bỏ qua bước này, chạy tiếp bước sau.${s.type === 'waitImage' ? ' Bước Click theo kết quả bước này cũng sẽ không có chỗ để click – đặt “Bỏ qua” cho nó luôn.' : ''}`
-          : target < 0 ? 'Bước nhảy tới đã bị xoá – chọn lại.'
-          : `Chạy tiếp từ bước ${target + 1}${target < steps.indexOf(s) ? ' (quay lại – như lặp lại đoạn trước, tối đa 1000 lần mỗi vòng)' : ' (bỏ qua các bước ở giữa)'}.`}
+          : f.action === 'else' ? `Chạy các bước trong nhánh “Khi thất bại” (${s.else?.length ?? 0} bước – thêm ở danh sách bên trái, dưới bước này), rồi đi tiếp bước sau.`
+          : target < 0 ? 'Bước nhảy tới đã bị xoá / chuyển sang khối khác – chọn lại (chỉ nhảy trong cùng khối).'
+          : `Chạy tiếp từ bước ${pathAt(f.goto)}${target < myIdx ? ' (quay lại – như lặp lại đoạn trước, tối đa 1000 lần)' : ' (bỏ qua các bước ở giữa)'}.`}
       </span>
     </Field>
+  );
+}
+
+// Khối (bước 20): Nếu – điều kiện; Nhóm / Lặp – tên, cách lặp; Dừng – lời nhắn; Thoát khối lặp – giải thích.
+function BlockFields({ step: s }: { step: Step }) {
+  const set = (patch: Partial<Step>) => updateStep(s.id, patch);
+  const inner = s.children?.length ?? 0;
+  if (s.type === 'break') {
+    return <span className={`col-span-2 ${hint}`}>Thoát khỏi khối Nhóm / Lặp gần nhất chứa bước này, chạy tiếp bước sau khối. Thường đặt trong một khối Nếu (vd Nếu thấy chữ “Hết” → Thoát).</span>;
+  }
+  if (s.type === 'stop') {
+    return (
+      <>
+        <Field label="Kết thúc" wide group>
+          <Segmented value={s.stopError ? 'error' : 'ok'} full label="Kết thúc"
+            onChange={(v) => set({ stopError: v === 'error' || undefined })}
+            options={[{ id: 'ok', label: 'Bình thường' }, { id: 'error', label: 'Báo lỗi' }]} />
+        </Field>
+        <Field label="Lời nhắn" wide>
+          <input value={s.message ?? ''} onChange={(e) => set({ message: e.target.value })} placeholder={s.stopError ? 'Không tìm thấy người nhận' : 'Đã gửi xong'}
+            className={`${fieldBox} w-full text-ink`} />
+          <span className={hint}>Dừng cả kịch bản ngay (không chạy các vòng sau){s.stopError ? ', báo lỗi kèm lời nhắn ở thanh trạng thái' : ''}.</span>
+        </Field>
+      </>
+    );
+  }
+  if (s.type === 'if') {
+    return (
+      <>
+        <CondFields step={s} />
+        <span className={`col-span-2 ${hint}`}>
+          Đúng → chạy {inner} bước bên trong; sai → chạy {s.else?.length ?? 0} bước “Nếu không”. Thêm / kéo bước vào khối ở danh sách bên trái.
+        </span>
+      </>
+    );
+  }
+  const mode = s.loopMode || 'count';
+  return (
+    <>
+      <Field label="Tên nhóm" wide>
+        <input value={s.name ?? ''} onChange={(e) => set({ name: e.target.value || undefined })} placeholder="Vd Cuộn tìm nút"
+          className={`${fieldBox} w-full text-ink`} />
+      </Field>
+      <Field label="Lặp" wide group>
+        <Segmented value={mode} full label="Cách lặp"
+          onChange={(v) => set(v === 'count'
+            ? { loopMode: undefined, repeat: s.repeat || 1 }
+            : { loopMode: v, cond: s.cond ?? { kind: 'text', findText: '', intervalMs: 250 }, maxLoops: s.maxLoops || 10 })}
+          options={[{ id: 'count', label: 'N lần' }, { id: 'until', label: 'Đến khi' }, { id: 'while', label: 'Khi còn' }]} />
+      </Field>
+      {mode === 'count' ? (
+        <>
+          <NumField label="Số lần" step={s} field="repeat" unit="lần" min={1} />
+          <span className={`self-end pb-2 ${hint}`}>{(s.repeat ?? 1) <= 1 ? 'Chạy 1 lần – chỉ để gom nhóm' : `${inner} bước × ${s.repeat} lần`}</span>
+        </>
+      ) : (
+        <>
+          <CondFields step={s} />
+          <Field label="Tối đa">
+            <NumInput value={s.maxLoops || 100} min={1} unit="vòng" onChange={(maxLoops) => set({ maxLoops })} />
+          </Field>
+          <span className={`self-end pb-2 ${hint}`}>Quá số vòng → bước thất bại (xem “Khi lặp quá số vòng”)</span>
+          <span className={`col-span-2 ${hint}`}>
+            Xét điều kiện trước mỗi vòng: {mode === 'until' ? 'đúng thì thôi lặp (đúng ngay từ đầu thì không chạy lần nào)' : 'sai thì thôi lặp'}.
+          </span>
+        </>
+      )}
+    </>
+  );
+}
+
+const OPS = [
+  { id: 'eq', label: 'bằng' }, { id: 'ne', label: 'khác' }, { id: 'contains', label: 'chứa' },
+  { id: 'gt', label: 'lớn hơn' }, { id: 'lt', label: 'nhỏ hơn' }, { id: 'empty', label: 'trống' },
+];
+
+// Điều kiện của khối – bản cơ bản (20b): thấy chữ, so input, bước trước. Ảnh / màu / ghép và-hoặc + Thử điều kiện: 20c.
+function CondFields({ step: s }: { step: Step }) {
+  const script = useScript();
+  const c: Cond = s.cond ?? { kind: 'text', findText: '' };
+  const set = (patch: Partial<Cond>) => updateStep(s.id, { cond: { ...c, ...patch } });
+  const basic = c.kind === 'text' || c.kind === 'input' || c.kind === 'result';
+  return (
+    <>
+      <Field label="Điều kiện" wide group>
+        <Segmented value={basic ? c.kind : 'text'} full label="Loại điều kiện"
+          onChange={(kind) => set(kind === 'input' ? { kind, left: c.left ?? `{{${script.inputs?.[0]?.key ?? 'bien'}}}`, op: c.op ?? 'eq' } : { kind })}
+          options={[{ id: 'text', label: 'Thấy chữ' }, { id: 'input', label: 'Giá trị input' }, { id: 'result', label: 'Bước trước' }]} />
+        {!basic && <span className="text-xs text-warn">Điều kiện “{c.kind}” (từ file / AI) chưa sửa được ở đây – sắp có (bước 20c). Vẫn chạy được.</span>}
+        <span className={hint}>Thấy ảnh / màu pixel, ghép và / hoặc: sắp có (bước 20c).</span>
+      </Field>
+      {c.kind === 'text' && (
+        <>
+          <Field label="" wide group>
+            <Segmented value={c.not ? 'no' : 'yes'} full label="Thấy / không thấy" onChange={(v) => set({ not: v === 'no' || undefined })}
+              options={[{ id: 'yes', label: 'Thấy chữ' }, { id: 'no', label: 'Không thấy chữ' }]} />
+          </Field>
+          <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+            <span className="flex items-center justify-between">Chữ cần tìm
+              <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
+            </span>
+            <VarTextInput value={c.findText ?? ''} onChange={(findText) => set({ findText })} inputs={script.inputs ?? []}
+              placeholder="Nhắn tin" onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
+            {!c.findText?.trim() && <span className="text-xs text-danger-text">Chưa nhập chữ – chạy sẽ báo lỗi.</span>}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-1 text-[13px] text-ink">
+              <label className="flex items-center gap-2"><Switch on={!!c.textExact} onChange={(v) => set({ textExact: v || undefined })} label="Cả dòng" />Cả dòng đúng chữ này</label>
+              <label className="flex items-center gap-2"><Switch on={!!c.textNoAccent} onChange={(v) => set({ textNoAccent: v || undefined })} label="Bỏ qua dấu" />Bỏ qua dấu</label>
+            </div>
+          </div>
+          <Field label="Chờ tối đa">
+            <NumInput value={c.waitMs ?? 0} min={0} unit="ms" onChange={(waitMs) => set({ waitMs: waitMs || undefined })} />
+          </Field>
+          <span className={`self-end pb-2 ${hint}`}>{c.waitMs ? `Đợi chữ hiện tới ${fmtSec(c.waitMs)} rồi mới kết luận` : 'Xem một lần (0) – không đợi'}</span>
+          <Field label="Tìm trong" wide group>
+            <Segmented value={c.searchArea ?? 'region'} onChange={(v) => set({ searchArea: v === 'screen' ? 'screen' : undefined })} full
+              options={[{ id: 'region', label: 'Vùng của kịch bản' }, { id: 'screen', label: 'Cả màn hình' }]} />
+            <span className={hint}>Thấy chữ thì bước “Click theo kết quả bước trước” bên trong click được vào đúng chữ đó.</span>
+          </Field>
+        </>
+      )}
+      {c.kind === 'input' && (
+        <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+          <span>So sánh <span className="text-xs">(mỗi vế gõ chữ hoặc <span className="font-mono">{'{{biến}}'}</span>)</span></span>
+          <VarTextInput value={c.left ?? ''} onChange={(left) => set({ left })} inputs={script.inputs ?? []} placeholder="{{ten}}"
+            onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
+          <select value={c.op ?? 'eq'} onChange={(e) => set({ op: e.target.value })} className={selectBox} aria-label="Phép so">
+            {OPS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+          </select>
+          {c.op !== 'empty' && (
+            <VarTextInput value={c.right ?? ''} onChange={(right) => set({ right })} inputs={script.inputs ?? []} placeholder="Lan"
+              onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
+          )}
+          <label className="flex items-center gap-2 pt-1 text-[13px] text-ink"><Switch on={!!c.not} onChange={(v) => set({ not: v || undefined })} label="Đảo" />Đảo (đúng ↔ sai)</label>
+          <span className={hint}>Bằng / khác / chứa không phân biệt hoa thường; lớn / nhỏ so số.</span>
+        </div>
+      )}
+      {c.kind === 'result' && (
+        <Field label="" wide group>
+          <Segmented value={c.not ? 'fail' : 'ok'} full label="Bước trước" onChange={(v) => set({ not: v === 'fail' || undefined })}
+            options={[{ id: 'ok', label: 'Thành công' }, { id: 'fail', label: 'Thất bại' }]} />
+          <span className={hint}>Bước chạy ngay trước khối này – dùng với “Khi không thấy → Bỏ qua” của bước đó.</span>
+        </Field>
+      )}
+    </>
   );
 }
 
@@ -693,10 +857,13 @@ const fmtSec = (ms?: number) => `${((ms ?? 0) / 1000).toLocaleString('vi-VN', { 
 
 function ClickImageFields({ step: s }: { step: Step }) {
   const { steps } = useScript();
-  const i = steps.findIndex((x) => x.id === s.id);
-  // bước chờ ảnh / click tự tìm gần nhất phía trước – nguồn vị trí khi "Kết quả bước trước"
-  const prev = steps.slice(0, i).map((x, j) => ({ x, n: j + 1 })).reverse()
-    .find(({ x }) => x.enabled && (x.type === 'waitImage' || (x.type === 'clickImage' && x.imageSource === 'search')));
+  const flat = flatten(steps);
+  const i = flat.findIndex((f) => f.step.id === s.id);
+  // bước chờ ảnh / click tự tìm / khối có điều kiện thấy chữ gần nhất phía trước (theo thứ tự trong cây) – nguồn vị trí
+  const prev = flat.slice(0, i).reverse()
+    .filter(({ step: x, active }) => active && (x.type === 'waitImage' || (x.type === 'clickImage' && x.imageSource === 'search')
+      || ((x.type === 'if' || x.type === 'group') && (x.cond?.kind === 'text' || x.cond?.kind === 'image'))))
+    .map(({ step: x, path }) => ({ x, n: path }))[0];
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   return (
     <>
