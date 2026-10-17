@@ -5,7 +5,6 @@ import { Anchor, makeStep, Point, Rect, Script, sampleSteps, Step, STEP_LABEL, S
 import { anchorPoint, fmtPoint, insideBounds, nearestAnchor, resolvePoint } from './anchor';
 import { inWails, openOverlay, setEditingBounds, setWindowMode } from './windowMode';
 import { apply, IDENTITY, Mat, rectToRect } from './transform';
-import { allSteps, Branch, cloneStep, flatOf, flatten, insertAt, Loc, mapAll, mapStep, moveTo, removeAt } from './stepTree';
 
 // Store kịch bản đang soạn – dùng chung giữa MainScreen và OverlayScreen (hai màn không cùng mount).
 // Lưu / mở file và bản nháp tự lưu: scriptFile.ts (bước 21).
@@ -16,7 +15,7 @@ type EditorState = {
   selected: string; // id bước đang chọn trong danh sách
   notice: string; // thông báo ngắn gần nhất (đã thêm điểm, điểm ngoài vùng…)
   dragA: Point | null; // điểm A (toạ độ màn hình) đã chọn, đang chờ điểm B của kéo thả
-  deleted: { step: Step; loc: Loc; path: string } | null; // bước vừa xoá – để hoàn tác
+  deleted: { step: Step; index: number } | null; // bước vừa xoá – để hoàn tác
   countdown: boolean; // đếm ngược 3 giây trước khi chạy
   multi: string[]; // điểm đang chọn nhiều (bước 30), khoá pointKey(id, index)
   past: Script[]; // hoàn tác (cũ nhất trước)
@@ -72,7 +71,7 @@ export const updateScript = (patch: Partial<Script>) => {
 // Sau hoàn tác / làm lại: bước đang chọn và điểm chọn nhiều phải còn tồn tại.
 const restore = (script: Script, past: Script[], future: Script[], notice: string) => {
   lastEdit = 0;
-  const ids = new Set(allSteps(script.steps).map((s) => s.id));
+  const ids = new Set(script.steps.map((s) => s.id));
   set({
     script, past, future, dirty: true, notice, dragA: null,
     selected: ids.has(state.selected) ? state.selected : script.steps[0]?.id ?? '',
@@ -119,62 +118,62 @@ export const setCountdown = (countdown: boolean) => set({ countdown });
 
 const setSteps = (steps: Step[]) => updateScript({ steps });
 
-// ---- Danh sách bước (bước 14; dạng cây từ bước 20b – stepTree.ts) ----
+// ---- Danh sách bước (bước 14) ----
 
-// Bước theo id ở bất kỳ tầng nào; số thứ tự hiển thị ("3", "2.1").
-export const stepById = (id: string) => flatOf(state.script.steps, id)?.step;
-export const pathOf = (id: string) => flatOf(state.script.steps, id)?.path ?? '?';
+const indexOf = (id: string) => state.script.steps.findIndex((s) => s.id === id);
 
 export function toggleStep(id: string) {
-  setSteps(mapStep(state.script.steps, id, (s) => ({ ...s, enabled: !s.enabled })));
+  setSteps(state.script.steps.map((s) => (s.id === id ? { ...s, enabled: !s.enabled } : s)));
 }
 
-// Nhân bản (cả bước con) ngay sau bước gốc, cùng danh sách, và chọn bản sao.
+// Nhân bản ngay sau bước gốc và chọn bản sao.
 export function duplicateStep(id: string) {
-  const f = flatOf(state.script.steps, id);
-  if (!f) return;
-  const copy = cloneStep(f.step, newId);
-  setSteps(insertAt(state.script.steps, { ...f.loc, index: f.loc.index + 1 }, copy));
-  set({ selected: copy.id, notice: `Đã nhân bản bước ${f.path} thành bước ${pathOf(copy.id)}` });
+  const steps = state.script.steps;
+  const i = indexOf(id);
+  if (i < 0) return;
+  const copy: Step = { ...steps[i], id: newId(), points: steps[i].points.map((p) => ({ ...p })), modifiers: [...steps[i].modifiers], keys: [...steps[i].keys] };
+  setSteps([...steps.slice(0, i + 1), copy, ...steps.slice(i + 1)]);
+  set({ selected: copy.id, notice: `Đã nhân bản bước ${i + 1} thành bước ${i + 2}` });
 }
 
-// Xoá (cả bước con) và chọn bước kế tiếp cùng danh sách (hoặc bước trước, hoặc khối chứa nó). Giữ lại để hoàn tác.
+// Xoá và chọn bước kế tiếp (hoặc bước trước nếu xoá bước cuối). Giữ lại để hoàn tác.
 export function removeStep(id: string) {
-  const path = pathOf(id);
-  const r = removeAt(state.script.steps, id);
-  if (!r) return;
-  const { parent, branch, index } = r.loc;
-  const list = parent === null ? r.steps : (branch === 'children' ? flatOf(r.steps, parent)?.step.children : flatOf(r.steps, parent)?.step.else) ?? [];
-  setSteps(r.steps);
+  const steps = state.script.steps;
+  const i = indexOf(id);
+  if (i < 0) return;
+  const rest = steps.filter((s) => s.id !== id);
+  setSteps(rest);
   set({
-    selected: list[Math.min(index, list.length - 1)]?.id ?? parent ?? '',
-    notice: `Đã xoá bước ${path}`,
-    deleted: { step: r.step, loc: r.loc, path },
+    selected: rest[Math.min(i, rest.length - 1)]?.id ?? '',
+    notice: `Đã xoá bước ${i + 1}`,
+    deleted: { step: steps[i], index: i },
   });
 }
 
 export function undoDelete() {
   const d = state.deleted;
   if (!d) return;
-  setSteps(insertAt(state.script.steps, d.loc, d.step));
-  set({ selected: d.step.id, notice: `Đã khôi phục bước ${d.path}`, deleted: null });
+  const steps = state.script.steps;
+  setSteps([...steps.slice(0, d.index), d.step, ...steps.slice(d.index)]);
+  set({ selected: d.step.id, notice: `Đã khôi phục bước ${d.index + 1}`, deleted: null });
 }
 
-// Kéo thả trong danh sách (StepList): chuyển bước tới vị trí mới, kể cả vào / ra khối.
-export function moveStepTo(id: string, loc: Loc) {
-  const steps = moveTo(state.script.steps, id, loc);
-  if (steps !== state.script.steps) setSteps(steps);
+export function moveStep(from: number, to: number) {
+  const steps = [...state.script.steps];
+  const [s] = steps.splice(from, 1);
+  steps.splice(to, 0, s);
+  setSteps(steps);
 }
 
 // ---- Form cấu hình bước (bước 15) ----
 
 export function updateStep(id: string, patch: Partial<Step>) {
-  setSteps(mapStep(state.script.steps, id, (s) => ({ ...s, ...patch })));
+  setSteps(state.script.steps.map((s) => (s.id === id ? { ...s, ...patch } : s)));
 }
 
 // Đổi loại bước, bổ sung dữ liệu loại mới cần: điểm (click/double/hold 1, kéo thả 2 – B lệch A 100 px), số click ≥ 1.
 export function changeStepType(id: string, type: StepType) {
-  const s = stepById(id);
+  const s = state.script.steps.find((x) => x.id === id);
   if (!s || s.type === type) return;
   const points = s.points.slice(0, type === 'scroll' ? 1 : undefined).map((p) => ({ ...p })); // cuộn: điểm tuỳ chọn, tối đa 1
   const need = type === 'drag' ? 2 : type === 'click' || type === 'double' || type === 'hold' || type === 'waitPixel' ? 1 : 0;
@@ -202,39 +201,27 @@ export function changeStepType(id: string, type: StepType) {
   });
 }
 
-// Bước mới từ bảng thêm bước (Ctrl+K) chèn ngay sau bước này (cùng danh sách, kể cả trong khối); null = thêm vào cuối
-// (F6, đặt điểm thường). Đặt nhiều điểm liên tiếp trên overlay thì mỗi điểm chèn sau điểm vừa thêm. cancelPick (đóng overlay) xoá.
+// Bước mới từ bảng thêm bước (Ctrl+K) chèn ngay sau bước này; null = thêm vào cuối (F6, đặt điểm thường).
+// Đặt nhiều điểm liên tiếp trên overlay thì mỗi điểm chèn sau điểm vừa thêm. cancelPick (đóng overlay) xoá.
 let insertAfter: string | null = null;
-// Nút "+ Thêm bước" ở cuối khối: bước mới vào cuối danh sách này (thắng insertAfter). Bảng thêm bước đóng thì xoá.
-let insertInto: { parent: string; branch: Branch } | null = null;
-export const setInsertInto = (t: { parent: string; branch: Branch } | null) => {
-  insertInto = t;
-};
-export const insertTarget = () => insertInto;
 // Loại bước tạo khi đặt điểm trên overlay (bảng thêm bước chọn Double click / Giữ chuột).
 type PointType = Extract<StepType, 'click' | 'double' | 'hold'>;
 let pointType: PointType = 'click';
 export const placingType = () => pointType; // gợi ý trên overlay
 
-// Thêm bước vào kịch bản (cuối khối insertInto, sau insertAfter hoặc cuối danh sách gốc), chọn nó và báo.
-function insertStep(step: Step, notice: (n: string) => string) {
+// Thêm bước vào kịch bản (sau insertAfter hoặc cuối), chọn nó và báo. Trả số thứ tự (từ 1).
+function insertStep(step: Step, notice: (n: number) => string) {
   const steps = state.script.steps;
-  const after = insertAfter ? flatOf(steps, insertAfter) : undefined;
-  let loc: Loc = after ? { ...after.loc, index: after.loc.index + 1 } : { parent: null, branch: 'children', index: steps.length };
-  if (insertInto) {
-    const p = flatOf(steps, insertInto.parent)?.step;
-    if (p) loc = { ...insertInto, index: ((insertInto.branch === 'children' ? p.children : p.else) ?? []).length };
-    insertInto = null;
-  }
-  setSteps(insertAt(steps, loc, step));
+  const at = insertAfter ? indexOf(insertAfter) + 1 : 0;
+  const i = at > 0 ? at : steps.length;
+  setSteps([...steps.slice(0, i), step, ...steps.slice(i)]);
   if (insertAfter) insertAfter = step.id;
-  set({ selected: step.id, notice: notice(pathOf(step.id)) });
+  set({ selected: step.id, notice: notice(i + 1) });
 }
 
 // Thêm bước không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở) ngay sau bước đang chọn
 // – giá trị mặc định giống NewStep (model.go).
-export type AddType = Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'if' | 'group' | 'break' | 'stop'>;
-export function addStep(type: AddType) {
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel'>) {
   const b = boundsOf(state.script.region);
   const defaults: Record<typeof type, Partial<Step>> = {
     wait: { clicks: 0, delayAfter: 1000 },
@@ -248,42 +235,10 @@ export function addStep(type: AddType) {
       clicks: 0, points: [nearestAnchor({ x: b.x + Math.round(b.w / 2), y: b.y + Math.round(b.h / 2) }, b)],
       color: '#000000', tolerance: 10, timeoutMs: 5000, intervalMs: 100, delayAfter: 300,
     },
-    // khối – giống NewStep (model.go)
-    if: { clicks: 0, delayAfter: 0, cond: { kind: 'text', findText: '', intervalMs: 250 }, children: [], else: [] },
-    group: { clicks: 0, delayAfter: 0, repeat: 2, children: [] },
-    break: { clicks: 0, delayAfter: 0 },
-    stop: { clicks: 0, delayAfter: 0 },
   };
   insertAfter = state.selected || null;
   insertStep(makeStep({ id: newId(), type, ...defaults[type] }), (n) => `Đã thêm bước ${n}`);
   insertAfter = null;
-}
-
-// Bọc bước đang chọn trong một khối Nhóm / Nếu (khối mới đứng đúng chỗ bước đó).
-export function wrapStep(id: string, type: 'group' | 'if') {
-  const f = flatOf(state.script.steps, id);
-  if (!f) return;
-  const block = makeStep({
-    id: newId(), type, clicks: 0, delayAfter: 0, children: [],
-    ...(type === 'if' ? { cond: { kind: 'text', findText: '', intervalMs: 250 }, else: [] } : { repeat: 1 }),
-  });
-  let steps = insertAt(state.script.steps, f.loc, block);
-  steps = moveTo(steps, id, { parent: block.id, branch: 'children', index: 0 });
-  setSteps(steps);
-  set({ selected: block.id, notice: `Đã bọc bước ${f.path} trong khối ${type === 'if' ? 'Nếu' : 'Nhóm'}` });
-}
-
-// Bỏ khối: bước con (nhánh đúng / thân) đưa ra đúng chỗ khối, nhánh Nếu không bị bỏ.
-export function unwrapStep(id: string) {
-  const f = flatOf(state.script.steps, id);
-  if (!f || !f.step.children) return;
-  const r = removeAt(state.script.steps, id)!;
-  let steps = r.steps;
-  f.step.children.forEach((c, i) => {
-    steps = insertAt(steps, { ...f.loc, index: f.loc.index + i }, c);
-  });
-  setSteps(steps);
-  set({ selected: f.step.children[0]?.id ?? '', notice: `Đã bỏ khối ${f.path}, giữ ${f.step.children.length} bước bên trong` });
 }
 
 // Bảng thêm bước: bước cần vị trí → mở overlay chọn điểm, bước mới chèn sau bước đang chọn.
@@ -320,8 +275,8 @@ const toRelative = (p: Point, r: Rect | null, like?: StepPoint): StepPoint | nul
 
 // Đổi neo điểm thứ index của bước, giữ nguyên chỗ trên màn hình (lưới chọn neo, nút %).
 export function setAnchor(id: string, index: number, ax: Anchor, ay: Anchor) {
-  const { region } = state.script;
-  const s = stepById(id);
+  const { steps, region } = state.script;
+  const s = steps.find((x) => x.id === id);
   const p = s?.points[index];
   if (!s || !p) return;
   const q = anchorPoint(toScreen(p, region), boundsOf(region), ax, ay);
@@ -351,7 +306,7 @@ let dragMode = false;
 export function pickPointFor(stepId: string) {
   pickTarget = stepId;
   pickStay = false;
-  const step = stepById(stepId);
+  const step = state.script.steps.find((s) => s.id === stepId);
   return openOverlay(step?.type === 'drag' ? 'drag' : 'point');
 }
 
@@ -374,7 +329,6 @@ export const cancelPick = () => {
   pickTarget = null;
   pickStay = false;
   insertAfter = null;
-  insertInto = null;
   pointType = 'click';
   setDragMode(false);
 };
@@ -393,7 +347,7 @@ export function placePoint(screen: Point): boolean {
     return false;
   }
   const steps = script.steps;
-  const target = pickTarget && flatOf(steps, pickTarget)?.step;
+  const target = pickTarget && steps.find((s) => s.id === pickTarget);
   // Kéo thả cần 2 điểm – trừ khi bước đang chọn lại bắt đầu "từ điểm trước đó" (chỉ cần B).
   const wantsPair = target ? target.type === 'drag' && !target.dragFromPrev : dragMode;
 
@@ -428,44 +382,43 @@ export function placePoint(screen: Point): boolean {
 // Ngoài vùng → báo và giữ nguyên.
 export function movePoint(id: string, index: number, screen: Point): boolean {
   const { steps, region } = state.script;
-  const f = flatOf(steps, id);
-  if (!f) return false;
-  const step = f.step;
-  const rel = toRelative(screen, region, step.points[index]);
+  const idx = steps.findIndex((s) => s.id === id);
+  if (idx < 0) return false;
+  const rel = toRelative(screen, region, steps[idx].points[index]);
   if (!rel) {
     setNotice(`Điểm X ${screen.x} Y ${screen.y} nằm ngoài vùng – giữ vị trí cũ`);
     return false;
   }
-  const label = step.type === 'drag' ? `${f.path}${index === 0 ? 'A' : 'B'}` : f.path;
+  const step = steps[idx];
+  const label = step.type === 'drag' ? `${idx + 1}${index === 0 ? 'A' : 'B'}` : `${idx + 1}`;
   let value = rel;
   // Điểm B lưu dạng lệch so với điểm bắt đầu: đổi toạ độ màn hình sang (dx, dy).
   if (step.type === 'drag' && index === 1 && step.dragRelative) {
     const start = endpoints(steps, region).get(id)?.start;
     if (!start) {
-      setNotice(`Bước ${f.path}: chưa xác định được điểm bắt đầu – giữ vị trí cũ`);
+      setNotice(`Bước ${idx + 1}: chưa xác định được điểm bắt đầu – giữ vị trí cũ`);
       return false;
     }
     value = { x: screen.x - start.x, y: screen.y - start.y };
   }
-  setSteps(mapStep(steps, id, (s) => ({ ...s, points: s.points.map((p, i) => (i === index ? value : p)) })));
+  setSteps(steps.map((s) => (s.id === id ? { ...s, points: s.points.map((p, i) => (i === index ? value : p)) } : s)));
   set({ selected: id, notice: `Đã đặt điểm ${label}: ${fmtPoint(value)}` });
   return true;
 }
 
 // ---- Kéo thả: từ điểm trước / điểm cuối tương đối ----
 
-type Ends = { start: Point | null; end: Point | null; prevStep: string | null };
+type Ends = { start: Point | null; end: Point | null; prevStep: number | null };
 
 // Toạ độ màn hình (danh nghĩa, chưa tính ngẫu nhiên) điểm đầu / cuối của các bước chuột đang bật,
 // lần theo thứ tự như engine: "điểm trước" = chỗ chuột dừng ở bước chuột bật gần nhất phía trước.
-// prevStep: số thứ tự ("3", "2.1") của bước cung cấp điểm trước cho bước kéo "từ điểm trước".
-// Bước trong khối tính theo thứ tự duyệt (như mọi nhánh đều chạy) – giống validateScript.
+// prevStep: số thứ tự (từ 1) của bước cung cấp điểm trước cho bước kéo "từ điểm trước".
 export function endpoints(steps: Step[], region: Rect | null): Map<string, Ends> {
   const out = new Map<string, Ends>();
   let last: Point | null = null;
-  let lastStep: string | null = null;
-  flatten(steps).forEach(({ step: s, path, active }) => {
-    if (!active || !s.points.length) return;
+  let lastStep: number | null = null;
+  steps.forEach((s, i) => {
+    if (!s.enabled || !s.points.length) return;
     if (s.type === 'waitPixel') { // có điểm (marker) nhưng không di chuột
       const p = toScreen(s.points[0], region);
       out.set(s.id, { start: p, end: p, prevStep: null });
@@ -473,7 +426,7 @@ export function endpoints(steps: Step[], region: Rect | null): Map<string, Ends>
       const p = toScreen(s.points[0], region);
       out.set(s.id, { start: p, end: p, prevStep: null });
       last = p;
-      lastStep = path;
+      lastStep = i + 1;
     } else if (s.type === 'drag' && s.points.length >= 2) {
       const start = s.dragFromPrev ? last : toScreen(s.points[0], region);
       const d = s.points[1];
@@ -481,7 +434,7 @@ export function endpoints(steps: Step[], region: Rect | null): Map<string, Ends>
       out.set(s.id, { start, end, prevStep: s.dragFromPrev ? lastStep : null });
       if (end) {
         last = end;
-        lastStep = path;
+        lastStep = i + 1;
       }
     }
   });
@@ -491,7 +444,7 @@ export function endpoints(steps: Step[], region: Rect | null): Map<string, Ends>
 // Bật/tắt "từ điểm trước": giữ nguyên chỗ trên màn hình – tắt thì A lấy đúng điểm trước đó.
 export function setDragFromPrev(id: string, on: boolean) {
   const { steps, region } = state.script;
-  const s = stepById(id);
+  const s = steps.find((x) => x.id === id);
   if (!s || s.type !== 'drag') return;
   const ends = endpoints(steps, region).get(id);
   const patch: Partial<Step> = { dragFromPrev: on };
@@ -504,7 +457,7 @@ export function setDragFromPrev(id: string, on: boolean) {
 // Bật/tắt "điểm cuối tương đối": đổi points[1] giữa toạ độ và độ lệch, giữ nguyên chỗ trên màn hình.
 export function setDragRelative(id: string, on: boolean) {
   const { steps, region } = state.script;
-  const s = stepById(id);
+  const s = steps.find((x) => x.id === id);
   if (!s || s.type !== 'drag' || s.dragRelative === on) return;
   const ends = endpoints(steps, region).get(id);
   let b = s.points[1];
@@ -528,7 +481,7 @@ export const selectableIndexes = (s: Step) =>
 
 // Danh sách bước: Cmd/Shift+click thêm / bỏ mọi điểm của bước vào chọn nhiều.
 export function toggleMultiStep(id: string) {
-  const s = stepById(id);
+  const s = state.script.steps.find((x) => x.id === id);
   if (!s) return;
   const keys = selectableIndexes(s).map((j) => pointKey(id, j));
   const has = keys.some((k) => state.multi.includes(k));
@@ -543,7 +496,7 @@ function mapPoints(steps: Step[], from: Rect | null, to: Rect | null, f: (p: Poi
   const nb = boundsOf(to);
   let outside = 0;
   const round = (p: Point) => ({ x: Math.round(p.x), y: Math.round(p.y) });
-  const out = mapAll(steps, (s) => {
+  const out = steps.map((s) => {
     if (!selectableIndexes(s).some((j) => pick(s.id, j))) return s;
     const points = s.points.map((p, j) => {
       if (!pick(s.id, j) || !selectableIndexes(s).includes(j)) return p;
@@ -591,7 +544,7 @@ export function moveSelectedTo(next: Map<string, Point>, what: string) {
   const round = (p: Point) => ({ x: Math.round(p.x), y: Math.round(p.y) });
   const isRel = (s: Step, j: number) => s.type === 'drag' && j === 1 && s.dragRelative;
   let outside = 0;
-  const first = mapAll(steps, (s) => ({
+  const first = steps.map((s) => ({
     ...s,
     points: s.points.map((p, j) => {
       const q = next.get(pointKey(s.id, j));
@@ -601,7 +554,7 @@ export function moveSelectedTo(next: Map<string, Point>, what: string) {
     }),
   }));
   const ends = endpoints(first, region);
-  const out = mapAll(first, (s) => ({
+  const out = first.map((s) => ({
     ...s,
     points: s.points.map((p, j) => {
       const q = next.get(pointKey(s.id, j));
@@ -644,7 +597,7 @@ export function setRegionMapped(to: Rect | null, mode: RegionMapMode) {
 }
 
 // Kịch bản có điểm nào phụ thuộc vùng không (không có thì đổi vùng khỏi hỏi).
-export const hasPoints = () => allSteps(state.script.steps).some((s) => selectableIndexes(s).length > 0);
+export const hasPoints = () => state.script.steps.some((s) => selectableIndexes(s).length > 0);
 
 // F6 (Go nghe phím toàn cục) gửi vị trí chuột hiện tại.
 if (inWails) {

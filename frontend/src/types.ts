@@ -11,7 +11,7 @@ export type Rect = { x: number; y: number; w: number; h: number };
 // Khi bước thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm retries lần, rồi action. Khớp OnFail trong model.go.
 export type OnFail = { retries?: number; action: 'stop' | 'next' | 'goto' | 'else'; goto?: string };
 // Bước có thể "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại
-export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'open', 'group'];
+export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'open'];
 
 export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel'
   | 'if' | 'group' | 'break' | 'stop'; // khối (bước 20, blocks.go) – chưa có UI soạn (20b), mở file có khối vẫn chạy được
@@ -112,7 +112,7 @@ void scriptMatchesGo;
 export type InputType = 'text' | 'multiline' | 'number' | 'ms' | 'bool' | 'select';
 export type InputValue = string | number | boolean;
 // Trường ghim được (pinFields trong inputs.go): số → input number / ms, enabled → bool.
-export type PinField = 'clicks' | 'clickInterval' | 'holdMs' | 'dragMs' | 'delayAfter' | 'jitterMs' | 'jitterPx' | 'amount' | 'repeat' | 'timeoutMs' | 'threshold' | 'enabled';
+export type PinField = 'clicks' | 'clickInterval' | 'holdMs' | 'dragMs' | 'delayAfter' | 'jitterMs' | 'jitterPx' | 'amount' | 'timeoutMs' | 'threshold' | 'enabled';
 export interface InputTarget { stepId: string; field: PinField }
 export interface ScriptInput {
   key: string; // chữ không dấu, số, _ – dùng trong {{key}}
@@ -211,19 +211,6 @@ export const sampleSteps: Step[] = [
   { id: '6', type: 'click', points: [{ x: 1100, y: 520 }], button: 'right', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
   { id: '7', type: 'type', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: 'xin chao 123', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true },
   { id: '8', type: 'key', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: ['enter'], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
-  // khối (bước 20) – xem giao diện cây trên trình duyệt
-  makeStep({
-    id: '9', type: 'if', clicks: 0, delayAfter: 0, cond: { kind: 'text', findText: 'Nhắn tin', waitMs: 3000 },
-    children: [
-      makeStep({ id: '9a', type: 'clickImage', imageSource: 'prev', delayAfter: 500 }),
-      makeStep({ id: '9b', type: 'type', clicks: 0, text: 'Chào bạn', delayAfter: 300 }),
-    ],
-    else: [makeStep({ id: '9c', type: 'stop', clicks: 0, delayAfter: 0, stopError: true, message: 'Không thấy nút Nhắn tin' })],
-  }),
-  makeStep({
-    id: '10', type: 'group', clicks: 0, delayAfter: 0, name: 'Cuộn tìm', loopMode: 'until', maxLoops: 10, cond: { kind: 'text', findText: 'Xem lịch sử' },
-    children: [makeStep({ id: '10a', type: 'scroll', clicks: 0, direction: 'down', amount: 3, delayAfter: 800 })],
-  }),
 ];
 
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);
@@ -262,6 +249,9 @@ export function fmtCond(c: Cond): string {
     default: return `${c.not ? 'không: ' : ''}${(c.conds ?? []).map(fmtCond).join(c.kind === 'all' ? ' và ' : ' hoặc ')}`;
   }
 }
+
+// Bước gốc (cấp ngoài cùng) chứa bước id – danh sách bước chưa hiện bước con (20b) thì chọn khối chứa nó.
+export const rootOf = (steps: Step[], id: string) => steps.find((s) => findStep([s], id));
 
 // Tìm bước theo id trong cả cây (bước con của khối Nếu / Nhóm, nhánh khi thất bại).
 export function findStep(steps: Step[], id: string): Step | undefined {

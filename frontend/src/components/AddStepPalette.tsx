@@ -3,7 +3,7 @@
 // Loại chưa làm hiện nhãn "Sắp có" và không chọn được (logic ở các bước sau).
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { StepIcon, StepIconName } from './icons';
-import { addPointStep, addStep, getEditor, insertTarget, pathOf, wrapStep } from '../scriptStore';
+import { addPointStep, addStep } from '../scriptStore';
 import { addImageStep, addTextStep } from '../imageSteps';
 
 type Item = { icon: StepIconName; label: string; keywords: string; run?: () => unknown; soon?: string };
@@ -38,36 +38,14 @@ const GROUPS: { name: string; items: Item[] }[] = [
     name: 'Ứng dụng & cấu trúc', items: [
       { icon: 'open', label: 'Mở URL / app', keywords: 'url web link trinh duyet ung dung open youtube', run: () => addStep('open') },
       { icon: 'focusWindow', label: 'Focus cửa sổ', keywords: 'window cua so ung dung', soon: 'bước 26' },
-    ],
-  },
-  {
-    name: 'Điều kiện & lặp', items: [
-      { icon: 'if', label: 'Nếu… / Nếu không', keywords: 'if else dieu kien re nhanh thay khong thay', run: () => addStep('if') },
-      { icon: 'group', label: 'Nhóm / Lặp', keywords: 'group loop lap lai repeat den khi', run: () => addStep('group') },
-      { icon: 'break', label: 'Thoát khối lặp', keywords: 'break thoat dung lap', run: () => addStep('break') },
-      { icon: 'stop', label: 'Dừng kịch bản', keywords: 'stop dung ket thuc bao loi', run: () => addStep('stop') },
-      { icon: 'group', label: 'Bọc bước đang chọn trong Nhóm', keywords: 'wrap boc gom nhom lap', run: () => wrapSelected('group') },
-      { icon: 'if', label: 'Bọc bước đang chọn trong Nếu', keywords: 'wrap boc dieu kien if', run: () => wrapSelected('if') },
+      { icon: 'group', label: 'Nhóm bước', keywords: 'group lap lai repeat', soon: 'bước 20' },
     ],
   },
 ];
-
-const wrapSelected = (type: 'group' | 'if') => {
-  const id = getEditor().selected;
-  if (id) wrapStep(id, type);
-};
 const COLS = 3;
 
 // So khớp không dấu: "cuon" tìm được "Cuộn".
 const fold = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
-
-// Bước mới vào đâu: cuối khối (nút "+ Thêm bước" trong khối) hoặc sau bước đang chọn.
-function where() {
-  const t = insertTarget();
-  if (t) return `thêm vào cuối ${t.branch === 'else' ? 'nhánh “Nếu không” của ' : ''}khối ${pathOf(t.parent)}`;
-  const sel = getEditor().selected;
-  return sel ? `thêm sau bước ${pathOf(sel)}` : 'thêm vào cuối';
-}
 
 export default function AddStepPalette({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState('');
@@ -146,7 +124,7 @@ export default function AddStepPalette({ onClose }: { onClose: () => void }) {
 
         <div className="flex flex-none flex-wrap items-center gap-4 border-t border-line bg-chrome px-4 py-2.5 text-xs text-muted">
           <span><span className="font-mono">↑↓←→</span> chọn</span>
-          <span><span className="font-mono">Enter</span> {where()}</span>
+          <span><span className="font-mono">Enter</span> thêm sau bước đang chọn</span>
           <span className="ml-auto">Click / Double / Giữ / Kéo thả mở overlay chọn điểm</span>
         </div>
       </div>

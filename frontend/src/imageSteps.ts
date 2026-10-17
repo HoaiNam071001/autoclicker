@@ -7,7 +7,7 @@ import { main } from '../wailsjs/go/models';
 import { addStep, getEditor, selectStep, setNotice, toScreen, updateStep } from './scriptStore';
 import { errorText } from './engineStore';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
-import { Rect } from './types';
+import { Rect, rootOf } from './types';
 
 // fromRun: chỗ giống nhất của lần chạy hết giờ không thấy (engine:failed), không phải từ nút Thử tìm
 export type FindResult = { found: boolean; score: number; x: number; y: number; w: number; h: number; area: Rect; ms: number; read?: string[]; fromRun?: boolean };
@@ -112,7 +112,7 @@ export const templateUrl = (png?: string) => (png ? `data:image/png;base64,${png
 // Lần chạy dừng vì lỗi: chọn bước lỗi để người dùng thấy ngay; chờ ảnh hết giờ thì nhớ chỗ giống nhất (xem trên màn hình).
 if (inWails) {
   EventsOn('engine:failed', (f: { stepId: string; miss?: FindResult }) => {
-    selectStep(f.stepId);
+    selectStep(rootOf(getEditor().script.steps, f.stepId)?.id ?? f.stepId);
     if (f.miss) set({ finds: { ...state.finds, [f.stepId]: { ...f.miss, found: false, fromRun: true } } });
   });
 }

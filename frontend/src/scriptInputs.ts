@@ -2,8 +2,7 @@
 // Giá trị thật áp lúc chạy ở Go (resolveInputs, inputs.go). Trường đã ghim luôn giữ bằng giá trị mặc định của input,
 // nên Xem trước / overlay không cần resolve vẫn đúng với lần chạy dùng mặc định.
 import { getEditor, updateScript } from './scriptStore';
-import { Cond, InputType, InputValue, PinField, Script, ScriptInput, Step, STEP_LABEL, stepLabel } from './types';
-import { allSteps, flatOf, flatten, mapAll } from './stepTree';
+import { InputType, InputValue, PinField, Script, ScriptInput, Step, stepLabel } from './types';
 import { InputView, isValidKey, splitVars, varsIn } from './components/inputs/model';
 import type { RunSection } from './components/inputs/RunDialog';
 
@@ -16,7 +15,6 @@ const PIN: Record<PinField, { key: string; label: string; type: InputType; min?:
   jitterMs: { key: 'jitter_ms', label: 'Ngẫu nhiên thời gian', type: 'ms' },
   jitterPx: { key: 'jitter_px', label: 'Ngẫu nhiên vị trí', type: 'number' },
   amount: { key: 'scroll', label: 'Số nấc cuộn', type: 'number', min: 1 },
-  repeat: { key: 'repeat', label: 'Số lần lặp', type: 'number', min: 1 },
   timeoutMs: { key: 'timeout', label: 'Chờ tối đa', type: 'ms', min: 1 },
   threshold: { key: 'threshold', label: 'Độ khớp tối thiểu (%)', type: 'number', min: 1 },
   enabled: { key: 'enabled', label: 'Bật bước', type: 'bool' },
@@ -28,31 +26,12 @@ export const fieldKind = (f: PinField) => (f === 'enabled' ? 'bool' : 'int');
 
 const inputsOf = (sc: Script) => sc.inputs ?? [];
 
-// Ô chữ nhận {{biến}} của bước (khớp resolveInputs trong inputs.go): gõ chữ → text, mở → target, tìm theo chữ → findText,
-// điều kiện của khối → left / right / findText (cả điều kiện con).
-const condTexts = (c?: Cond): string[] => (c ? [c.left ?? '', c.right ?? '', c.findText ?? '', ...(c.conds ?? []).flatMap(condTexts)] : []);
-export const varTexts = (s: Step): string[] => [
-  s.type === 'type' ? s.text : s.type === 'open' ? s.target ?? '' : (s.type === 'waitImage' || s.type === 'clickImage') && s.findBy === 'text' ? s.findText ?? '' : '',
-  ...condTexts(s.cond),
-].filter(Boolean);
-export const varText = (s: Step) => varTexts(s).join(' ');
-const mapCond = (c: Cond, f: (t: string) => string): Cond => ({
-  ...c, ...(c.left && { left: f(c.left) }), ...(c.right && { right: f(c.right) }), ...(c.findText && { findText: f(c.findText) }),
-  ...(c.conds && { conds: c.conds.map((x) => mapCond(x, f)) }),
-});
-// Áp f lên mọi ô chữ nhận biến của bước (đổi key input → đổi {{key}}).
-const mapVarTexts = (s: Step, f: (t: string) => string): Step => ({
-  ...s,
-  ...(s.type === 'type' && { text: f(s.text) }),
-  ...(s.type === 'open' && s.target && { target: f(s.target) }),
-  ...(s.findText && { findText: f(s.findText) }),
-  ...(s.cond && { cond: mapCond(s.cond, f) }),
-});
+// Ô chữ nhận {{biến}} của bước (khớp resolveInputs trong inputs.go): gõ chữ → text, mở → target.
+export const varText = (s: Step) => (s.type === 'type' ? s.text : s.type === 'open' ? s.target ?? '' : '');
+const withVarText = (s: Step, text: string): Step =>
+  s.type === 'type' ? { ...s, text } : s.type === 'open' ? { ...s, target: text } : s;
 const setInputs = (inputs: ScriptInput[]) => updateScript({ inputs: inputs.length ? inputs : undefined });
-const stepNo = (sc: Script, id: string) => {
-  const f = flatOf(sc.steps, id);
-  return f ? (f.depth ? f.path : f.path.padStart(2, '0')) : '?';
-};
+const stepNo = (sc: Script, id: string) => String(sc.steps.findIndex((s) => s.id === id) + 1).padStart(2, '0');
 
 const uniqueKey = (base: string, inputs: ScriptInput[]) => {
   let k = base;
@@ -71,7 +50,7 @@ export const compatibleInputs = (sc: Script, field: PinField) =>
 // Bước dùng mỗi input (ghim hoặc {{key}} trong bước gõ chữ), theo thứ tự bước; bước đã xoá không tính.
 export function inputUsage(sc: Script): Map<string, Step[]> {
   const out = new Map<string, Step[]>(inputsOf(sc).map((i) => [i.key, []]));
-  allSteps(sc.steps).forEach((s) => {
+  sc.steps.forEach((s) => {
     const keys = new Set<string>();
     inputsOf(sc).forEach((i) => i.targets?.some((t) => t.stepId === s.id) && keys.add(i.key));
     varsIn(varText(s)).forEach((k) => keys.add(k));
@@ -110,7 +89,7 @@ export function parseValue(type: InputType, v: InputValue | undefined): InputVal
 // Ghi giá trị mặc định vào mọi trường đang ghim (giữ trường = mặc định).
 const withTargets = (steps: Step[], inp: ScriptInput, value: InputValue | undefined) => {
   if (value === undefined || !inp.targets?.length) return steps;
-  return mapAll(steps, (s) => {
+  return steps.map((s) => {
     const ts = inp.targets!.filter((t) => t.stepId === s.id);
     if (!ts.length) return s;
     const patch: Partial<Step> = {};
@@ -124,11 +103,10 @@ const withTargets = (steps: Step[], inp: ScriptInput, value: InputValue | undefi
 // Ghim trường thành input mới: giá trị hiện tại làm mặc định. Trả key.
 export function pinField(id: string, field: PinField): string | undefined {
   const sc = getEditor().script;
-  const f = flatOf(sc.steps, id);
-  const s = f?.step;
+  const s = sc.steps.find((x) => x.id === id);
   if (!s || pinnedInput(sc, id, field)) return;
   const p = PIN[field];
-  const n = f.path.replace(/\./g, '_');
+  const n = sc.steps.indexOf(s) + 1;
   const key = uniqueKey(`${p.key}_${n}`, inputsOf(sc));
   const label = `${field === 'delayAfter' && s.type === 'wait' ? 'Thời gian chờ' : p.label} (B${n})`;
   setInputs([...inputsOf(sc), { key, label, type: p.type, default: s[field] as InputValue, min: p.min, targets: [{ stepId: id, field }] }]);
@@ -195,7 +173,7 @@ export function updateInput(key: string, patch: Partial<ScriptInput>): string | 
   }
   if ('default' in patch) next.default = parseValue(next.type, patch.default);
   let steps = withTargets(sc.steps, next, next.default);
-  if (next.key !== key) steps = mapAll(steps, (s) => (varText(s) ? mapVarTexts(s, (t) => renameVar(t, key, next.key)) : s));
+  if (next.key !== key) steps = steps.map((s) => (varText(s) ? withVarText(s, renameVar(varText(s), key, next.key)) : s));
   updateScript({ steps, inputs: inputsOf(sc).map((i) => (i.key === key ? next : i)) });
   return null;
 }
@@ -227,7 +205,7 @@ export function runSections(sc: Script): RunSection[] {
         title: steps.length ? [...new Set(steps.map((s) => stepLabel(s)))].join(', ') : 'Chưa bước nào dùng',
         keys: [],
         template: steps.find((s) => s.type === 'type')?.text,
-        order: steps.length ? flatten(sc.steps).findIndex((f) => f.step.id === steps[0].id) : Infinity,
+        order: steps.length ? sc.steps.indexOf(steps[0]) : Infinity,
       };
       groups.set(id, g);
     }

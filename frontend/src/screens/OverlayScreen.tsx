@@ -11,7 +11,6 @@ import { frameRect, MapDialog, modKeyName, paramsPreview, TransformBar, Transfor
 import { bbox, NO_TF, TfParams, translate } from '../transform';
 import { Point, Rect, SCROLL_ARROW, scrollDelta, STEP_LABEL, stepLabel, StepPoint } from '../types';
 import { fmtAxis } from '../anchor';
-import { allSteps, flatOf, flatten } from '../stepTree';
 import { inWails, OverlayTool, overlayFocus, overlayTool, safeArea, setWindowMode } from '../windowMode';
 import { addSample, currentMapping, isMeasured, resetSamples, toClientPt, toScreenPt } from '../coordMap';
 import { scrollRange, SimulationLayer, useSimulation } from '../components/Simulation';
@@ -50,7 +49,7 @@ const rectOf = (a: Point, b: Point): Rect => ({
 // Điểm chọn được (khoá chọn nhiều → toạ độ màn hình) từ endpoints(): A "từ điểm trước" không chọn được.
 function markersOf(ends: ReturnType<typeof endpoints>): [string, Point][] {
   const out: [string, Point][] = [];
-  allSteps(getEditor().script.steps).forEach((s) => {
+  getEditor().script.steps.forEach((s) => {
     const e = ends.get(s.id);
     if (!e) return;
     selectableIndexes(s).forEach((j) => {
@@ -315,7 +314,7 @@ export default function OverlayScreen() {
     const { script, multi: sel } = getEditor();
     if (e.key.toLowerCase() === 'a' && (isMac ? e.metaKey : e.ctrlKey)) {
       e.preventDefault();
-      setMulti(flatten(script.steps).filter((f) => f.active).flatMap(({ step: s }) => selectableIndexes(s).map((j) => pointKey(s.id, j))));
+      setMulti(script.steps.filter((s) => s.enabled).flatMap((s) => selectableIndexes(s).map((j) => pointKey(s.id, j))));
       return true;
     }
     const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
@@ -351,13 +350,13 @@ export default function OverlayScreen() {
   const view = pending ? regionMapping(pending.to, mapMode) : liveMat ? transformedSteps(liveMat) : { steps, outside: 0 };
   const viewSteps = view.steps;
   const ends = endpoints(viewSteps, liveRegion);
-  flatten(viewSteps).forEach(({ step: s, path }) => {
+  viewSteps.forEach((s, i) => {
     const e = ends.get(s.id);
     if (!e) return;
     const pts = s.type === 'drag' ? [e.start, e.end] : [e.start];
     pts.forEach((p, j) => {
       if (!p) return;
-      const label = s.type === 'drag' ? `${path}${j === 0 ? 'A' : 'B'}` : path;
+      const label = s.type === 'drag' ? `${i + 1}${j === 0 ? 'A' : 'B'}` : `${i + 1}`;
       const dragging = moving?.moved && moving.id === s.id && moving.index === j;
       markers.push({
         id: s.id, index: j, key: pointKey(s.id, j), label, at: dragging ? cursor : toClient(p), scr: p, drag: s.type === 'drag',
@@ -382,7 +381,7 @@ export default function OverlayScreen() {
     ];
   });
   // Bước cuộn tại điểm: mũi tên dài đúng quãng cuộn ước tính (giữ trong cửa sổ), nhãn ở đầu mũi tên.
-  const scrollArrows = preview ? [] : flatten(viewSteps).flatMap(({ step: s, path }) => {
+  const scrollArrows = preview ? [] : viewSteps.flatMap((s, i) => {
     const at = s.type === 'scroll' ? ends.get(s.id)?.start : null;
     if (!at) return [];
     const d = scrollDelta(s);
@@ -390,12 +389,11 @@ export default function OverlayScreen() {
     const raw = toClient({ x: at.x + d.x, y: at.y + d.y });
     const tip = { x: Math.min(Math.max(raw.x, 12), window.innerWidth - 12), y: Math.min(Math.max(raw.y, 12), window.innerHeight - 12) };
     return [{ id: s.id, a, tip, cut: tip.x !== raw.x || tip.y !== raw.y,
-      text: `${path}: cuộn ${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount} nấc ≈ ${Math.abs(d.x || d.y)} px` }];
+      text: `${i + 1}: cuộn ${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount} nấc ≈ ${Math.abs(d.x || d.y)} px` }];
   });
   const screenCursor = toScreenFromClient(cursor);
-  const focusFlat = focus ? flatOf(steps, focus) : undefined;
-  const focusIdx = focusFlat?.path ?? '';
-  const focusStep = focusFlat?.step ?? null;
+  const focusIdx = focus ? steps.findIndex((x) => x.id === focus) + 1 : 0;
+  const focusStep = focusIdx > 0 ? steps[focusIdx - 1] : null;
   const focusEnds = focus ? ends.get(focus) : undefined;
   const hint = focus && focusStep
     ? repicking
@@ -407,7 +405,7 @@ export default function OverlayScreen() {
     : tool === 'region' ? 'Kéo để khoanh vùng'
     : tool === 'capture'
       ? cap ? 'Enter: dùng ảnh này · kéo lại hoặc Esc: khoanh lại'
-        : `Kéo khung sát quanh nút / chữ cần chờ${captureTargetStep() ? ` (bước ${flatOf(steps, captureTargetStep()!)?.path})` : ' – tạo bước Chờ ảnh mới'}`
+        : `Kéo khung sát quanh nút / chữ cần chờ${captureTargetStep() ? ` (bước ${steps.findIndex((x) => x.id === captureTargetStep()) + 1})` : ' – tạo bước Chờ ảnh mới'}`
     : tool === 'select'
       ? multi.length
         ? `${multi.length} điểm · kéo khung / núm để biến đổi · ${modKeyName}+núm: xiên, phối cảnh`
@@ -431,7 +429,7 @@ export default function OverlayScreen() {
         return <PageBackdrop kind={pageKind} rect={{ ...tl, w: bb.w / map.kx, h: bb.h / map.ky }} s={1 / map.kx} offset={sim.offset} range={scrollRange(steps)} />;
       })()}
       {/* Khung "Thử tìm" (bước 25): chỗ giống ảnh mẫu nhất trên màn hình lúc thử */}
-      {!preview && flatten(steps).map(({ step: s, path: i }) => {
+      {!preview && steps.map((s, i) => {
         const f = finds[s.id];
         if (!f || (focus && s.id !== focus)) return null;
         const a = toClient(f), b = toClient({ x: f.x + f.w, y: f.y + f.h });
@@ -439,7 +437,7 @@ export default function OverlayScreen() {
           <div key={`find${s.id}`} className={`pointer-events-none absolute rounded-sm border-2 border-dashed ${f.found ? 'border-ok bg-ok/15' : 'border-warn bg-warn/10'}`}
             style={{ left: a.x, top: a.y, width: b.x - a.x, height: b.y - a.y }}>
             <span className={`absolute -top-6 left-0 rounded px-1.5 py-px font-mono text-[11px] whitespace-nowrap text-black ${f.found ? 'bg-ok' : 'bg-warn'}`}>
-              {i}: {f.found ? 'thấy' : 'giống nhất'} · khớp {f.score}%
+              {i + 1}: {f.found ? 'thấy' : 'giống nhất'} · khớp {f.score}%
             </span>
           </div>
         );

@@ -1,8 +1,7 @@
 // Xem trước kịch bản: con trỏ giả chạy theo các bước trên overlay, không điều khiển chuột thật.
 import { useEffect, useRef, useState } from 'react';
 import { boundsOf, endpoints } from '../scriptStore';
-import { fmtCond, fmtKey, Point, Rect, SCROLL_ARROW, scrollDelta, ScrollDirection, Step, STEP_LABEL, stepLabel } from '../types';
-import { previewOrder } from '../stepTree';
+import { fmtKey, Point, Rect, SCROLL_ARROW, scrollDelta, ScrollDirection, Step, STEP_LABEL, stepLabel } from '../types';
 import { fmtScreens } from './steps/ScrollMap';
 import { MockPage, unitText, usePageKind } from './MockPage';
 
@@ -24,7 +23,7 @@ export type SimState = {
   running: boolean;
   pos: Point | null; // toạ độ màn hình (robotgo) của con trỏ giả
   pressed: boolean;
-  step: string | null; // số thứ tự bước đang chạy ("3", "2.1")
+  step: number | null; // số thứ tự bước đang chạy (từ 1)
   label: string;
   bubble: string; // chữ cạnh con trỏ: chờ / gõ / phím
   trail: Segment[];
@@ -123,9 +122,10 @@ export function useSimulation(steps: Step[], region: Rect | null, speed: number)
     setSim({ ...idle, running: true });
     const ends = endpoints(steps, region);
     try {
-      for (const { step: s, path } of previewOrder(steps)) {
+      for (const [i, s] of steps.entries()) {
+        if (!s.enabled) continue;
         alive();
-        patch({ step: path, label: `${stepLabel(s)}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`, bubble: '' });
+        patch({ step: i + 1, label: `${stepLabel(s)}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`, bubble: '' });
         const e = ends.get(s.id);
         switch (s.type) {
           case 'click':
@@ -204,19 +204,6 @@ export function useSimulation(steps: Step[], region: Rect | null, speed: number)
             await wait(Math.min(s.timeoutMs ?? 0, 800));
             break;
           case 'wait':
-            break;
-          case 'if':
-            patch({ bubble: `Nếu ${s.cond ? fmtCond(s.cond) : '…'} – xem trước giả sử đúng` });
-            await wait(KEY_SHOW_MS);
-            break;
-          case 'group':
-            patch({ bubble: `${s.name || 'Nhóm'}: ${s.loopMode ? `lặp ${s.loopMode === 'until' ? 'đến khi' : 'khi'} ${s.cond ? fmtCond(s.cond) : '…'}` : `lặp ×${s.repeat ?? 1}`} – xem trước 1 vòng` });
-            await wait(KEY_SHOW_MS);
-            break;
-          case 'break':
-          case 'stop':
-            patch({ bubble: s.type === 'stop' ? `Dừng kịch bản${s.message ? `: ${s.message}` : ''}` : 'Thoát khối lặp' });
-            await wait(KEY_SHOW_MS);
             break;
         }
         if (s.delayAfter > 0) patch((st) => ({ bubble: st.bubble || `Chờ ${s.delayAfter} ms` }));
