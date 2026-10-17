@@ -18,7 +18,7 @@ export type DemoStep = {
 export type DemoGroup = { id: string; type: 'group'; name: string; repeat: number; children: DemoStep[] };
 export type DemoItem = DemoStep | DemoGroup;
 
-// Ví dụ "nhắn tin Facebook" (TASKS.md, cuối Phase 3) + vài bước thể hiện neo góc, chờ pixel, kéo thả.
+// Ví dụ "nhắn tin Facebook" (docs/tasks/phase3/31-mcp-ai.md) + vài bước thể hiện neo góc, chờ pixel, kéo thả.
 export const demoItems: DemoItem[] = [
   { id: 'd1', type: 'open', title: 'Mở URL', detail: 'facebook.com/{{profile}} trong Chrome', delay: '1 s', chips: ['1 input'] },
   { id: 'd2', type: 'focusWindow', title: 'Focus cửa sổ', detail: 'Google Chrome', delay: '200 ms' },

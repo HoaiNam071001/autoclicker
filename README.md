@@ -11,4 +11,4 @@ wails dev     # phát triển, hot reload
 wails build   # build ra build/bin/
 ```
 
-Kế hoạch và tiến độ: [docs/TASKS.md](docs/TASKS.md). Hướng dẫn cho Claude Code: [CLAUDE.md](CLAUDE.md).
+Kế hoạch và tiến độ: [docs/tasks/](docs/tasks/README.md). Hướng dẫn cho Claude Code: [CLAUDE.md](CLAUDE.md).

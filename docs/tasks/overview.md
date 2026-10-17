@@ -1,0 +1,31 @@
+# Tổng quan: stack, khởi động, data model
+
+## Stack
+
+- **App shell:** Wails v2 (Go backend + WebView frontend)
+- **Frontend:** React + TypeScript + Tailwind
+- **Chuột / màn hình:** `github.com/go-vgo/robotgo`
+- **Hotkey toàn cục:** `github.com/robotn/gohook`
+- **Kéo thả danh sách:** `@dnd-kit/core`, `@dnd-kit/sortable`
+- **Nền tảng đầu tiên:** Windows
+
+## Khởi động nhanh
+
+```bash
+go install github.com/wailsapp/wails/v2/cmd/wails@latest
+wails doctor
+wails init -n autoclicker -t react-ts
+cd autoclicker
+go get github.com/go-vgo/robotgo github.com/robotn/gohook
+wails dev
+```
+
+> Windows: robotgo dùng cgo, cần MinGW-w64 (gcc) trong PATH.
+
+## Data model
+
+Nguồn chuẩn: **`model.go`** (`Point`, `Rect`, `Step`, `Script`, hằng loại bước, `NewStep` / `NewScript` cho giá trị mặc định). Wails sinh class TS vào `frontend/wailsjs/go/models.ts`; `frontend/src/types.ts` giữ interface `Step` với union type chặt hơn và có kiểm tra lúc type-check rằng field khớp struct Go.
+
+Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]) · `wait` · `type` (gõ `text`) · `key` (bấm `keys` – một hay nhiều phím chính – kèm `modifiers`: cmd / ctrl / alt / shift; `keyMode`: `chord` nhấn giữ cùng lúc, vd Ctrl+C+T, hoặc `sequence` giữ phím kèm rồi gõ lần lượt).
+
+---

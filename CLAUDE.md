@@ -4,10 +4,11 @@ Desktop app tự động click theo kịch bản (chọn vùng, chọn điểm, 
 
 ## Bắt đầu mỗi session
 
-1. Đọc **`docs/TASKS.md`**: mục *Trạng thái hiện tại* cho biết đang làm bước nào, *Quyết định đã chốt* là các lựa chọn không cần bàn lại, *Nhật ký* là lịch sử. Thiết kế UI v2 (token, thành phần, icon, artboard) ở **`design/DESIGN.md`** + `design/theme.css`.
-2. Xong một bước (hoặc chuyển sang bước mới) → cập nhật `docs/TASKS.md` **trước khi commit / kết thúc session**: tick `[x]`, sửa *Trạng thái hiện tại*, thêm 1 dòng vào *Nhật ký* (ngày tuyệt đối, kết quả kiểm tra). Quy ước tick:
-   - Mục con làm xong là tick ngay; việc mới phát sinh (sửa theo người dùng báo, việc để sau) thêm thành mục con `[ ]` / `[x]`, không chỉ ghi ở chat.
-   - Mục cha tick khi hết phần code; còn *Kiểm tra tay* thì để dòng đó `[ ]` riêng (không giữ cả mục cha chưa tick vì chờ kiểm tra tay). Còn việc code chưa làm thì mục cha để `[ ]`.
+1. Đọc **`docs/tasks/README.md`**: *Trạng thái hiện tại* (đang làm bước nào), bảng thứ tự các bước + link file từng bước. Chỉ mở file của bước đang làm (`docs/tasks/phase3/<số>-<tên>.md`); `decisions.md` là quyết định đã chốt (không bàn lại), `checks.md` là việc chờ người dùng kiểm tra tay, `log.md` là nhật ký, `overview.md` là stack / data model. Thiết kế UI v2 (token, thành phần, icon, artboard) ở **`design/DESIGN.md`** + `design/theme.css`.
+2. Xong một bước (hoặc chuyển sang bước mới) → cập nhật **trước khi commit / kết thúc session**: tick `[x]` trong file của bước, sửa *Trạng thái hiện tại* ở `README.md`, thêm 1 dòng vào `log.md` (ngày tuyệt đối, kết quả kiểm tra). Quy ước:
+   - Mục con làm xong là tick ngay; việc mới phát sinh (sửa theo người dùng báo, việc để sau) thêm thành mục con `[ ]` / `[x]` trong file của bước, không chỉ ghi ở chat.
+   - Mục cha tick khi hết phần code. Việc *Kiểm tra tay* của phần đã xong code ghi vào **`checks.md`** (mới nhất ở trên, nhóm theo bước), file bước chỉ để dòng link; người dùng thử xong thì tick ở `checks.md` + ghi `log.md`.
+   - Bước mới → file mới `docs/tasks/phase3/<số>-<tên>.md` + một dòng trong bảng ở `README.md`. File quá dài (~200 dòng) thì tách theo phần con.
    - Trước khi kết thúc, rà lại các mục cha có mọi mục con code đã `[x]` mà chưa tick.
 3. Người dùng trao đổi bằng **tiếng Việt** – trả lời, comment UI và tài liệu bằng tiếng Việt; tên biến/hàm bằng tiếng Anh.
 
@@ -49,7 +50,7 @@ Mục tiêu: thêm tính năng sau chỉ phải đụng đúng chỗ. Code mới
 - **Go là nguồn chuẩn của model:** thêm trường → `model.go` → `~/go/bin/wails generate module` → `types.ts` (tsc tự báo lệch). Công thức chạy ở cả hai bên (neo, `flowOrder`, cổng ra) giữ cùng tên hàm và test chung dữ liệu trong `testdata/`.
 - **Thêm loại node** – đủ các chỗ: hằng + mặc định (`model.go` `NewStep` + `stepTypes`, `store/nodes.ts` `addStep` / `store/control.ts` `addControl`), `checkStep`, `validateScript`, `runStep` / `runControl` (output), `portsOf` (Go + TS), ô chữ nhận biến (`varFields` Go + `mapVarText` TS), `steptypes.go` (mô tả, output, ví dụ), `flow/view.ts` (nhãn cổng, chi tiết, `outputsOf`), trường trong `components/stepform/` hoặc `components/flow/nodes/`, mục trong bảng thêm node, test Go + TS.
 - **Dùng lại trước khi viết mới:** `NumInput`, `Segmented`, `Switch`, `Field` / `NumField` / `PickButton` (`stepform/shared`), `PaletteView`, `PortField`, `StepIcon`. Hai chỗ cần cùng một thứ → đưa vào chỗ dùng chung, không chép.
-- **Không giữ code chết / tương thích ngược** khi không cần (file kịch bản cũ đã bỏ). Cầu nối tạm thời phải ghi bước sẽ xoá trong `docs/TASKS.md`. Helper chỉ cho test để trong `*_test.go` / `*.test.ts`.
+- **Không giữ code chết / tương thích ngược** khi không cần (file kịch bản cũ đã bỏ). Cầu nối tạm thời phải ghi bước sẽ xoá trong file của bước (`docs/tasks/`). Helper chỉ cho test để trong `*_test.go` / `*.test.ts`.
 - **Go:** một file một nhóm (`flow.go` kiểu + thứ tự, `flowcheck.go` kiểm tra, `flowrun.go` engine, `vars.go` biến…). Thiết bị (chuột, màn hình, OCR, mở app) qua interface để test bằng bản giả. Lỗi cho người dùng / AI có cấu trúc (`ScriptError`, `StepError` + mã).
 - Dữ liệu giả chỉ ở `src/demo/`. Comment tiếng Việt, ngắn, nói *vì sao* / ràng buộc; không comment lại điều code đã nói.
 
