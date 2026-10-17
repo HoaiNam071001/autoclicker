@@ -51,6 +51,9 @@ export const setLastError = (lastError: string) => set({ lastError });
 
 const COUNTDOWN_SEC = 3;
 
+// Lỗi từ Go (Wails trả Error hoặc chuỗi) → chữ hiện cho người dùng, bỏ tiền tố "Error: ".
+export const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e)).replace(/^Error:\s*/, '');
+
 // Chạy kịch bản với giá trị input (Go áp vào bản sao – resolveInputs): kiểm tra trước (lỗi thì ở lại màn chính),
 // thu cửa sổ thành mini bar, chạy tới khi xong / dừng, rồi về màn chính. Form Chạy: runForm.ts.
 export async function runScript(script: Script, countdown: boolean, values: Record<string, unknown> = {}, preset = '') {
@@ -60,14 +63,14 @@ export async function runScript(script: Script, countdown: boolean, values: Reco
   try {
     await ValidateScript(sc, values);
   } catch (e) {
-    set({ lastError: String(e), stopReason: '' });
+    set({ lastError: errorText(e), stopReason: '' });
     return;
   }
   await setWindowMode('minibar');
   try {
     await RunScript(sc, values, countdown ? COUNTDOWN_SEC : 0);
   } catch (e) {
-    set({ lastError: String(e) });
+    set({ lastError: errorText(e) });
   }
   await setWindowMode('main');
 }

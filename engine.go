@@ -5,12 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
+	"slices"
+	"strings"
 	"sync"
 	"time"
 )
 
 // dragStepMs – khoảng thời gian giữa các lần di chuột khi kéo thả.
 const dragStepMs = 10
+
+// scrollGapMs – nghỉ giữa các nấc cuộn (app kịp nhận từng nấc; dừng được giữa chừng).
+const scrollGapMs = 30
 
 // validateScript kiểm tra kịch bản (đã áp input) trước khi chạy để không dừng giữa chừng vì dữ liệu sai.
 // Lỗi là *ScriptError (bước / trường) để UI và AI biết chỗ sửa.
@@ -37,6 +42,18 @@ func validateScript(sc Script, screen Rect) error {
 			need = 1
 		case StepDrag:
 			need = 2
+		case StepScroll:
+			need = min(len(s.Points), 1) // có điểm thì điểm phải trong vùng
+			if !slices.Contains(scrollDirections, s.Direction) {
+				return stepErr(i, s, "direction", "hướng cuộn không hợp lệ %q", s.Direction)
+			}
+			if s.Amount < 1 {
+				return stepErr(i, s, "amount", "số nấc cuộn phải ≥ 1")
+			}
+		case StepOpen:
+			if strings.TrimSpace(s.Target) == "" || s.Target == "https://" {
+				return stepErr(i, s, "target", "chưa nhập URL / app cần mở")
+			}
 		case StepWait:
 		case StepText:
 			if s.Text == "" {
@@ -86,9 +103,10 @@ type engine struct {
 	in         Input
 	sc         Script
 	gate       pauseGate
-	screen     Rect            // khung màn hình khi Region = nil (runner đặt = mainScreen); zero = gốc (0, 0)
-	onProgress func(Progress)  // có thể nil
-	intN       func(n int) int // số ngẫu nhiên [0, n) – test thay bằng hàm cố định
+	screen     Rect                           // khung màn hình khi Region = nil (runner đặt = mainScreen); zero = gốc (0, 0)
+	onProgress func(Progress)                 // có thể nil
+	intN       func(n int) int                // số ngẫu nhiên [0, n) – test thay bằng hàm cố định
+	open       func(target, app string) error // bước Mở – test thay bằng hàm ghi lại
 
 	last    Point // chỗ engine vừa đưa chuột tới – cho bước kéo "từ điểm trước đó"
 	hasLast bool
@@ -100,7 +118,7 @@ type engine struct {
 }
 
 func newEngine(in Input, sc Script, onProgress func(Progress)) *engine {
-	return &engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN}
+	return &engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: openTarget}
 }
 
 // jitter trả v lệch ngẫu nhiên đều trong [v-j, v+j]; j ≤ 0 → v. Dùng cho toạ độ (có thể âm ở màn phụ).
@@ -291,6 +309,26 @@ func (e *engine) runStep(ctx context.Context, s Step) error {
 		}
 	case StepKey:
 		return pressKeys(ctx, in, s)
+	case StepScroll:
+		if len(s.Points) > 0 {
+			x, y := pt(0)
+			if err := e.move(x, y); err != nil {
+				return err
+			}
+		}
+		for i := 0; i < s.Amount; i++ {
+			if err := e.gate.wait(ctx); err != nil {
+				return err
+			}
+			if err := in.Scroll(s.Direction); err != nil {
+				return err
+			}
+			if err := sleep(ctx, scrollGapMs); err != nil {
+				return err
+			}
+		}
+	case StepOpen:
+		return e.open(s.Target, s.App)
 	}
 	return nil
 }

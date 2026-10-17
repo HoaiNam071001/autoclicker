@@ -14,7 +14,12 @@ const (
 	StepWait   = "wait"   // chỉ chờ DelayAfter
 	StepText   = "type"   // gõ chuỗi Text vào ô đang focus
 	StepKey    = "key"    // bấm Keys, kèm Modifiers (tổ hợp phím) theo KeyMode
+	StepScroll = "scroll" // cuộn Amount nấc theo Direction, tại Points[0] (không có điểm = chỗ chuột đang đứng)
+	StepOpen   = "open"   // mở Target (URL / file / app) bằng App hoặc app mặc định của máy (open.go)
 )
+
+// Hướng cuộn (Step.Direction).
+var scrollDirections = []string{"up", "down", "left", "right"}
 
 // Cách bấm khi bước phím có nhiều phím chính (Step.KeyMode).
 const (
@@ -40,8 +45,8 @@ type Rect struct {
 
 type Step struct {
 	ID            string   `json:"id"`
-	Type          string   `json:"type"`          // click | double | hold | drag | wait | type | key
-	Points        []Point  `json:"points"`        // drag dùng points[0] -> points[1]; type/key/wait không cần
+	Type          string   `json:"type"`          // click | double | hold | drag | wait | type | key | scroll | open
+	Points        []Point  `json:"points"`        // drag dùng points[0] -> points[1]; scroll tuỳ chọn 1 điểm; type/key/wait/open không cần
 	Button        string   `json:"button"`        // left | right | center
 	Clicks        int      `json:"clicks"`        // click: số lần click
 	ClickInterval int      `json:"clickInterval"` // ms giữa các click
@@ -57,6 +62,10 @@ type Step struct {
 	JitterMs      int      `json:"jitterMs"`     // ngẫu nhiên ± ms cho DelayAfter và ClickInterval
 	JitterPx      int      `json:"jitterPx"`     // ngẫu nhiên ± px cho mỗi lần di chuột tới điểm
 	Enabled       bool     `json:"enabled"`
+	Direction     string   `json:"direction,omitempty"` // scroll: up | down | left | right
+	Amount        int      `json:"amount,omitempty"`    // scroll: số nấc
+	Target        string   `json:"target,omitempty"`    // open: URL, đường dẫn file / app hoặc tên app; nhận {{biến}}
+	App           string   `json:"app,omitempty"`       // open: mở bằng app này ("" = mặc định của máy), vd Google Chrome
 }
 
 // Cách neo điểm mới đặt (Script.AnchorMode).
@@ -106,6 +115,11 @@ func (a *App) NewStep(stepType string) (Step, error) {
 	case StepText:
 	case StepKey:
 		s.Keys = []string{"enter"}
+	case StepScroll:
+		s.Direction, s.Amount = "down", 3
+	case StepOpen:
+		s.Target = "https://"
+		s.DelayAfter = 2000 // chờ trang / app mở
 	default:
 		return Step{}, fmt.Errorf("loại bước không hợp lệ: %q", stepType)
 	}

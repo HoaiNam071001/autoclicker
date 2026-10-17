@@ -8,11 +8,12 @@ import {
 } from '../scriptStore';
 import { frameRect, MapDialog, modKeyName, paramsPreview, TransformBar, TransformFrame, useTransformGesture } from '../components/TransformTool';
 import { bbox, NO_TF, TfParams, translate } from '../transform';
-import { Point, Rect, STEP_LABEL, StepPoint } from '../types';
+import { Point, Rect, SCROLL_ARROW, scrollDelta, STEP_LABEL, StepPoint } from '../types';
 import { fmtAxis } from '../anchor';
 import { inWails, OverlayTool, overlayFocus, overlayTool, setWindowMode } from '../windowMode';
 import { addSample, currentMapping, isMeasured, resetSamples, toClientPt, toScreenPt } from '../coordMap';
-import { SimulationLayer, useSimulation } from '../components/Simulation';
+import { scrollRange, SimulationLayer, useSimulation } from '../components/Simulation';
+import { PageBackdrop, PageKindPicker, usePageKind } from '../components/MockPage';
 import { Eye, Play, Region, SelectIcon, StepIcon, Stop, Target } from '../components/icons';
 
 const SPEEDS = [1, 2, 4];
@@ -79,6 +80,7 @@ export default function OverlayScreen() {
   const preview = tool === 'preview';
   const [speed, setSpeed] = useState(1);
   const { sim, start: startSim, stop: stopSim } = useSimulation(steps, region, speed);
+  const pageKind = usePageKind();
   const simRef = useRef({ running: false, stop: stopSim });
   simRef.current = { running: sim.running, stop: stopSim };
   // Xem riêng một bước (nút 👁 trong form): bước khác + vùng mờ đi, chỉ sửa được bước này.
@@ -336,6 +338,17 @@ export default function OverlayScreen() {
       { key: `${m.label}y`, x1: m.at.x, y1: ey, x2: m.at.x, y2: m.at.y, text: fmtAxis(p.y, p.ay) },
     ];
   });
+  // Bước cuộn tại điểm: mũi tên dài đúng quãng cuộn ước tính (giữ trong cửa sổ), nhãn ở đầu mũi tên.
+  const scrollArrows = preview ? [] : viewSteps.flatMap((s, i) => {
+    const at = s.type === 'scroll' ? ends.get(s.id)?.start : null;
+    if (!at) return [];
+    const d = scrollDelta(s);
+    const a = toClient(at);
+    const raw = toClient({ x: at.x + d.x, y: at.y + d.y });
+    const tip = { x: Math.min(Math.max(raw.x, 12), window.innerWidth - 12), y: Math.min(Math.max(raw.y, 12), window.innerHeight - 12) };
+    return [{ id: s.id, a, tip, cut: tip.x !== raw.x || tip.y !== raw.y,
+      text: `${i + 1}: cuộn ${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount} nấc ≈ ${Math.abs(d.x || d.y)} px` }];
+  });
   const screenCursor = toScreenFromClient(cursor);
   const focusIdx = focus ? steps.findIndex((x) => x.id === focus) + 1 : 0;
   const focusStep = focusIdx > 0 ? steps[focusIdx - 1] : null;
@@ -364,6 +377,12 @@ export default function OverlayScreen() {
       onMouseMove={onMove} onMouseDown={onDown} onMouseUp={onUp} onClick={onClick}
       // macOS: overlay nằm dưới menu bar – rê nhanh lên trên có thể vượt mép mà không qua vùng TOP_EDGE
       onMouseLeave={(e) => e.buttons === 0 && e.clientY < TOP_EDGE * 3 && openBar()}>
+      {preview && (() => {
+        // nền trang mẫu (đúng tỷ lệ px thật) trong vùng / màn hình, trượt theo các bước cuộn
+        const bb = boundsOf(region);
+        const tl = toClient(bb);
+        return <PageBackdrop kind={pageKind} rect={{ ...tl, w: bb.w / map.kx, h: bb.h / map.ky }} s={1 / map.kx} offset={sim.offset} range={scrollRange(steps)} />;
+      })()}
       {shown && (
         <div className={focus ? 'opacity-30' : ''}>
           <div className="absolute rounded-md border-2 border-dashed border-white bg-white/5"
@@ -388,6 +407,15 @@ export default function OverlayScreen() {
             <circle cx={l.x1} cy={l.y1} r={3} fill="#fff" opacity={0.8} />
             <text x={(l.x1 + l.x2) / 2} y={(l.y1 + l.y2) / 2} dx={l.y1 === l.y2 ? 0 : 6} dy={l.y1 === l.y2 ? -6 : 4}
               textAnchor={l.y1 === l.y2 ? 'middle' : 'start'} className="fill-white font-mono text-[11px]" opacity={0.85}>{l.text}</text>
+          </g>
+        ))}
+        {scrollArrows.map((r) => (
+          <g key={r.id} opacity={focus && r.id !== focus ? 0.2 : 1}>
+            <line x1={r.a.x} y1={r.a.y} x2={r.tip.x} y2={r.tip.y} className="stroke-accent" strokeWidth={4} strokeDasharray={r.cut ? '10 6' : undefined} markerEnd="url(#ah)" />
+            <text x={r.tip.x} y={r.tip.y} dx={r.tip.x > window.innerWidth - 200 ? -10 : 10} dy={-8} textAnchor={r.tip.x > window.innerWidth - 200 ? 'end' : 'start'}
+              className="fill-white font-mono text-xs font-semibold" stroke="rgb(0 0 0 / .65)" strokeWidth={3} paintOrder="stroke">
+              {r.text}{r.cut ? ' – dài hơn màn hình, xem Xem trước' : ''}
+            </text>
           </g>
         ))}
         {dragA && (
@@ -508,6 +536,7 @@ export default function OverlayScreen() {
                 </button>
               ))}
             </div>
+            <PageKindPicker className={`${toolBtn} font-normal`} />
             <span className="mx-1.5 h-[26px] w-px bg-white/16" />
             <button onClick={() => { stopSim(); setTool('select'); }} title="Chọn nhiều điểm để di chuyển / co giãn / xoay, rồi Xem trước lại" className={`${toolBtn} font-normal hover:bg-white/6`}>Sửa điểm</button>
           </>

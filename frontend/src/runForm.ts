@@ -5,7 +5,7 @@ import { EventsOn } from '../wailsjs/runtime/runtime';
 import { GetInputMemory, SaveInputMemory, ValidateScript } from '../wailsjs/go/main/App';
 import { main } from '../wailsjs/go/models';
 import { getEditor } from './scriptStore';
-import { runScript } from './engineStore';
+import { errorText, runScript } from './engineStore';
 import { parseValue } from './scriptInputs';
 import { inWails, setWindowMode } from './windowMode';
 import { InputValue, Script } from './types';
@@ -95,7 +95,7 @@ export async function submitRun(raw: Values, remember: boolean, preset: string) 
     try {
       await ValidateScript(main.Script.createFrom(script), values);
     } catch (e) {
-      return set({ error: String(e) });
+      return set({ error: errorText(e) });
     }
   }
   await saveMemory({ ...state.memory, last: values, lastPreset: preset, autoRun: remember });

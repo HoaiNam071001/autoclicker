@@ -14,7 +14,7 @@ import (
 )
 
 // Input của kịch bản (bước 21b): giá trị người soạn cho phép đổi khi bấm Chạy.
-// Nguồn: trường được ghim (Targets) và biến {{key}} trong trường chữ (bước gõ chữ).
+// Nguồn: trường được ghim (Targets) và biến {{key}} trong trường chữ (gõ chữ, URL / app của bước Mở).
 // resolveInputs áp giá trị vào bản sao kịch bản trước khi chạy – engine không biết gì về input.
 
 // Kiểu input (ScriptInput.Type).
@@ -56,6 +56,7 @@ var pinFields = map[string]string{
 	"delayAfter":    "int",
 	"jitterMs":      "int",
 	"jitterPx":      "int",
+	"amount":        "int",
 	"enabled":       "bool",
 }
 
@@ -203,20 +204,31 @@ func resolveInputs(sc Script, values map[string]any) (Script, error) {
 	}
 	for i := range out.Steps {
 		s := &out.Steps[i]
-		if s.Type != StepText {
+		var field *string
+		name, escape := "", false
+		switch s.Type {
+		case StepText:
+			field, name = &s.Text, "text"
+		case StepOpen:
+			// URL: mã hoá giá trị (dấu cách, tiếng Việt, &) để không làm hỏng URL
+			field, name, escape = &s.Target, "target", targetKind(s.Target) == targetURL
+		default:
 			continue
 		}
-		text, err := expandVars(s.Text, func(key string) (string, bool) {
+		text, err := expandVars(*field, func(key string) (string, bool) {
 			if _, ok := byKey[key]; !ok {
 				return "", false
 			}
 			used[key] = true
+			if escape {
+				return escapeURLValue(valueString(vals[key])), true
+			}
 			return valueString(vals[key]), true
 		})
 		if err != nil {
-			return Script{}, stepErr(i, *s, "text", "%v", err)
+			return Script{}, stepErr(i, *s, name, "%v", err)
 		}
-		s.Text = text
+		*field = text
 	}
 	for _, in := range sc.Inputs {
 		if !used[in.Key] {
@@ -355,6 +367,11 @@ func setStepField(s *Step, field string, v any) error {
 		s.JitterMs = n
 	case "jitterPx":
 		s.JitterPx = n
+	case "amount":
+		if n < 1 {
+			return errors.New("số nấc cuộn phải ≥ 1")
+		}
+		s.Amount = n
 	default:
 		return fmt.Errorf("không ghim được trường %q", field)
 	}

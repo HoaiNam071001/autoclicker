@@ -8,7 +8,8 @@ export type Point = { x: number; y: number };
 // Điểm lưu trong bước: neo theo cạnh vùng từng trục (khớp Point trong model.go).
 export type StepPoint = Point & { ax?: Anchor; ay?: Anchor };
 export type Rect = { x: number; y: number; w: number; h: number };
-export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key';
+export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open';
+export type ScrollDirection = 'up' | 'down' | 'left' | 'right';
 export type MouseButton = 'left' | 'right' | 'center';
 export type Modifier = 'cmd' | 'ctrl' | 'alt' | 'shift';
 // chord: nhấn giữ cùng lúc (Ctrl+C+T) · sequence: giữ phím kèm, gõ lần lượt từng phím chính
@@ -33,6 +34,10 @@ export interface Step {
   jitterMs: number; // ngẫu nhiên ± ms cho delayAfter và clickInterval
   jitterPx: number; // ngẫu nhiên ± px cho mỗi lần di chuột tới điểm
   enabled: boolean;
+  direction?: ScrollDirection; // scroll
+  amount?: number; // scroll: số nấc
+  target?: string; // open: URL / đường dẫn / tên app, nhận {{biến}}
+  app?: string; // open: mở bằng app này, '' = mặc định của máy
 }
 
 // Kiểm tra lúc type-check: Step phải khớp struct Go (model.go) – thiếu/thừa/sai kiểu field là tsc báo lỗi.
@@ -60,7 +65,7 @@ void scriptMatchesGo;
 export type InputType = 'text' | 'multiline' | 'number' | 'ms' | 'bool' | 'select';
 export type InputValue = string | number | boolean;
 // Trường ghim được (pinFields trong inputs.go): số → input number / ms, enabled → bool.
-export type PinField = 'clicks' | 'clickInterval' | 'holdMs' | 'dragMs' | 'delayAfter' | 'jitterMs' | 'jitterPx' | 'enabled';
+export type PinField = 'clicks' | 'clickInterval' | 'holdMs' | 'dragMs' | 'delayAfter' | 'jitterMs' | 'jitterPx' | 'amount' | 'enabled';
 export interface InputTarget { stepId: string; field: PinField }
 export interface ScriptInput {
   key: string; // chữ không dấu, số, _ – dùng trong {{key}}
@@ -91,6 +96,18 @@ export const STEP_LABEL: Record<StepType, string> = {
   wait: 'Chờ',
   type: 'Gõ chữ',
   key: 'Phím tắt',
+  scroll: 'Cuộn',
+  open: 'Mở URL / app',
+};
+
+export const SCROLL_ARROW: Record<ScrollDirection, string> = { up: '↑', down: '↓', left: '←', right: '→' };
+// Quãng ước tính một nấc cuộn (khớp scrollNotchPx – input.go): macOS gửi đúng 100 px, Windows một nấc con lăn
+// (Chrome / Edge ≈ 100 px, app khác có thể khác).
+export const SCROLL_NOTCH_PX = 100;
+// Trang dịch đi bao nhiêu (px, theo hướng cuộn): xuống = +y, phải = +x.
+export const scrollDelta = (s: Pick<Step, 'direction' | 'amount'>): Point => {
+  const d = (s.amount ?? 0) * SCROLL_NOTCH_PX;
+  return { down: { x: 0, y: d }, up: { x: 0, y: -d }, right: { x: d, y: 0 }, left: { x: -d, y: 0 } }[s.direction ?? 'down'];
 };
 
 // Tên phím robotgo hỗ trợ (ngoài các ký tự đơn như a, 1, /) – gợi ý trong form và kiểm tra.
@@ -143,4 +160,6 @@ export const fmtPos = (s: Step) =>
       s.dragRelative ? `Δ ${fmtSigned(s.points[1].x)},${fmtSigned(s.points[1].y)}` : `B ${fmtPair(s.points[1])}`}`
     : s.type === 'type' ? `"${s.text}"`
     : s.type === 'key' ? fmtKey(s)
+    : s.type === 'scroll' ? `${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount ?? 0} nấc ≈ ${(s.amount ?? 0) * SCROLL_NOTCH_PX} px ${s.points[0] ? `tại ${fmtPoint(s.points[0])}` : 'tại chuột'}`
+    : s.type === 'open' ? `${s.target || '—'}${s.app ? ` · ${s.app}` : ''}`
     : s.points[0] ? fmtPoint(s.points[0]) : '—';

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -107,9 +108,12 @@ func checkStep(s *Step) error {
 		need = 1
 	case StepDrag:
 		need = 2
-	case StepWait, StepText, StepKey:
+	case StepWait, StepText, StepKey, StepOpen, StepScroll:
 	default:
 		return fmt.Errorf("loại bước không hợp lệ: %q", s.Type)
+	}
+	if s.Direction != "" && !slices.Contains(scrollDirections, s.Direction) {
+		return fmt.Errorf("hướng cuộn không hợp lệ: %q", s.Direction)
 	}
 	if len(s.Points) < need {
 		return fmt.Errorf("thiếu điểm (cần %d)", need)
@@ -138,7 +142,7 @@ func checkStep(s *Step) error {
 			return fmt.Errorf("phím kèm không hợp lệ: %q", m)
 		}
 	}
-	if s.Clicks < 0 || s.ClickInterval < 0 || s.HoldMs < 0 || s.DragMs < 0 || s.DelayAfter < 0 || s.JitterMs < 0 || s.JitterPx < 0 {
+	if s.Clicks < 0 || s.ClickInterval < 0 || s.HoldMs < 0 || s.DragMs < 0 || s.DelayAfter < 0 || s.JitterMs < 0 || s.JitterPx < 0 || s.Amount < 0 {
 		return errors.New("số lần / thời gian / ngẫu nhiên không được âm")
 	}
 	if s.Points == nil {

@@ -9,16 +9,23 @@ import PinButton, { KeyChip, PinMenu } from './inputs/PinButton';
 import VarTextInput from './inputs/VarTextInput';
 import InputsPanel from './inputs/InputsPanel';
 import AnchorField, { AnchorMap } from './steps/AnchorField';
+import ScrollMap from './steps/ScrollMap';
 import {
-  boundsOf, changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
+  boundsOf, changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, setScrollAt, toggleStep, toScreen, updateStep, useScript,
 } from '../scriptStore';
 import {
   addInput, compatibleInputs, inputViews, moveInput, pinField, pinnedInput, pinToInput, removeInput, setPinnedValue, unpinField, updateInput,
 } from '../scriptInputs';
 import { loadMemory, stopAutoRun, useRunForm } from '../runForm';
-import { fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, PinField, Step, STEP_LABEL, StepPoint, StepType } from '../types';
+import {
+  fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, PinField, SCROLL_NOTCH_PX, ScrollDirection, Step, STEP_LABEL,
+  StepPoint, StepType,
+} from '../types';
+import { insideBounds } from '../anchor';
 
-const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'wait', 'type', 'key'];
+const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open'];
+// Trình duyệt gợi ý cho bước Mở (Windows: open.go đổi sang tên lệnh chrome / msedge / firefox)
+const BROWSERS = ['Google Chrome', 'Microsoft Edge', 'Firefox', ...(navigator.platform.startsWith('Mac') ? ['Safari'] : [])];
 const isMac = navigator.platform.startsWith('Mac');
 const MODIFIERS: { id: Modifier; label: string }[] = [
   { id: 'cmd', label: isMac ? '⌘ Cmd' : '⊞ Win' },
@@ -43,6 +50,7 @@ export default function StepForm({ step: s, index }: Props) {
   const setPoint = (i: number, p: Partial<StepPoint>) =>
     set({ points: s.points.map((q, j) => (j === i ? { ...q, ...p } : q)) });
   const mouse = s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'drag';
+  const atPoint = mouse || (s.type === 'scroll' && s.points.length > 0); // có vị trí trên màn hình
 
   return (
     <aside aria-label={`Thuộc tính bước ${index}`} className="flex w-[340px] flex-none flex-col gap-4 overflow-y-auto border-l border-line bg-surface p-4 max-[1100px]:w-[300px]">
@@ -52,7 +60,7 @@ export default function StepForm({ step: s, index }: Props) {
           <div className="truncate text-[15px] font-semibold">{STEP_LABEL[s.type]}</div>
           <div className="text-xs text-muted">Bước {index}{s.enabled ? '' : ' · đang tắt'}</div>
         </div>
-        {mouse && (
+        {atPoint && (
           <button onClick={() => openOverlay('point', s.id)} aria-label="Xem trên màn hình"
             title="Xem / sửa vị trí riêng bước này trên màn hình – các bước khác mờ đi"
             className="grid h-8 w-8 flex-none place-items-center rounded-control border border-line text-muted hover:bg-hover hover:text-ink"><Eye /></button>
@@ -100,6 +108,73 @@ export default function StepForm({ step: s, index }: Props) {
         )}
         {s.type === 'hold' && <NumField label="Giữ chuột trong" step={s} field="holdMs" unit="ms" />}
         {s.type === 'drag' && <NumField label="Thời gian kéo" step={s} field="dragMs" unit="ms" />}
+
+        {s.type === 'scroll' && (
+          <>
+            <Field label="Hướng" wide group>
+              <Segmented value={s.direction ?? 'down'} onChange={(direction: ScrollDirection) => set({ direction })} full label="Hướng cuộn"
+                options={[{ id: 'up', label: '↑ Lên' }, { id: 'down', label: '↓ Xuống' }, { id: 'left', label: '← Trái' }, { id: 'right', label: '→ Phải' }]} />
+            </Field>
+            <NumField label="Số nấc" step={s} field="amount" unit="nấc" min={1} />
+            <Field label="Quãng cuộn ≈">
+              <NumInput value={(s.amount ?? 0) * SCROLL_NOTCH_PX} unit="px" min={SCROLL_NOTCH_PX} pinned={!!pinnedInput(script, s.id, 'amount')}
+                onChange={(px) => {
+                  const amount = Math.max(1, Math.round(px / SCROLL_NOTCH_PX));
+                  const inp = pinnedInput(script, s.id, 'amount');
+                  if (inp) setPinnedValue(s.id, 'amount', amount);
+                  else set({ amount });
+                }} />
+              <span className={hint}>Gõ px, tự đổi ra nấc ({SCROLL_NOTCH_PX} px / nấc). Cuộn dài hơn màn hình cũng được.</span>
+            </Field>
+            <Field label="Cuộn tại" wide group>
+              <Segmented value={s.points.length ? 'point' : 'mouse'} onChange={(v) => setScrollAt(s.id, v === 'point')} full label="Cuộn tại"
+                options={[{ id: 'mouse', label: 'Chuột' }, { id: 'point', label: 'Điểm' }]} />
+            </Field>
+            {s.points[0] ? (
+              <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+                <span>Đặt chuột tại <span className="text-xs">(phải nằm trên {region ? 'vùng' : 'màn hình'} – không phải chỗ cuộn tới)</span></span>
+                <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
+                  pick={<PickButton step={s} />} />
+                {!insideBounds(toScreen(s.points[0], region), boundsOf(region)) && (
+                  <span className="text-xs text-danger-text">
+                    Điểm nằm ngoài {region ? 'vùng' : 'màn hình'} ({boundsOf(region).w} × {boundsOf(region).h}) – chuột không tới được, chạy sẽ báo lỗi.
+                    Muốn cuộn xa hơn thì tăng số nấc / quãng cuộn.
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className={`col-span-2 ${hint}`}>Cuộn ở chỗ chuột đang đứng – thường sau một bước click vào trang / danh sách cần cuộn.</span>
+            )}
+            <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+              <span>Cuộn tới đâu</span>
+              <ScrollMap bounds={boundsOf(region)} label={region ? 'Vùng' : 'Màn hình'} direction={s.direction ?? 'down'} amount={s.amount ?? 0}
+                at={endpoints(script.steps, region).get(s.id)?.start ?? null} />
+            </div>
+          </>
+        )}
+
+        {s.type === 'open' && (
+          <>
+            <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+              <span className="flex items-center justify-between">URL, đường dẫn hoặc tên app
+                <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
+              </span>
+              <VarTextInput value={s.target ?? ''} onChange={(target) => set({ target })} inputs={script.inputs ?? []} rows={2}
+                placeholder="youtube.com/results?search_query={{bai_hat}}" onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
+              <span className={hint}>
+                Vd <span className="font-mono">youtube.com/…</span> (tự thêm https://), <span className="font-mono">Spotify</span>, đường dẫn file / app.
+                Biến trong URL tự mã hoá (dấu cách, tiếng Việt).
+              </span>
+            </div>
+            <Field label="Mở bằng" wide>
+              <select value={s.app ?? ''} onChange={(e) => set({ app: e.target.value })} className={selectBox}>
+                <option value="">Mặc định của máy</option>
+                {[...BROWSERS, ...(s.app && !BROWSERS.includes(s.app) ? [s.app] : [])].map((b) => <option key={b}>{b}</option>)}
+              </select>
+              <span className={hint}>Không chờ trang tải xong – đặt “Chờ sau bước” đủ lâu (mặc định 2 s).</span>
+            </Field>
+          </>
+        )}
 
         {s.type === 'type' && (
           <div className="col-span-2 flex flex-col gap-1.5 text-muted">
@@ -359,7 +434,7 @@ function Field({ label, children, wide = false, group = false }: {
 
 // Ô số ghim được (bước 21b): đã ghim → viền nét đứt + chip key cạnh nhãn, sửa số = sửa mặc định của input
 // (mọi trường ghim cùng input đổi theo).
-function NumField({ label, step: s, field, unit, prefix, min }: {
+function NumField({ label, step: s, field, unit, prefix, min = 0 }: {
   label: string; step: Step; field: Exclude<PinField, 'enabled'>; unit?: string; prefix?: string; min?: number;
 }) {
   const script = useScript();
@@ -369,7 +444,7 @@ function NumField({ label, step: s, field, unit, prefix, min }: {
     <div className="flex flex-col gap-1.5 text-muted">
       <span className="flex min-w-0 items-center gap-1.5"><span className="truncate">{label}</span>{inp && <KeyChip k={inp.key} />}</span>
       <span className="flex gap-1.5">
-        <NumInput value={s[field]} min={min} unit={unit} prefix={prefix} pinned={!!inp} className="min-w-0 flex-1"
+        <NumInput value={s[field] ?? min} min={min} unit={unit} prefix={prefix} pinned={!!inp} className="min-w-0 flex-1"
           onChange={(v) => (inp ? setPinnedValue(s.id, field, v) : updateStep(s.id, { [field]: v }))} />
         <PinMenu pinnedKey={inp?.key} options={others} onPinNew={() => pinField(s.id, field)}
           onPinTo={(key) => pinToInput(s.id, field, key)} onUnpin={() => unpinField(s.id, field)} />

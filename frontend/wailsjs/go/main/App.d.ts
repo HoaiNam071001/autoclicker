@@ -48,6 +48,8 @@ export function SetTheme(arg1:string):Promise<void>;
 
 export function SetWindowMode(arg1:string):Promise<void>;
 
+export function StepTypes():Promise<Array<main.StepTypeDoc>>;
+
 export function StopScript():Promise<void>;
 
 export function ValidateScript(arg1:main.Script,arg2:Record<string, any>):Promise<void>;

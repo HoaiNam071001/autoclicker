@@ -110,3 +110,12 @@ it('parseValue', () => {
   expect(parseValue('bool', 'true')).toBe(true);
   expect(parseValue('text', 5)).toBe('5');
 });
+
+it('biến trong URL của bước Mở: tính là dùng, đổi key đổi theo', () => {
+  store.script.steps.push(makeStep({ id: 'o', type: 'open', target: 'youtube.com/results?search_query={{bai_hat}}' }));
+  addInput({ key: 'M1' });
+  addInput({ key: 'bai_hat' });
+  expect(inputUsage(store.script).get('bai_hat')?.map((s) => s.id)).toEqual(['o']);
+  updateInput('bai_hat', { key: 'song' });
+  expect(store.script.steps[3].target).toBe('youtube.com/results?search_query={{song}}');
+});

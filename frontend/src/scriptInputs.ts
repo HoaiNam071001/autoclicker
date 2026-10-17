@@ -14,6 +14,7 @@ const PIN: Record<PinField, { key: string; label: string; type: InputType; min?:
   delayAfter: { key: 'delay', label: 'Chờ sau bước', type: 'ms' },
   jitterMs: { key: 'jitter_ms', label: 'Ngẫu nhiên thời gian', type: 'ms' },
   jitterPx: { key: 'jitter_px', label: 'Ngẫu nhiên vị trí', type: 'number' },
+  amount: { key: 'scroll', label: 'Số nấc cuộn', type: 'number', min: 1 },
   enabled: { key: 'enabled', label: 'Bật bước', type: 'bool' },
 };
 
@@ -22,6 +23,11 @@ export const kindOf = (t: InputType) => (t === 'number' || t === 'ms' ? 'int' : 
 export const fieldKind = (f: PinField) => (f === 'enabled' ? 'bool' : 'int');
 
 const inputsOf = (sc: Script) => sc.inputs ?? [];
+
+// Ô chữ nhận {{biến}} của bước (khớp resolveInputs trong inputs.go): gõ chữ → text, mở → target.
+export const varText = (s: Step) => (s.type === 'type' ? s.text : s.type === 'open' ? s.target ?? '' : '');
+const withVarText = (s: Step, text: string): Step =>
+  s.type === 'type' ? { ...s, text } : s.type === 'open' ? { ...s, target: text } : s;
 const setInputs = (inputs: ScriptInput[]) => updateScript({ inputs: inputs.length ? inputs : undefined });
 const stepNo = (sc: Script, id: string) => String(sc.steps.findIndex((s) => s.id === id) + 1).padStart(2, '0');
 
@@ -45,7 +51,7 @@ export function inputUsage(sc: Script): Map<string, Step[]> {
   sc.steps.forEach((s) => {
     const keys = new Set<string>();
     inputsOf(sc).forEach((i) => i.targets?.some((t) => t.stepId === s.id) && keys.add(i.key));
-    if (s.type === 'type') varsIn(s.text).forEach((k) => keys.add(k));
+    varsIn(varText(s)).forEach((k) => keys.add(k));
     keys.forEach((k) => out.get(k)?.push(s));
   });
   return out;
@@ -126,7 +132,7 @@ export function unpinField(id: string, field: PinField) {
   const inputs = inputsOf(sc).flatMap((i) => {
     const targets = i.targets?.filter((t) => !(t.stepId === id && t.field === field));
     if (targets?.length === i.targets?.length) return [i];
-    const stillUsed = targets?.length || usage.get(i.key)?.some((s) => s.type === 'type' && varsIn(s.text).includes(i.key));
+    const stillUsed = targets?.length || usage.get(i.key)?.some((s) => varsIn(varText(s)).includes(i.key));
     return stillUsed ? [{ ...i, targets }] : [];
   });
   setInputs(inputs);
@@ -165,7 +171,7 @@ export function updateInput(key: string, patch: Partial<ScriptInput>): string | 
   }
   if ('default' in patch) next.default = parseValue(next.type, patch.default);
   let steps = withTargets(sc.steps, next, next.default);
-  if (next.key !== key) steps = steps.map((s) => (s.type === 'type' ? { ...s, text: renameVar(s.text, key, next.key) } : s));
+  if (next.key !== key) steps = steps.map((s) => (varText(s) ? withVarText(s, renameVar(varText(s), key, next.key)) : s));
   updateScript({ steps, inputs: inputsOf(sc).map((i) => (i.key === key ? next : i)) });
   return null;
 }

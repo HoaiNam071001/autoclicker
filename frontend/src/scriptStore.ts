@@ -174,7 +174,7 @@ export function updateStep(id: string, patch: Partial<Step>) {
 export function changeStepType(id: string, type: StepType) {
   const s = state.script.steps.find((x) => x.id === id);
   if (!s || s.type === type) return;
-  const points = s.points.map((p) => ({ ...p }));
+  const points = s.points.slice(0, type === 'scroll' ? 1 : undefined).map((p) => ({ ...p })); // cuộn: điểm tuỳ chọn, tối đa 1
   const need = type === 'drag' ? 2 : type === 'click' || type === 'double' || type === 'hold' ? 1 : 0;
   if (need >= 1 && points.length === 0) points.push({ x: 0, y: 0 });
   if (need === 2 && points.length === 1) {
@@ -188,6 +188,9 @@ export function changeStepType(id: string, type: StepType) {
     holdMs: type === 'hold' && !s.holdMs ? 1000 : s.holdMs,
     dragMs: type === 'drag' && !s.dragMs ? 400 : s.dragMs,
     keys: type === 'key' && s.keys.length === 0 ? ['enter'] : s.keys,
+    direction: type === 'scroll' ? s.direction ?? 'down' : s.direction,
+    amount: type === 'scroll' && !s.amount ? 3 : s.amount,
+    target: type === 'open' && !s.target ? 'https://' : s.target,
   });
 }
 
@@ -209,12 +212,15 @@ function insertStep(step: Step, notice: (n: number) => string) {
   set({ selected: step.id, notice: notice(i + 1) });
 }
 
-// Thêm bước không cần chọn điểm (chờ, gõ chữ, phím tắt) ngay sau bước đang chọn – giá trị mặc định giống NewStep (model.go).
-export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key'>) {
+// Thêm bước không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở) ngay sau bước đang chọn
+// – giá trị mặc định giống NewStep (model.go).
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open'>) {
   const defaults: Record<typeof type, Partial<Step>> = {
     wait: { clicks: 0, delayAfter: 1000 },
     type: { clicks: 0, delayAfter: 500 },
     key: { clicks: 0, keys: ['enter'], delayAfter: 500 },
+    scroll: { clicks: 0, direction: 'down', amount: 3, delayAfter: 500 },
+    open: { clicks: 0, target: 'https://', delayAfter: 2000 },
   };
   insertAfter = state.selected || null;
   insertStep(makeStep({ id: newId(), type, ...defaults[type] }), (n) => `Đã thêm bước ${n}`);
@@ -227,6 +233,12 @@ export function addPointStep(type: PointType | 'drag') {
   if (type === 'drag') return openOverlay('drag');
   pointType = type;
   return openOverlay('point');
+}
+
+// Cuộn tại điểm (on) hay tại chỗ chuột đang đứng: bật thì đặt điểm giữa vùng / màn hình, chọn lại bằng ⌖ hoặc overlay.
+export function setScrollAt(id: string, on: boolean) {
+  const b = boundsOf(state.script.region);
+  updateStep(id, { points: on ? [nearestAnchor({ x: b.x + Math.round(b.w / 2), y: b.y + Math.round(b.h / 2) }, b)] : [] });
 }
 
 // Đổi vùng; điểm lưu theo neo nên mỗi điểm bám theo cạnh / góc nó neo. null = toàn màn hình.
@@ -393,7 +405,7 @@ export function endpoints(steps: Step[], region: Rect | null): Map<string, Ends>
   let lastStep: number | null = null;
   steps.forEach((s, i) => {
     if (!s.enabled || !s.points.length) return;
-    if (s.type === 'click' || s.type === 'double' || s.type === 'hold') {
+    if (s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'scroll') {
       const p = toScreen(s.points[0], region);
       out.set(s.id, { start: p, end: p, prevStep: null });
       last = p;
@@ -447,7 +459,7 @@ export const setMulti = (multi: string[]) => set({ multi });
 
 // Điểm chọn được của một bước: A "từ điểm trước" tự tính nên không chọn / biến đổi.
 export const selectableIndexes = (s: Step) =>
-  s.points.length === 0 || s.type === 'wait' || s.type === 'type' || s.type === 'key' ? []
+  s.points.length === 0 || s.type === 'wait' || s.type === 'type' || s.type === 'key' || s.type === 'open' ? []
     : s.type === 'drag' ? (s.dragFromPrev ? [1] : [0, 1]) : [0];
 
 // Danh sách bước: Cmd/Shift+click thêm / bỏ mọi điểm của bước vào chọn nhiều.

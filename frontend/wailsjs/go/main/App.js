@@ -94,6 +94,10 @@ export function SetWindowMode(arg1) {
   return window['go']['main']['App']['SetWindowMode'](arg1);
 }
 
+export function StepTypes() {
+  return window['go']['main']['App']['StepTypes']();
+}
+
 export function StopScript() {
   return window['go']['main']['App']['StopScript']();
 }

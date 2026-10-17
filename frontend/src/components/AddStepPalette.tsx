@@ -14,7 +14,7 @@ const GROUPS: { name: string; items: Item[] }[] = [
       { icon: 'double', label: 'Double click', keywords: 'nhay dup hai lan', run: () => addPointStep('double') },
       { icon: 'hold', label: 'Giữ chuột', keywords: 'hold nhan giu', run: () => addPointStep('hold') },
       { icon: 'drag', label: 'Kéo thả', keywords: 'drag keo tha a b', run: () => addPointStep('drag') },
-      { icon: 'scroll', label: 'Cuộn', keywords: 'scroll lan chuot', soon: 'bước 23' },
+      { icon: 'scroll', label: 'Cuộn', keywords: 'scroll lan chuot', run: () => addStep('scroll') },
       { icon: 'clickImage', label: 'Click theo ảnh', keywords: 'image anh mau tim', soon: 'bước 25' },
     ],
   },
@@ -33,7 +33,7 @@ const GROUPS: { name: string; items: Item[] }[] = [
   },
   {
     name: 'Ứng dụng & cấu trúc', items: [
-      { icon: 'open', label: 'Mở URL / app', keywords: 'url web link trinh duyet ung dung open', soon: 'bước 23' },
+      { icon: 'open', label: 'Mở URL / app', keywords: 'url web link trinh duyet ung dung open youtube', run: () => addStep('open') },
       { icon: 'focusWindow', label: 'Focus cửa sổ', keywords: 'window cua so ung dung', soon: 'bước 26' },
       { icon: 'group', label: 'Nhóm bước', keywords: 'group lap lai repeat', soon: 'bước 20' },
     ],

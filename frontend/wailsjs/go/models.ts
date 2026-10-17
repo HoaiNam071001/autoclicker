@@ -99,6 +99,10 @@ export namespace main {
 	    jitterMs: number;
 	    jitterPx: number;
 	    enabled: boolean;
+	    direction?: string;
+	    amount?: number;
+	    target?: string;
+	    app?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Step(source);
@@ -124,6 +128,10 @@ export namespace main {
 	        this.jitterMs = source["jitterMs"];
 	        this.jitterPx = source["jitterPx"];
 	        this.enabled = source["enabled"];
+	        this.direction = source["direction"];
+	        this.amount = source["amount"];
+	        this.target = source["target"];
+	        this.app = source["app"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -342,6 +350,29 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.theme = source["theme"];
 	        this.recent = source["recent"];
+	    }
+	}
+	
+	export class StepTypeDoc {
+	    type: string;
+	    label: string;
+	    desc: string;
+	    fields: string[];
+	    pinnable: string[];
+	    example: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new StepTypeDoc(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.label = source["label"];
+	        this.desc = source["desc"];
+	        this.fields = source["fields"];
+	        this.pinnable = source["pinnable"];
+	        this.example = source["example"];
 	    }
 	}
 

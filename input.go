@@ -16,6 +16,7 @@ type Input interface {
 	// KeyToggle nhấn (down) hoặc thả một phím. modifiers: cờ phím kèm gửi cùng sự kiện nhấn
 	// (macOS cần cờ này mới hiểu là tổ hợp); phím kèm được nhấn / thả riêng bằng chính KeyToggle.
 	KeyToggle(key string, down bool, modifiers []string) error
+	Scroll(direction string) error // cuộn một nấc: up | down | left | right
 }
 
 // robotgoInput – Input thật qua robotgo.
@@ -37,6 +38,17 @@ func (robotgoInput) Toggle(button string, down bool) error {
 func (robotgoInput) Click(button string, double bool) error { return robotgo.Click(button, double) }
 
 func (robotgoInput) TypeStr(s string) error { return robotgo.TypeStr(s) }
+
+// scrollNotchPx – quãng một nấc cuộn trên macOS. robotgo gửi sự kiện cuộn macOS theo pixel (Windows theo nấc con lăn,
+// Chrome / Edge ≈ 100 px một nấc) – gửi 100 px để một nấc hai bên gần bằng nhau. Khớp SCROLL_NOTCH_PX (types.ts).
+const scrollNotchPx = 100
+
+func (robotgoInput) Scroll(direction string) error {
+	if goruntime.GOOS == "darwin" {
+		return robotgo.ScrollDir(scrollNotchPx, direction)
+	}
+	return robotgo.ScrollDir(1, direction)
+}
 
 func (robotgoInput) KeyToggle(key string, down bool, modifiers []string) error {
 	if !down {
