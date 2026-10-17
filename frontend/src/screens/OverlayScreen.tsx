@@ -1,10 +1,13 @@
 // Overlay chọn vùng / điểm – cửa sổ trong suốt phủ màn hình, always-on-top
-import { MouseEvent, ReactNode, useEffect, useRef, useState } from 'react';
+import { MouseEvent, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { MousePos } from '../../wailsjs/go/main/App';
 import {
-  boundsOf, cancelDragA, cancelPick, endpoints, movePoint, pickingStep, placePoint, placingType, selectStep, setDragMode, setFocusLock,
-  setRegion, startPick, useEditor,
+  boundsOf, cancelDragA, cancelPick, endpoints, getEditor, hasPoints, movePoint, pickingStep, placePoint, placingType, pointKey,
+  regionMapping, RegionMapMode, selectableIndexes, selectStep, setDragMode, setFocusLock, setMulti, setRegion, setRegionMapped, startPick,
+  transformedSteps, transformSelected, useEditor,
 } from '../scriptStore';
+import { frameRect, MapDialog, modKeyName, paramsPreview, TransformBar, TransformFrame, useTransformGesture } from '../components/TransformTool';
+import { bbox, NO_TF, TfParams, translate } from '../transform';
 import { Point, Rect, STEP_LABEL, StepPoint } from '../types';
 import { fmtAxis } from '../anchor';
 import { inWails, OverlayTool, overlayFocus, overlayTool, setWindowMode } from '../windowMode';
@@ -17,6 +20,12 @@ const SPEEDS = [1, 2, 4];
 const CALIBRATE_MS = 150; // chuột đứng yên bao lâu thì lấy mẫu đo toạ độ (coordMap.ts)
 const MIN_REGION = 10; // px – kéo nhỏ hơn coi như click nhầm
 const MIN_MOVE = 3; // px – kéo marker ít hơn coi như click (chọn bước)
+const TOP_EDGE = 12; // px – chuột sát mép trên thì hiện thanh công cụ
+const BAR_HIDE_MS = 350; // rời thanh / gợi ý bao lâu thì ẩn
+const BAR_INTRO_MS = 2500; // mở overlay: hiện thanh một lúc cho dễ thấy
+const NOTICE_MS = 3500; // thông báo trong gợi ý tự tắt
+
+const isMac = navigator.platform.startsWith('Mac');
 
 // Marker đang được kéo: bước, điểm thứ mấy, vị trí bấm xuống (toạ độ cửa sổ), đã kéo đủ xa chưa.
 type Moving = { id: string; index: number; from: Point; moved: boolean };
@@ -25,7 +34,7 @@ const TOOLS: { id: OverlayTool; label: string; soon?: string; icon: ReactNode }[
   { id: 'point', label: 'Đặt điểm', icon: <StepIcon type="click" /> },
   { id: 'drag', label: 'Kéo thả A → B', icon: <StepIcon type="drag" /> },
   { id: 'region', label: 'Chọn vùng', icon: <Region /> },
-  { id: 'select', label: 'Chọn nhiều', soon: '30', icon: <SelectIcon /> },
+  { id: 'select', label: 'Chọn nhiều', icon: <SelectIcon /> },
   { id: 'capture', label: 'Khoanh ảnh', soon: '25', icon: <StepIcon type="waitImage" /> },
 ];
 const toolBtn = 'flex h-11 items-center gap-2 rounded-[7px] px-3.5 font-semibold';
@@ -34,8 +43,22 @@ const rectOf = (a: Point, b: Point): Rect => ({
   x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y),
 });
 
+// Điểm chọn được (khoá chọn nhiều → toạ độ màn hình) từ endpoints(): A "từ điểm trước" không chọn được.
+function markersOf(ends: ReturnType<typeof endpoints>): [string, Point][] {
+  const out: [string, Point][] = [];
+  getEditor().script.steps.forEach((s) => {
+    const e = ends.get(s.id);
+    if (!e) return;
+    selectableIndexes(s).forEach((j) => {
+      const p = s.type === 'drag' && j === 1 ? e.end : e.start;
+      if (p) out.push([pointKey(s.id, j), p]);
+    });
+  });
+  return out;
+}
+
 export default function OverlayScreen() {
-  const { script: { region, steps }, selected, notice, dragA } = useEditor();
+  const { script: { region, steps }, selected, notice, dragA, multi } = useEditor();
   const [picking] = useState(pickingStep); // id bước đang chọn lại điểm (nút ⌖), null = thêm bước mới
   const [tool, setTool] = useState<OverlayTool>(overlayTool);
   const [cursor, setCursor] = useState<Point>({ x: -100, y: -100 });
@@ -67,15 +90,56 @@ export default function OverlayScreen() {
     setRepickingState(on);
   };
   const [alt, setAlt] = useState(false); // giữ Alt: hiện đường neo của mọi điểm
+  // Chọn nhiều (bước 30): ô nhập số đang xem trước; vùng mới đang chờ chọn cách xử lý điểm (undefined = không chờ).
+  const [tf, setTf] = useState<TfParams>(NO_TF);
+  const [pending, setPendingState] = useState<{ to: Rect | null } | null>(null);
+  const pendingRef = useRef(pending);
+  const setPending = (p: { to: Rect | null } | null) => {
+    pendingRef.current = p;
+    setPendingState(p);
+  };
+  const [mapMode, setMapMode] = useState<RegionMapMode>('anchor');
+  const toolRef = useRef(tool);
+  toolRef.current = tool;
+  // Thanh công cụ tự ẩn: mở khi chuột sát mép trên / rê vào gợi ý, đóng khi rời. Lúc mở overlay hiện một lúc.
+  const [barOpen, setBarOpen] = useState(true);
+  const barTimer = useRef<number | undefined>(undefined);
+  const openBar = () => {
+    clearTimeout(barTimer.current);
+    setBarOpen(true);
+  };
+  const leaveBar = () => {
+    clearTimeout(barTimer.current);
+    barTimer.current = window.setTimeout(() => setBarOpen(false), BAR_HIDE_MS);
+  };
+  useEffect(() => {
+    barTimer.current = window.setTimeout(() => setBarOpen(false), BAR_INTRO_MS);
+    return () => clearTimeout(barTimer.current);
+  }, []);
+  // Thông báo (đã đặt điểm…) hiện trong gợi ý vài giây rồi tắt.
+  const [noticeOn, setNoticeOn] = useState(false);
+  useEffect(() => {
+    if (!notice) return;
+    setNoticeOn(true);
+    const t = window.setTimeout(() => setNoticeOn(false), NOTICE_MS);
+    return () => clearTimeout(t);
+  }, [notice]);
   const skipClick = useRef(false); // click sinh ra sau khi thả marker không được tính là đặt điểm
   const cursorRef = useRef(cursor);
   const timer = useRef<number | undefined>(undefined);
 
+  const toScreenFromClient = useCallback((p: Point): Point => toScreenPt(map, p), [map]);
+  const gesture = useTransformGesture(toScreenFromClient);
+  const gestureRef = useRef(gesture);
+  gestureRef.current = gesture;
+
   useEffect(() => {
     resetSamples(); // overlay có thể đang mở trên màn khác lần trước
     const onKey = (e: KeyboardEvent) => {
+      if (toolRef.current === 'select' && selectKeys(e)) return;
       if (e.key !== 'Escape') return;
       // Đang kéo vùng / marker thì Esc chỉ huỷ thao tác đó.
+      if (gestureRef.current.cancel()) return;
       if (simRef.current.running) simRef.current.stop(); // xem trước đang chạy → Esc chỉ dừng
       else if (movingRef.current) setMoving(null);
       else if (dragRef.current) setDragFrom(null);
@@ -83,7 +147,8 @@ export default function OverlayScreen() {
       else if (repickRef.current) {
         cancelPick();
         setRepicking(false);
-      } else setWindowMode('main');
+      } else if (toolRef.current === 'select' && getEditor().multi.length) setMulti([]); // Esc bỏ chọn trước
+      else setWindowMode('main');
     };
     const onAlt = (e: KeyboardEvent) => setAlt(e.altKey);
     window.addEventListener('keydown', onKey);
@@ -101,6 +166,7 @@ export default function OverlayScreen() {
   }, []);
 
   useEffect(() => setDragMode(tool === 'drag'), [tool]);
+  useEffect(() => setTf(NO_TF), [multi.join(), tool]); // đổi lựa chọn → bỏ số đang nhập dở trên thanh biến đổi
   // Chọn lại xong bằng F6 (không qua onClick) → tắt trạng thái "đang chọn lại".
   useEffect(() => {
     if (repickRef.current && pickingStep() === null) setRepicking(false);
@@ -112,12 +178,12 @@ export default function OverlayScreen() {
   }, [focus]);
 
   const toClient = (p: Point): Point => toClientPt(map, p);
-  const toScreenFromClient = (p: Point): Point => toScreenPt(map, p);
   const onUI = (e: MouseEvent) => !!(e.target as HTMLElement).closest('[data-ui]');
 
   const onMove = (e: MouseEvent) => {
     const c = { x: e.clientX, y: e.clientY };
     setCursor(c);
+    if (e.buttons === 0 && c.y <= TOP_EDGE) openBar();
     cursorRef.current = c;
     const m = movingRef.current;
     if (m && !m.moved && Math.hypot(c.x - m.from.x, c.y - m.from.y) >= MIN_MOVE) setMoving({ ...m, moved: true });
@@ -134,7 +200,7 @@ export default function OverlayScreen() {
 
   const onDown = (e: MouseEvent) => {
     skipClick.current = false; // bấm ngoài marker (marker chặn sự kiện này)
-    if (onUI(e) || e.button !== 0 || tool !== 'region' || focus) return;
+    if (onUI(e) || e.button !== 0 || (tool !== 'region' && tool !== 'select') || focus) return; // kéo vùng / khung chọn
     setDragFrom({ x: e.clientX, y: e.clientY });
   };
 
@@ -142,6 +208,16 @@ export default function OverlayScreen() {
     if (e.button !== 0) return;
     e.stopPropagation(); // không bắt đầu kéo vùng
     skipClick.current = true;
+    if (tool === 'select') {
+      // Shift / ⌘ / Ctrl + click: thêm / bỏ; click điểm chưa chọn: chỉ chọn điểm đó; kéo = di chuyển cả nhóm.
+      const key = pointKey(id, index);
+      const has = multi.includes(key);
+      if (e.shiftKey || e.metaKey || e.ctrlKey) return setMulti(has ? multi.filter((k) => k !== key) : [...multi, key]);
+      const sel = has ? multi : [key];
+      if (!has) setMulti(sel);
+      selectStep(id);
+      return gesture.begin(e, 'move', bbox(markers.filter((m) => sel.includes(m.key)).map((m) => m.scr)));
+    }
     setMoving({ id, index, from: { x: e.clientX, y: e.clientY }, moved: false });
   };
 
@@ -152,7 +228,7 @@ export default function OverlayScreen() {
       return;
     }
     if (onUI(e) || preview) return;
-    if (focus ? !repickRef.current : tool === 'region') return; // xem riêng: chỉ đặt điểm khi đang chọn lại
+    if (focus ? !repickRef.current : tool === 'region' || tool === 'select') return; // xem riêng: chỉ đặt điểm khi đang chọn lại
     const screen = inWails ? await MousePos() : toScreenFromClient({ x: e.clientX, y: e.clientY });
     placePoint(screen);
     if (focus) setRepicking(pickingStep() !== null); // kéo thả: còn chờ B thì vẫn đang chọn
@@ -170,27 +246,67 @@ export default function OverlayScreen() {
     if (!dragFrom) return;
     const r = rectOf(dragFrom, { x: e.clientX, y: e.clientY });
     setDragFrom(null);
+    if (tool === 'select') { // khung chọn: chọn các marker nằm trong; Shift / ⌘ cộng thêm; click chỗ trống = bỏ chọn
+      const add = e.shiftKey || e.metaKey || e.ctrlKey;
+      if (r.w < MIN_REGION && r.h < MIN_REGION) return add || setMulti([]);
+      const inside = markers.filter((m) => m.at.x >= r.x && m.at.x <= r.x + r.w && m.at.y >= r.y && m.at.y <= r.y + r.h).map((m) => m.key);
+      return setMulti(add ? [...new Set([...multi, ...inside])] : inside);
+    }
     if (r.w < MIN_REGION || r.h < MIN_REGION) return;
     const tl = toScreenFromClient(r);
-    setRegion({ ...tl, w: Math.round(r.w * map.kx), h: Math.round(r.h * map.ky) });
+    requestRegion({ ...tl, w: Math.round(r.w * map.kx), h: Math.round(r.h * map.ky) });
   };
 
-  // Vùng hiển thị: đang kéo → vùng tạm; đã chọn → đổi sang toạ độ cửa sổ; null = toàn màn hình (không vẽ).
-  const shown = dragFrom ? rectOf(dragFrom, cursor)
-    : region && { ...toClient(region), w: region.w / map.kx, h: region.h / map.ky };
+  // Đổi vùng khi đã có điểm: hỏi cách xử lý các điểm (giữ neo / co giãn / giữ chỗ), xem trước trên overlay.
+  const requestRegion = (to: Rect | null) => {
+    if (!hasPoints()) return setRegion(to);
+    setMapMode('anchor');
+    setPending({ to });
+  };
+
+  // Phím của công cụ Chọn nhiều: ⌘/Ctrl+A chọn tất cả, mũi tên dời 1 px (Shift 10 px). Trả true nếu đã xử lý.
+  function selectKeys(e: KeyboardEvent) {
+    if ((e.target as HTMLElement).closest('input') || pendingRef.current) return false;
+    const { script, multi: sel } = getEditor();
+    if (e.key.toLowerCase() === 'a' && (isMac ? e.metaKey : e.ctrlKey)) {
+      e.preventDefault();
+      setMulti(script.steps.filter((s) => s.enabled).flatMap((s) => selectableIndexes(s).map((j) => pointKey(s.id, j))));
+      return true;
+    }
+    const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (!d || !sel.length) return false;
+    e.preventDefault();
+    const k = e.shiftKey ? 10 : 1;
+    transformSelected(translate(d[0] * k, d[1] * k), 'di chuyển');
+    return true;
+  }
+
+  // Vùng hiển thị: đang kéo → vùng tạm; chờ chọn cách đổi vùng → vùng mới; đã chọn → đổi sang toạ độ cửa sổ;
+  // null = toàn màn hình (không vẽ). Khung chọn nhiều (tool select) không phải vùng.
+  const shownRegion = pending ? pending.to : region;
+  const regionDrag = dragFrom && tool === 'region' ? dragFrom : null;
+  const shown = regionDrag ? rectOf(regionDrag, cursor)
+    : shownRegion && { ...toClient(shownRegion), w: shownRegion.w / map.kx, h: shownRegion.h / map.ky };
   // Nhãn kích thước vùng theo toạ độ thật (robotgo), không phải px trong cửa sổ.
-  const shownSize = dragFrom && shown ? { w: Math.round(shown.w * map.kx), h: Math.round(shown.h * map.ky) } : region;
+  const shownSize = regionDrag && shown ? { w: Math.round(shown.w * map.kx), h: Math.round(shown.h * map.ky) } : shownRegion;
 
   // Marker của các bước đang bật, đánh số giống danh sách bước; kéo thả có A và B.
   // Marker đang kéo vẽ theo con trỏ; đường nối cũng đi theo.
   // ghost: điểm A của bước kéo "từ điểm trước" – trùng marker bước trước nên không vẽ, chỉ dùng cho đường nối.
   // pt: điểm đã lưu (có neo) – không có với A "từ điểm trước" và B "lệch so với A".
-  const markers: { id: string; index: number; label: string; at: Point; drag: boolean; jitter: number; ghost: boolean; pt?: StepPoint }[] = [];
+  // key: khoá chọn nhiều; scr: toạ độ màn hình (đang xem trước nếu đang biến đổi).
+  const markers: { id: string; index: number; key: string; label: string; at: Point; scr: Point; drag: boolean; jitter: number; ghost: boolean; pt?: StepPoint }[] = [];
   // Đang kéo vùng mới: marker tính theo vùng tạm để thấy ngay điểm bám theo góc nó neo.
-  const liveRegion = dragFrom && shown && shown.w >= MIN_REGION && shown.h >= MIN_REGION
-    ? { ...toScreenFromClient(shown), w: Math.round(shown.w * map.kx), h: Math.round(shown.h * map.ky) } : region;
-  const ends = endpoints(steps, liveRegion);
-  steps.forEach((s, i) => {
+  const liveRegion = regionDrag && shown && shown.w >= MIN_REGION && shown.h >= MIN_REGION
+    ? { ...toScreenFromClient(shown), w: Math.round(shown.w * map.kx), h: Math.round(shown.h * map.ky) } : shownRegion;
+  // Xem trước bằng đúng logic ghi thật: chờ đổi vùng → điểm theo cách đang chọn; đang kéo khung / nhập số → điểm sau biến đổi.
+  const committed = endpoints(steps, region);
+  const selScreen = new Map(markersOf(committed).filter(([k]) => multi.includes(k)));
+  const liveMat = tool === 'select' && !pending ? gesture.live ?? paramsPreview(tf, [...selScreen.values()]) : null;
+  const view = pending ? regionMapping(pending.to, mapMode) : liveMat ? transformedSteps(liveMat) : { steps, outside: 0 };
+  const viewSteps = view.steps;
+  const ends = endpoints(viewSteps, liveRegion);
+  viewSteps.forEach((s, i) => {
     const e = ends.get(s.id);
     if (!e) return;
     const pts = s.type === 'drag' ? [e.start, e.end] : [e.start];
@@ -199,12 +315,14 @@ export default function OverlayScreen() {
       const label = s.type === 'drag' ? `${i + 1}${j === 0 ? 'A' : 'B'}` : `${i + 1}`;
       const dragging = moving?.moved && moving.id === s.id && moving.index === j;
       markers.push({
-        id: s.id, index: j, label, at: dragging ? cursor : toClient(p), drag: s.type === 'drag',
+        id: s.id, index: j, key: pointKey(s.id, j), label, at: dragging ? cursor : toClient(p), scr: p, drag: s.type === 'drag',
         jitter: s.jitterPx, ghost: s.type === 'drag' && j === 0 && s.dragFromPrev,
         pt: s.type === 'drag' && (j === 0 ? s.dragFromPrev : s.dragRelative) ? undefined : s.points[j],
       });
     });
   });
+  const selPoints = markers.filter((m) => multi.includes(m.key)).map((m) => m.scr);
+  const selBox = selPoints.length ? bbox(selPoints) : null;
   // Đường neo (bước 29): từ marker tới cạnh / giữa đang neo – bước đang chọn / xem riêng, giữ Alt thì mọi điểm.
   const b = boundsOf(liveRegion);
   const bc = { ...toClient(b), w: b.w / map.kx, h: b.h / map.ky };
@@ -227,18 +345,25 @@ export default function OverlayScreen() {
       ? focusStep.type === 'drag' && !focusStep.dragFromPrev
         ? (dragA ? 'Click điểm B (nơi thả)' : 'Click điểm A (nơi bắt đầu kéo)')
         : 'Click (hoặc fn+F6) để đặt lại điểm'
-      : `Đang xem riêng bước ${focusIdx} – kéo marker để sửa vị trí, Esc / Xong để quay lại`
-    : preview ? 'Xem trước 1 vòng – con trỏ giả, không điều khiển chuột thật'
-    : tool === 'region' ? 'Kéo chuột để chọn vùng – toạ độ các điểm tính theo vùng'
+      : 'Kéo marker để sửa · Esc quay lại'
+    : preview ? 'Con trỏ giả, không click thật'
+    : tool === 'region' ? 'Kéo để khoanh vùng'
+    : tool === 'select'
+      ? multi.length
+        ? `${multi.length} điểm · kéo khung / núm để biến đổi · ${modKeyName}+núm: xiên, phối cảnh`
+        : `Click, Shift+click hoặc kéo khung để chọn · ${modKeyName}A tất cả`
     : tool === 'drag'
-      ? (dragA ? 'Click điểm B (nơi thả) · Esc huỷ A' : `Click điểm A (nơi bắt đầu kéo)${picking ? ' – chọn lại cho bước đang chọn' : ''}`)
-    : picking ? 'Click để đặt lại điểm cho bước đang chọn'
-    : `Click (hoặc fn+F6) để thêm bước ${STEP_LABEL[placingType()].toLowerCase()} mới · kéo marker để dời điểm`;
+      ? (dragA ? 'Click điểm B · Esc huỷ A' : `Click điểm A${picking ? ' (chọn lại)' : ''}`)
+    : picking ? 'Click để đặt lại điểm'
+    : `Click / F6: thêm ${STEP_LABEL[placingType()].toLowerCase()} · kéo marker để dời`;
+  const toolName = focus && focusStep ? `Bước ${focusIdx}` : preview ? 'Xem trước' : TOOLS.find((t) => t.id === tool)?.label ?? '';
 
   return (
     // HUD luôn tối (design v2): data-theme="dark" cho mọi token bên trong
     <div data-theme="dark" className={`fixed inset-0 select-none text-ink ${focus ? 'bg-[rgb(14_16_22/.65)]' : 'bg-dim'} ${preview ? '' : 'cursor-crosshair'}`}
-      onMouseMove={onMove} onMouseDown={onDown} onMouseUp={onUp} onClick={onClick}>
+      onMouseMove={onMove} onMouseDown={onDown} onMouseUp={onUp} onClick={onClick}
+      // macOS: overlay nằm dưới menu bar – rê nhanh lên trên có thể vượt mép mà không qua vùng TOP_EDGE
+      onMouseLeave={(e) => e.buttons === 0 && e.clientY < TOP_EDGE * 3 && openBar()}>
       {shown && (
         <div className={focus ? 'opacity-30' : ''}>
           <div className="absolute rounded-md border-2 border-dashed border-white bg-white/5"
@@ -287,10 +412,20 @@ export default function OverlayScreen() {
           style={{ left: m.at.x, top: m.at.y, width: (2 * m.jitter + 1) / map.kx, height: (2 * m.jitter + 1) / map.ky }} />
       ))}
 
+      {/* Chọn nhiều: khung biến đổi quanh các điểm đã chọn (theo vị trí đang xem trước) + khung kéo chọn */}
+      {tool === 'select' && !pending && selBox && (
+        <TransformFrame box={selBox} toClient={toClient} bad={view.outside > 0} single={selPoints.length < 2 || (selBox.w < 1 && selBox.h < 1)}
+          begin={(e, kind, _box, fx, fy) => gesture.begin(e, kind, bbox([...selScreen.values()]), fx, fy)} />
+      )}
+      {tool === 'select' && dragFrom && (
+        <div className="pointer-events-none absolute border border-accent bg-accent/10" style={(({ x, y, w, h }) => ({ left: x, top: y, width: w, height: h }))(rectOf(dragFrom, cursor))} />
+      )}
+
       {markers.filter((m) => !m.ghost).map((m) => (
-        <span key={m.label} style={{ left: m.at.x, top: m.at.y }} title="Kéo để dời điểm, click để chọn bước"
+        <span key={m.label} style={{ left: m.at.x, top: m.at.y }}
+          title={tool === 'select' ? 'Click chọn · Shift / ⌘ + click thêm bớt · kéo để di chuyển cả nhóm' : 'Kéo để dời điểm, click để chọn bước'}
           onMouseDown={(e) => onMarkerDown(e, m.id, m.index)}
-          className={`${preview ? 'pointer-events-none opacity-70' : ''} ${focus && m.id !== focus ? 'pointer-events-none opacity-25 grayscale' : ''} ${focus === m.id ? 'z-10 scale-110' : ''} absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white text-[13px] font-bold text-on-accent shadow-[0_2px_8px_rgb(0_0_0/.35)] bg-accent ${moving ? 'cursor-grabbing' : 'cursor-grab'} ${m.id === selected ? 'outline-[3px] outline-offset-2 outline-white outline-dashed' : ''}`}>
+          className={`${tool === 'select' ? (multi.includes(m.key) ? 'z-10 outline-2 outline-offset-2 outline-white' : 'opacity-60') : ''} ${preview ? 'pointer-events-none opacity-70' : ''} ${focus && m.id !== focus ? 'pointer-events-none opacity-25 grayscale' : ''} ${focus === m.id ? 'z-10 scale-110' : ''} absolute grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white text-[13px] font-bold text-on-accent shadow-[0_2px_8px_rgb(0_0_0/.35)] bg-accent ${moving ? 'cursor-grabbing' : 'cursor-grab'} ${m.id === selected ? 'outline-[3px] outline-offset-2 outline-white outline-dashed' : ''}`}>
           {m.label}
         </span>
       ))}
@@ -311,23 +446,25 @@ export default function OverlayScreen() {
         <span className="absolute left-3.5 top-3 whitespace-nowrap rounded bg-hud px-2 py-1 font-mono text-[13px] text-hud-text">X {screenCursor.x}  Y {screenCursor.y}</span>
       </div>
 
-      {/* Banner hướng dẫn giữa phía trên, ngay dưới thanh công cụ */}
-      <div data-ui className="absolute left-1/2 top-[96px] flex max-w-[min(720px,calc(100vw-600px))] -translate-x-1/2 flex-col items-center gap-1 rounded-[10px] border border-hud-line bg-hud px-4 py-2.5 text-center text-[13px] text-hud-text">
-        <span className="flex items-center gap-2.5">
-          <span className="grid h-[22px] w-[22px] flex-none place-items-center rounded-[7px] bg-accent-soft text-accent-text">
-            {preview ? <Eye className="h-[13px] w-[13px]" /> : tool === 'region' && !focus ? <Region className="h-[13px] w-[13px]" />
-              : <StepIcon type={tool === 'drag' || focusStep?.type === 'drag' ? 'drag' : 'click'} className="h-[13px] w-[13px]" />}
-          </span>
-          <span>{hint}</span>
+      {/* Gợi ý gọn một dòng giữa phía trên – cũng là tab mở thanh công cụ (rê vào / đưa chuột sát mép trên) */}
+      <div data-ui onMouseEnter={() => openBar()} onMouseLeave={leaveBar} style={{ top: barOpen ? 76 : 8 }}
+        className="absolute left-1/2 flex h-8 max-w-[min(760px,calc(100vw-48px))] -translate-x-1/2 cursor-default items-center gap-2 whitespace-nowrap rounded-full border border-hud-line bg-hud/95 pr-3.5 pl-1.5 text-[12px] text-hud-text shadow-[0_6px_18px_rgb(0_0_0/.3)] transition-[top] duration-150">
+        <span className="grid h-[22px] w-[22px] flex-none place-items-center rounded-full bg-accent-soft text-accent-text">
+          {preview ? <Eye className="h-3 w-3" /> : tool === 'region' && !focus ? <Region className="h-3 w-3" />
+            : tool === 'select' && !focus ? <SelectIcon className="h-3 w-3" />
+            : <StepIcon type={tool === 'drag' || focusStep?.type === 'drag' ? 'drag' : 'click'} className="h-3 w-3" />}
         </span>
+        <b className="font-semibold text-white">{toolName}</b>
+        <span className="min-w-0 truncate text-hud-text/75">{hint}</span>
         {preview && sim.label && (
-          <span className="font-mono text-[#FF8CC6]">{sim.step && sim.running ? `Bước ${sim.step}/${steps.length} · ` : ''}{sim.label}</span>
+          <span className="truncate font-mono text-[#FF8CC6]">{sim.step && sim.running ? `${sim.step}/${steps.length} · ` : ''}{sim.label}</span>
         )}
-        {notice && <span className="text-ok">{notice}</span>}
+        {notice && noticeOn && <span className="truncate text-ok">· {notice}</span>}
+        {!barOpen && <svg width="10" height="10" viewBox="0 0 10 10" className="flex-none text-hud-text/50" aria-hidden><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>}
       </div>
 
-      {/* Thông tin toạ độ bên trái, ngang banner hướng dẫn */}
-      <div data-ui className="absolute left-6 top-[96px] flex max-w-[260px] flex-col gap-0.5 rounded-lg border border-hud-line bg-hud/95 px-3 py-2 font-mono text-xs text-hud-text">
+      {/* Thông tin toạ độ: góc trên trái, chữ nhỏ */}
+      <div data-ui className="absolute top-2 left-2 flex max-w-[240px] flex-col rounded-md border border-hud-line bg-hud/85 px-2 py-1 font-mono text-[11px] leading-[16px] text-hud-text/80">
         <span>{region ? `Vùng X ${region.x} Y ${region.y} · ${region.w} × ${region.h}` : 'Vùng: toàn màn hình'}</span>
         {focus && focusStep && (focusStep.type === 'drag' ? [['A', focusEnds?.start], ['B', focusEnds?.end]] as const : [['Điểm', focusEnds?.start]] as const).map(([k, p]) => (
           <span key={k}>{k}: {p ? `X ${p.x} Y ${p.y}` : '—'}</span>
@@ -341,8 +478,9 @@ export default function OverlayScreen() {
         )}
       </div>
 
-      {/* Thanh công cụ giữa phía trên (artboard để ở đáy – dời lên vì đáy bị Dock / taskbar che) */}
-      <div data-ui className="absolute left-1/2 top-6 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-xl border border-hud-line bg-hud p-1.5 text-hud-text shadow-[0_12px_32px_rgb(0_0_0/.4)]">
+      {/* Thanh công cụ giữa phía trên (đáy bị Dock / taskbar che) – tự ẩn, hiện khi đưa chuột sát mép trên / rê vào gợi ý */}
+      <div data-ui onMouseEnter={() => openBar()} onMouseLeave={leaveBar}
+        className={`absolute left-1/2 top-2 flex -translate-x-1/2 transition-[translate,opacity] duration-150 ${barOpen ? '' : 'pointer-events-none -translate-y-[calc(100%+16px)] opacity-0'} items-center gap-1 whitespace-nowrap rounded-xl border border-hud-line bg-hud p-1.5 text-hud-text shadow-[0_12px_32px_rgb(0_0_0/.4)]`}>
         {focus && focusStep ? (
           <>
             <span className="flex items-center gap-2 px-2.5 font-semibold">
@@ -371,7 +509,7 @@ export default function OverlayScreen() {
               ))}
             </div>
             <span className="mx-1.5 h-[26px] w-px bg-white/16" />
-            <button onClick={() => { stopSim(); setTool('point'); }} className={`${toolBtn} font-normal hover:bg-white/6`}>Sửa điểm</button>
+            <button onClick={() => { stopSim(); setTool('select'); }} title="Chọn nhiều điểm để di chuyển / co giãn / xoay, rồi Xem trước lại" className={`${toolBtn} font-normal hover:bg-white/6`}>Sửa điểm</button>
           </>
         ) : (
           <>
@@ -382,7 +520,7 @@ export default function OverlayScreen() {
               </button>
             ))}
             {tool === 'region' && region && (
-              <button onClick={() => setRegion(null)} className={`${toolBtn} font-normal hover:bg-white/6`}>Toàn màn hình</button>
+              <button onClick={() => requestRegion(null)} className={`${toolBtn} font-normal hover:bg-white/6`}>Toàn màn hình</button>
             )}
             <span className="mx-1.5 h-[26px] w-px bg-white/16" />
             <span className="flex items-center gap-1.5 px-1.5 text-[13px] text-hud-text/60">
@@ -393,6 +531,14 @@ export default function OverlayScreen() {
         )}
         <button onClick={() => setWindowMode('main')} className={`${toolBtn} btn-primary ml-1 font-bold`}>Xong <span className="font-mono text-[11px] font-normal opacity-70">Esc</span></button>
       </div>
+
+      {tool === 'select' && !pending && selScreen.size > 0 && <TransformBar points={selScreen} tf={tf} setTf={setTf}
+        frame={frameRect(bbox([...selScreen.values()]), toClient)} />}
+      {pending && (
+        <MapDialog from={boundsOf(region)} to={boundsOf(pending.to)} target={pending.to} mode={mapMode} setMode={setMapMode}
+          onApply={() => { setRegionMapped(pending.to, mapMode); setPending(null); }}
+          onCancel={() => setPending(null)} />
+      )}
     </div>
   );
 }

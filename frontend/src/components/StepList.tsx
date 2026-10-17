@@ -9,7 +9,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Copy, Power, Region, StepIcon, Trash } from './icons';
 import {
-  duplicateStep, moveStep, removeStep, selectStep, setRegion, toggleStep, undoDelete, useEditor,
+  duplicateStep, moveStep, removeStep, selectStep, setMulti, setRegion, toggleMultiStep, toggleStep, undoDelete, useEditor,
 } from '../scriptStore';
 import { fmtMs, fmtPos, Step, STEP_LABEL } from '../types';
 import { openOverlay } from '../windowMode';
@@ -20,7 +20,8 @@ import { CardBody, cardClass, tileClass } from './StepCard';
 const isMac = navigator.platform.startsWith('Mac');
 
 export default function StepList() {
-  const { script: { steps, region }, selected, deleted } = useEditor();
+  const { script: { steps, region }, selected, deleted, multi } = useEditor();
+  const multiSteps = new Set(multi.map((k) => k.split(':')[0]));
   const [palette, setPalette] = useState(false);
   // Ctrl+K (macOS: Cmd+K) mở / đóng bảng thêm bước
   useEffect(() => {
@@ -65,7 +66,7 @@ export default function StepList() {
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
           <ol className="flex flex-col gap-1.5">
-            {steps.map((s, i) => <Card key={s.id} step={s} index={i} selected={s.id === selected} />)}
+            {steps.map((s, i) => <Card key={s.id} step={s} index={i} selected={s.id === selected} inMulti={multiSteps.has(s.id)} />)}
           </ol>
         </SortableContext>
       </DndContext>
@@ -86,13 +87,19 @@ export default function StepList() {
   );
 }
 
-function Card({ step: s, index: i, selected }: { step: Step; index: number; selected: boolean }) {
+// inMulti: có điểm đang chọn nhiều (bước 30) – Shift / ⌘ / Ctrl + click thẻ thêm / bỏ điểm của bước; click thường bỏ chọn nhiều.
+function Card({ step: s, index: i, selected, inMulti }: { step: Step; index: number; selected: boolean; inMulti: boolean }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: s.id });
   const iconBtn = 'grid h-7 w-7 place-items-center rounded-md text-muted hover:bg-hover hover:text-ink';
 
   return (
-    <li ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform), transition }} onClick={() => selectStep(s.id)}
-      className={`${cardClass(selected)} ${isDragging ? 'z-10 shadow-[0_6px_20px_rgb(0_0_0/.18)]' : ''}`}>
+    <li ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform), transition }} onClick={(e) => {
+        if (e.shiftKey || e.metaKey || e.ctrlKey) return toggleMultiStep(s.id);
+        selectStep(s.id);
+        setMulti([]);
+      }}
+      title={inMulti ? 'Có điểm đang chọn nhiều – Shift / ⌘ + click để bỏ' : undefined}
+      className={`${cardClass(selected)} ${inMulti ? 'outline-2 outline-offset-1 outline-accent' : ''} ${isDragging ? 'z-10 shadow-[0_6px_20px_rgb(0_0_0/.18)]' : ''}`}>
       {/* ô icon = tay kéo để sắp xếp */}
       <button ref={setActivatorNodeRef} {...listeners} {...attributes} aria-label={`Kéo để sắp xếp bước ${i + 1}`} title="Kéo để sắp xếp"
         className={`${tileClass(selected)} cursor-grab touch-none active:cursor-grabbing ${s.enabled ? '' : 'opacity-50'}`}>

@@ -5,6 +5,7 @@ import { Anchor, makeStep, Point, Rect, Script, sampleSteps, Step, STEP_LABEL, S
 import { anchorPoint, fmtPoint, insideBounds, nearestAnchor, resolvePoint } from './anchor';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
 import { runScript } from './engineStore';
+import { apply, IDENTITY, Mat, rectToRect } from './transform';
 
 // Store kịch bản đang soạn – dùng chung giữa MainScreen và OverlayScreen (hai màn không cùng mount).
 // Lưu / mở file và bản nháp tự lưu: scriptFile.ts (bước 21).
@@ -17,6 +18,9 @@ type EditorState = {
   dragA: Point | null; // điểm A (toạ độ màn hình) đã chọn, đang chờ điểm B của kéo thả
   deleted: { step: Step; index: number } | null; // bước vừa xoá – để hoàn tác
   countdown: boolean; // đếm ngược 3 giây trước khi chạy
+  multi: string[]; // điểm đang chọn nhiều (bước 30), khoá pointKey(id, index)
+  past: Script[]; // hoàn tác (cũ nhất trước)
+  future: Script[]; // làm lại
   screen: Rect; // khung màn hình chính (robotgo) – "toàn màn hình" neo theo khung này, khớp mainScreen (anchor.go)
 };
 
@@ -30,6 +34,9 @@ let state: EditorState = {
   dragA: null,
   deleted: null,
   countdown: true,
+  multi: [],
+  past: [],
+  future: [],
   screen: { x: 0, y: 0, w: window.screen.width, h: window.screen.height }, // trình duyệt: tạm lấy cỡ màn hình
 };
 const listeners = new Set<() => void>();
@@ -48,11 +55,57 @@ export const getEditor = () => state;
 export const useEditor = () => useSyncExternalStore(subscribe, () => state);
 export const useScript = () => useEditor().script;
 
-export const updateScript = (patch: Partial<Script>) => set({ script: { ...state.script, ...patch }, dirty: true });
+// ---- Hoàn tác / làm lại (bước 30) ----
+// Mỗi thay đổi kịch bản lưu bản trước đó; các thay đổi sát nhau (gõ số, giữ phím mũi tên) gộp thành một lần hoàn tác.
+const HISTORY_MAX = 100;
+const MERGE_MS = 500;
+let lastEdit = 0;
+
+export const updateScript = (patch: Partial<Script>) => {
+  const now = Date.now();
+  const past = now - lastEdit < MERGE_MS && state.past.length ? state.past : [...state.past, state.script].slice(-HISTORY_MAX);
+  lastEdit = now;
+  set({ script: { ...state.script, ...patch }, dirty: true, past, future: [] });
+};
+
+// Sau hoàn tác / làm lại: bước đang chọn và điểm chọn nhiều phải còn tồn tại.
+const restore = (script: Script, past: Script[], future: Script[], notice: string) => {
+  lastEdit = 0;
+  const ids = new Set(script.steps.map((s) => s.id));
+  set({
+    script, past, future, dirty: true, notice, dragA: null,
+    selected: ids.has(state.selected) ? state.selected : script.steps[0]?.id ?? '',
+    multi: state.multi.filter((k) => ids.has(k.split(':')[0])),
+  });
+};
+
+export function undo() {
+  const prev = state.past.at(-1);
+  if (!prev) return setNotice('Không còn gì để hoàn tác');
+  restore(prev, state.past.slice(0, -1), [state.script, ...state.future], 'Đã hoàn tác');
+}
+
+export function redo() {
+  const next = state.future[0];
+  if (!next) return setNotice('Không còn gì để làm lại');
+  restore(next, [...state.past, state.script], state.future.slice(1), 'Đã làm lại');
+}
+
+// Cmd/Ctrl+Z hoàn tác, + Shift + Z (hoặc Ctrl+Y) làm lại – mọi màn; trong ô nhập để trình duyệt tự hoàn tác chữ.
+window.addEventListener('keydown', (e) => {
+  if (!(navigator.platform.startsWith('Mac') ? e.metaKey : e.ctrlKey) || e.altKey) return;
+  if ((e.target as HTMLElement).closest?.('input, textarea, select')) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z') (e.shiftKey ? redo : undo)();
+  else if (k === 'y' && !e.shiftKey) redo();
+  else return;
+  e.preventDefault();
+});
 
 // Thay cả kịch bản (mở file, kịch bản mới, khôi phục nháp): bỏ chọn / hoàn tác / điểm A đang chờ của kịch bản cũ.
 export function replaceScript(script: Script, path: string | null, dirty: boolean, notice = '') {
-  set({ script, path, dirty, selected: script.steps[0]?.id ?? '', deleted: null, dragA: null, notice });
+  lastEdit = 0;
+  set({ script, path, dirty, selected: script.steps[0]?.id ?? '', deleted: null, dragA: null, notice, multi: [], past: [], future: [] });
 }
 
 // Sau khi lưu: đường dẫn + tên mới (Lưu thành đổi tên theo file), giữ nguyên phần còn lại đang soạn.
@@ -390,6 +443,136 @@ export function setDragRelative(id: string, on: boolean) {
   }
   updateStep(id, { dragRelative: on, points: [s.points[0], b] });
 }
+
+// ---- Chọn nhiều + biến đổi nhiều điểm (bước 30) ----
+
+export const pointKey = (id: string, index: number) => `${id}:${index}`;
+export const setMulti = (multi: string[]) => set({ multi });
+
+// Điểm chọn được của một bước: A "từ điểm trước" tự tính nên không chọn / biến đổi.
+export const selectableIndexes = (s: Step) =>
+  s.points.length === 0 || s.type === 'wait' || s.type === 'type' || s.type === 'key' ? []
+    : s.type === 'drag' ? (s.dragFromPrev ? [1] : [0, 1]) : [0];
+
+// Danh sách bước: Cmd/Shift+click thêm / bỏ mọi điểm của bước vào chọn nhiều.
+export function toggleMultiStep(id: string) {
+  const s = state.script.steps.find((x) => x.id === id);
+  if (!s) return;
+  const keys = selectableIndexes(s).map((j) => pointKey(id, j));
+  const has = keys.some((k) => state.multi.includes(k));
+  set({ multi: has ? state.multi.filter((k) => !keys.includes(k)) : [...state.multi, ...keys] });
+}
+
+// Áp f (toạ độ màn hình → toạ độ màn hình) lên các điểm được chọn (pick), đổi khung tính từ vùng from sang to.
+// Điểm thường: ghi lại theo neo hiện có trong khung mới. B "lệch so với A": véc-tơ đổi theo phần tuyến tính của f
+// (f(A + Δ) − f(A), không cộng phần dời). Trả số điểm rơi ra ngoài khung mới – khác 0 thì người gọi không nên áp dụng.
+function mapPoints(steps: Step[], from: Rect | null, to: Rect | null, f: (p: Point) => Point, pick: (id: string, j: number) => boolean) {
+  const ends = endpoints(steps, from);
+  const nb = boundsOf(to);
+  let outside = 0;
+  const round = (p: Point) => ({ x: Math.round(p.x), y: Math.round(p.y) });
+  const out = steps.map((s) => {
+    if (!selectableIndexes(s).some((j) => pick(s.id, j))) return s;
+    const points = s.points.map((p, j) => {
+      if (!pick(s.id, j) || !selectableIndexes(s).includes(j)) return p;
+      if (s.type === 'drag' && j === 1 && s.dragRelative) {
+        const a = ends.get(s.id)?.start;
+        if (!a) return p;
+        const fa = f(a), fb = f({ x: a.x + p.x, y: a.y + p.y });
+        return round({ x: fb.x - fa.x, y: fb.y - fa.y });
+      }
+      const q = round(f(toScreen(p, from)));
+      if (!insideBounds(q, nb)) outside++;
+      return anchorPoint(q, nb, p.ax, p.ay);
+    });
+    return { ...s, points };
+  });
+  return { steps: out, outside };
+}
+
+// Kịch bản như sẽ thành nếu áp m lên các điểm đang chọn – overlay vẽ xem trước bằng đúng logic ghi thật.
+export function transformedSteps(m: Mat) {
+  const { steps, region } = state.script;
+  const sel = new Set(state.multi);
+  return mapPoints(steps, region, region, (p) => apply(m, p), (id, j) => sel.has(pointKey(id, j)));
+}
+
+// Biến đổi các điểm đang chọn nhiều bằng ma trận m (toạ độ màn hình). Điểm bị đẩy ra ngoài vùng → báo, không áp dụng.
+export function transformSelected(m: Mat, what: string): boolean {
+  const n = state.multi.length;
+  if (!n) return false;
+  const r = transformedSteps(m);
+  if (r.outside) {
+    setNotice(`${r.outside} điểm sẽ ra ngoài vùng – không áp dụng ${what}`);
+    return false;
+  }
+  setSteps(r.steps);
+  setNotice(`Đã ${what} ${n} điểm – ${navigator.platform.startsWith('Mac') ? '⌘' : 'Ctrl+'}Z để hoàn tác`);
+  return true;
+}
+
+// Đặt toạ độ màn hình mới cho từng điểm đang chọn (căn chỉnh / chia đều / lật): next[khoá] → điểm mới.
+// Hai lượt: ghi điểm thường trước, rồi tính lại B "lệch so với A" theo điểm bắt đầu mới (A có thể vừa dời).
+export function moveSelectedTo(next: Map<string, Point>, what: string) {
+  const { steps, region } = state.script;
+  const b = boundsOf(region);
+  const round = (p: Point) => ({ x: Math.round(p.x), y: Math.round(p.y) });
+  const isRel = (s: Step, j: number) => s.type === 'drag' && j === 1 && s.dragRelative;
+  let outside = 0;
+  const first = steps.map((s) => ({
+    ...s,
+    points: s.points.map((p, j) => {
+      const q = next.get(pointKey(s.id, j));
+      if (!q || isRel(s, j)) return p;
+      if (!insideBounds(round(q), b)) outside++;
+      return anchorPoint(round(q), b, p.ax, p.ay);
+    }),
+  }));
+  const ends = endpoints(first, region);
+  const out = first.map((s) => ({
+    ...s,
+    points: s.points.map((p, j) => {
+      const q = next.get(pointKey(s.id, j));
+      const start = ends.get(s.id)?.start;
+      if (!q || !isRel(s, j) || !start) return p;
+      if (!insideBounds(round(q), b)) outside++;
+      return { x: Math.round(q.x) - start.x, y: Math.round(q.y) - start.y };
+    }),
+  }));
+  if (outside) return setNotice(`${outside} điểm sẽ ra ngoài vùng – không ${what}`);
+  setSteps(out);
+  setNotice(`Đã ${what} ${next.size} điểm`);
+}
+
+// ---- Đổi vùng: cách xử lý các điểm (bước 30) ----
+// anchor: giữ theo neo (bước 29) · scale: giữ tỷ lệ vị trí trong vùng · screen: giữ nguyên chỗ trên màn hình
+export type RegionMapMode = 'anchor' | 'scale' | 'screen';
+
+export function regionMapping(to: Rect | null, mode: RegionMapMode) {
+  const { steps, region } = state.script;
+  const f = mode === 'scale' ? rectToRect(boundsOf(region), boundsOf(to)) : IDENTITY;
+  return mapPoints(steps, region, to, (p) => apply(f, p), () => mode !== 'anchor');
+}
+
+// Số điểm rơi ra ngoài vùng mới với từng cách – hiện trong hộp chọn.
+export function mappingOutside(to: Rect | null, mode: RegionMapMode) {
+  if (mode !== 'anchor') return regionMapping(to, mode).outside;
+  const b = boundsOf(to);
+  let n = 0;
+  endpoints(state.script.steps, to).forEach((e) => [e.start, e.end].forEach((p, j) => {
+    if (p && (j === 0 || e.end !== e.start) && !insideBounds(p, b)) n++;
+  }));
+  return n;
+}
+
+export function setRegionMapped(to: Rect | null, mode: RegionMapMode) {
+  const { steps } = regionMapping(to, mode);
+  updateScript({ region: to, steps });
+  setNotice(to ? `Đã đổi vùng ${to.w} × ${to.h}` : 'Đã về toàn màn hình');
+}
+
+// Kịch bản có điểm nào phụ thuộc vùng không (không có thì đổi vùng khỏi hỏi).
+export const hasPoints = () => state.script.steps.some((s) => selectableIndexes(s).length > 0);
 
 // F6 (Go nghe phím toàn cục) gửi vị trí chuột hiện tại.
 if (inWails) {

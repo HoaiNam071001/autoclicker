@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** – (xong 21). Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 30 → 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
+- **Đang làm:** 30 (sửa nhiều điểm) – xong code + test, chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 21b → 23 → 25 … (bảng thứ tự đầu Phase 3). Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17
 
 ## Quyết định đã chốt
@@ -260,15 +260,17 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - Xong khi: tắt app mở lại vẫn còn bản nháp; mở / lưu qua hộp thoại trên macOS
 - [ ] **30. Sửa nhiều điểm cùng lúc: di chuyển, co giãn, xoay, xiên** *(người dùng yêu cầu, 2026-10-16)* – Chọn nhiều marker trên overlay (chế độ sửa và tab Xem trước) rồi biến đổi cả nhóm để khớp vùng mới.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
-  - [ ] Chọn nhiều: Shift / Cmd+click marker, kéo khung chọn trên chỗ trống (khi đang ở công cụ *Chọn*), Ctrl+A chọn tất cả, Esc bỏ chọn; danh sách bước đồng bộ chọn nhiều
-  - [ ] Khung biến đổi quanh các điểm đã chọn: kéo thân = **di chuyển** (phím mũi tên 1 px, Shift 10 px); 8 núm = **co giãn** (Shift giữ tỷ lệ, Alt từ tâm); núm ngoài góc = **xoay** (Shift bước 15°); Cmd/Ctrl + kéo núm cạnh = **xiên (skew)**; Cmd/Ctrl + kéo núm góc = **biến dạng tự do 4 góc (perspective)**; nút **lật ngang / dọc**
-  - [ ] Ô nhập số trên thanh công cụ overlay: ΔX, ΔY, rộng / cao %, góc xoay, xiên X / Y – để nhập chính xác
-  - [ ] Căn chỉnh: căn trái / phải / trên / dưới / giữa, chia đều khoảng cách ngang / dọc
-  - [ ] **Ánh xạ sang vùng mới**: khi đổi vùng hỏi cách xử lý các điểm – *Giữ theo neo* (bước 29, mặc định) / *Co giãn theo vùng* (giữ tỷ lệ vị trí trong vùng) / *Giữ nguyên chỗ trên màn hình*; hoặc chọn 4 điểm mốc cũ → 4 điểm mốc mới để tính phép biến đổi
-  - [ ] Toán: một hàm áp ma trận affine (di chuyển / co giãn / xoay / xiên) + homography 4 điểm cho perspective, viết trong `frontend/src/transform.ts`, có test đơn vị; sau khi biến đổi, ghi lại offset theo neo hiện có của từng điểm (bước 29)
-  - [ ] Điểm đặc biệt: A "từ điểm trước" bỏ qua (tự tính); B "lệch so với A" biến đổi véc-tơ ΔX/ΔY theo phần tuyến tính (co giãn / xoay / xiên, không cộng di chuyển); điểm bị đẩy ra ngoài vùng → báo và không áp dụng
-  - [ ] Hoàn tác / làm lại (Ctrl+Z / Ctrl+Shift+Z) cho mọi thay đổi điểm – hiện chỉ có hoàn tác xoá; lịch sử trong `scriptStore.ts`
-  - [ ] Tab Xem trước: bật *Sửa điểm* cho phép chọn nhiều + biến đổi, mô phỏng chạy lại theo vị trí mới
+  - [x] Chọn nhiều (công cụ *Chọn nhiều* trên overlay thật): Shift / Cmd+click marker, kéo khung chọn trên chỗ trống, Cmd/Ctrl+A chọn tất cả, Esc bỏ chọn (Esc lần nữa mới thoát); danh sách bước viền accent bước có điểm đang chọn, Shift / Cmd+click thẻ thêm / bỏ (`state.multi`, khoá `id:index`)
+  - [x] Khung biến đổi (`TransformTool.tsx`): kéo thân / marker đã chọn = **di chuyển** (Shift chỉ ngang / dọc; phím mũi tên 1 px, Shift 10 px); 8 núm = **co giãn** (Shift giữ tỷ lệ, Alt từ tâm); núm tròn = **xoay** (Shift bước 15°); Cmd/Ctrl + núm cạnh = **xiên**; Cmd/Ctrl + núm góc = **phối cảnh**; Esc khi đang kéo = huỷ; xem trước khi kéo, thả mới ghi; khung đỏ khi có điểm ra ngoài vùng
+  - [x] Thanh ô nhập số: ΔX, ΔY, rộng / cao %, xoay, xiên X / Y – xem trước ngay, Áp dụng / Enter ghi; thanh tự né khung (dưới → trên → sát đáy), kéo tay nắm "N điểm" để dời
+  - [x] Căn trái / giữa / phải / trên / giữa / dưới, chia đều ngang / dọc, lật ngang / dọc (`align` trong `transform.ts`, `moveSelectedTo`)
+  - [x] **Ánh xạ khi đổi vùng** (kéo vùng mới / *Toàn màn hình* khi đã có điểm): hộp chọn *Giữ theo neo* (mặc định) / *Co giãn theo vùng* / *Giữ nguyên chỗ trên màn hình*, marker xem trước theo cách đang chọn, báo số điểm sẽ ra ngoài vùng; Enter đổi, Esc giữ vùng cũ
+  - [ ] Ánh xạ theo 4 điểm mốc cũ → mới (đã có `homography` – còn thiếu UI chọn mốc). Tạm thời: chọn hết điểm rồi Cmd/Ctrl + kéo góc khung để biến dạng phối cảnh
+  - [x] Toán `frontend/src/transform.ts`: ma trận 3×3 (affine + homography), `fromParams`, `perspectiveCorner`, `bbox`, `align`, `rectToRect`; test `transform.test.ts` (vitest, `npm test`) 14 test; sau biến đổi ghi lại offset theo neo hiện có
+  - [x] Điểm đặc biệt (`mapPoints` trong `scriptStore.ts`, dùng chung cho biến đổi, xem trước và ánh xạ vùng): A "từ điểm trước" không chọn được; B "lệch so với A" đổi véc-tơ = f(A + Δ) − f(A); điểm ra ngoài vùng → báo, không áp dụng
+  - [x] Hoàn tác / làm lại Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z (Ctrl+Y) cho **mọi** thay đổi kịch bản (`past` / `future` trong store, tối đa 100, gộp thay đổi sát nhau < 500 ms; trong ô nhập để trình duyệt tự hoàn tác chữ); mở / tạo kịch bản xoá lịch sử
+  - [x] Tab Xem trước: nút *Sửa điểm* chuyển sang công cụ *Chọn nhiều*, xong bấm *Xem trước* chạy lại theo vị trí mới
+  - [ ] Kiểm tra tay trong app
   - Xong khi: chọn 5 điểm, co giãn 150%, xoay 10°, xiên, lật → overlay và lần chạy thật khớp nhau; Ctrl+Z quay lại đúng từng bước; đổi vùng với cả 3 cách xử lý cho kết quả như mô tả
 - [ ] **21b. Input của kịch bản** – Người soạn đánh dấu giá trị nào được đổi khi chạy; bấm Chạy thì điền form. Go áp giá trị vào bản sao kịch bản rồi mới đưa engine, **engine không đổi**. Cùng đổi `version` với 21; CSV (28) dựa vào đây.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
@@ -427,3 +429,5 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - **2026-10-17** – Người dùng xác nhận kiểm tra tay bước 29 OK → tick. Bước 21 (lưu / tải): `storage.go` (file `.json` có `version`, kiểm tra cấu trúc khi mở, mở gần đây, bản nháp, hỏi lưu khi đóng app qua `OnBeforeClose`), `scriptFile.ts` (cờ chưa lưu, tự ghi nháp, khôi phục khi mở app), `SaveChangesDialog`, thư viện / phím tắt / status bar nối thật; thêm `Script.anchorMode` (mục còn lại của 29). `go test -race` OK (thêm 6 test lưu / đọc), `go build` + `npm run build` OK. Chưa kiểm tra tay, chưa commit.
 - **2026-10-17** – Người dùng xác nhận kiểm tra tay bước 21 OK → tick. Sửa (người dùng báo): gợi ý tên phím (bước Phím tắt) dùng `<datalist>` – WebView macOS vẽ chữ trắng trên nền trắng, không có mô tả → combobox tự vẽ trong `StepForm.tsx` (lọc theo phím đang gõ sau dấu phẩy, ↑ ↓ / Enter / Tab / Esc), mỗi dòng tên phím + mô tả tiếng Việt (`keyLabel` trong `types.ts`). `npm run build` OK, chụp headless sáng / tối thấy rõ chữ.
 - **2026-10-17** – Sửa (người dùng báo): Ctrl+K chọn Double click / Giữ chuột nhưng đặt điểm ra Click – StrictMode (`wails dev`) gỡ rồi gắn lại OverlayScreen khi mở, cleanup gọi `cancelPick()` reset loại bước + chỗ chèn + chọn lại điểm. Chỉ huỷ khi hash đã rời `#overlay`. `npm run build` OK; chưa kiểm tra tay, chưa commit.
+- **2026-10-17** – Bước 30: `transform.ts` (ma trận 3×3 affine + homography, căn chỉnh, vùng → vùng) + vitest 14 test; store: hoàn tác / làm lại mọi thay đổi, chọn nhiều, `mapPoints` (giữ neo, B lệch, chặn điểm ra ngoài vùng) dùng chung cho biến đổi / xem trước / ánh xạ vùng; overlay: công cụ *Chọn nhiều* (`TransformTool.tsx`: khung 8 núm + xoay, ⌘ xiên / phối cảnh, thanh số né khung + kéo được, căn / chia đều / lật), hộp ánh xạ khi đổi vùng (3 cách, xem trước); danh sách bước đồng bộ. `npm test` + `npm run build` OK; thử headless (CDP) chọn khung, ⌘A, xoay, co giãn, xiên, phối cảnh, ô Rộng 50%, căn trên, ⌘Z ×2, đổi vùng *Co giãn* – toạ độ khớp tính tay. Chưa làm ánh xạ 4 điểm mốc; chưa kiểm tra tay, chưa commit.
+- **2026-10-17** – Theo yêu cầu: overlay gọn hơn – thanh công cụ tự ẩn (hiện khi chuột sát mép trên / rời overlay qua mép trên / rê vào gợi ý, lúc mở hiện 2,5 s); banner hướng dẫn thành viên gợi ý một dòng (tên công cụ + câu ngắn, thông báo tự tắt sau 3,5 s); ô toạ độ thu nhỏ góc trên trái; thanh biến đổi / hộp ánh xạ dời lên. `npm run build` OK, chụp headless trạng thái ẩn / hiện; chưa kiểm tra tay, chưa commit.
