@@ -6,7 +6,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 20 – flow kiểu n8n: F0 xong, đang F4a (thiết kế canvas + `#demo-flow`). Chờ kiểm tra tay 25 / 25b / 25e. 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Đang làm:** 20 – flow kiểu n8n: F0 xong; F4a xong (người dùng duyệt `#demo-flow`), đang F1 (model flow + `StepResult`). Chờ kiểm tra tay 25 / 25b / 25e. 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
 - **Tiếp theo:** 20: F4a → F1 → F2 → F4b → F3 → F5 → F6 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17 (bỏ cây khối 20a–20c, plan mới cho 20: flow kiểu n8n)
 
@@ -405,13 +405,13 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
     | Sau này | `subflow` – gọi một kịch bản khác như một node (thay cho Nhóm) | `success` / `fail` | output của node `end` bên trong |
 
   - [x] **F0. Gỡ bước 20 cũ** *(2026-10-17)*: revert 3 commit 20a / 20b / 20c (`60dcfe2`, `956ec76`, `d5882a7`), giữ 2 commit sửa lỗi sau đó (overlay theo màn chứa vùng, `stepLabel`). Code điều kiện (`evalCond`, `compareValues`, `condtest.go` / `TestCond`, `CondEditor`) **lấy lại từ lịch sử git** ở F3, không viết lại
-  - [ ] **F4a. Thiết kế canvas + màn mẫu `#demo-flow`** (dữ liệu giả, chưa nối Go)
-    - [ ] `design/DESIGN.md` thêm phần *Canvas flow*: nền canvas (lưới chấm), thẻ node (cỡ, ô icon, tên, mã `n2`, chip tóm tắt), cổng vào / ra + nhãn cổng (`success` màu `ok`, `fail` màu `danger`, case trung tính), cạnh (cong, mũi tên, nhãn, nút × khi rê), node bắt đầu / tắt / đang chọn / cảnh báo / đang chạy / xong / lỗi, minimap + nút zoom, cả 2 theme; token mới (nếu có) thêm cả `theme.css` + `style.css`
-    - [ ] Cài `@xyflow/react` + `elkjs`; `components/flow/NodeCard.tsx`, `FlowEdge.tsx`, `FlowCanvas.tsx` nhận dữ liệu qua props (dùng lại được ở F4b)
-    - [ ] `demo/flowDemo.ts`: ví dụ Facebook ở trên + 1 node If, 1 Switch theo màn hình, 1 Đếm, 1 Kết thúc, node tắt, node cảnh báo; công tắc xem trạng thái "đang chạy" (node chạy / xong / lỗi, cạnh đã đi) và bảng Nhật ký mẫu
-    - [ ] Màn `#demo-flow`: bố cục 3 cột (thư viện | canvas | inspector có mục Cổng ra), Ctrl+K khi kéo cổng ra chỗ trống (giao diện)
-    - [ ] Chụp headless cả 2 theme; `npm run build` sạch
-    - [ ] Người dùng duyệt `#demo-flow`, góp ý trước khi làm F1
+  - [x] **F4a. Thiết kế canvas + màn mẫu `#demo-flow`** (dữ liệu giả, chưa nối Go)
+    - [x] `design/DESIGN.md` thêm phần *Canvas flow*: nền canvas (lưới chấm), thẻ node (cỡ, ô icon, tên, mã `n2`, chip tóm tắt), cổng vào / ra + nhãn cổng (`success` màu `ok`, `fail` màu `danger`, case trung tính), cạnh (cong, mũi tên, nhãn, nút × khi rê), node bắt đầu / tắt / đang chọn / cảnh báo / đang chạy / xong / lỗi, minimap + nút zoom, cả 2 theme; token mới (nếu có) thêm cả `theme.css` + `style.css` – không cần token mới; thêm 6 icon node điều khiển
+    - [x] Cài `@xyflow/react` + `elkjs`; `components/flow/NodeCard.tsx`, `FlowEdge.tsx`, `FlowCanvas.tsx` nhận dữ liệu qua props (dùng lại được ở F4b). Thêm `components/flow/PortField.tsx` (Cổng ra, Khi thất bại, Output, Lần chạy gần nhất), `RunLog.tsx`, `nodes/ControlFields.tsx`; `flowEdit.ts` (có test) + `flowLayout.ts` (elkjs nạp lười) làm sớm vì màn mẫu dùng luôn; `AddStepPalette` tách `PaletteView`
+    - [x] `demo/flowDemo.ts`: ví dụ Facebook ở trên + 1 node If, 1 Switch theo màn hình, 1 Đếm, 1 Kết thúc, node tắt, node cảnh báo; công tắc xem trạng thái "đang chạy" (node chạy / xong / lỗi, cạnh đã đi) và bảng Nhật ký mẫu (`?mode=running` / `?mode=failed`)
+    - [x] Màn `#demo-flow`: bố cục 3 cột (thư viện | canvas | inspector có mục Cổng ra), Ctrl+K khi kéo cổng ra chỗ trống (sửa được thật trong state cục bộ: kéo node, nối / xoá cạnh, thả cổng ở chỗ trống → bảng thêm node, inspector)
+    - [x] Chụp headless cả 2 theme (soạn / đang chạy / thất bại); `npm run build`, `npm test` (31) sạch
+    - [x] Người dùng duyệt `#demo-flow` (OK 2026-10-17)
   - [ ] **F1. Model flow + kết quả** (Go + TS, chưa UI – sửa bằng JSON / test)
     - [ ] `model.go`: `Script.start`, `Script.edges []Edge {id, from, port, to}`; `Step.ref`, `Step.name`, `Step.pos {x, y}`, `Step.imageFrom`; `onFail` thành `retry {count, delayMs}`
     - [ ] `flow.go`: `StepResult {nodeId, ref, status: success | fail | skipped | cancelled, port, output, error {code, message}, logs [{t, level, msg}], attempts, startedAt, durationMs}`; mã lỗi `not_found | timeout | permission | invalid_input | cancelled | internal`; `portsOf`; `flowOrder` (duyệt từ `start`, ưu tiên `success` / `true` / case đầu)
@@ -636,3 +636,4 @@ Người dùng gõ trên Claude: *"tạo kịch bản mở bài Tinh Hà Say 2 t
 - **2026-10-17** – Người dùng thấy cây khối (20a–20c) khác kỳ vọng → revert 3 commit `60dcfe2`, `956ec76`, `d5882a7` (giữ 2 bản sửa overlay / `stepLabel` sau đó); viết lại plan 20 thành flow kiểu n8n (node + cạnh, `StepResult`, canvas, F1–F7, gộp 25c). `go test ./...`, `npm run build`, `npm test` (25) OK sau revert.
 - **2026-10-17** – Sắp lại các mục Phase 3 theo đúng thứ tự làm (20 lên ngay sau 25b, trước 26 / 25d; 25e vào bảng thứ tự); bỏ mục 25c riêng – nội dung nằm trong 20 F5.
 - **2026-10-17** – Theo yêu cầu: sắp lại thứ tự trong 20 – F4a (thiết kế + `#demo-flow`) lên đầu, F4b (nối canvas) ngay sau engine, rồi mới F3; bỏ chuyển đổi file kịch bản cũ (version < 4 không mở được); thêm bảng chia module Go / frontend.
+- **2026-10-17** – Bước 20 F4a: màn mẫu `#demo-flow` – canvas `@xyflow/react` + xếp tự động `elkjs` (nạp lười, bundle chính 744 kB), thẻ node có cổng ra màu, cạnh (vòng lặp gấp khúc, cổng thất bại nét đứt), bảng thêm node khi thả cổng ở chỗ trống, inspector (Cổng ra / Khi thất bại / Output / Lần chạy gần nhất), form Nếu / Switch theo giá trị / Switch theo màn hình / Đếm / Kết thúc / Đặt biến, bảng Nhật ký + trạng thái chạy mẫu; phần *Canvas flow* trong `DESIGN.md`. `npm run build`, `npm test` (31, có 6 test `flowEdit`) OK; chụp headless sáng / tối. Người dùng duyệt OK.

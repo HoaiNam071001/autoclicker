@@ -1,0 +1,39 @@
+/* Canvas flow (bước 20) – chỉnh lại style mặc định của @xyflow/react theo token design v2 (cả 2 theme). */
+@import "@xyflow/react/dist/base.css";
+
+.flow-canvas {
+  --xy-edge-stroke: var(--c-line-strong);
+  --xy-connectionline-stroke: var(--c-accent);
+  --xy-selection-background-color: color-mix(in srgb, var(--c-accent) 8%, transparent);
+  --xy-selection-border: 1px dashed var(--c-accent);
+  background: var(--c-bg);
+}
+.flow-canvas .react-flow__node { cursor: default; }
+.flow-canvas .react-flow__node.dragging { cursor: grabbing; }
+
+/* Cổng: chấm tròn 10 px, viền theo loại cổng; vùng bấm rộng hơn chấm */
+.flow-handle {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--c-surface);
+  border: 2px solid var(--c-line-strong);
+}
+.flow-handle::after { content: ""; position: absolute; inset: -7px; }
+.flow-handle.connectingto, .flow-handle:hover { border-color: var(--c-accent); background: var(--c-accent-soft); }
+.flow-port-ok { border-color: var(--c-ok); }
+.flow-port-fail { border-color: var(--c-danger); }
+.flow-port-neutral { border-color: var(--c-muted); }
+.flow-canvas .react-flow__handle-right { right: -1px; }
+.flow-canvas .react-flow__handle-left { left: -1px; }
+
+/* Cạnh đang đi trong lần chạy: nét chạy */
+.flow-edge-active { animation: flow-dash 0.6s linear infinite; }
+@keyframes flow-dash { to { stroke-dashoffset: -11; } }
+
+.flow-canvas .react-flow__minimap {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 9px;
+  overflow: hidden;
+}

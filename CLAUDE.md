@@ -18,7 +18,7 @@ cd frontend && npm test        # test đơn vị frontend (vitest, *.test.ts)
 ```
 
 Xem riêng từng màn trong `wails dev` / trình duyệt: thêm hash `#preview`, `#overlay`, `#minibar` (mặc định là MainScreen). Trên trình duyệt không có Go nên nút Chạy bị tắt.
-Màn mẫu giao diện đầy đủ (kể cả tính năng chưa có logic, dữ liệu giả trong `frontend/src/demo/`): `#demo`, `#demo-overlay`, `#demo-minibar`.
+Màn mẫu giao diện đầy đủ (kể cả tính năng chưa có logic, dữ liệu giả trong `frontend/src/demo/`): `#demo`, `#demo-overlay`, `#demo-minibar`, `#demo-flow` (canvas flow bước 20; `?mode=running` / `?mode=failed`).
 
 ## Cấu trúc
 
@@ -29,6 +29,7 @@ Màn mẫu giao diện đầy đủ (kể cả tính năng chưa có logic, dữ
 - `frontend/src/screens/` – các màn UI; `components/TitleBar.tsx` – thanh tiêu đề kiểu Windows 11 + chọn theme; `components/Library.tsx` – thanh bên thư viện; `components/StepList.tsx` – thẻ bước (dnd-kit, kéo ô icon); `components/AddStepPalette.tsx` – bảng thêm bước Ctrl/Cmd+K; `components/StepForm.tsx` – inspector sửa bước; `components/RunSettings.tsx` – lặp / đếm ngược (popup nút "N vòng"); `components/Simulation.tsx` – xem trước bằng con trỏ giả; `components/icons.tsx` – icon SVG; `types.ts` – model `Step` (phải khớp struct Go trong `model.go`; tsc tự kiểm tra).
 - `frontend/src/style.css` – Tailwind v4 + token thiết kế trong `@theme`.
 - `components/inputs/` – ghim (`PinMenu`), ô chữ `{{biến}}`, tab Input, form Chạy (đã nối logic ở 21b). Giao diện dựng sẵn cho tính năng chưa có logic (bước 27b, app thật hiện tắt + *Sắp có*): `components/steps/` (inspector loại bước mới, hết giờ, nhóm, neo ±), `ScheduleDialog.tsx`, `AppChrome.tsx` (`Toolbar`, `StatusBar`, nút debug / ghi). Kiểu dữ liệu UI tạm trong `steps/model.ts` – chuyển vào `types.ts` + `model.go` khi làm logic bước đó.
+- Flow (bước 20, đang làm): `components/flow/` – `FlowCanvas` (`@xyflow/react`), `NodeCard`, `FlowEdge`, `PortField` (Cổng ra / Khi thất bại / Output / Lần chạy gần nhất), `RunLog`, `nodes/ControlFields`, kiểu hiển thị `model.ts` (cỡ thẻ cố định); `flowEdit.ts` – sửa đồ thị thuần (có test); `flowLayout.ts` – xếp tự động `elkjs` (nạp lười). Màn mẫu `screens/DemoFlow.tsx` + `demo/flowDemo.ts`.
 - `autoclicker-ui/` – bản thiết kế gốc (Tailwind v3, chỉ để tham khảo, không build) – bị thay bởi design v2 từ bước 27.
 - `design/` – design v2: `DESIGN.md` (token, thành phần, icon, map artboard → file), `theme.css` (token Tailwind v4 sáng / tối), `canvas/` (mã artboard, chỉ tham khảo – cần runtime canvas, không chạy riêng).
 

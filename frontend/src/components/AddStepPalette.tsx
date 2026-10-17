@@ -1,14 +1,16 @@
 // Bảng thêm bước (design v2, artboard AddStep) – mở bằng "+ Thêm bước" hoặc Ctrl/Cmd+K.
 // Ô tìm (không dấu cũng được), 4 nhóm, phím mũi tên + Enter; bước mới chèn sau bước đang chọn.
 // Loại chưa làm hiện nhãn "Sắp có" và không chọn được (logic ở các bước sau).
-import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { StepIcon, StepIconName } from './icons';
 import { addPointStep, addStep } from '../scriptStore';
 import { addImageStep, addTextStep } from '../imageSteps';
 
-type Item = { icon: StepIconName; label: string; keywords: string; run?: () => unknown; soon?: string };
+export type PaletteItem = { icon: StepIconName; label: string; keywords: string; run?: () => unknown; soon?: string };
+export type PaletteGroup = { name: string; items: PaletteItem[] };
+type Item = PaletteItem;
 
-const GROUPS: { name: string; items: Item[] }[] = [
+const GROUPS: PaletteGroup[] = [
   {
     name: 'Chuột', items: [
       { icon: 'click', label: 'Click', keywords: 'bam nhan chuot trai phai', run: () => addPointStep('click') },
@@ -48,13 +50,24 @@ const COLS = 3;
 const fold = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 
 export default function AddStepPalette({ onClose }: { onClose: () => void }) {
+  return (
+    <PaletteView groups={GROUPS} onClose={onClose}
+      footer={<><span><span className="font-mono">Enter</span> thêm sau bước đang chọn</span><span className="ml-auto">Click / Double / Giữ / Kéo thả mở overlay chọn điểm</span></>} />
+  );
+}
+
+// Phần hiển thị của bảng – dùng chung cho Ctrl+K màn chính và bảng thêm node của canvas flow (bước 20).
+// context: dòng ghi bước / node mới sẽ nối vào đâu (vd "Nối từ n2 · Thất bại").
+export function PaletteView({ groups: all, onClose, footer, context }: {
+  groups: PaletteGroup[]; onClose: () => void; footer?: ReactNode; context?: ReactNode;
+}) {
   const [q, setQ] = useState('');
   const groups = useMemo(() => {
     const words = fold(q).split(/\s+/).filter(Boolean);
-    return GROUPS
+    return all
       .map((g) => ({ ...g, items: g.items.filter((it) => words.every((w) => fold(`${it.label} ${it.keywords} ${g.name}`).includes(w))) }))
       .filter((g) => g.items.length > 0);
-  }, [q]);
+  }, [q, all]);
   const flat = groups.flatMap((g) => g.items);
   const [sel, setSel] = useState(0);
   useEffect(() => setSel(Math.max(flat.findIndex((it) => it.run), 0)), [q]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -87,6 +100,7 @@ export default function AddStepPalette({ onClose }: { onClose: () => void }) {
       onMouseDown={(e) => { if (!panel.current?.contains(e.target as Node)) onClose(); }}>
       <div ref={panel} role="dialog" aria-label="Thêm bước" onKeyDown={onKey}
         className="flex max-h-[80vh] w-[680px] max-w-full flex-col overflow-hidden rounded-panel border border-line bg-surface text-ink shadow-[0_16px_48px_rgb(0_0_0/.22)]">
+        {context && <div className="mx-3.5 mt-3 -mb-1.5 text-xs text-muted">{context}</div>}
         <label className="mx-3.5 mt-3.5 mb-1.5 flex h-10 flex-none items-center gap-3 rounded-lg px-3 ring-focus">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted" aria-hidden>
             <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
@@ -124,8 +138,7 @@ export default function AddStepPalette({ onClose }: { onClose: () => void }) {
 
         <div className="flex flex-none flex-wrap items-center gap-4 border-t border-line bg-chrome px-4 py-2.5 text-xs text-muted">
           <span><span className="font-mono">↑↓←→</span> chọn</span>
-          <span><span className="font-mono">Enter</span> thêm sau bước đang chọn</span>
-          <span className="ml-auto">Click / Double / Giữ / Kéo thả mở overlay chọn điểm</span>
+          {footer}
         </div>
       </div>
     </div>

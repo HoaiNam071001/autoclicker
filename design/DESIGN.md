@@ -121,6 +121,27 @@ Màu nhấn thay thế đã thử trên canvas: `#2F8F83` (xanh ngọc), `#8B6CE
 | focusWindow | `M4 5h16v14H4zM4 9h16` |
 | group | `M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z` |
 | ghim input | `M9 4h6l-1 5 3 3v2H7v-2l3-3zM12 14v6` |
+| if (Nếu) | `M12 3l9 9-9 9-9-9zM12 8v5M12 16v.01` |
+| switch (theo giá trị) | `M3 12h5M8 12c3 0 3-6 7-6h6M8 12h13M8 12c3 0 3 6 7 6h6` |
+| switchScreen | `M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 12h3M11 12c2 0 2-3 5-3M11 12c2 0 2 3 5 3` |
+| counter (Đếm) | `M9 4L7 20M17 4l-2 16M4 9h16M3 15h16` |
+| end (Kết thúc) | `M5 21V4M5 4h12l-2.5 4L17 12H5` |
+| setVar (Đặt biến) | `M8 4c-2 0-3 1-3 3v2.5C5 11 4 12 3 12c1 0 2 1 2 2.5V17c0 2 1 3 3 3M16 4c2 0 3 1 3 3v2.5c0 1.5 1 2.5 2 2.5-1 0-2 1-2 2.5V17c0 2-1 3-3 3` |
+
+## Canvas flow (bước 20)
+
+Soạn kịch bản dạng node + cạnh kiểu n8n (`@xyflow/react`). Xem mẫu: màn `#demo-flow` (`?mode=running` / `?mode=failed` mở thẳng trạng thái chạy). Không thêm token mới – dùng token sẵn có.
+
+- **Nền canvas:** `bg`, lưới chấm `line-strong` cách 18 px. Góc trái dưới: hộp nút `bg-surface border-line rounded-control` (phóng to, thu nhỏ, vừa màn hình, sắp xếp lại). Góc phải dưới: minimap `bg-surface border-line` bo 9, node `soft`. Góc trái trên: một dòng gợi ý thao tác `muted` 12.
+- **Vừa màn hình tự động** (sau khi mở / xếp lại): flow vừa khít nếu zoom ≥ 65%; rộng hơn thì giữ 65% và đặt mép trái flow sát cạnh trái. Nút "Vừa màn hình" mới thu toàn bộ (tối thiểu 30%).
+- **Thẻ node:** rộng 248, `bg-surface border-line rounded-card`, bóng rất nhẹ. Phần đầu cao 56: ô icon 32 (như thẻ bước), mã node mono 11 `muted` (`n2`), tên 14/600, dòng chi tiết mono 12 `muted`. Đang chọn: `ring-selected` + ô icon `accent-soft`. Tắt: nội dung `opacity-50` + chip "Tắt".
+- **Cổng ra:** vùng dưới phần đầu, viền trên `line`, mỗi cổng một dòng cao 24, nhãn 12 căn phải + chấm 10 px nằm trên mép phải thẻ (nền `surface`, viền 2 px): thành công `ok`, thất bại `danger` (nhãn `danger-text`), nhánh khác (đúng / sai, case, còn lượt / hết lượt) `muted`. Cổng chưa nối ghi thêm "→ dừng" (thất bại) / "→ hết" (cổng khác), mono 11 mờ. Chip phụ ("1 input", "thử lại 2") nằm bên trái dòng cổng đầu. Cổng vào: chấm viền `line-strong` ở mép trái, ngang giữa phần đầu. Rê / đang nối: viền `accent`, nền `accent-soft`.
+- **Node bắt đầu:** nhãn "▶ Bắt đầu" `bg-accent-soft text-accent-text` 11/600 bo tròn, nằm ngay trên góc trái thẻ.
+- **Huy hiệu góc phải trên** (tròn 20, nền `surface`, viền màu): cảnh báo `warn` "!" (node không đi tới được, thiếu dữ liệu – tooltip ghi lý do); khi chạy: đang chạy vòng xoay `accent`, xong ✓ `ok`, lỗi ✗ `danger`, bỏ qua "–" `line`; đi qua nhiều lần thêm "×N" mono. Node đang chạy / lỗi có thêm `outline` 2 px cách 2 px màu `accent` / `danger`.
+- **Cạnh:** cong (bezier) khi đi tới, gấp khúc bo 14 khi quay lại (vòng lặp); nét 1.6 `line-strong`, mũi tên kín 14. Từ cổng thất bại: nét đứt 5/4, `danger` 60%. Không ghi nhãn trên cạnh (tên cổng đã có trên thẻ). Chọn cạnh: `accent` 2.2 + nút × tròn 20 ở giữa. Lần chạy: cạnh đã đi `accent` 2.2, cạnh đang đi nét đứt chạy.
+- **Bảng thêm node:** dùng lại bảng Ctrl+K (`PaletteView`), thêm nhóm *Rẽ nhánh & luồng*; mở khi kéo cổng ra thả ở chỗ trống (dòng đầu "Nối từ n2 · Thất bại", node mới đặt ở chỗ thả, cổng đã có cạnh thì chèn vào giữa) hoặc nút "+ Thêm node" / Ctrl+K.
+- **Inspector node:** đầu (icon `accent-soft`, tên sửa tại chỗ, mã node ô mono `bg-soft`, loại node, nhãn "Bắt đầu", công tắc bật), tab Node / Input. Tab Node lần lượt: nội dung theo loại → *Khi thất bại* (thử lại N lần, nghỉ ms) → *Cổng ra* (mỗi cổng: chấm màu + nhãn, ô chọn node đích có mục "— Không nối: dừng kịch bản, báo lỗi" / "kết thúc kịch bản", nút → nhảy tới node) → *Output* (mỗi giá trị một `var-token` `n2.output.x` + mô tả, bấm để chép) → *Lần chạy gần nhất* (chip status, giờ / ms / số lần thử / cổng đã đi mono, lỗi `bg-danger-soft`, output JSON `bg-soft`, log) → chờ sau bước + điểm dừng → nút "Đặt làm bắt đầu" / "Xoá node". Mục cách nhau bằng viền trên `line`.
+- **Bảng Nhật ký** (dưới canvas khi chạy / xem lại, cao 220, thu gọn được): đầu "Nhật ký · lần chạy 14:32:05 · vòng 1 / 3" + tóm tắt bên phải (`accent-text` đang chạy, `ok` xong, `danger-text` lỗi). Mỗi dòng: giờ mono, mã node, icon + tên, chip status (Thành công `ok` / Thất bại `danger` / Bỏ qua / Đang chạy `accent`), ms, "→ cổng · node kế" mono. Bấm dòng → chọn node + khung chi tiết bên phải (lỗi, output, log).
 
 ## Màn hình trên canvas → file trong repo
 
@@ -133,6 +154,7 @@ Màu nhấn thay thế đã thử trên canvas: `#2F8F83` (xanh ngọc), `#8B6CE
 | `StepInputs` | Bước gõ chữ: biến `{{…}}`, gợi ý, nút ghim | `components/StepForm.tsx`; thêm `components/VarTextInput.tsx`, `components/PinButton.tsx` |
 | `InputsTab` | Tab Input của kịch bản | thêm `components/InputsPanel.tsx` |
 | `RunDialog` / `RunDialogDark` | Form Chạy kịch bản | thêm `components/RunDialog.tsx`; nút Chạy / F8 mở form khi kịch bản có input |
+| *(chưa có artboard)* Canvas flow | Soạn flow node + cạnh, nhật ký chạy | `components/flow/*` (`FlowCanvas`, `NodeCard`, `FlowEdge`, `PortField`, `RunLog`, `nodes/ControlFields`), mẫu `screens/DemoFlow.tsx` (`#demo-flow`) |
 
 ## Đổi tên token từ bản cũ
 

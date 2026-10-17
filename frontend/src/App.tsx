@@ -6,8 +6,9 @@ import MiniBar from './screens/MiniBar';
 import DemoScreen from './screens/DemoScreen';
 import DemoOverlay from './screens/DemoOverlay';
 import DemoMiniBar from './screens/DemoMiniBar';
+import DemoFlow from './screens/DemoFlow';
 
-// Chọn màn theo hash URL (#preview, #overlay, #minibar, #demo, #demo-overlay, #demo-minibar). setWindowMode() (windowMode.ts) đổi
+// Chọn màn theo hash URL (#preview, #overlay, #minibar, #demo, #demo-overlay, #demo-minibar, #demo-flow). setWindowMode() (windowMode.ts) đổi
 // kích thước cửa sổ bên Go rồi đổi hash; trên trình duyệt đổi hash tay để xem từng màn.
 const screens: Record<string, ComponentType> = {
     main: MainScreen,
@@ -18,6 +19,7 @@ const screens: Record<string, ComponentType> = {
     demo: DemoScreen,
     'demo-overlay': DemoOverlay,
     'demo-minibar': DemoMiniBar,
+    'demo-flow': DemoFlow, // canvas flow kiểu n8n (bước 20 F4a)
 };
 
 function App() {

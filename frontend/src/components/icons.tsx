@@ -86,6 +86,13 @@ export const STEP_ICON = {
   open: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18',
   focusWindow: 'M4 5h16v14H4zM4 9h16',
   group: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+  // node điều khiển của flow (bước 20)
+  if: 'M12 3l9 9-9 9-9-9zM12 8v5M12 16v.01',
+  switch: 'M3 12h5M8 12c3 0 3-6 7-6h6M8 12h13M8 12c3 0 3 6 7 6h6',
+  switchScreen: 'M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 12h3M11 12c2 0 2-3 5-3M11 12c2 0 2 3 5 3',
+  counter: 'M9 4L7 20M17 4l-2 16M4 9h16M3 15h16',
+  end: 'M5 21V4M5 4h12l-2.5 4L17 12H5',
+  setVar: 'M8 4c-2 0-3 1-3 3v2.5C5 11 4 12 3 12c1 0 2 1 2 2.5V17c0 2 1 3 3 3M16 4c2 0 3 1 3 3v2.5c0 1.5 1 2.5 2 2.5-1 0-2 1-2 2.5V17c0 2-1 3-3 3',
 } as const;
 export type StepIconName = keyof typeof STEP_ICON;
 

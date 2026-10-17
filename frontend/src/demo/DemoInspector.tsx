@@ -89,7 +89,8 @@ function StepTab({ step, inputs, setInputs }: Omit<Props, 'n'>) {
   );
 }
 
-function StepBody({ step, inputs, setInputs }: { step: DemoStep } & Omit<Props, 'step' | 'n'>) {
+// flow: dùng trong #demo-flow – bỏ mục "Khi hết giờ" (flow thay bằng cổng Thất bại + Thử lại)
+export function StepBody({ step, inputs, setInputs, flow = false }: { step: DemoStep; flow?: boolean } & Omit<Props, 'step' | 'n'>) {
   const [scroll, setScroll] = useState<ScrollData>({ direction: 'down', amount: 5, at: { x: 760, y: 520 } });
   const [open, setOpen] = useState<OpenData>({ target: 'facebook.com/{{profile}}', app: 'Google Chrome' });
   const [wait, setWait] = useState<WaitImageData>({ template: { w: 164, h: 64 }, threshold: 90, timeoutMs: 10000, intervalMs: 250, area: 'region' });
@@ -98,14 +99,14 @@ function StepBody({ step, inputs, setInputs }: { step: DemoStep } & Omit<Props, 
   const [win, setWin] = useState<FocusWindowData>({ title: 'Google Chrome', match: 'contains' });
   const [timeout, setTimeoutCfg] = useState<OnTimeout>({ action: 'retry', retries: 2, then: 'skipGroup' });
   const [pt, setPt] = useState<StepPoint>({ x: 300, y: 300, ax: 'end', ay: 'start' });
-  const onTimeout = <OnTimeoutFields value={timeout} onChange={setTimeoutCfg} inGroup={inGroup(step)} />;
+  const onTimeout = flow ? null : <OnTimeoutFields value={timeout} onChange={setTimeoutCfg} inGroup={inGroup(step)} />;
 
   switch (step.type) {
     case 'type': return <TypeStep inputs={inputs} setInputs={setInputs} />;
     case 'scroll': return <ScrollFields value={scroll} onChange={setScroll} />;
     case 'open': return <OpenFields value={open} onChange={setOpen} pinKey="profile" />;
     case 'waitImage': return <><WaitImageFields value={wait} onChange={setWait} timeoutPin="wait_s" />{onTimeout}</>;
-    case 'clickImage': return <ClickImageFields value={click} onChange={setClick} prevStep="03" />;
+    case 'clickImage': return <ClickImageFields value={click} onChange={setClick} prevStep={flow ? 'n2' : '03'} />;
     case 'waitPixel': return <><WaitPixelFields value={pixel} onChange={setPixel} />{onTimeout}</>;
     case 'focusWindow': return <><FocusWindowFields value={win} onChange={setWin} />{onTimeout}</>;
     case 'click': return (
@@ -120,7 +121,7 @@ function StepBody({ step, inputs, setInputs }: { step: DemoStep } & Omit<Props, 
 }
 
 // Cuối inspector: chờ sau bước + điểm dừng (debug, bước 25c)
-function Footer({ step }: { step: DemoStep }) {
+export function Footer({ step }: { step: DemoStep }) {
   const [delay, setDelay] = useState(parseInt(step.delay) * (step.delay.includes(' s') ? 1000 : 1) || 300);
   const [bp, setBp] = useState(!!step.breakpoint);
   return (
