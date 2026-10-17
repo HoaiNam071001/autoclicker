@@ -5,7 +5,7 @@ import { Anchor, makeStep, Point, Rect, Script, sampleSteps, Step, STEP_LABEL, S
 import { anchorPoint, fmtPoint, insideBounds, nearestAnchor, resolvePoint } from './anchor';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
 import { apply, IDENTITY, Mat, rectToRect } from './transform';
-import { allSteps, Branch, cloneStep, flatOf, flatten, insertAt, Loc, mapAll, mapStep, moveTo, removeAt } from './stepTree';
+import { allSteps, Branch, cloneStep, flatOf, flatten, insertAt, Loc, mapAll, mapStep, moveTo, removeAt, updateCondAt } from './stepTree';
 
 // Store kịch bản đang soạn – dùng chung giữa MainScreen và OverlayScreen (hai màn không cùng mount).
 // Lưu / mở file và bản nháp tự lưu: scriptFile.ts (bước 21).
@@ -356,6 +356,14 @@ export function pickPointFor(stepId: string) {
 
 export const pickingStep = () => pickTarget;
 
+// Chọn điểm trên màn hình cho điều kiện màu pixel của khối (đường dẫn điều kiện con).
+let pickCond: { id: string; path: number[] } | null = null;
+export function pickCondPoint(stepId: string, path: number[]) {
+  pickCond = { id: stepId, path };
+  pickTarget = null;
+  return openOverlay('point');
+}
+
 // Gọi khi đổi công cụ / đóng overlay; luôn bỏ điểm A đang chờ.
 export const setDragMode = (on: boolean) => {
   dragMode = on;
@@ -374,6 +382,7 @@ export const cancelPick = () => {
   pickStay = false;
   insertAfter = null;
   insertInto = null;
+  pickCond = null;
   pointType = 'click';
   setDragMode(false);
 };
@@ -392,6 +401,15 @@ export function placePoint(screen: Point): boolean {
     return false;
   }
   const steps = script.steps;
+  if (pickCond) {
+    const { id, path } = pickCond;
+    const s = stepById(id);
+    pickCond = null;
+    if (s?.cond) updateStep(id, { cond: updateCondAt(s.cond, path, (c) => ({ ...c, points: [rel] })) });
+    set({ selected: id, notice: `Đã đặt điểm cho điều kiện bước ${pathOf(id)}: ${fmtPoint(rel)}` });
+    setWindowMode('main');
+    return true;
+  }
   const target = pickTarget && flatOf(steps, pickTarget)?.step;
   // Kéo thả cần 2 điểm – trừ khi bước đang chọn lại bắt đầu "từ điểm trước đó" (chỉ cần B).
   const wantsPair = target ? target.type === 'drag' && !target.dragFromPrev : dragMode;

@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 20c (điều kiện ảnh / màu, ghép và / hoặc, Thử điều kiện); 20a, 20b xong – 20b chờ kiểm tra tay kéo thả. Chờ kiểm tra tay 25 / 25b / 25e. 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 20c → 20d → 25c → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
+- **Đang làm:** 20d (overlay, Xem trước chọn nhánh, thanh mini); 20a–20c xong – 20b / 20c chờ kiểm tra tay. Chờ kiểm tra tay 25 / 25b / 25e. 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 20d → 25c → 25c → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17 (chọn màn hình cho overlay – 17; tìm theo chữ – 25e)
 
 ## Quyết định đã chốt
@@ -397,7 +397,11 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
     - [x] Input (`scriptInputs.ts`), overlay (marker / nhãn `9.1`, Thử tìm, xem riêng bước con), Xem trước (đi nhánh đúng, lặp 1 vòng, bong bóng khối) duyệt cả cây; bước lỗi trong khối được chọn thẳng
     - [x] Kiểm tra: `npm run build`, `npm test` (32, có 7 test cây), `go test ./...`; chụp headless danh sách + inspector Nếu / Lặp (dữ liệu mẫu trình duyệt có 2 khối)
     - [ ] Kiểm tra tay trong app: kéo bước vào / ra khối, kéo cả khối, gập / mở, thêm vào khối, hoàn tác
-  - [ ] **20c. Inspector điều kiện:** chọn loại (ảnh / chữ / màu / input / bước trước) – dùng lại `ImageSearchFields` / `TextSearchFields` / phần chờ pixel; nút *Thử điều kiện* → "Đúng / Sai lúc này" (Go `TestCond`, dùng lại `FindImage`); *đảo*; ghép và / hoặc; khối lặp: N lần / đến khi / khi còn + maxLoops
+  - [x] **20c. Inspector điều kiện** *(2026-10-17)*
+    - [x] Go `condtest.go`: `TestCond(script, stepId, path)` – xét điều kiện một lần trên màn hình lúc này, báo từng điều kiện lá (đúng / sai, chi tiết: chỗ thấy chữ / ảnh + % khớp, màu đọc được + độ lệch, 2 vế input), `known` = false khi phụ thuộc lúc chạy (bước trước); `{{biến}}` lấy mặc định của input; `findStepByID` duyệt cây (Thử tìm cũng tìm được bước trong khối). Test `TestTestCondParts`; thật: "thấy chữ File và điểm (5, 5) màu đen" → File thấy (143, 16), điểm màu #81868A → sai, 0,8 s
+    - [x] `stepTree.ts`: `condAt` / `updateCondAt` / `removeCondAt` (nhóm còn 1 điều kiện thì gỡ nhóm, giữ "đảo") – có test
+    - [x] Inspector (`CondFields` / `CondEditor`): loại Thấy chữ / Thấy ảnh / Màu pixel / Giá trị input / Bước trước / Nhiều điều kiện (và / hoặc – mỗi điều kiện con một thẻ, xoá được, + Thêm điều kiện, đảo cả nhóm); ảnh: khoanh ảnh mẫu thẳng vào điều kiện (`startCapture(id, path)`), độ khớp; màu: điểm (neo, chọn trên màn hình – `pickCondPoint`), Lấy màu, sai số; chữ / ảnh / màu có chờ tối đa; **Thử điều kiện** → "Đúng / Sai lúc này → chạy nhánh nào" + từng phần ✓ ✗ ?, khung chỗ thấy trên overlay
+    - [ ] Kiểm tra tay: khoanh ảnh cho điều kiện, chọn điểm màu trên màn hình, Thử điều kiện
   - [ ] **20d. Overlay, Xem trước, thanh mini:** marker đánh số theo cây, bước trong nhánh *Nếu không* vẽ nét đứt; Xem trước: điều kiện không biết trước → mặc định nhánh *đúng*, công tắc "giả sử không thấy" theo từng khối, lặp chạy 1 vòng kèm nhãn ×N; thanh mini "Bước 3.2 · Nếu thấy chữ “Gửi” → đúng", "lặp 2 / 5"
   - [ ] Chuẩn bị cho MCP (31): cây JSON là định dạng duy nhất (không có dạng phẳng riêng cho AI); `get_step_types` mô tả khối + điều kiện; lỗi kiểm tra trả `stepId` của bước con
   - Sau này (28): đọc chữ trong vùng vào biến (OCR đã có từ 25e) / clipboard vào biến, đặt / cộng biến, so sánh biến trong `cond`, lặp theo từng dòng CSV
@@ -566,3 +570,4 @@ Người dùng gõ trên Claude: *"tạo kịch bản mở bài Tinh Hà Say 2 t
 - **2026-10-17** – Bước 25b (Khi thất bại: thử lại / bỏ qua / nhảy tới bước) làm sớm; kế hoạch bước 20 viết lại thành khối điều kiện (Nếu / Lặp / Nhóm / Thoát / Dừng, cây bước, version 2), xếp lên trước 25c. `go test ./...`, `npm run build`, `npm test` OK; chưa kiểm tra tay.
 - **2026-10-17** – Bước 20a: khối Nếu / Nhóm-Lặp / Thoát / Dừng + điều kiện (ảnh, chữ, màu, input, bước trước, và / hoặc) ở model + engine + kiểm tra, file version 3. `go test ./...` (8 test mới), `npm run build`, `npm test` OK; thử thật khối Nếu với OCR thanh menu. Chưa có UI soạn khối (20b).
 - **2026-10-17** – Bước 20b: danh sách bước dạng cây (thụt lề, đánh số 9.1, Nếu không, thêm vào khối, gập / mở, kéo vào / ra khối), store + input + overlay + xem trước duyệt cây, Ctrl+K thêm khối / bọc bước, inspector khối cơ bản. `npm run build`, `npm test` (32), `go test ./...` OK; chụp headless. Chưa kiểm tra tay kéo thả.
+- **2026-10-17** – Bước 20c: điều kiện thấy ảnh / màu pixel / nhiều điều kiện (và / hoặc) trong inspector, khoanh ảnh + chọn điểm cho điều kiện, Thử điều kiện (`TestCond`). `go test ./...`, `npm run build`, `npm test` (34) OK; thử thật TestCond trên thanh menu. Chưa kiểm tra tay trong app.

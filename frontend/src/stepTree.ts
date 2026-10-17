@@ -1,7 +1,7 @@
 // Thao tác trên cây bước (bước 20b): khối Nếu / Nhóm có bước con `children`, nhánh `else` (Nếu không, hoặc
 // "Khi thất bại → chạy bước khác"). Hàm thuần, không đụng store – scriptStore gọi rồi ghi kết quả (hoàn tác như cũ).
 // Đánh số giống Go (blocks.go walkSteps): bước con "3.1", nhánh else đánh số tiếp sau nhánh đúng.
-import { Step } from './types';
+import { Cond, Step } from './types';
 
 export type Branch = 'children' | 'else';
 // Vị trí trong cây: danh sách nào (gốc khi parent null), chỗ thứ mấy.
@@ -179,4 +179,30 @@ export function dropLoc(steps: Step[], id: string, above: Row | null): Loc {
       return { ...above.f.loc, index: idx(above.f.loc.parent, above.f.loc.branch, s.id) };
     }
   }
+}
+
+// ---- Điều kiện lồng nhau (bước 20c): path = chỉ số trong conds từ điều kiện gốc ([] = gốc) ----
+
+export function condAt(c: Cond, path: number[]): Cond | undefined {
+  let cur: Cond | undefined = c;
+  for (const i of path) cur = cur?.conds?.[i];
+  return cur;
+}
+
+// Thay điều kiện tại path bằng f(điều kiện cũ) – trả điều kiện gốc mới.
+export function updateCondAt(c: Cond, path: number[], f: (x: Cond) => Cond): Cond {
+  if (!path.length) return f(c);
+  const [i, ...rest] = path;
+  return { ...c, conds: (c.conds ?? []).map((x, j) => (j === i ? updateCondAt(x, rest, f) : x)) };
+}
+
+// Xoá điều kiện con tại path; nhóm và / hoặc chỉ còn 1 điều kiện thì gỡ nhóm (giữ cái còn lại, cộng dồn "đảo").
+export function removeCondAt(c: Cond, path: number[]): Cond {
+  const parent = path.slice(0, -1);
+  const i = path[path.length - 1];
+  return updateCondAt(c, parent, (g) => {
+    const conds = (g.conds ?? []).filter((_, j) => j !== i);
+    if (conds.length === 1) return { ...conds[0], not: !!conds[0].not !== !!g.not || undefined };
+    return { ...g, conds };
+  });
 }

@@ -205,7 +205,7 @@ export const sampleSteps: Step[] = [
   { id: '8', type: 'key', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: ['enter'], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
   // khối (bước 20) – xem giao diện cây trên trình duyệt
   makeStep({
-    id: '9', type: 'if', clicks: 0, delayAfter: 0, cond: { kind: 'text', findText: 'Nhắn tin', waitMs: 3000 },
+    id: '9', type: 'if', clicks: 0, delayAfter: 0, cond: { kind: 'all', conds: [{ kind: 'text', findText: 'Nhắn tin', waitMs: 3000 }, { kind: 'pixel', points: [{ x: 40, y: 40 }], color: '#1877F2', tolerance: 10 }] },
     children: [
       makeStep({ id: '9a', type: 'clickImage', imageSource: 'prev', delayAfter: 500 }),
       makeStep({ id: '9b', type: 'type', clicks: 0, text: 'Chào bạn', delayAfter: 300 }),

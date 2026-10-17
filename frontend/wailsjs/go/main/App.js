@@ -130,6 +130,10 @@ export function StopScript() {
   return window['go']['main']['App']['StopScript']();
 }
 
+export function TestCond(arg1, arg2, arg3) {
+  return window['go']['main']['App']['TestCond'](arg1, arg2, arg3);
+}
+
 export function ValidateScript(arg1, arg2) {
   return window['go']['main']['App']['ValidateScript'](arg1, arg2);
 }

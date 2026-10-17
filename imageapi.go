@@ -70,12 +70,7 @@ func (a *App) CaptureTemplate(r Rect) (TemplateShot, error) {
 
 // FindImage thử tìm ảnh mẫu của bước stepID trên màn hình hiện tại (một lần, không chờ) – nút "Thử tìm".
 func (a *App) FindImage(sc Script, stepID string) (FindResult, error) {
-	var s *Step
-	for i := range sc.Steps {
-		if sc.Steps[i].ID == stepID {
-			s = &sc.Steps[i]
-		}
-	}
+	s := findStepByID(sc.Steps, stepID)
 	if s == nil {
 		return FindResult{}, errors.New("không có bước này")
 	}
