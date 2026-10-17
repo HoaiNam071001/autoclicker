@@ -116,6 +116,22 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class OnFail {
+	    retries?: number;
+	    action: string;
+	    goto?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new OnFail(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.retries = source["retries"];
+	        this.action = source["action"];
+	        this.goto = source["goto"];
+	    }
+	}
 	export class Point {
 	    x: number;
 	    y: number;
@@ -171,6 +187,7 @@ export namespace main {
 	    textExact?: boolean;
 	    textNoAccent?: boolean;
 	    occurrence?: number;
+	    onFail?: OnFail;
 	    color?: string;
 	    tolerance?: number;
 	
@@ -216,6 +233,7 @@ export namespace main {
 	        this.textExact = source["textExact"];
 	        this.textNoAccent = source["textNoAccent"];
 	        this.occurrence = source["occurrence"];
+	        this.onFail = this.convertValues(source["onFail"], OnFail);
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	    }
@@ -414,6 +432,7 @@ export namespace main {
 		    return a;
 		}
 	}
+	
 	
 	
 	

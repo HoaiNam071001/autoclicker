@@ -8,10 +8,17 @@ type StepTypeDoc struct {
 	Type     string   `json:"type"`
 	Label    string   `json:"label"`    // tên tiếng Việt trên UI
 	Desc     string   `json:"desc"`     // làm gì, khi nào dùng
-	Fields   []string `json:"fields"`   // trường riêng của loại này (ngoài id, type, enabled, delayAfter, jitterMs)
+	Fields   []string `json:"fields"`   // trường riêng của loại này (ngoài trường chung, xem commonFieldsDoc)
 	Pinnable []string `json:"pinnable"` // trường ghim được làm input (inputs.go)
 	Example  string   `json:"example"`  // một bước JSON hợp lệ
 }
+
+// commonFieldsDoc – trường mọi loại bước đều có.
+const commonFieldsDoc = `id (ổn định, để sửa / nhảy tới), type, enabled, delayAfter (ms chờ sau bước), jitterMs (± ms ngẫu nhiên). ` +
+	`onFail {retries, action, goto}: bước thất bại (chờ ảnh / chữ / màu hết giờ, lỗi) thì thử lại thêm retries lần (0–100), ` +
+	`vẫn không được thì action: "stop" dừng kịch bản (mặc định khi không có onFail), "next" bỏ qua sang bước sau, ` +
+	`"goto" nhảy tới bước có id = goto (trước hoặc sau; tối đa 1000 lần nhảy mỗi vòng). ` +
+	`Vd {"retries":2,"action":"goto","goto":"s5"}.`
 
 var stepTypeDocs = []StepTypeDoc{
 	{StepClick, "Click", "Click chuột Clicks lần tại points[0] (neo theo cạnh vùng, xem anchor.go).",

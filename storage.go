@@ -118,6 +118,14 @@ func checkStep(s *Step) error {
 	if s.ImageSource != "" && s.ImageSource != ImageFromPrev && s.ImageSource != ImageFromSearch {
 		return fmt.Errorf("nguồn vị trí ảnh không hợp lệ: %q", s.ImageSource)
 	}
+	if f := s.OnFail; f != nil {
+		if f.Action != FailStop && f.Action != FailNext && f.Action != FailGoto {
+			return fmt.Errorf("cách xử lý khi thất bại không hợp lệ: %q", f.Action)
+		}
+		if f.Retries < 0 || f.Retries > maxRetries {
+			return fmt.Errorf("số lần thử lại phải trong 0–%d", maxRetries)
+		}
+	}
 	if s.FindBy != "" && s.FindBy != FindByText {
 		return fmt.Errorf("cách tìm không hợp lệ: %q", s.FindBy)
 	}

@@ -8,6 +8,11 @@ export type Point = { x: number; y: number };
 // Điểm lưu trong bước: neo theo cạnh vùng từng trục (khớp Point trong model.go).
 export type StepPoint = Point & { ax?: Anchor; ay?: Anchor };
 export type Rect = { x: number; y: number; w: number; h: number };
+// Khi bước thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm retries lần, rồi action. Khớp OnFail trong model.go.
+export type OnFail = { retries?: number; action: 'stop' | 'next' | 'goto'; goto?: string };
+// Bước có thể "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại
+export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'open'];
+
 export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel';
 export type ScrollDirection = 'up' | 'down' | 'left' | 'right';
 export type MouseButton = 'left' | 'right' | 'center';
@@ -53,6 +58,7 @@ export interface Step {
   textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
   textNoAccent?: boolean; // bỏ qua dấu
   occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu
+  onFail?: OnFail; // bước thất bại: bỏ trống = dừng kịch bản (engine.go runWithRetry)
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
 }

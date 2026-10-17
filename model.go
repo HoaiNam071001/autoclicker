@@ -91,12 +91,29 @@ type Step struct {
 	TextExact     bool    `json:"textExact,omitempty"`    // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
 	TextNoAccent  bool    `json:"textNoAccent,omitempty"` // FindBy text: bỏ qua dấu
 	Occurrence    int     `json:"occurrence,omitempty"`   // FindBy text: chỗ thứ mấy (trên → dưới, trái → phải); 0 = chỗ đầu
+	OnFail        *OnFail `json:"onFail,omitempty"`       // bước thất bại (không thấy ảnh / chữ / màu, lỗi): nil = dừng kịch bản
 	Color         string  `json:"color,omitempty"`        // waitPixel: #RRGGBB
 	Tolerance     int     `json:"tolerance,omitempty"`    // waitPixel: sai số mỗi kênh màu (0–255)
 }
 
 // Step.FindBy
 const FindByText = "text"
+
+// OnFail – làm gì khi bước thất bại: thử lại thêm Retries lần, vẫn không được thì Action.
+// (Bước 20 thêm Action "else" = chạy các bước nhánh khác rồi đi tiếp – xem docs/TASKS.md.)
+type OnFail struct {
+	Retries int    `json:"retries,omitempty"` // 0 = không thử lại
+	Action  string `json:"action"`            // stop | next | goto
+	Goto    string `json:"goto,omitempty"`    // action goto: id bước nhảy tới (cùng danh sách, trước hoặc sau)
+}
+
+const (
+	FailStop = "stop" // dừng kịch bản, báo lỗi (mặc định)
+	FailNext = "next" // bỏ qua, sang bước sau
+	FailGoto = "goto" // nhảy tới bước Goto
+)
+
+const maxRetries = 100
 
 // Cách neo điểm mới đặt (Script.AnchorMode).
 const (

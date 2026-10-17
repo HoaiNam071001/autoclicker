@@ -105,6 +105,27 @@ func validateScript(sc Script, screen Rect) error {
 	if enabled == 0 {
 		return &ScriptError{Msg: "kịch bản không có bước nào được bật"}
 	}
+	for i, s := range sc.Steps {
+		f := s.OnFail
+		if !s.Enabled || f == nil {
+			continue
+		}
+		if f.Retries < 0 || f.Retries > maxRetries {
+			return stepErr(i, s, "onFail", "số lần thử lại phải trong 0–%d", maxRetries)
+		}
+		if f.Action != FailGoto {
+			continue
+		}
+		j := slices.IndexFunc(sc.Steps, func(x Step) bool { return x.ID == f.Goto })
+		switch {
+		case j < 0:
+			return stepErr(i, s, "onFail", "khi thất bại nhảy tới bước không còn trong kịch bản – chọn lại bước")
+		case j == i:
+			return stepErr(i, s, "onFail", "khi thất bại nhảy về chính bước này – dùng “thử lại” thay vì nhảy")
+		case !sc.Steps[j].Enabled:
+			return stepErr(i, s, "onFail", "khi thất bại nhảy tới bước %d đang tắt", j+1)
+		}
+	}
 	return nil
 }
 
@@ -117,7 +138,9 @@ type Progress struct {
 	Clicks    int           `json:"clicks"`
 	ElapsedMs int64         `json:"elapsedMs"` // không tính thời gian tạm dừng
 	Paused    bool          `json:"paused"`
-	Wait      *WaitProgress `json:"wait,omitempty"` // đang chờ ảnh / pixel
+	Wait      *WaitProgress `json:"wait,omitempty"`    // đang chờ ảnh / pixel
+	Retry     int           `json:"retry,omitempty"`   // đang thử lại lần thứ mấy (0 = lần đầu)
+	Retries   int           `json:"retries,omitempty"` // số lần thử lại tối đa của bước hiện tại
 }
 
 // progressEvery – giãn cách tối thiểu giữa 2 lần báo tiến độ trong cùng một bước (tránh dội event).
@@ -192,34 +215,81 @@ func (e *engine) run(ctx context.Context) error {
 	e.prog = Progress{Loops: sc.Loops, Total: total}
 	e.mu.Unlock()
 
+	order := make([]int, len(sc.Steps)) // thứ tự bước trong các bước đang bật (hiện trên thanh mini)
+	n := 0
+	for i, s := range sc.Steps {
+		if s.Enabled {
+			n++
+		}
+		order[i] = n
+	}
 	for loop := 1; sc.Loops == 0 || loop <= sc.Loops; loop++ {
-		n := 0
-		for i, s := range sc.Steps {
+		jumps := 0
+		for i := 0; i < len(sc.Steps); i++ {
+			s := sc.Steps[i]
 			if !s.Enabled {
 				continue
 			}
-			n++
-			err := e.gate.wait(runCtx)
-			if err == nil {
-				e.update(true, func(p *Progress) { p.Loop, p.Step = loop, n })
-				err = e.runStep(runCtx, s)
-			}
+			err := e.runWithRetry(runCtx, s, loop, order[i])
 			if err == nil {
 				err = sleep(runCtx, e.jitterMs(s.DelayAfter, s.JitterMs))
 			}
-			if err != nil {
-				if ctx.Err() == nil && errors.Is(err, context.DeadlineExceeded) {
-					return nil // hết MaxMinutes
-				}
-				if ctx.Err() != nil {
-					return ctx.Err()
-				}
-				e.failed = s.ID
-				return fmt.Errorf("vòng %d, bước %d: %w", loop, i+1, err)
+			if err == nil {
+				continue
 			}
+			if ctx.Err() == nil && errors.Is(err, context.DeadlineExceeded) {
+				return nil // hết MaxMinutes
+			}
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			if f := s.OnFail; f != nil {
+				switch f.Action {
+				case FailNext:
+					continue
+				case FailGoto:
+					if jumps++; jumps > maxJumps {
+						e.failed = s.ID
+						return fmt.Errorf("vòng %d, bước %d: nhảy bước quá %d lần trong một vòng – kiểm tra “khi thất bại” có tạo vòng lặp không dừng không", loop, i+1, maxJumps)
+					}
+					i = slices.IndexFunc(sc.Steps, func(x Step) bool { return x.ID == f.Goto }) - 1 // vòng for tăng lên 1
+					continue
+				}
+			}
+			e.failed = s.ID
+			return fmt.Errorf("vòng %d, bước %d: %w", loop, i+1, err)
 		}
 	}
 	return nil
+}
+
+// maxJumps – số lần "khi thất bại: nhảy tới bước" tối đa trong một vòng (chặn vòng lặp không dừng).
+const maxJumps = 1000
+
+// runWithRetry chạy bước, thất bại thì thử lại thêm OnFail.Retries lần (thanh mini hiện "thử lại x / y").
+// Bước tìm ảnh thất bại thì quên chỗ thấy cũ để Click theo kết quả bước trước không click nhầm chỗ cũ.
+func (e *engine) runWithRetry(ctx context.Context, s Step, loop, n int) error {
+	tries := 1
+	if s.OnFail != nil {
+		tries += max(s.OnFail.Retries, 0)
+	}
+	var err error
+	for t := 1; t <= tries; t++ {
+		if err = e.gate.wait(ctx); err != nil {
+			return err
+		}
+		e.update(true, func(p *Progress) {
+			p.Loop, p.Step, p.Retry, p.Retries = loop, n, t-1, tries-1
+		})
+		if err = e.runStep(ctx, s); err == nil || ctx.Err() != nil {
+			break
+		}
+		e.hasFound = false
+	}
+	if tries > 1 {
+		e.update(true, func(p *Progress) { p.Retry, p.Retries = 0, 0 })
+	}
+	return err
 }
 
 // update sửa tiến độ rồi báo sang frontend (force = báo ngay, không giãn cách).

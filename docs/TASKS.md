@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 25 (chờ ảnh, click theo ảnh, chờ pixel). 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 25b → 25c → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
+- **Đang làm:** chờ kiểm tra tay 25 / 25b / 25e; kế tiếp 20a (khối điều kiện – model + engine). 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 20 (khối điều kiện: 20a → 20d) → 25c → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17 (chọn màn hình cho overlay – 17; tìm theo chữ – 25e)
 
 ## Quyết định đã chốt
@@ -29,6 +29,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - **UI trước, logic sau** (27b): tính năng chưa có vẫn hiện trong app nhưng tắt + nhãn *Sắp có*; dữ liệu giả chỉ ở màn `#demo` (`frontend/src/demo/`), không thêm loại bước chưa làm vào `types.ts` / `model.go`.
 - **Input của kịch bản** áp vào bản sao trước khi chạy (`resolveInputs`), engine không đổi; giá trị lần trước / preset lưu trên máy, không ghi vào file kịch bản; input trong nhóm lặp dùng cùng giá trị mọi vòng (mỗi vòng một giá trị → CSV, bước 28).
 - **File kịch bản** (21, 2026-10-17): `.json` có `version` (hiện 1); mở file chỉ kiểm tra cấu trúc (`checkScript`), không chạy `validateScript` – bản soạn dở vẫn mở được, lúc Chạy mới kiểm tra đủ. *Lưu thành* đổi tên kịch bản theo tên file. Mỗi lần mở một kịch bản; bản nháp tự lưu ghi cả đường dẫn + cờ chưa lưu. Đóng app chọn *Không lưu* thì xoá nháp.
+- **Rẽ nhánh = cây khối** (20, 2026-10-17): Nếu / Ngược lại, Lặp, Nhóm, Thoát, Dừng là loại bước có bước con; *Khi thất bại* (25b: thử lại / bỏ qua / nhảy / chạy nhánh khác) là dạng gọn trên từng bước. *Nhảy tới bước* chỉ trong cùng danh sách, tối đa 1000 lần mỗi vòng. Điều kiện dùng lại phần tìm ảnh / chữ / màu đã có.
 - **Gõ chữ / phím tắt đưa vào MVP** (loại bước `type`, `key`) thay vì Phase 2, để model, engine, form làm một lần.
 - Toạ độ lưu theo **toạ độ màn hình thật (robotgo)**. Overlay tự đo độ lệch cửa sổ ↔ màn hình (so `clientX/Y` với `robotgo.Location` khi chuột đứng yên) thay vì tính từ vị trí cửa sổ – Wails macOS đặt cửa sổ dưới menu bar.
 - Cửa sổ luôn **frameless + nền trong suốt** (Wails v2 không đổi được lúc chạy); MainScreen tự vẽ thanh kéo và nút thu nhỏ / đóng.
@@ -202,9 +203,10 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 | 5 | 30. Sửa nhiều điểm | Dựa vào neo (29) + UI mới (27); có kịch bản lưu được (21) mới đáng đầu tư chỉnh sửa hàng loạt; kèm hoàn tác / làm lại |
 | 6 | 21b. Input | Cần 21 (preset theo từng kịch bản); mở đường cho chuỗi web / app (23, 25) |
 | 7–8 | 23 → 25 | Cuộn / mở URL đơn giản, rồi chờ ảnh – cốt lõi tương tác web / app |
-| 9–11 | 25b → 25c → 26 | Xử lý khi không thấy ảnh, debug chỗ dễ lỗi, focus cửa sổ – xong 26 là chạy được ví dụ Facebook |
+| 9 | 25b. Khi thất bại | Xong 2026-10-17 (làm sớm cùng 25e) – nền cho khối điều kiện |
+| 10 | 20. Khối điều kiện (Nếu / Lặp / Nhóm) | Người dùng cần if / else ở nhiều chỗ (2026-10-17); làm trước 25c để chạy từng bước / nhật ký dựng luôn trên cây |
+| 11–12 | 25c → 26 | Debug chỗ dễ lỗi, focus cửa sổ – xong 26 là chạy được ví dụ Facebook |
 | 12 | 25d. Web qua DOM | Người dùng yêu cầu (2026-10-17): web bền hơn ảnh mẫu; cần focus (26), hết giờ (25b); làm trước MCP vì AI dùng DOM tốt hơn ảnh chụp |
-| 13 | 20. Nhóm bước | Dùng lại thử lại / bỏ qua của 25b |
 | 14 | 22. Hẹn giờ / CLI / API local | Chạy không cần ngồi canh; dựng server HTTP + token mà MCP dùng lại |
 | 15–17 | 31a → 31b → 31c. MCP cho AI | Người dùng chọn làm sau (2026-10-17); các bước trước đã có mục *Chuẩn bị cho MCP* nên lúc này chủ yếu là bọc hàm Go sẵn có thành tool |
 | 18–19 | 24 → 28 | Ghi macro, mở rộng |
@@ -337,11 +339,13 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] Test `TestFindText`, `TestWaitTextThenClick`, `TestWaitTextTimeout`, `TestValidateTextStep`; thật: cả màn 1920×1080 ~0,9 s, thanh menu 1920×40 thấy "Bookmarks" ~0,6 s
   - [x] Tìm ảnh chính xác hơn: khác tỷ lệ (mẫu 1x, màn Retina) thì thu nhỏ ảnh chụp thay vì phóng to mẫu; mẫu ít tương phản (chữ xám nhạt) không còn bị bước tìm thô coi là một màu; 12 ứng viên. Thử thật màn MacBook: đúng 37/127 → 106/127 (16 chỗ giống hệt). Test `TestFindTemplateLowContrast`, `TestMatchScaledDownscalesScreen`
   - [ ] Kiểm tra tay: kịch bản Facebook đổi sang Chờ chữ / Click theo chữ
-- [ ] **25b. Xử lý khi hết giờ** – Chờ ảnh cần hướng xử lý khi không thấy.
-  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
-  - [ ] Model: `onTimeout: { action: "retry" | "skip" | "stop", retries, then: "skipGroup" | "stop" }`
-  - [ ] Engine: thử lại N lần, bỏ qua bước, bỏ qua phần còn lại của nhóm, hoặc dừng (lý do vào `engine:stopped`)
-  - [ ] UI [`Main`]: segmented Thử lại / Bỏ qua / Dừng, số lần thử, "Thử hết vẫn không thấy"; chip trên thẻ bước; thanh mini "thử lại x / y"
+- [x] **25b. Khi thất bại** *(làm sớm 2026-10-17, người dùng yêu cầu if / else – đây là phần nền, phần khối điều kiện ở 20)* – Mỗi bước có cài đặt *Khi không thấy*: thử lại N lần, rồi **Dừng kịch bản / Bỏ qua / Nhảy tới bước**.
+  - [x] Model `onFail { retries, action: stop | next | goto, goto }` (nil = dừng như cũ); `checkStep` kiểm action / số lần, `validateScript` kiểm bước nhảy tới còn, đang bật, không phải chính nó
+  - [x] Engine (`runWithRetry`): thử lại ngay (không chờ delayAfter), thất bại thì quên chỗ thấy cũ (Click theo kết quả bước trước không click nhầm chỗ cũ); bỏ qua = sang bước sau; nhảy tới bước trước / sau trong cùng vòng, tối đa 1000 lần nhảy mỗi vòng (chặn vòng lặp không dừng); tiến độ `retry` / `retries`
+  - [x] UI: inspector *Khi không thấy / không đổi màu / mở không được* (Chờ ảnh, Click theo ảnh, Chờ pixel, Mở) – số lần thử lại, segmented, chọn bước nhảy tới; chip trên thẻ bước (`↻2 → bước 5`); thanh mini "thử lại x / y"
+  - [x] Test `TestOnFailRetry`, `TestOnFailNextSkipsStaleClick`, `TestOnFailGoto`, `TestValidateOnFail`; mô tả cho AI ở `commonFieldsDoc` (`steptypes.go`)
+  - [ ] Kiểm tra tay: chờ chữ không thấy → thử lại 2 lần → nhảy tới bước cuộn rồi quay lại
+  - Không làm: `skipGroup` (bước 20 dùng *Thoát khối* thay)
 - [ ] **25c. Debug từng bước + lịch sử chạy** – Chờ ảnh là chỗ dễ lỗi nhất.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
   - [ ] Chạy từ bước đang chọn; chạy từng bước (nút Tiếp / F10); breakpoint trên thẻ bước
@@ -364,11 +368,25 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [ ] UI: inspector (selector + dự phòng, tab, chuột thật / chạy nền), **Thử tìm** (khung phần tử trên overlay, toạ độ, chữ đọc được, ms); nút **Chọn phần tử trên trang** (inject script tô viền phần tử dưới chuột, click → tự sinh selector theo thứ tự ưu tiên ở trên); trạng thái kết nối trình duyệt
   - [ ] Chuẩn bị cho MCP (31): `FindElement(selector) → {rect màn hình, chữ, hiện / bị che}` và `PageOutline()` (cây accessibility rút gọn cho AI) là hàm Go độc lập UI – Thử tìm, Xem trên màn hình, MCP dùng chung
   - [ ] Kiểm tra tay: trang có nút "Xem lịch sử" nằm dưới màn hình → bước chờ + click chạy đúng khi dời cửa sổ, zoom 125%, mở DevTools, có popup che
-- [ ] **20. Nhóm bước** – Lặp riêng một nhóm N lần; dùng chung thử lại / bỏ qua của 25b.
-  - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
-  - [ ] Model: `group` (`name`, `repeat` – ghim được, `children`); tăng `version` + chuyển đổi file cũ
-  - [ ] Engine: chạy lồng, tiến độ theo bước con; `skipGroup` từ 25b
-  - [ ] UI [`Main`]: khung `border-dashed border-line-strong bg-group rounded-group p-2`, đầu khung icon `group` + tên + chip `lặp ×N`; kéo bước vào / ra; overlay + Xem trước đánh số theo thứ tự thực tế
+- [ ] **20. Khối điều kiện: Nếu / Ngược lại, Lặp, Nhóm** *(người dùng yêu cầu 2026-10-17: "không thấy thì làm gì tiếp" – chạy lại, chạy vài bước khác như cuộn rồi đi tiếp, bỏ bước…; quy tắc sẽ phức tạp dần)* – Gộp bước 20 cũ (nhóm lặp N lần) và mục *if / else* của 28. Nền: 25b (Khi thất bại).
+  - **Hướng chốt:** kịch bản thành **cây khối** (như Scratch / Shortcuts của Apple), không dùng *nhảy tới bước* làm cách chính – nhảy (25b) giữ cho trường hợp đơn giản, chỉ trong cùng danh sách. Mỗi khối là một bước có danh sách bước con; rẽ nhánh / lặp / thoát là loại bước, không phải cờ trên bước thường → engine, kiểm tra, AI (MCP) đều đọc được cùng một cấu trúc.
+  - Loại bước mới:
+    - `if` **Nếu** `cond` → chạy `children`, không thì `else` (*Nếu không, nếu…* = một `if` nằm trong `else`, UI hiện liền một khối)
+    - `group` **Nhóm / Lặp**: chạy `children` theo `repeat` = N lần (ghim được) | `until` cond (lặp đến khi đúng) | `while` cond (lặp khi còn đúng); `maxLoops` chặn lặp vô hạn (mặc định 100); nhóm 1 lần = chỉ gom + đặt tên + gập lại
+    - `break` **Thoát khối lặp** (thường đặt trong `if`), `stop` **Dừng kịch bản** (thành công / báo lỗi kèm lời nhắn)
+    - `onFail.action = "else"` (25b): bước thất bại thì chạy các bước `else` của chính nó rồi đi tiếp – dạng gọn của `Nếu thấy X … Nếu không …`, UI hiện nhánh *Khi không thấy* thụt vào dưới bước
+  - Điều kiện `cond`:
+    - `image` / `text` / `pixel`: dùng lại phần tìm của Chờ ảnh / Chờ chữ / Chờ pixel (cùng trường + *Thử tìm*); `waitMs` = chờ tối đa trước khi kết luận *không thấy* (0 = xem một lần); thấy thì nhớ chỗ thấy cho *Click theo kết quả bước trước*
+    - `input`: so giá trị input / biến – `=`, `≠`, *chứa*, `>`, `<`, *trống*
+    - `result`: bước trước thành công / thất bại (kết hợp với *Bỏ qua* của 25b)
+    - ghép: `all` (và) / `any` (hoặc) danh sách điều kiện, `not` (đảo) – UI ban đầu chỉ 1 điều kiện + *đảo*, ghép nhiều làm ở 20c
+  - [ ] **20a. Model + engine (chưa UI, sửa bằng JSON / test):** `Step.children`, `Step.else`, `Cond`; `version` 2 (file v1 mở bình thường, app cũ gặp file v2 báo "file từ bản mới hơn"); hàm duyệt cây dùng chung (`walkSteps` – kiểm tra, `resolveInputs`, ghim theo `stepId`, tìm bước lỗi); engine chạy đệ quy, `break` / `stop` / goto bằng tín hiệu (lỗi có kiểu), goto chỉ trong cùng danh sách; tiến độ theo đường dẫn (`3.2`, vòng lặp trong `2 / 5`); `validateScript` đệ quy (điểm trước / ảnh trước tính theo thứ tự duyệt, có nhánh thì cảnh báo thay vì chặn); `steptypes.go` thêm khối + ví dụ lồng. Test: if / else, lặp N / until / while + maxLoops, break trong lặp lồng, stop, onFail else, input trong khối, file v1 → v2
+  - [ ] **20b. Danh sách bước dạng cây:** store thao tác theo cây (tìm / sửa / xoá / nhân bản / chèn vào khối, hoàn tác như cũ); thẻ khối [`Main`]: khung `border-dashed border-line-strong bg-group rounded-group p-2`, đầu khung icon + tên + chip `lặp ×N` / điều kiện, gập / mở, phần *Nếu không*; kéo bước vào / ra khối (dnd-kit nhiều container); đánh số `3`, `3.1`, `3.2`; Ctrl+K thêm *Nếu…*, *Lặp…*, *Nhóm*, *Thoát khối lặp*, *Dừng kịch bản* (chèn vào khối đang chọn); chọn nhiều bước → *Gom vào nhóm* / *Bọc trong Nếu*
+  - [ ] **20c. Inspector điều kiện:** chọn loại (ảnh / chữ / màu / input / bước trước) – dùng lại `ImageSearchFields` / `TextSearchFields` / phần chờ pixel; nút *Thử điều kiện* → "Đúng / Sai lúc này" (Go `TestCond`, dùng lại `FindImage`); *đảo*; ghép và / hoặc; khối lặp: N lần / đến khi / khi còn + maxLoops
+  - [ ] **20d. Overlay, Xem trước, thanh mini:** marker đánh số theo cây, bước trong nhánh *Nếu không* vẽ nét đứt; Xem trước: điều kiện không biết trước → mặc định nhánh *đúng*, công tắc "giả sử không thấy" theo từng khối, lặp chạy 1 vòng kèm nhãn ×N; thanh mini "Bước 3.2 · Nếu thấy chữ “Gửi” → đúng", "lặp 2 / 5"
+  - [ ] Chuẩn bị cho MCP (31): cây JSON là định dạng duy nhất (không có dạng phẳng riêng cho AI); `get_step_types` mô tả khối + điều kiện; lỗi kiểm tra trả `stepId` của bước con
+  - Sau này (28): đọc chữ trong vùng vào biến (OCR đã có từ 25e) / clipboard vào biến, đặt / cộng biến, so sánh biến trong `cond`, lặp theo từng dòng CSV
+  - Xong khi: kịch bản Facebook "Nếu thấy chữ “Nhắn tin” → click, gõ; Nếu không → cuộn xuống 3 nấc, lặp đến khi thấy (tối đa 10 lần)" chạy được, sửa được hết bằng UI
 - [ ] **22. Hẹn giờ + thông báo + CLI / API local** – Chạy không cần ngồi canh.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
   - [ ] Hẹn giờ: chạy lúc HH:mm (một lần / hằng ngày) với preset input đã chọn; chip giờ trong thư viện; app thu xuống khay
@@ -407,7 +425,7 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [ ] CSV: mỗi cột là một input key, chạy kịch bản cho từng dòng (mỗi dòng một lần `resolveInputs`)
   - [ ] OCR: đọc chữ trong vùng vào biến, rẽ nhánh theo nội dung (Tesseract)
   - [ ] Tìm phần tử bằng AI: mô tả bằng lời ("nút Gửi"), model có vision trả toạ độ; dự phòng khi ảnh mẫu không khớp
-  - [ ] Biến và điều kiện: đọc clipboard / OCR vào biến, `if / else`, "lặp đến khi thấy ảnh"
+  - [ ] Biến: đọc clipboard / OCR vào biến, đặt / cộng biến – điều kiện `if / else`, "lặp đến khi thấy" đã chuyển lên **20**
   - [ ] Thư viện mẫu, chia sẻ gói kịch bản (kèm ảnh mẫu), thống kê lần chạy (SQLite)
 
 
@@ -530,3 +548,4 @@ Người dùng gõ trên Claude: *"tạo kịch bản mở bài Tinh Hà Say 2 t
 - **2026-10-17** – Bước 17: chọn màn hình cho overlay khi có nhiều màn (`Displays`, `SetOverlayDisplay`, nút Màn 1 / 2 trên thanh overlay, *Toàn màn này*). `go test ./...`, `npm run build`, `npm test` OK; chưa kiểm tra tay trên 2 màn.
 - **2026-10-17** – Sửa (người dùng báo): chờ ảnh lỗi khi vùng ở màn phụ – chụp / tìm ảnh / lấy màu được trên mọi màn (ScreenCaptureKit theo màn chứa vùng). `go test ./...` OK, chụp thật màn MacBook OK; chưa chạy lại kịch bản của người dùng.
 - **2026-10-17** – Bước 25e: tìm theo chữ (Vision macOS) cho Chờ ảnh / Click theo ảnh + sửa độ chính xác tìm ảnh (khác tỷ lệ màn, mẫu ít tương phản). `go test ./...`, `npm run build`, `npm test` OK; thử thật đọc chữ + tìm ảnh trên 2 màn. Chưa kiểm tra tay trong app.
+- **2026-10-17** – Bước 25b (Khi thất bại: thử lại / bỏ qua / nhảy tới bước) làm sớm; kế hoạch bước 20 viết lại thành khối điều kiện (Nếu / Lặp / Nhóm / Thoát / Dừng, cây bước, version 2), xếp lên trước 25c. `go test ./...`, `npm run build`, `npm test` OK; chưa kiểm tra tay.
