@@ -44,7 +44,7 @@ func TestStepTypeDocs(t *testing.T) {
 			}
 		}
 	}
-	for _, typ := range []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen, StepWaitImage, StepClickImage, StepWaitPixel} {
+	for _, typ := range stepTypes {
 		if _, err := (&App{}).NewStep(typ); err != nil {
 			t.Errorf("NewStep(%s): %v", typ, err)
 		}

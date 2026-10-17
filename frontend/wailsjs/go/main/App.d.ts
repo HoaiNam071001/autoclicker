@@ -70,4 +70,6 @@ export function StepTypes():Promise<Array<main.StepTypeDoc>>;
 
 export function StopScript():Promise<void>;
 
+export function TestNode(arg1:main.Script,arg2:string):Promise<main.NodeTest>;
+
 export function ValidateScript(arg1:main.Script,arg2:Record<string, any>):Promise<void>;

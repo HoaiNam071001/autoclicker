@@ -3,44 +3,246 @@
     "name": "chuỗi thẳng, node không đi tới được xếp cuối",
     "script": {
       "start": "a",
-      "steps": [{"id": "x", "type": "wait"}, {"id": "a", "type": "wait"}, {"id": "b", "type": "wait"}],
-      "edges": [{"id": "1", "from": "a", "port": "success", "to": "b"}]
+      "steps": [
+        {
+          "id": "x",
+          "type": "wait"
+        },
+        {
+          "id": "a",
+          "type": "wait"
+        },
+        {
+          "id": "b",
+          "type": "wait"
+        }
+      ],
+      "edges": [
+        {
+          "id": "1",
+          "from": "a",
+          "port": "success",
+          "to": "b"
+        }
+      ]
     },
-    "order": ["a", "b", "x"]
+    "order": [
+      "a",
+      "b",
+      "x"
+    ]
   },
   {
     "name": "nhánh success đi hết trước nhánh fail; vòng lặp không lặp lại node",
     "script": {
       "start": "w",
       "steps": [
-        {"id": "s", "type": "scroll"}, {"id": "t", "type": "type"}, {"id": "c", "type": "clickImage"}, {"id": "w", "type": "waitImage"}
+        {
+          "id": "s",
+          "type": "scroll"
+        },
+        {
+          "id": "t",
+          "type": "type"
+        },
+        {
+          "id": "c",
+          "type": "clickImage"
+        },
+        {
+          "id": "w",
+          "type": "waitImage"
+        }
       ],
       "edges": [
-        {"id": "1", "from": "w", "port": "fail", "to": "s"},
-        {"id": "2", "from": "w", "port": "success", "to": "c"},
-        {"id": "3", "from": "c", "port": "success", "to": "t"},
-        {"id": "4", "from": "s", "port": "success", "to": "w"}
+        {
+          "id": "1",
+          "from": "w",
+          "port": "fail",
+          "to": "s"
+        },
+        {
+          "id": "2",
+          "from": "w",
+          "port": "success",
+          "to": "c"
+        },
+        {
+          "id": "3",
+          "from": "c",
+          "port": "success",
+          "to": "t"
+        },
+        {
+          "id": "4",
+          "from": "s",
+          "port": "success",
+          "to": "w"
+        }
       ]
     },
-    "order": ["w", "c", "t", "s"]
+    "order": [
+      "w",
+      "c",
+      "t",
+      "s"
+    ]
   },
   {
     "name": "hai nhánh cùng đổ về một node",
     "script": {
       "start": "a",
-      "steps": [{"id": "a", "type": "wait"}, {"id": "b", "type": "wait"}, {"id": "c", "type": "wait"}, {"id": "d", "type": "wait"}],
+      "steps": [
+        {
+          "id": "a",
+          "type": "wait"
+        },
+        {
+          "id": "b",
+          "type": "wait"
+        },
+        {
+          "id": "c",
+          "type": "wait"
+        },
+        {
+          "id": "d",
+          "type": "wait"
+        }
+      ],
       "edges": [
-        {"id": "1", "from": "a", "port": "success", "to": "b"},
-        {"id": "2", "from": "a", "port": "fail", "to": "c"},
-        {"id": "3", "from": "b", "port": "success", "to": "d"},
-        {"id": "4", "from": "c", "port": "success", "to": "d"}
+        {
+          "id": "1",
+          "from": "a",
+          "port": "success",
+          "to": "b"
+        },
+        {
+          "id": "2",
+          "from": "a",
+          "port": "fail",
+          "to": "c"
+        },
+        {
+          "id": "3",
+          "from": "b",
+          "port": "success",
+          "to": "d"
+        },
+        {
+          "id": "4",
+          "from": "c",
+          "port": "success",
+          "to": "d"
+        }
       ]
     },
-    "order": ["a", "b", "d", "c"]
+    "order": [
+      "a",
+      "b",
+      "d",
+      "c"
+    ]
   },
   {
     "name": "start trống",
-    "script": {"start": "", "steps": [{"id": "a", "type": "wait"}, {"id": "b", "type": "wait"}], "edges": []},
-    "order": ["a", "b"]
+    "script": {
+      "start": "",
+      "steps": [
+        {
+          "id": "a",
+          "type": "wait"
+        },
+        {
+          "id": "b",
+          "type": "wait"
+        }
+      ],
+      "edges": []
+    },
+    "order": [
+      "a",
+      "b"
+    ]
+  },
+  {
+    "name": "node điều khiển: case theo thứ tự case, rồi default; Nếu đi true trước false",
+    "script": {
+      "start": "s",
+      "steps": [
+        {
+          "id": "z",
+          "type": "wait"
+        },
+        {
+          "id": "x",
+          "type": "wait"
+        },
+        {
+          "id": "w",
+          "type": "wait"
+        },
+        {
+          "id": "v",
+          "type": "end"
+        },
+        {
+          "id": "y",
+          "type": "if"
+        },
+        {
+          "id": "s",
+          "type": "switch",
+          "cases": [
+            {
+              "key": "a"
+            },
+            {
+              "key": "b"
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "1",
+          "from": "s",
+          "port": "case:b",
+          "to": "x"
+        },
+        {
+          "id": "2",
+          "from": "s",
+          "port": "default",
+          "to": "z"
+        },
+        {
+          "id": "3",
+          "from": "s",
+          "port": "case:a",
+          "to": "y"
+        },
+        {
+          "id": "4",
+          "from": "y",
+          "port": "false",
+          "to": "w"
+        },
+        {
+          "id": "5",
+          "from": "y",
+          "port": "true",
+          "to": "v"
+        }
+      ]
+    },
+    "order": [
+      "s",
+      "y",
+      "v",
+      "w",
+      "x",
+      "z"
+    ]
   }
 ]

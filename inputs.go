@@ -188,7 +188,10 @@ func resolveInputs(sc Script, values map[string]any) (Script, error) {
 	}
 
 	out := sc
-	out.Steps = slices.Clone(sc.Steps)
+	out.Steps = make([]Step, len(sc.Steps))
+	for i, s := range sc.Steps {
+		out.Steps[i] = cloneStep(s)
+	}
 	index := map[string]int{}
 	for i, s := range out.Steps {
 		index[s.ID] = i
@@ -210,36 +213,22 @@ func resolveInputs(sc Script, values map[string]any) (Script, error) {
 	}
 	for i := range out.Steps {
 		s := &out.Steps[i]
-		var field *string
-		name, escape := "", false
-		switch s.Type {
-		case StepText:
-			field, name = &s.Text, "text"
-		case StepWaitImage, StepClickImage:
-			if s.FindBy != FindByText {
-				continue
+		for _, f := range varFields(s) {
+			text, err := expandVars(*f.p, func(key string) (string, bool) {
+				if _, ok := byKey[key]; !ok {
+					return "", false
+				}
+				used[key] = true
+				if f.url { // URL: mã hoá giá trị (dấu cách, tiếng Việt, &) để không làm hỏng URL
+					return escapeURLValue(valueString(vals[key])), true
+				}
+				return valueString(vals[key]), true
+			})
+			if err != nil {
+				return Script{}, stepErr(i, *s, f.name, "%v", err)
 			}
-			field, name = &s.FindText, "findText"
-		case StepOpen:
-			// URL: mã hoá giá trị (dấu cách, tiếng Việt, &) để không làm hỏng URL
-			field, name, escape = &s.Target, "target", targetKind(s.Target) == targetURL
-		default:
-			continue
+			*f.p = text
 		}
-		text, err := expandVars(*field, func(key string) (string, bool) {
-			if _, ok := byKey[key]; !ok {
-				return "", false
-			}
-			used[key] = true
-			if escape {
-				return escapeURLValue(valueString(vals[key])), true
-			}
-			return valueString(vals[key]), true
-		})
-		if err != nil {
-			return Script{}, stepErr(i, *s, name, "%v", err)
-		}
-		*field = text
 	}
 	for _, in := range sc.Inputs {
 		if !used[in.Key] {

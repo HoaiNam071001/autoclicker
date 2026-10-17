@@ -208,6 +208,9 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges'>, reg
             break;
           case 'wait':
             break;
+          default: // node điều khiển – xem trước chưa đi theo nhánh (bước 20 F6)
+            patch({ bubble: `${stepLabel(s)} – rẽ nhánh lúc chạy thật` });
+            await wait(KEY_SHOW_MS);
         }
         if (s.delayAfter > 0) patch((st) => ({ bubble: st.bubble || `Chờ ${s.delayAfter} ms` }));
         await wait(s.delayAfter);

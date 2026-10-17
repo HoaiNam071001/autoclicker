@@ -12,6 +12,9 @@ const sample: Progress = { loop: 4, loops: 10, step: 3, total: 6, clicks: 142, e
 const R = 22;
 const CIRC = 2 * Math.PI * R;
 
+// Đang chờ gì (Progress.wait.kind – imagestep.go, nodes.go watch)
+const WAIT_LABEL: Record<string, string> = { image: 'đang tìm', text: 'đang tìm chữ', pixel: 'đang chờ màu', cond: 'đang xét điều kiện' };
+
 export default function MiniBar() {
   const engine = useEngine();
   const { steps } = useScript();
@@ -50,7 +53,7 @@ export default function MiniBar() {
         : `${paused ? 'Tạm dừng · ' : ''}${p.ref ?? 'Node'} (${p.step} / ${p.total})${cur ? `: ${cur.name || stepLabel(cur)}` : ''}`}
       lines={[
         ...(p?.retry ? [`thử lại ${p.retry} / ${p.retries}`] : []),
-        ...(w ? [`${w.kind === 'image' ? 'đang tìm' : w.kind === 'text' ? 'đang tìm chữ' : 'đang chờ màu'} ${(waitNow / 1000).toFixed(1)} / ${w.timeoutMs / 1000} s${w.kind === 'text' ? '' : `   khớp nhất ${w.best}%`}`] : []),
+        ...(w ? [`${WAIT_LABEL[w.kind] ?? 'đang chờ'} ${(waitNow / 1000).toFixed(1)} / ${w.timeoutMs / 1000} s${w.kind === 'image' || w.kind === 'pixel' ? `   khớp nhất ${w.best}%` : ''}`] : []),
         `vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`,
         ...(engine.preset ? [`bộ giá trị: ${engine.preset}`] : [])]}
       canPause={running && !counting} onPause={() => (paused ? ResumeScript() : PauseScript())} onStop={stop} />

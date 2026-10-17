@@ -6,3 +6,4 @@ export * from './geometry';
 export * from './nodes';
 export * from './points';
 export * from './multi';
+export * from './control';

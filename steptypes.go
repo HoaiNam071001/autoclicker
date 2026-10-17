@@ -34,23 +34,35 @@ const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự tron
 	`Vòng lặp = cạnh quay lại node trước (tối đa 10000 lần chạy node mỗi vòng). ` +
 	`Biến trong ô chữ (text, target, findText): {{key}} = input của kịch bản; {{n2.status}} (success | fail | skipped), {{n2.port}}, ` +
 	`{{n2.error.code}} / {{n2.error.message}}, {{n2.output.<khoá>}} = kết quả lần chạy gần nhất của node có ref n2 trong vòng này; ` +
-	`{{last.…}} = node vừa chạy trước. Kết quả mỗi node: {nodeId, ref, status, port, output, error {code, message}, logs, attempts, durationMs}; ` +
-	`error.code: not_found (chờ ảnh / chữ / màu hết giờ), permission, invalid_input (biến trỏ node chưa chạy…), internal.`
+	`{{last.…}} = node vừa chạy trước; {{vars.<tên>}} = biến node setVar đặt. Biến nhận được trong: text, target, findText, ` +
+	`cond (findText, left, right), cases (match, cond), value, message. ` +
+	`Node điều khiển rẽ nhánh theo cổng: if (true / false), switch / switchScreen (case:<key> theo từng case, rồi default / none), ` +
+	`counter (next / done – dùng để giới hạn vòng lặp), end (không có cổng: kết thúc vòng, fail = dừng kịch bản báo lỗi), setVar (success). ` +
+	`Điều kiện cond: {kind: text | image | pixel | value | all | any, not}: text = thấy chữ findText (textExact, textNoAccent, occurrence, searchArea); ` +
+	`image = thấy ảnh mẫu template (templateScale, threshold, searchArea); pixel = points[0] có màu color ± tolerance; ` +
+	`value = so left op right (op: eq | ne | contains (không phân biệt hoa thường) | gt | lt (so số) | empty); all / any = conds[] (và / hoặc). ` +
+	`Kết quả mỗi node mỗi node: {nodeId, ref, status, port, output, error {code, message}, logs, attempts, durationMs}; ` +
+	`error.code: not_found (chờ ảnh / chữ / màu hết giờ), permission, invalid_input (biến trỏ node chưa chạy…), end (node Kết thúc thất bại), internal.`
 
-// flowExample – kịch bản mẫu: mở trang → chờ chữ "Nhắn tin" → click; không thấy thì cuộn rồi chờ lại (test chạy qua validateScript).
+// flowExample – kịch bản mẫu: mở trang → chờ chữ "Nhắn tin" → click → gõ; không thấy thì cuộn rồi chờ lại, tối đa
+// 10 lần (node Đếm) rồi kết thúc báo lỗi (test chạy qua validateScript).
 const flowExample = `{"version":4,"name":"Nhắn tin","loops":1,"start":"s1",
 "steps":[
  {"id":"s1","ref":"n1","type":"open","target":"facebook.com/{{profile}}","delayAfter":3000,"enabled":true},
  {"id":"s2","ref":"n2","type":"waitImage","findBy":"text","findText":"Nhắn tin","threshold":90,"timeoutMs":3000,"intervalMs":250,"searchArea":"screen","enabled":true},
  {"id":"s3","ref":"n3","type":"clickImage","imageSource":"node","imageFrom":"s2","button":"left","delayAfter":500,"enabled":true},
  {"id":"s4","ref":"n4","type":"scroll","direction":"down","amount":3,"delayAfter":500,"enabled":true},
- {"id":"s5","ref":"n5","type":"type","text":"xin chào – thấy nút ở {{n2.output.x}}, {{n2.output.y}}","enabled":true}],
+ {"id":"s5","ref":"n5","type":"type","text":"xin chào – thấy nút ở {{n2.output.x}}, {{n2.output.y}}","enabled":true},
+ {"id":"s6","ref":"n6","type":"counter","max":10,"enabled":true},
+ {"id":"s7","ref":"n7","type":"end","endStatus":"fail","message":"Không thấy nút Nhắn tin sau {{n6.output.count}} lần","enabled":true}],
 "edges":[
  {"id":"e1","from":"s1","port":"success","to":"s2"},
  {"id":"e2","from":"s2","port":"success","to":"s3"},
- {"id":"e3","from":"s2","port":"fail","to":"s4"},
- {"id":"e4","from":"s4","port":"success","to":"s2"},
- {"id":"e5","from":"s3","port":"success","to":"s5"}],
+ {"id":"e3","from":"s2","port":"fail","to":"s6"},
+ {"id":"e4","from":"s6","port":"next","to":"s4"},
+ {"id":"e5","from":"s6","port":"done","to":"s7"},
+ {"id":"e6","from":"s4","port":"success","to":"s2"},
+ {"id":"e7","from":"s3","port":"success","to":"s5"}],
 "inputs":[{"key":"profile","type":"text","default":"lan.nguyen"}]}`
 
 var stepTypeDocs = []StepTypeDoc{
@@ -90,6 +102,27 @@ var stepTypeDocs = []StepTypeDoc{
 	{StepWaitPixel, "Chờ màu pixel", "Chờ tới khi điểm points[0] có màu color (#RRGGBB), mỗi kênh lệch ≤ tolerance. Hết timeoutMs → cổng fail. Không di chuột. Output color = màu đọc được.",
 		[]string{"points[1]", "color", "tolerance", "timeoutMs", "intervalMs"}, []string{"timeoutMs", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"waitPixel","points":[{"x":640,"y":300}],"color":"#1877F2","tolerance":10,"timeoutMs":5000,"intervalMs":100,"delayAfter":300,"enabled":true}`, []string{"color"}, nil},
+	{StepIf, "Nếu", "Rẽ nhánh theo điều kiện cond (xem flow guide): đúng → cổng true, sai → false. timeoutMs > 0: xem lại mỗi intervalMs tới khi đúng, hết giờ = sai (0 = xem một lần). Thiếu quyền / ảnh hỏng → node lỗi, dừng kịch bản. Output result (true / false) + chỗ thấy x, y, w, h, score, text của điều kiện ảnh / chữ đúng đầu tiên (clickImage chọn imageFrom = node này được).",
+		[]string{"cond", "timeoutMs", "intervalMs"}, []string{"timeoutMs", "enabled"},
+		`{"id":"s1","ref":"n1","type":"if","cond":{"kind":"any","conds":[{"kind":"text","findText":"Đã gửi"},{"kind":"value","left":"{{n2.output.text}}","op":"contains","right":"ok"}]},"timeoutMs":3000,"intervalMs":250,"enabled":true}`,
+		[]string{"result", "x", "y", "w", "h", "score", "text"}, nil},
+	{StepSwitch, "Switch theo giá trị", "So value (thường là {{biến}}) với từng case theo thứ tự: case {key, label, op: eq | contains (không phân biệt hoa thường) | regex, match}; case đầu khớp → cổng case:<key>, không case nào khớp → default.",
+		[]string{"value", "cases"}, []string{"enabled"},
+		`{"id":"s1","ref":"n1","type":"switch","value":"{{n2.output.text}}","cases":[{"key":"ok","label":"Thành công","op":"contains","match":"đã gửi"},{"key":"err","label":"Lỗi","op":"regex","match":"(?i)lỗi|error"}],"enabled":true}`,
+		[]string{"value", "case"}, nil},
+	{StepSwitchScreen, "Switch theo màn hình", "Chụp màn hình mỗi intervalMs, xem case nào (cases[].cond: thấy chữ / ảnh / màu) đúng trước – xét theo thứ tự case – thì đi cổng case:<key>; hết timeoutMs không case nào → cổng none. Dùng khi trang có thể ở nhiều trạng thái (đăng nhập / đã vào / popup).",
+		[]string{"cases", "timeoutMs", "intervalMs"}, []string{"timeoutMs", "enabled"},
+		`{"id":"s1","ref":"n1","type":"switchScreen","cases":[{"key":"login","label":"Đăng nhập","cond":{"kind":"text","findText":"Đăng nhập"}},{"key":"home","label":"Trang chủ","cond":{"kind":"text","findText":"Nhắn tin"}}],"timeoutMs":3000,"intervalMs":250,"enabled":true}`,
+		[]string{"case", "x", "y", "w", "h", "score", "text"}, nil},
+	{StepCounter, "Đếm", "Đếm số lần đi qua trong vòng này: lần 1..max → cổng next, lần max+1 → done (rồi đếm lại từ 0). Đặt trên đường quay lại của vòng lặp để giới hạn số lần thử (vd không thấy nút → Đếm → next: cuộn rồi tìm lại; done: Kết thúc báo lỗi).",
+		[]string{"max"}, []string{"enabled"},
+		`{"id":"s1","ref":"n1","type":"counter","max":10,"enabled":true}`, []string{"count"}, nil},
+	{StepEnd, "Kết thúc", "Kết thúc vòng chạy: endStatus success = xong vòng bình thường (còn vòng lặp thì chạy vòng sau); fail = dừng kịch bản, báo lỗi message (error.code end). Không có cổng ra. Nhận {{biến}} trong message.",
+		[]string{"endStatus", "message"}, []string{"enabled"},
+		`{"id":"s1","ref":"n1","type":"end","endStatus":"fail","message":"Không thấy nút Nhắn tin","enabled":true}`, []string{}, nil},
+	{StepSetVar, "Đặt biến", "Đặt biến {{vars.varName}} dùng ở node sau trong vòng: varOp set = gán value (nhận {{biến}}, vd {{n2.output.text}}); add = cộng value (số) vào giá trị hiện có (chưa có = 0). Biến đặt lại mỗi vòng.",
+		[]string{"varName", "varOp", "value"}, []string{"enabled"},
+		`{"id":"s1","ref":"n1","type":"setVar","varName":"so_lan","varOp":"add","value":"1","enabled":true}`, []string{"name", "value"}, nil},
 }
 
 // StepTypes trả mô tả các loại bước app đang hỗ trợ.

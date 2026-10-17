@@ -68,12 +68,11 @@ func validateFlow(sc Script) error {
 				return stepErr(i, s, "imageFrom", "node %s không tìm ảnh / chữ nên không có chỗ thấy", sc.Steps[j].Ref)
 			}
 		}
-		for _, f := range [][2]string{{"text", s.Text}, {"target", s.Target}, {"findText", s.FindText}} {
-			field, text := f[0], f[1]
-			for _, m := range nodeVarRe.FindAllStringSubmatch(text, -1) {
+		for _, f := range varFields(&s) {
+			for _, m := range nodeVarRe.FindAllStringSubmatch(*f.p, -1) {
 				if name := m[1]; name != "vars" && name != "last" {
 					if _, ok := refs[name]; !ok {
-						return stepErr(i, s, field, "biến %s trỏ tới node %q không có trong kịch bản", m[0], name)
+						return stepErr(i, s, f.name, "biến %s trỏ tới node %q không có trong kịch bản", m[0], name)
 					}
 				}
 			}
@@ -82,9 +81,10 @@ func validateFlow(sc Script) error {
 	return nil
 }
 
-// findsImage: node có "chỗ thấy" để click theo – chờ ảnh / chữ, click theo ảnh tự tìm.
+// findsImage: node có "chỗ thấy" để click theo – chờ ảnh / chữ, click theo ảnh tự tìm, Nếu / Switch theo màn hình
+// (chỗ thấy của điều kiện đúng đầu tiên).
 func findsImage(s Step) bool {
-	return s.Type == StepWaitImage || s.Type == StepClickImage && s.ImageSource == ImageFromSearch
+	return s.Type == StepWaitImage || s.Type == StepClickImage && s.ImageSource == ImageFromSearch || s.Type == StepIf || s.Type == StepSwitchScreen
 }
 
 // unreachableNodes – id các node không đi tới được từ start (sẽ không bao giờ chạy), theo thứ tự trong mảng.

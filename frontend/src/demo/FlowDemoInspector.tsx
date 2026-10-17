@@ -9,9 +9,9 @@ import InputsPanel from '../components/inputs/InputsPanel';
 import { InputView } from '../components/inputs/model';
 import { FlowEdgeView, FlowNodeView, RunRow } from '../components/flow/model';
 import { LastRunPanel, OutputsPanel, PortsPanel, RetryPanel } from '../components/flow/PortField';
-import {
-  CounterFields, EndFields, IfFields, SetVarFields, SwitchFields, SwitchScreenFields,
-} from '../components/flow/nodes/ControlFields';
+import ControlFields, { canTest } from '../components/flow/nodes/ControlFields';
+import NodeTestPanel from '../components/flow/nodes/NodeTestPanel';
+import { STEP_LABEL } from '../types';
 import { Footer, StepBody } from './DemoInspector';
 import { DemoFlowNode, NodeBody, outputsOf } from './flowDemo';
 
@@ -24,9 +24,7 @@ type Props = {
   onJump: (id: string) => void; onSetStart: () => void; onDelete: () => void;
 };
 
-const KIND_LABEL: Record<NodeBody['kind'], string> = {
-  step: 'Hành động', wait: 'Hành động', if: 'Rẽ nhánh', switch: 'Rẽ nhánh', switchScreen: 'Rẽ nhánh', counter: 'Luồng', end: 'Luồng', setVar: 'Luồng',
-};
+const kindLabel = (b: NodeBody) => (b.kind === 'control' ? STEP_LABEL[b.step.type] : 'Hành động');
 
 export default function FlowDemoInspector(p: Props) {
   const { node, view, inputs, setInputs } = p;
@@ -42,7 +40,7 @@ export default function FlowDemoInspector(p: Props) {
           <div className="flex items-center gap-1.5 text-xs text-muted">
             <input value={node.ref} onChange={(e) => p.onChange({ ref: e.target.value.replace(/[^a-z0-9_]/gi, '') })} aria-label="Mã node"
               title="Mã node – dùng trong biến {{n2.output.x}}" className="w-12 rounded bg-soft px-1 font-mono outline-none" />
-            {KIND_LABEL[node.body.kind]}
+            {kindLabel(node.body)}
             {p.start && <span className="rounded-full bg-accent-soft px-1.5 font-semibold text-accent-text">Bắt đầu</span>}
           </div>
         </div>
@@ -87,12 +85,12 @@ function Body({ node, inputs, setInputs, onChange }: { node: DemoFlowNode; input
   switch (b.kind) {
     case 'step': return <StepBody step={b.step} inputs={inputs} setInputs={setInputs} flow />;
     case 'wait': return <label className="flex flex-col gap-1.5 text-muted">Chờ<NumInput value={b.ms} unit="ms" onChange={(ms) => onChange({ body: { kind: 'wait', ms }, detail: `${ms} ms` })} /></label>;
-    case 'if': return <IfFields value={b.data} onChange={(data) => set({ kind: 'if', data })} />;
-    case 'switch': return <SwitchFields value={b.data} onChange={(data) => set({ kind: 'switch', data })} />;
-    case 'switchScreen': return <SwitchScreenFields value={b.data} onChange={(data) => onChange({ body: { kind: 'switchScreen', data }, detail: `chờ tối đa ${data.timeoutMs / 1000} s · ${data.cases.length} case` })} />;
-    case 'counter': return <CounterFields value={b.data} onChange={(data) => onChange({ body: { kind: 'counter', data }, detail: `tối đa ${data.max} lần` })} />;
-    case 'end': return <EndFields value={b.data} onChange={(data) => set({ kind: 'end', data })} />;
-    case 'setVar': return <SetVarFields value={b.data} onChange={(data) => set({ kind: 'setVar', data })} />;
+    case 'control': return (
+      <>
+        <ControlFields ctx={{ step: b.step, set: (p) => set({ kind: 'control', step: { ...b.step, ...p } }), vars: { inputs } }} />
+        {canTest(b.step) && <NodeTestPanel step={b.step} />}
+      </>
+    );
   }
 }
 

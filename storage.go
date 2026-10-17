@@ -162,6 +162,10 @@ func checkStep(s *Step) error {
 	case StepDrag:
 		need = 2
 	case StepWait, StepText, StepKey, StepOpen, StepScroll, StepWaitImage, StepClickImage:
+	case StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar:
+		if err := checkControl(s); err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("loại bước không hợp lệ: %q", s.Type)
 	}

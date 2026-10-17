@@ -5,7 +5,8 @@ import Segmented from '../Segmented';
 import { Switch } from '../RunSettings';
 import VarTextInput from '../inputs/VarTextInput';
 import AnchorField from '../steps/AnchorField';
-import { findsImage, setAnchor, updateStep, useScript } from '../../store';
+import { setAnchor, updateStep, useScript } from '../../store';
+import { findsImage } from '../../flow/model';
 import { addInput } from '../../scriptInputs';
 import { checkCapture, pickColor, requestCapture, startCapture, templateUrl, testFind, useImageState } from '../../imageSteps';
 import { openOverlay } from '../../windowMode';
@@ -187,7 +188,7 @@ export function ClickImageFields({ step: s }: { step: Step }) {
         {byNode && (
           <select value={src ? src.id : ''} onChange={(e) => set({ imageFrom: e.target.value || undefined })}
             className={`${selectBox} ${src ? '' : 'border-danger'}`}>
-            <option value="">— chọn node Chờ ảnh / Chờ chữ —</option>
+            <option value="">— chọn node tìm ảnh / chữ —</option>
             {sources.map((x) => <option key={x.id} value={x.id}>{x.ref} · {nodeTitle(x)}</option>)}
           </select>
         )}

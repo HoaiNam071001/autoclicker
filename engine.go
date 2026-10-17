@@ -79,6 +79,10 @@ func validateScript(sc Script, screen Rect) error {
 			if len(s.Keys) == 0 {
 				return stepErr(i, s, "keys", "chưa chọn phím")
 			}
+		case StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar:
+			if err := validateControl(i, s, inside); err != nil {
+				return err
+			}
 		default:
 			return stepErr(i, s, "type", "loại bước không hợp lệ %q", s.Type)
 		}
@@ -142,6 +146,7 @@ type engine struct {
 	order   map[string]int         // số thứ tự hiển thị của node (flowOrder) – thanh mini
 	results map[string]*StepResult // kết quả lần chạy gần nhất của từng node trong vòng này
 	rv      runVars                // bảng tra biến {{nX…}} / {{last…}} / {{vars…}}
+	counts  map[string]int         // node Đếm: số lần đã đi qua trong vòng này
 
 	last    Point // chỗ engine vừa đưa chuột tới – cho bước kéo "từ điểm trước đó"
 	hasLast bool

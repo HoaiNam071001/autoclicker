@@ -7,6 +7,8 @@ import { inWails, openOverlay, setWindowMode } from '../windowMode';
 import { getEditor, setEditor, setNotice } from './editor';
 import { boundsOf, centerPoint, endpoints, toRelative, toScreen } from './geometry';
 import { clearInsertAt, insertAfterSelected, insertNode, newId, updateStep } from './nodes';
+import { updateCond } from './control';
+import type { CondAt } from '../flow/cond';
 
 const script = () => getEditor().script;
 
@@ -64,6 +66,14 @@ export function pickPointFor(stepId: string) {
 
 export const pickingStep = () => pickTarget;
 
+// Chọn điểm cho điều kiện màu (node Nếu / case Switch theo màn hình) – xong về màn chính.
+let pickCond: { id: string; at: CondAt } | null = null;
+export function pickCondPoint(stepId: string, at: CondAt) {
+  pickCond = { id: stepId, at };
+  pickTarget = null;
+  return openOverlay('point');
+}
+
 // Gọi khi đổi công cụ / đóng overlay; luôn bỏ điểm A đang chờ.
 export const setDragMode = (on: boolean) => {
   dragMode = on;
@@ -79,6 +89,7 @@ export const cancelDragA = () => {
 
 export const cancelPick = () => {
   pickTarget = null;
+  pickCond = null;
   pickStay = false;
   pointType = 'click';
   clearInsertAt();
@@ -97,6 +108,14 @@ export function placePoint(screen: Point): boolean {
   if (!rel) {
     setNotice(`Điểm X ${screen.x} Y ${screen.y} nằm ngoài vùng – chọn trong vùng hoặc đổi về toàn màn hình`);
     return false;
+  }
+  if (pickCond) {
+    const { id, at } = pickCond;
+    pickCond = null;
+    updateCond(id, at, (c) => ({ ...c, points: [rel] }));
+    setEditor({ selected: id, notice: `Đã đặt điểm cho điều kiện màu: ${fmtPoint(rel)}` });
+    setWindowMode('main');
+    return true;
   }
   const target = pickTarget && sc.steps.find((s) => s.id === pickTarget);
   // Kéo thả cần 2 điểm – trừ khi node đang chọn lại bắt đầu "từ điểm trước đó" (chỉ cần B).

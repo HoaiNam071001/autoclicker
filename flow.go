@@ -29,6 +29,7 @@ const (
 	ErrPermission   = "permission"    // thiếu quyền (Screen Recording, Accessibility)
 	ErrInvalidInput = "invalid_input" // dữ liệu node sai lúc chạy (biến trống, điểm ngoài màn…)
 	ErrCancelled    = "cancelled"
+	ErrEnd          = "end" // node Kết thúc báo thất bại (lời nhắn của người soạn)
 	ErrInternal     = "internal"
 )
 
@@ -58,8 +59,22 @@ type LogLine struct {
 	Msg   string `json:"msg"`
 }
 
-// portsOf – cổng ra hợp lệ của node, theo thứ tự hiện trên thẻ (trên → dưới). Node điều khiển (F3) thêm cổng riêng.
+// portsOf – cổng ra hợp lệ của node, theo thứ tự hiện trên thẻ (trên → dưới). frontend/src/flow/model.ts cùng công thức.
 func portsOf(s Step) []string {
+	switch s.Type {
+	case StepIf:
+		return []string{PortTrue, PortFalse}
+	case StepSwitch:
+		return casePorts(s.Cases, PortDefault)
+	case StepSwitchScreen:
+		return casePorts(s.Cases, PortNone)
+	case StepCounter:
+		return []string{PortNext, PortDone}
+	case StepEnd:
+		return []string{}
+	case StepSetVar:
+		return []string{PortSuccess}
+	}
 	return []string{PortSuccess, PortFail}
 }
 

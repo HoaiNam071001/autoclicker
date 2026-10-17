@@ -73,6 +73,7 @@ func (e *engine) run(ctx context.Context) error {
 func (e *engine) runLoop(ctx context.Context, loop int) error {
 	e.rv = runVars{byRef: map[string]*StepResult{}, vars: map[string]any{}}
 	e.results = map[string]*StepResult{}
+	e.counts = map[string]int{}
 	var trail []string // các node gần nhất – báo lỗi lặp vô hạn
 	cur := e.sc.Start
 	for n := 1; cur != ""; n++ {
@@ -123,7 +124,7 @@ func (e *engine) execNode(ctx context.Context, s Step, loop int) StepResult {
 	e.miss = nil
 	tries := 1
 	delay := 0
-	if s.Retry != nil {
+	if s.Retry != nil && !isControl(s.Type) {
 		tries += s.Retry.Count
 		delay = s.Retry.DelayMs
 	}
@@ -148,9 +149,14 @@ func (e *engine) execNode(ctx context.Context, s Step, loop int) StepResult {
 			logf("error", "%v", err)
 			return res
 		}
-		var out map[string]any
-		if out, err = e.runStep(ctx, rs); err == nil {
-			res.Status, res.Port, res.Output = StatusSuccess, PortSuccess, out
+		port, out := PortSuccess, map[string]any(nil)
+		if isControl(s.Type) {
+			port, out, err = e.runControl(ctx, rs, logf)
+		} else {
+			out, err = e.runStep(ctx, rs)
+		}
+		if err == nil {
+			res.Status, res.Port, res.Output = StatusSuccess, port, out
 			if tries > 1 {
 				e.update(true, func(p *Progress) { p.Retry, p.Retries = 0, 0 })
 			}
@@ -179,9 +185,15 @@ func (e *engine) execNode(ctx context.Context, s Step, loop int) StepResult {
 
 func errCode(err error) string {
 	var nf *notFoundErr
+	var end *endErr
+	var bad *invalidErr
 	switch {
 	case errors.As(err, &nf):
 		return ErrNotFound
+	case errors.As(err, &end):
+		return ErrEnd
+	case errors.As(err, &bad):
+		return ErrInvalidInput
 	case errors.Is(err, errNoPermission):
 		return ErrPermission
 	}

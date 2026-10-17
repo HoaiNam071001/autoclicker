@@ -35,3 +35,19 @@ describe('nodeVarOptions', () => {
     expect(keys.some((k) => k.startsWith('n2.'))).toBe(false);
   });
 });
+
+describe('node điều khiển', () => {
+  it('cổng case theo nhãn case, cổng cuối, chi tiết + cảnh báo thiếu dữ liệu', () => {
+    const sw = makeStep({ id: 's', ref: 'n1', type: 'switchScreen', timeoutMs: 3000, cases: [{ key: 'a', label: 'Đăng nhập', cond: { kind: 'text', findText: 'x' } }, { key: 'b', cond: { kind: 'image' } }] });
+    const iff = makeStep({ id: 'i', ref: 'n2', type: 'if', cond: { kind: 'value', left: '{{n1.output.case}}', op: 'eq', right: 'a' } });
+    const end = makeStep({ id: 'e', ref: 'n3', type: 'end', endStatus: 'fail', message: 'lỗi' });
+    const [a, b, c] = nodeViews({ steps: [sw, iff, end], start: 's', edges: [...chain(['s', 'i']).map((e) => ({ ...e, port: 'case:a' })), { id: 'x', from: 'i', port: 'true', to: 'e' }] });
+    expect(a.ports.map((p) => p.label)).toEqual(['Đăng nhập', 'b', 'Không thấy']);
+    expect(a.detail).toBe('chờ tối đa 3 s · 2 case');
+    expect(a.warn).toContain('Case b: chưa có ảnh mẫu');
+    expect(b.ports.map((p) => p.id)).toEqual(['true', 'false']);
+    expect(b.detail).toBe('{{n1.output.case}} = a');
+    expect(c.ports).toEqual([]);
+    expect(c.detail).toBe('thất bại · lỗi');
+  });
+});

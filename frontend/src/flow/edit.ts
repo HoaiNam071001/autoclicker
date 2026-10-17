@@ -75,12 +75,12 @@ export function nextRef(nodes: Pick<Step, 'ref'>[]): string {
 export type InsertAt = { from: string; port: string };
 
 // Thêm node: kịch bản chưa có node bắt đầu (hoặc start trỏ node đã xoá) → node mới thành start; có `at` → nối từ cổng đó,
-// cổng đã có cạnh A → B thì chèn vào giữa (A → mới → B, đi tiếp qua cổng success của node mới).
+// cổng đã có cạnh A → B thì chèn vào giữa (A → mới → B, đi tiếp qua cổng đầu của node mới – success / true / next…).
 export function insertNode(g: FlowGraph, node: Step, at: InsertAt | null): FlowGraph {
   const steps = [...g.steps, node];
   const start = g.steps.some((s) => s.id === g.start) ? g.start : node.id;
   if (!at || !g.steps.some((s) => s.id === at.from)) return { steps, edges: g.edges, start };
-  const r = addConnected({ nodes: g.steps, edges: g.edges }, node, at.from, at.port, portsOf(node).includes(PORT_SUCCESS) ? PORT_SUCCESS : undefined);
+  const r = addConnected({ nodes: g.steps, edges: g.edges }, node, at.from, at.port, portsOf(node)[0]);
   return { steps, edges: r.edges, start };
 }
 

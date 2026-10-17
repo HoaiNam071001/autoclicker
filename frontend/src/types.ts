@@ -17,7 +17,7 @@ export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'op
 // Cạnh: node from đi ra cổng port thì chạy node to. Mỗi cổng tối đa một cạnh. Khớp Edge trong model.go.
 export interface Edge { id: string; from: string; port: string; to: string }
 export type StepStatus = 'success' | 'fail' | 'skipped' | 'cancelled';
-export type ErrorCode = 'not_found' | 'timeout' | 'permission' | 'invalid_input' | 'cancelled' | 'internal';
+export type ErrorCode = 'not_found' | 'timeout' | 'permission' | 'invalid_input' | 'cancelled' | 'end' | 'internal';
 // Kết quả một lần chạy node (event engine:node) – khớp StepResult trong flow.go.
 export interface StepResult {
   nodeId: string;
@@ -34,7 +34,34 @@ export interface StepResult {
 const edgeMatchesGo: Same<keyof Edge, keyof Fields<main.Edge>> = true;
 void edgeMatchesGo; // StepResult chưa có trong binding (chưa method public nào trả nó) – thêm kiểm tra khi có RunNode (F5)
 
-export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel';
+export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel';
+// Node điều khiển (bước 20 F3, nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
+export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'end' | 'setVar';
+export type StepType = ActionType | ControlType;
+export const CONTROL_TYPES: ControlType[] = ['if', 'switch', 'switchScreen', 'counter', 'end', 'setVar'];
+export const isControl = (t: StepType): t is ControlType => (CONTROL_TYPES as StepType[]).includes(t);
+
+// Điều kiện của node Nếu / case của Switch theo màn hình – khớp Cond trong model.go (cond.go).
+export type CondKind = 'image' | 'text' | 'pixel' | 'value' | 'all' | 'any';
+export type CondOp = 'eq' | 'ne' | 'contains' | 'gt' | 'lt' | 'empty';
+export interface Cond {
+  kind: CondKind;
+  not?: boolean; // đảo kết quả
+  template?: string; templateScale?: number; threshold?: number; searchArea?: string; // image (như Chờ ảnh)
+  findText?: string; textExact?: boolean; textNoAccent?: boolean; occurrence?: number; // text, nhận {{biến}}
+  points?: StepPoint[]; color?: string; tolerance?: number; // pixel: points[0]
+  left?: string; op?: CondOp; right?: string; // value: so 2 vế, nhận {{biến}}
+  conds?: Cond[]; // all (và) / any (hoặc)
+}
+// Nhánh của switch / switchScreen – cổng ra "case:" + key. Khớp Case trong model.go.
+export type CaseOp = 'eq' | 'contains' | 'regex';
+export interface Case {
+  key: string;
+  label?: string; // tên trên cổng, bỏ trống = key
+  op?: CaseOp; // switch
+  match?: string; // switch, nhận {{biến}}
+  cond?: Cond; // switchScreen
+}
 export type ScrollDirection = 'up' | 'down' | 'left' | 'right';
 export type MouseButton = 'left' | 'right' | 'center';
 export type Modifier = 'cmd' | 'ctrl' | 'alt' | 'shift';
@@ -87,13 +114,26 @@ export interface Step {
   retry?: Retry; // thất bại thì thử lại; hết lượt → cổng fail (flowrun.go execNode)
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
+  // node điều khiển (bước 20 F3)
+  cond?: Cond; // if
+  cases?: Case[]; // switch / switchScreen
+  value?: string; // switch: giá trị cần xét; setVar: giá trị gán / cộng
+  max?: number; // counter: số lần đi cổng next tối đa
+  endStatus?: 'success' | 'fail'; // end
+  message?: string; // end: lời nhắn / lời báo lỗi
+  varName?: string; // setVar
+  varOp?: 'set' | 'add'; // setVar
 }
 
 // Kiểm tra lúc type-check: Step phải khớp struct Go (model.go) – thiếu/thừa/sai kiểu field là tsc báo lỗi.
-type Fields<T> = { [K in keyof T as T[K] extends Function ? never : K]: T[K] };
+// bỏ hàm (convertValues của class sinh từ Go) ở mọi tầng – Step có điều kiện / case lồng nhau
+type Fields<T> = { [K in keyof T as T[K] extends Function ? never : K]: DeepFields<T[K]> };
+type DeepFields<T> = T extends (infer U)[] ? DeepFields<U>[] : T extends object ? Fields<T> : T;
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 const stepMatchesGo: [Step extends Fields<main.Step> ? true : false, Same<keyof Step, keyof Fields<main.Step>>] = [true, true];
 void stepMatchesGo;
+const condMatchesGo: [Same<keyof Cond, keyof Fields<main.Cond>>, Same<keyof Case, keyof Fields<main.Case>>] = [true, true];
+void condMatchesGo;
 
 // Kịch bản – khớp struct Script trong model.go. Toạ độ điểm tương đối theo region (null = toàn màn hình).
 export interface Script {
@@ -160,6 +200,12 @@ export const STEP_LABEL: Record<StepType, string> = {
   waitImage: 'Chờ ảnh',
   clickImage: 'Click theo ảnh',
   waitPixel: 'Chờ màu pixel',
+  if: 'Nếu',
+  switch: 'Switch theo giá trị',
+  switchScreen: 'Switch theo màn hình',
+  counter: 'Đếm',
+  end: 'Kết thúc',
+  setVar: 'Đặt biến',
 };
 
 export const SCROLL_ARROW: Record<ScrollDirection, string> = { up: '↑', down: '↓', left: '←', right: '→' };

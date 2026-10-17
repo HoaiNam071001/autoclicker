@@ -27,8 +27,8 @@ export default function DemoFlow() {
   const [start, setStart] = useState(demoFlowStart);
   const [positions, setPositions] = useState<Positions>({});
   const [fitKey, setFitKey] = useState(0);
-  const [selected, setSelected] = useState<string | null>('a2');
-  // ?mode=running | failed – mở thẳng trạng thái chạy mẫu (chụp màn hình để duyệt)
+  // ?sel=a7 – mở sẵn inspector node khác; ?mode=running | failed – mở thẳng trạng thái chạy mẫu (chụp màn hình để duyệt)
+  const [selected, setSelected] = useState<string | null>(() => new URLSearchParams(location.search).get('sel') || 'a2');
   const [mode, setMode] = useState<Mode>(() => (new URLSearchParams(location.search).get('mode') as Mode) || 'edit');
   const [drop, setDrop] = useState<Drop>(null);
   const [focus, setFocus] = useState<{ id: string; key: number }>();

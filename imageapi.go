@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"strings"
 	"time"
@@ -118,18 +117,10 @@ func (a *App) findTextOnce(sc Script, s Step) (FindResult, error) {
 	if strings.TrimSpace(s.FindText) == "" {
 		return FindResult{}, errors.New("chưa nhập chữ cần tìm")
 	}
-	text, err := expandVars(s.FindText, func(key string) (string, bool) {
-		for _, in := range sc.Inputs {
-			if in.Key == key && !isEmptyValue(in.Default) {
-				return valueString(in.Default), true
-			}
-		}
-		return "", false
-	})
+	s, err := withInputDefaults(sc, s)
 	if err != nil {
-		return FindResult{}, fmt.Errorf("thử tìm dùng giá trị mặc định của input: %w", err)
+		return FindResult{}, err
 	}
-	s.FindText = text
 	e := newEngine(nil, sc, nil)
 	e.screen, e.displays = mainScreen(), displays()
 	area := e.searchArea(s)

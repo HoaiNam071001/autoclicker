@@ -3,7 +3,8 @@
 // Loại chưa làm hiện nhãn "Sắp có" và không chọn được (logic ở các bước sau).
 import { KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { StepIcon, StepIconName } from './icons';
-import { addPointStep, addStep, getEditor, insertTarget } from '../store';
+import { addControl, addPointStep, addStep, getEditor, insertTarget } from '../store';
+import { portView } from '../flow/view';
 import { addImageStep, addTextStep } from '../imageSteps';
 
 export type PaletteItem = { icon: StepIconName; label: string; keywords: string; run?: () => unknown; soon?: string };
@@ -44,12 +45,12 @@ const GROUPS: PaletteGroup[] = [
   },
   {
     name: 'Rẽ nhánh & luồng', items: [
-      { icon: 'if', label: 'Nếu', keywords: 'if dieu kien re nhanh else', soon: 'bước 20 F3' },
-      { icon: 'switchScreen', label: 'Switch theo màn hình', keywords: 'switch case man hinh thay', soon: 'bước 20 F3' },
-      { icon: 'switch', label: 'Switch theo giá trị', keywords: 'switch case gia tri bien', soon: 'bước 20 F3' },
-      { icon: 'counter', label: 'Đếm', keywords: 'counter lap loop dem', soon: 'bước 20 F3' },
-      { icon: 'end', label: 'Kết thúc', keywords: 'end stop dung ket thuc', soon: 'bước 20 F3' },
-      { icon: 'setVar', label: 'Đặt biến', keywords: 'set var bien gan', soon: 'bước 20 F3' },
+      { icon: 'if', label: 'Nếu', keywords: 'if dieu kien re nhanh else thay chu anh mau so sanh', run: () => addControl('if') },
+      { icon: 'switchScreen', label: 'Switch theo màn hình', keywords: 'switch case man hinh thay', run: () => addControl('switchScreen') },
+      { icon: 'switch', label: 'Switch theo giá trị', keywords: 'switch case gia tri bien', run: () => addControl('switch') },
+      { icon: 'counter', label: 'Đếm', keywords: 'counter lap loop dem gioi han so lan thu', run: () => addControl('counter') },
+      { icon: 'end', label: 'Kết thúc', keywords: 'end stop dung ket thuc', run: () => addControl('end') },
+      { icon: 'setVar', label: 'Đặt biến', keywords: 'set var bien gan', run: () => addControl('setVar') },
     ],
   },
 ];
@@ -64,7 +65,7 @@ export default function AddStepPalette({ onClose, onCancel }: { onClose: () => v
   const from = at && getEditor().script.steps.find((s) => s.id === at.from);
   return (
     <PaletteView groups={GROUPS} onClose={onClose} onCancel={onCancel}
-      context={from ? <>Nối từ <span className="font-mono">{from.ref}</span> · cổng {at.port === 'fail' ? 'Thất bại' : at.port === 'success' ? 'Thành công' : at.port}</> : 'Node mới đứng riêng – kéo từ cổng của node khác để nối'}
+      context={from ? <>Nối từ <span className="font-mono">{from.ref}</span> · cổng {portView(at.port, from).label}</> : 'Node mới đứng riêng – kéo từ cổng của node khác để nối'}
       footer={<><span><span className="font-mono">Enter</span> thêm node</span><span className="ml-auto">Click / Double / Giữ / Kéo thả mở overlay chọn điểm</span></>} />
   );
 }

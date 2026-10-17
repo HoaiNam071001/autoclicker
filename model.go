@@ -21,7 +21,28 @@ const (
 	StepWaitImage  = "waitImage"  // chờ tới khi thấy ảnh mẫu Template trên màn hình (imagestep.go)
 	StepClickImage = "clickImage" // click vào chỗ thấy ảnh: output của node ImageFrom (ImageSource node) hoặc tự tìm
 	StepWaitPixel  = "waitPixel"  // chờ tới khi điểm Points[0] có màu Color (± Tolerance)
+
+	// Node điều khiển (bước 20 F3, nodes.go) – không làm gì trên màn hình ngoài nhìn, chọn cổng ra theo kết quả.
+	StepIf           = "if"           // Cond đúng → cổng true, sai → false; TimeoutMs > 0 = chờ tới khi đúng
+	StepSwitch       = "switch"       // so Value với từng case (Op / Match) → case:<key>, không case nào khớp → default
+	StepSwitchScreen = "switchScreen" // chờ tới TimeoutMs, case (Cond ảnh / chữ / màu) nào đúng trước → case:<key>, hết giờ → none
+	StepCounter      = "counter"      // đếm số lần đi qua trong vòng: lần 1..Max → next, lần Max+1 → done (rồi đếm lại từ 0)
+	StepEnd          = "end"          // kết thúc vòng: EndStatus success (chạy vòng sau) / fail (dừng kịch bản, báo Message)
+	StepSetVar       = "setVar"       // đặt biến {{vars.VarName}} = Value (VarOp set) hoặc cộng thêm Value (add)
 )
+
+// stepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
+var stepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
+
+// isControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
+func isControl(t string) bool {
+	switch t {
+	case StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar:
+		return true
+	}
+	return false
+}
 
 // Nguồn vị trí của bước click theo ảnh (Step.ImageSource).
 const (
@@ -57,7 +78,7 @@ type Rect struct {
 // Step – một node của flow (bước 20): chạy xong trả StepResult (flow.go), cổng ra trong đó chọn cạnh đi tiếp.
 type Step struct {
 	ID            string   `json:"id"`
-	Type          string   `json:"type"`           // click | double | hold | drag | wait | type | key | scroll | open | waitImage | clickImage | waitPixel
+	Type          string   `json:"type"`           // stepTypes: click | … | waitPixel | if | switch | switchScreen | counter | end | setVar
 	Ref           string   `json:"ref"`            // mã ngắn n1, n2… (duy nhất) – node sau đọc kết quả bằng {{n2.output.x}}
 	Name          string   `json:"name,omitempty"` // tên hiện trên thẻ ("" = tên theo loại)
 	Pos           *Pos     `json:"pos,omitempty"`  // vị trí thẻ trên canvas (nil = chưa đặt, xếp tự động)
@@ -100,6 +121,49 @@ type Step struct {
 	Retry         *Retry  `json:"retry,omitempty"`        // thất bại thì thử lại; hết lượt vẫn lỗi → cổng fail
 	Color         string  `json:"color,omitempty"`        // waitPixel: #RRGGBB
 	Tolerance     int     `json:"tolerance,omitempty"`    // waitPixel: sai số mỗi kênh màu (0–255)
+	// Node điều khiển (bước 20 F3, nodes.go)
+	Cond      *Cond  `json:"cond,omitempty"`      // if
+	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>
+	Value     string `json:"value,omitempty"`     // switch: giá trị cần xét; setVar: giá trị gán / cộng; nhận {{biến}}
+	Max       int    `json:"max,omitempty"`       // counter: số lần đi cổng next tối đa
+	EndStatus string `json:"endStatus,omitempty"` // end: success | fail
+	Message   string `json:"message,omitempty"`   // end: lời nhắn (fail = lời báo lỗi); nhận {{biến}}
+	VarName   string `json:"varName,omitempty"`   // setVar: tên biến
+	VarOp     string `json:"varOp,omitempty"`     // setVar: set | add
+}
+
+// Case – một nhánh của switch / switchScreen. Key duy nhất trong node, cổng ra là "case:" + Key.
+type Case struct {
+	Key   string `json:"key"`
+	Label string `json:"label,omitempty"` // tên hiện trên cổng ("" = Key)
+	Op    string `json:"op,omitempty"`    // switch: eq | contains | regex
+	Match string `json:"match,omitempty"` // switch: so Value với chuỗi này; nhận {{biến}}
+	Cond  *Cond  `json:"cond,omitempty"`  // switchScreen: điều kiện ảnh / chữ / màu
+}
+
+// Cond – điều kiện của node Nếu / case của Switch theo màn hình (cond.go). Kind image / text / pixel dùng cùng trường
+// với node Chờ ảnh / chữ / pixel; value so 2 vế; all / any ghép nhiều điều kiện.
+type Cond struct {
+	Kind string `json:"kind"`          // image | text | pixel | value | all | any
+	Not  bool   `json:"not,omitempty"` // đảo kết quả
+
+	Template      string  `json:"template,omitempty"`
+	TemplateScale float64 `json:"templateScale,omitempty"`
+	Threshold     int     `json:"threshold,omitempty"`
+	SearchArea    string  `json:"searchArea,omitempty"`
+	FindText      string  `json:"findText,omitempty"` // nhận {{biến}}
+	TextExact     bool    `json:"textExact,omitempty"`
+	TextNoAccent  bool    `json:"textNoAccent,omitempty"`
+	Occurrence    int     `json:"occurrence,omitempty"`
+	Points        []Point `json:"points,omitempty"` // pixel: points[0]
+	Color         string  `json:"color,omitempty"`
+	Tolerance     int     `json:"tolerance,omitempty"`
+
+	Left  string `json:"left,omitempty"`  // value: vế trái, vd {{n2.output.text}}; nhận {{biến}}
+	Op    string `json:"op,omitempty"`    // value: eq | ne | contains | gt | lt | empty
+	Right string `json:"right,omitempty"` // value: vế phải (không dùng với empty); nhận {{biến}}
+
+	Conds []Cond `json:"conds,omitempty"` // all (và) / any (hoặc)
 }
 
 // Step.FindBy
@@ -192,8 +256,24 @@ func (a *App) NewStep(stepType string) (Step, error) {
 	case StepWaitPixel:
 		s.Points = []Point{{}}
 		s.Color, s.Tolerance, s.TimeoutMs, s.IntervalMs, s.DelayAfter = "#000000", 10, 5000, 100, 300
+	case StepIf:
+		s.Cond, s.IntervalMs = &Cond{Kind: CondText}, 250
+	case StepSwitch:
+		s.Cases = []Case{{Key: "c1", Label: "Case 1", Op: "eq"}, {Key: "c2", Label: "Case 2", Op: "eq"}}
+	case StepSwitchScreen:
+		s.Cases = []Case{{Key: "c1", Label: "Case 1", Cond: &Cond{Kind: CondText}}, {Key: "c2", Label: "Case 2", Cond: &Cond{Kind: CondText}}}
+		s.TimeoutMs, s.IntervalMs = 3000, 250
+	case StepCounter:
+		s.Max = 10
+	case StepEnd:
+		s.EndStatus = EndSuccess
+	case StepSetVar:
+		s.VarName, s.VarOp = "ten", VarSet
 	default:
 		return Step{}, fmt.Errorf("loại bước không hợp lệ: %q", stepType)
+	}
+	if isControl(stepType) {
+		s.DelayAfter = 0
 	}
 	return s, nil
 }

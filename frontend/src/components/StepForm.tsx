@@ -5,7 +5,7 @@ import { Eye, StepIcon } from './icons';
 import { Switch } from './RunSettings';
 import { openOverlay } from '../windowMode';
 import { changeStepType, toggleStep, updateStep, useScript } from '../store';
-import { STEP_LABEL, Step, stepLabel, StepPoint, StepType } from '../types';
+import { isControl, STEP_LABEL, Step, stepLabel, StepPoint, StepType } from '../types';
 import { hint, NumField, selectBox, TabBtn } from './stepform/shared';
 import { isMouse, JitterField, MouseFields } from './stepform/MouseFields';
 import { ScrollFields } from './stepform/ScrollFields';
@@ -13,8 +13,10 @@ import { KeyFields } from './stepform/KeyFields';
 import { OpenFields, TypeFields } from './stepform/TextFields';
 import { CapturePermission, ClickImageFields, ImageSearchFields, isImageStep, WaitPixelFields } from './stepform/ImageFields';
 import FlowSections from './stepform/FlowSections';
+import ControlSection from './stepform/ControlSection';
 import InputsTab from './stepform/InputsTab';
 
+// Loại node hành động đổi qua lại được trong ô Hành động (node điều khiển có trường riêng, không đổi loại)
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel'];
 const REF_RE = /^[A-Za-z][A-Za-z0-9_]{0,31}$/; // khớp validRef (flow.go)
 
@@ -49,7 +51,10 @@ export default function StepForm({ step: s }: { step: Step }) {
         </TabBtn>
       </div>
 
-      {tab === 'inputs' ? <InputsTab /> : <>
+      {tab === 'inputs' ? <InputsTab /> : isControl(s.type) ? <>
+        <ControlSection step={s} />
+        <FlowSections step={s} />
+      </> : <>
         <label className="flex flex-col gap-1.5 text-muted">Hành động
           <select value={s.type} onChange={(e) => changeStepType(s.id, e.target.value as StepType)} className={selectBox}>
             {TYPES.map((t) => <option key={t} value={t}>{t === s.type ? stepLabel(s) : STEP_LABEL[t]}</option>)}

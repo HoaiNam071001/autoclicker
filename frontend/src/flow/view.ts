@@ -1,16 +1,31 @@
 // Node (Step) → dữ liệu hiển thị thẻ trên canvas (FlowNodeView): tên, dòng chi tiết, chip, cổng ra có nhãn, cảnh báo,
 // trạng thái chạy. Hàm thuần – FlowEditor (app) gọi với dữ liệu thật; test ở view.test.ts.
 import type { FlowNodeView, PortView, RunState } from '../components/flow/model';
-import { fmtMs, fmtPos, Script, Step, stepLabel } from '../types';
+import { Cond, fmtMs, fmtPos, isControl, Script, Step, stepLabel } from '../types';
 import { reachable } from './edit';
-import { flowOrder, PORT_FAIL, PORT_SUCCESS, portsOf } from './model';
+import { CASE_PREFIX, flowOrder, PORT_FAIL, PORT_SUCCESS, PortShape, portsOf } from './model';
 
-// Nhãn + màu cổng ra. Node điều khiển (F3) thêm cổng của mình ở đây.
+// Nhãn + màu cổng ra. Cổng case:<key> lấy nhãn từ case của node.
 const PORTS: Record<string, Omit<PortView, 'id'>> = {
   [PORT_SUCCESS]: { label: 'Thành công', kind: 'ok' },
   [PORT_FAIL]: { label: 'Thất bại', kind: 'fail' },
+  true: { label: 'Đúng', kind: 'neutral' },
+  false: { label: 'Sai', kind: 'neutral' },
+  default: { label: 'Khác', kind: 'neutral' },
+  none: { label: 'Không thấy', kind: 'neutral' },
+  next: { label: 'Còn lượt', kind: 'neutral' },
+  done: { label: 'Hết lượt', kind: 'neutral' },
 };
-export const portView = (id: string): PortView => ({ id, ...(PORTS[id] ?? { label: id, kind: 'neutral' }) });
+export function portView(id: string, s?: Pick<Step, 'type' | 'cases'>): PortView {
+  if (id.startsWith(CASE_PREFIX)) {
+    const key = id.slice(CASE_PREFIX.length);
+    const c = s?.cases?.find((x) => x.key === key);
+    return { id, label: c?.label || key, kind: 'neutral' };
+  }
+  if (id === PORT_SUCCESS && s?.type === 'setVar') return { id, label: 'Tiếp', kind: 'ok' };
+  return { id, ...(PORTS[id] ?? { label: id, kind: 'neutral' }) };
+}
+export const portViews = (s: PortShape) => portsOf(s).map((p) => portView(p, s));
 
 export const nodeTitle = (s: Step) => s.name || `${stepLabel(s)}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`;
 
@@ -31,8 +46,8 @@ export function nodeViews(sc: Pick<Script, 'steps' | 'start' | 'edges'>, opt: Vi
       ref: s.ref,
       icon: s.type,
       title: nodeTitle(s),
-      detail: `${fmtPos(s, refOf)} · ${fmtMs(s.delayAfter)}`,
-      ports: portsOf(s).map(portView),
+      detail: isControl(s.type) ? controlDetail(s) : `${fmtPos(s, refOf)} · ${fmtMs(s.delayAfter)}`,
+      ports: portViews(s),
       enabled: s.enabled,
       chips: [...(n ? [`${n} input`] : []), ...(s.retry?.count ? [`thử lại ${s.retry.count}`] : [])],
       warn: warningOf(s, ok.has(s.id), refs),
@@ -42,11 +57,63 @@ export function nodeViews(sc: Pick<Script, 'steps' | 'start' | 'edges'>, opt: Vi
   });
 }
 
-// Cảnh báo khi soạn (không chặn lưu; chạy thì Go kiểm tra đủ): node không đi tới được, click theo ảnh thiếu nguồn.
+// Cảnh báo khi soạn (không chặn lưu; chạy thì Go kiểm tra đủ): node không đi tới được, click theo ảnh thiếu nguồn,
+// node điều khiển thiếu dữ liệu.
 function warningOf(s: Step, reachable: boolean, refs: Map<string, string>): string | undefined {
   if (!reachable) return 'Không có đường nào đi tới node này – sẽ không bao giờ chạy';
   if (s.type === 'clickImage' && s.imageSource !== 'search' && !refs.has(s.imageFrom ?? '')) return 'Chưa chọn node lấy chỗ thấy (Chờ ảnh / Chờ chữ)';
+  if (s.type === 'if' && s.cond) return condMissing(s.cond);
+  if ((s.type === 'switch' || s.type === 'switchScreen') && !s.cases?.length) return 'Chưa có case nào';
+  if (s.type === 'switchScreen') {
+    for (const c of s.cases ?? []) {
+      const m = c.cond ? condMissing(c.cond) : 'chưa có điều kiện';
+      if (m) return `Case ${c.label || c.key}: ${m.toLowerCase()}`;
+    }
+  }
   return undefined;
+}
+
+// Điều kiện thiếu dữ liệu (chạy sẽ báo lỗi) – undefined = đủ.
+export function condMissing(c: Cond): string | undefined {
+  switch (c.kind) {
+    case 'text': return c.findText?.trim() ? undefined : 'Chưa nhập chữ cần thấy';
+    case 'image': return c.template ? undefined : 'Chưa có ảnh mẫu';
+    case 'pixel': return c.points?.[0] ? undefined : 'Chưa chọn điểm màu';
+    case 'all': case 'any':
+      return c.conds?.length ? c.conds.map(condMissing).find(Boolean) : 'Nhóm chưa có điều kiện nào';
+    default: return undefined;
+  }
+}
+
+const OP_TEXT: Record<string, string> = { eq: '=', ne: '≠', contains: 'chứa', gt: '>', lt: '<' };
+// Một dòng mô tả điều kiện: thấy chữ “Gửi”, {{x}} > 3, 2 điều kiện (và)…
+export function condText(c: Cond): string {
+  const neg = c.not ? 'không ' : '';
+  switch (c.kind) {
+    case 'text': return `${neg}thấy chữ “${c.findText ?? ''}”`;
+    case 'image': return c.template ? `${neg}thấy ảnh (≥ ${c.threshold ?? 90}%)` : 'chưa có ảnh mẫu';
+    case 'pixel': return `${c.not ? 'khác' : 'có'} màu ${c.color ?? ''}`;
+    case 'value': {
+      const t = c.op === 'empty' ? `${c.left ?? ''} trống` : `${c.left ?? ''} ${OP_TEXT[c.op ?? 'eq']} ${c.right ?? ''}`;
+      return c.not ? `không (${t})` : t;
+    }
+    default: return `${c.not ? 'không: ' : ''}${c.conds?.length ?? 0} điều kiện (${c.kind === 'all' ? 'và' : 'hoặc'})`;
+  }
+}
+
+const sec = (ms: number) => `${(ms / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} s`;
+// Dòng chi tiết trên thẻ node điều khiển.
+function controlDetail(s: Step): string {
+  const n = s.cases?.length ?? 0;
+  switch (s.type) {
+    case 'if': return `${s.cond ? condText(s.cond) : '—'}${s.timeoutMs ? ` · chờ ${sec(s.timeoutMs)}` : ''}`;
+    case 'switch': return `${s.value || '—'} · ${n} case`;
+    case 'switchScreen': return `chờ tối đa ${sec(s.timeoutMs ?? 0)} · ${n} case`;
+    case 'counter': return `tối đa ${s.max ?? 0} lần`;
+    case 'end': return s.endStatus === 'fail' ? `thất bại${s.message ? ` · ${s.message}` : ''}` : `thành công${s.message ? ` · ${s.message}` : ''}`;
+    case 'setVar': return `vars.${s.varName || '?'} ${s.varOp === 'add' ? '+=' : '='} ${s.value ?? ''}`;
+    default: return '';
+  }
 }
 
 // Output node trả về khi thành công – khớp Outputs trong steptypes.go. Node sau đọc bằng {{ref.output.key}}.
@@ -64,6 +131,11 @@ export function outputsOf(s: Step): OutputField[] {
     case 'waitImage': return FOUND;
     case 'clickImage': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...(s.imageSource === 'search' ? FOUND : [])];
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
+    case 'if': return [{ key: 'result', desc: 'true / false' }, ...FOUND.map((f) => ({ ...f, desc: `${f.desc} (điều kiện ảnh / chữ đúng)` }))];
+    case 'switch': return [{ key: 'case', desc: 'case khớp (default nếu không)' }, { key: 'value', desc: 'giá trị đã xét' }];
+    case 'switchScreen': return [{ key: 'case', desc: 'case hiện trước (none nếu không)' }, ...FOUND];
+    case 'counter': return [{ key: 'count', desc: 'số lần đã đi qua' }];
+    case 'setVar': return [{ key: 'name', desc: 'tên biến' }, { key: 'value', desc: 'giá trị sau khi đặt' }];
     default: return [];
   }
 }

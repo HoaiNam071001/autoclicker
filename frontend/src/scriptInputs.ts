@@ -3,7 +3,7 @@
 // nên Xem trước / overlay không cần resolve vẫn đúng với lần chạy dùng mặc định.
 import { flowOrder } from './flow/model';
 import { getEditor, updateScript } from './store';
-import { InputType, InputValue, PinField, Script, ScriptInput, Step, stepLabel } from './types';
+import { Cond, InputType, InputValue, PinField, Script, ScriptInput, Step, stepLabel } from './types';
 import { InputView, isValidKey, splitVars, varsIn } from './components/inputs/model';
 import type { RunSection } from './components/inputs/RunDialog';
 
@@ -27,10 +27,31 @@ export const fieldKind = (f: PinField) => (f === 'enabled' ? 'bool' : 'int');
 
 const inputsOf = (sc: Script) => sc.inputs ?? [];
 
-// Ô chữ nhận {{biến}} của bước (khớp resolveInputs trong inputs.go): gõ chữ → text, mở → target.
-export const varText = (s: Step) => (s.type === 'type' ? s.text : s.type === 'open' ? s.target ?? '' : '');
-const withVarText = (s: Step, text: string): Step =>
-  s.type === 'type' ? { ...s, text } : s.type === 'open' ? { ...s, target: text } : s;
+// Ô chữ nhận {{biến}} của node – khớp varFields (vars.go): gõ chữ, mở, chữ cần tìm, điều kiện / case / giá trị của
+// node điều khiển. mapVarText trả node mới với từng ô qua f (không sửa node cũ).
+export function mapVarText(s: Step, f: (t: string) => string): Step {
+  const cond = (c: Cond): Cond =>
+    c.kind === 'text' ? { ...c, findText: f(c.findText ?? '') }
+      : c.kind === 'value' ? { ...c, left: f(c.left ?? ''), right: f(c.right ?? '') }
+      : c.kind === 'all' || c.kind === 'any' ? { ...c, conds: (c.conds ?? []).map(cond) } : c;
+  switch (s.type) {
+    case 'type': return { ...s, text: f(s.text) };
+    case 'open': return { ...s, target: f(s.target ?? '') };
+    case 'waitImage': case 'clickImage': return s.findBy === 'text' ? { ...s, findText: f(s.findText ?? '') } : s;
+    case 'if': return s.cond ? { ...s, cond: cond(s.cond) } : s;
+    case 'switch': return { ...s, value: f(s.value ?? ''), cases: s.cases?.map((c) => ({ ...c, match: f(c.match ?? '') })) };
+    case 'switchScreen': return { ...s, cases: s.cases?.map((c) => (c.cond ? { ...c, cond: cond(c.cond) } : c)) };
+    case 'end': return { ...s, message: f(s.message ?? '') };
+    case 'setVar': return { ...s, value: f(s.value ?? '') };
+    default: return s;
+  }
+}
+// Gộp các ô chữ nhận biến của node (tìm {{key}} đang dùng).
+export const varText = (s: Step) => {
+  const parts: string[] = [];
+  mapVarText(s, (t) => (parts.push(t), t));
+  return parts.join('\n');
+};
 const setInputs = (inputs: ScriptInput[]) => updateScript({ inputs: inputs.length ? inputs : undefined });
 // Mã node (n2) hiện cạnh input / trong form Chạy
 const stepNo = (sc: Script, id: string) => sc.steps.find((s) => s.id === id)?.ref || '?';
@@ -175,7 +196,7 @@ export function updateInput(key: string, patch: Partial<ScriptInput>): string | 
   }
   if ('default' in patch) next.default = parseValue(next.type, patch.default);
   let steps = withTargets(sc.steps, next, next.default);
-  if (next.key !== key) steps = steps.map((s) => (varText(s) ? withVarText(s, renameVar(varText(s), key, next.key)) : s));
+  if (next.key !== key) steps = steps.map((s) => (varsIn(varText(s)).includes(key) ? mapVarText(s, (t) => renameVar(t, key, next.key)) : s));
   updateScript({ steps, inputs: inputsOf(sc).map((i) => (i.key === key ? next : i)) });
   return null;
 }

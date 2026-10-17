@@ -4,20 +4,16 @@
 import type { StepIconName } from '../components/icons';
 import type { FlowEdgeView, FlowNodeView, PortView, RunRow, RunState } from '../components/flow/model';
 import type { OutputField, Retry } from '../components/flow/PortField';
-import type {
-  CounterData, EndData, IfData, SetVarData, SwitchData, SwitchScreenData,
-} from '../components/flow/nodes/ControlFields';
+import { makeStep, Step } from '../types';
+import { outputsOf as nodeOutputs, portViews } from '../flow/view';
+import { emptyCond, newCase } from '../flow/cond';
 import { DemoStep, demoItems, findDemoStep } from './demoScript';
 
+// Node hành động dùng dữ liệu mẫu cũ (DemoStep); node điều khiển dùng model thật (Step) để chung inspector với app.
 export type NodeBody =
   | { kind: 'step'; step: DemoStep }
   | { kind: 'wait'; ms: number }
-  | { kind: 'if'; data: IfData }
-  | { kind: 'switch'; data: SwitchData }
-  | { kind: 'switchScreen'; data: SwitchScreenData }
-  | { kind: 'counter'; data: CounterData }
-  | { kind: 'end'; data: EndData }
-  | { kind: 'setVar'; data: SetVarData };
+  | { kind: 'control'; step: Step };
 
 export type DemoFlowNode = Omit<FlowNodeView, 'ports'> & { body: NodeBody; retry?: Retry };
 
@@ -26,24 +22,8 @@ const ACTION_PORTS: PortView[] = [
   { id: 'fail', label: 'Thất bại', kind: 'fail' },
 ];
 
-// Cổng ra theo loại node – switch lấy theo danh sách case (thêm case trong inspector là có cổng mới)
-export function portsOf(b: NodeBody): PortView[] {
-  switch (b.kind) {
-    case 'if': return [{ id: 'true', label: 'Đúng', kind: 'neutral' }, { id: 'false', label: 'Sai', kind: 'neutral' }];
-    case 'switchScreen': return [
-      ...b.data.cases.map((c): PortView => ({ id: `case:${c.key}`, label: c.label, kind: 'neutral' })),
-      { id: 'none', label: 'Không thấy', kind: 'neutral' },
-    ];
-    case 'switch': return [
-      ...b.data.cases.map((c): PortView => ({ id: `case:${c.key}`, label: c.label, kind: 'neutral' })),
-      { id: 'default', label: 'Khác', kind: 'neutral' },
-    ];
-    case 'counter': return [{ id: 'next', label: 'Còn lượt', kind: 'neutral' }, { id: 'done', label: 'Hết lượt', kind: 'neutral' }];
-    case 'end': return [];
-    case 'setVar': return [{ id: 'success', label: 'Tiếp', kind: 'ok' }];
-    default: return ACTION_PORTS;
-  }
-}
+// Cổng ra theo loại node – node điều khiển theo model thật (switch: theo case)
+export const portsOf = (b: NodeBody): PortView[] => (b.kind === 'control' ? portViews(b.step) : ACTION_PORTS);
 
 // Output node trả về (hiện trong inspector, chèn bằng {{nX.output.key}})
 export function outputsOf(b: NodeBody): OutputField[] {
@@ -52,11 +32,7 @@ export function outputsOf(b: NodeBody): OutputField[] {
     { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' }, { key: 'score', desc: '% khớp' }, { key: 'text', desc: 'chữ đọc được' },
   ];
   switch (b.kind) {
-    case 'switchScreen': return [{ key: 'case', desc: 'case nào hiện' }, ...found];
-    case 'switch': return [{ key: 'case', desc: 'case khớp' }, { key: 'value', desc: 'giá trị đã xét' }];
-    case 'counter': return [{ key: 'count', desc: 'số lần đã đi qua' }];
-    case 'setVar': return [{ key: 'value', desc: 'giá trị sau khi đặt' }];
-    case 'if': return [{ key: 'result', desc: 'true / false' }, ...found.slice(0, 2)];
+    case 'control': return nodeOutputs(b.step);
     case 'step': {
       const t = b.step.type;
       if (t === 'waitImage') return found;
@@ -70,6 +46,8 @@ export function outputsOf(b: NodeBody): OutputField[] {
 }
 
 const step = (id: string) => findDemoStep(id) ?? (demoItems[0] as DemoStep);
+const ctl = (id: string, type: Step['type'], p: Partial<Step>): NodeBody => ({ kind: 'control', step: makeStep({ id, type, clicks: 0, delayAfter: 0, ...p }) });
+const textCase = (key: string, label: string, text: string) => ({ key, label, cond: { kind: 'text' as const, findText: text } });
 
 export const demoFlowStart = 'a1';
 
@@ -77,22 +55,21 @@ export const demoFlowNodes: DemoFlowNode[] = [
   { id: 'a1', ref: 'n1', icon: 'open', title: 'Mở trang cá nhân', detail: 'facebook.com/{{profile}} · Chrome', chips: ['1 input'], body: { kind: 'step', step: step('d1') } },
   {
     id: 'a2', ref: 'n2', icon: 'switchScreen', title: 'Đang ở màn nào?', detail: 'chờ tối đa 3 s · 2 case',
-    body: { kind: 'switchScreen', data: { timeoutMs: 3000, cases: [
-      { key: 'login', label: 'Đăng nhập', by: 'text', text: 'Đăng nhập' },
-      { key: 'profile', label: 'Có nút Nhắn tin', by: 'text', text: 'Nhắn tin' },
-    ] } },
+    body: ctl('a2', 'switchScreen', { timeoutMs: 3000, intervalMs: 250, cases: [
+      textCase('login', 'Đăng nhập', 'Đăng nhập'), textCase('profile', 'Có nút Nhắn tin', 'Nhắn tin'),
+    ] }),
   },
   { id: 'a3', ref: 'n3', icon: 'clickImage', title: 'Click nút Nhắn tin', detail: 'chỗ thấy ở n2 · giữa chữ', retry: { count: 2, delayMs: 500 }, chips: ['thử lại 2'], body: { kind: 'step', step: step('d4') } },
   { id: 'a4', ref: 'n4', icon: 'wait', title: 'Chờ khung chat', detail: '800 ms', enabled: false, body: { kind: 'wait', ms: 800 } },
   { id: 'a5', ref: 'n5', icon: 'type', title: 'Gõ lời chào', detail: '"xin chào {{M1}} và {{M2}}"', chips: ['2 input'], body: { kind: 'step', step: step('d5') } },
   { id: 'a6', ref: 'n6', icon: 'key', title: 'Enter', detail: 'gửi tin', body: { kind: 'step', step: step('d6') } },
-  { id: 'a7', ref: 'n7', icon: 'if', title: 'Đã gửi?', detail: 'thấy chữ "Đã gửi" · chờ 3 s', body: { kind: 'if', data: { kind: 'text', text: 'Đã gửi', waitMs: 3000, left: '', op: 'eq', right: '', negate: false } } },
-  { id: 'a8', ref: 'n8', icon: 'end', title: 'Xong', detail: 'thành công · đã gửi tin', body: { kind: 'end', data: { status: 'success', message: 'Đã gửi tin cho {{M1}}' } } },
-  { id: 'a9', ref: 'n9', icon: 'end', title: 'Chưa đăng nhập', detail: 'thất bại · cần đăng nhập Facebook', body: { kind: 'end', data: { status: 'fail', message: 'Chưa đăng nhập Facebook trên Chrome' } } },
-  { id: 'a10', ref: 'n10', icon: 'counter', title: 'Thử cuộn', detail: 'tối đa 10 lần', body: { kind: 'counter', data: { max: 10 } } },
+  { id: 'a7', ref: 'n7', icon: 'if', title: 'Đã gửi?', detail: 'thấy chữ "Đã gửi" · chờ 3 s', body: ctl('a7', 'if', { cond: { kind: 'text', findText: 'Đã gửi' }, timeoutMs: 3000, intervalMs: 250 }) },
+  { id: 'a8', ref: 'n8', icon: 'end', title: 'Xong', detail: 'thành công · đã gửi tin', body: ctl('a8', 'end', { endStatus: 'success', message: 'Đã gửi tin cho {{M1}}' }) },
+  { id: 'a9', ref: 'n9', icon: 'end', title: 'Chưa đăng nhập', detail: 'thất bại · cần đăng nhập Facebook', body: ctl('a9', 'end', { endStatus: 'fail', message: 'Chưa đăng nhập Facebook trên Chrome' }) },
+  { id: 'a10', ref: 'n10', icon: 'counter', title: 'Thử cuộn', detail: 'tối đa 10 lần', body: ctl('a10', 'counter', { max: 10 }) },
   { id: 'a11', ref: 'n11', icon: 'scroll', title: 'Cuộn xuống', detail: '3 nấc tại chuột', body: { kind: 'step', step: { ...step('d7'), detail: 'xuống 3 nấc tại chuột' } } },
-  { id: 'a12', ref: 'n12', icon: 'end', title: 'Không thấy nút', detail: 'thất bại · sau 10 lần cuộn', body: { kind: 'end', data: { status: 'fail', message: 'Không thấy nút Nhắn tin sau 10 lần cuộn' } } },
-  { id: 'a14', ref: 'n13', icon: 'end', title: 'Gửi không được', detail: 'thất bại · không thấy "Đã gửi"', body: { kind: 'end', data: { status: 'fail', message: 'Không thấy chữ “Đã gửi” sau 3 s' } } },
+  { id: 'a12', ref: 'n12', icon: 'end', title: 'Không thấy nút', detail: 'thất bại · sau 10 lần cuộn', body: ctl('a12', 'end', { endStatus: 'fail', message: 'Không thấy nút Nhắn tin sau 10 lần cuộn' }) },
+  { id: 'a14', ref: 'n13', icon: 'end', title: 'Gửi không được', detail: 'thất bại · không thấy "Đã gửi"', body: ctl('a14', 'end', { endStatus: 'fail', message: 'Không thấy chữ “Đã gửi” sau 3 s' }) },
   { id: 'a13', ref: 'n14', icon: 'key', title: 'Esc', detail: 'đóng popup', body: { kind: 'step', step: { ...step('d6'), detail: 'Esc' } } },
 ];
 
@@ -180,12 +157,12 @@ const DEFAULTS: Record<string, { icon: StepIconName; title: string; detail: stri
   waitImage: { icon: 'waitImage', title: 'Chờ ảnh', detail: 'tối đa 10 s, khớp ≥ 90%', body: () => ({ kind: 'step', step: step('d3') }) },
   waitPixel: { icon: 'waitPixel', title: 'Chờ màu pixel', detail: 'X 640 Y 300 = #1877F2', body: () => ({ kind: 'step', step: step('d8') }) },
   open: { icon: 'open', title: 'Mở URL', detail: 'https://…', body: () => ({ kind: 'step', step: step('d1') }) },
-  if: { icon: 'if', title: 'Nếu', detail: 'thấy chữ "…"', body: () => ({ kind: 'if', data: { kind: 'text', text: '', waitMs: 0, left: '', op: 'eq', right: '', negate: false } }) },
-  switch: { icon: 'switch', title: 'Switch theo giá trị', detail: '{{…}} · 2 case', body: () => ({ kind: 'switch', data: { value: '', cases: [{ key: 'c1', label: 'Case 1', op: 'eq', match: '' }, { key: 'c2', label: 'Case 2', op: 'eq', match: '' }] } }) },
-  switchScreen: { icon: 'switchScreen', title: 'Switch theo màn hình', detail: 'chờ tối đa 3 s · 2 case', body: () => ({ kind: 'switchScreen', data: { timeoutMs: 3000, cases: [{ key: 'c1', label: 'Case 1', by: 'text', text: '' }, { key: 'c2', label: 'Case 2', by: 'text', text: '' }] } }) },
-  counter: { icon: 'counter', title: 'Đếm', detail: 'tối đa 10 lần', body: () => ({ kind: 'counter', data: { max: 10 } }) },
-  end: { icon: 'end', title: 'Kết thúc', detail: 'thành công', body: () => ({ kind: 'end', data: { status: 'success', message: '' } }) },
-  setVar: { icon: 'setVar', title: 'Đặt biến', detail: 'vars.ten = …', body: () => ({ kind: 'setVar', data: { name: 'ten', op: 'set', value: '' } }) },
+  if: { icon: 'if', title: 'Nếu', detail: 'thấy chữ "…"', body: () => ctl('x', 'if', { cond: emptyCond('text'), intervalMs: 250 }) },
+  switch: { icon: 'switch', title: 'Switch theo giá trị', detail: '{{…}} · 2 case', body: () => ctl('x', 'switch', { value: '', cases: [newCase([], false), newCase([{ key: 'c1' }], false)] }) },
+  switchScreen: { icon: 'switchScreen', title: 'Switch theo màn hình', detail: 'chờ tối đa 3 s · 2 case', body: () => ctl('x', 'switchScreen', { timeoutMs: 3000, intervalMs: 250, cases: [newCase([], true), newCase([{ key: 'c1' }], true)] }) },
+  counter: { icon: 'counter', title: 'Đếm', detail: 'tối đa 10 lần', body: () => ctl('x', 'counter', { max: 10 }) },
+  end: { icon: 'end', title: 'Kết thúc', detail: 'thành công', body: () => ctl('x', 'end', { endStatus: 'success', message: '' }) },
+  setVar: { icon: 'setVar', title: 'Đặt biến', detail: 'vars.ten = …', body: () => ctl('x', 'setVar', { varName: 'ten', varOp: 'set', value: '' }) },
 };
 
 export function newDemoNode(type: keyof typeof DEFAULTS, existing: DemoFlowNode[]): DemoFlowNode {

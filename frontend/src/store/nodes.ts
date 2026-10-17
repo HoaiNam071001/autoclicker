@@ -4,7 +4,7 @@ import { anchorPoint } from '../anchor';
 import {
   Clip, connect, copyNodes, disconnect, InsertAt, insertNode as insertInto, nextRef, pasteNodes, pruneEdges, removeEdge as dropEdge, removeNode,
 } from '../flow/edit';
-import { flowOrder } from '../flow/model';
+import { findsImage, flowOrder, portsOf } from '../flow/model';
 import { placeNode, Positions } from '../flow/layout';
 import { makeStep, Point, Script, Step, StepType } from '../types';
 import { getEditor, patchScriptSilently, setEditor, setNotice, updateScript } from './editor';
@@ -24,10 +24,11 @@ export const setInsertAt = (at: (InsertAt & { pos?: Point }) | null) => {
   insertAt = at;
 };
 export const clearInsertAt = () => setInsertAt(null);
-// Mặc định của bảng thêm node khi không thả từ cổng: sau cổng success của node đang chọn.
+// Mặc định của bảng thêm node khi không thả từ cổng: sau cổng đầu (success / true / next…) của node đang chọn.
 export const insertAfterSelected = () => {
-  const sel = getEditor().selected;
-  setInsertAt(script().steps.some((s) => s.id === sel) ? { from: sel, port: 'success' } : null);
+  const sel = script().steps.find((s) => s.id === getEditor().selected);
+  const port = sel && portsOf(sel)[0];
+  setInsertAt(sel && port ? { from: sel.id, port } : null);
 };
 // Đang chèn vào đâu – dòng ghi trên bảng thêm node.
 export const insertTarget = () => insertAt;
@@ -37,7 +38,8 @@ export function insertNode(step: Step, notice: (ref: string) => string) {
   const sc = script();
   const node: Step = { ...step, ref: step.ref || nextRef(sc.steps), pos: step.pos ?? insertAt?.pos ?? placeNode(sc.steps, insertAt?.from) };
   updateScript(insertInto(sc, node, insertAt));
-  if (insertAt) insertAt = { from: node.id, port: 'success' };
+  const next = portsOf(node)[0]; // node đặt tiếp (điểm liên tiếp trên overlay) nối vào cổng đầu của node này
+  if (insertAt) insertAt = next ? { from: node.id, port: next } : null;
   setEditor({ selected: node.id, notice: notice(node.ref) });
 }
 
@@ -56,9 +58,6 @@ export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scrol
   insertNode(makeStep({ id: newId(), type, ...defaults[type] }), (ref) => `Đã thêm ${ref}`);
   clearInsertAt();
 }
-
-// Node tìm ảnh / chữ (có "chỗ thấy" cho click theo ảnh): chờ ảnh / chữ, click theo ảnh tự tìm.
-export const findsImage = (s: Step) => s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search');
 
 // Nguồn mặc định cho click theo ảnh mới: node đang nối vào nếu nó tìm ảnh, không thì node tìm ảnh gần nhất theo thứ tự.
 function nearestFinder(): string | undefined {

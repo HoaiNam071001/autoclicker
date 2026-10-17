@@ -1,5 +1,124 @@
 export namespace main {
 	
+	export class Point {
+	    x: number;
+	    y: number;
+	    ax?: string;
+	    ay?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Point(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.x = source["x"];
+	        this.y = source["y"];
+	        this.ax = source["ax"];
+	        this.ay = source["ay"];
+	    }
+	}
+	export class Cond {
+	    kind: string;
+	    not?: boolean;
+	    template?: string;
+	    templateScale?: number;
+	    threshold?: number;
+	    searchArea?: string;
+	    findText?: string;
+	    textExact?: boolean;
+	    textNoAccent?: boolean;
+	    occurrence?: number;
+	    points?: Point[];
+	    color?: string;
+	    tolerance?: number;
+	    left?: string;
+	    op?: string;
+	    right?: string;
+	    conds?: Cond[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Cond(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kind = source["kind"];
+	        this.not = source["not"];
+	        this.template = source["template"];
+	        this.templateScale = source["templateScale"];
+	        this.threshold = source["threshold"];
+	        this.searchArea = source["searchArea"];
+	        this.findText = source["findText"];
+	        this.textExact = source["textExact"];
+	        this.textNoAccent = source["textNoAccent"];
+	        this.occurrence = source["occurrence"];
+	        this.points = this.convertValues(source["points"], Point);
+	        this.color = source["color"];
+	        this.tolerance = source["tolerance"];
+	        this.left = source["left"];
+	        this.op = source["op"];
+	        this.right = source["right"];
+	        this.conds = this.convertValues(source["conds"], Cond);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class Case {
+	    key: string;
+	    label?: string;
+	    op?: string;
+	    match?: string;
+	    cond?: Cond;
+	
+	    static createFrom(source: any = {}) {
+	        return new Case(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.key = source["key"];
+	        this.label = source["label"];
+	        this.op = source["op"];
+	        this.match = source["match"];
+	        this.cond = this.convertValues(source["cond"], Cond);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
 	export class Rect {
 	    x: number;
 	    y: number;
@@ -17,6 +136,52 @@ export namespace main {
 	        this.w = source["w"];
 	        this.h = source["h"];
 	    }
+	}
+	export class CondPart {
+	    path: number[];
+	    case?: string;
+	    kind: string;
+	    ok: boolean;
+	    known: boolean;
+	    detail: string;
+	    hit?: Rect;
+	    score?: number;
+	    text?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CondPart(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.case = source["case"];
+	        this.kind = source["kind"];
+	        this.ok = source["ok"];
+	        this.known = source["known"];
+	        this.detail = source["detail"];
+	        this.hit = this.convertValues(source["hit"], Rect);
+	        this.score = source["score"];
+	        this.text = source["text"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class DisplayInfo {
 	    index: number;
@@ -148,24 +313,6 @@ export namespace main {
 	        this.delayMs = source["delayMs"];
 	    }
 	}
-	export class Point {
-	    x: number;
-	    y: number;
-	    ax?: string;
-	    ay?: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new Point(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.x = source["x"];
-	        this.y = source["y"];
-	        this.ax = source["ax"];
-	        this.ay = source["ay"];
-	    }
-	}
 	export class Pos {
 	    x: number;
 	    y: number;
@@ -224,6 +371,14 @@ export namespace main {
 	    retry?: Retry;
 	    color?: string;
 	    tolerance?: number;
+	    cond?: Cond;
+	    cases?: Case[];
+	    value?: string;
+	    max?: number;
+	    endStatus?: string;
+	    message?: string;
+	    varName?: string;
+	    varOp?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Step(source);
@@ -274,6 +429,14 @@ export namespace main {
 	        this.retry = this.convertValues(source["retry"], Retry);
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
+	        this.cond = this.convertValues(source["cond"], Cond);
+	        this.cases = this.convertValues(source["cases"], Case);
+	        this.value = source["value"];
+	        this.max = source["max"];
+	        this.endStatus = source["endStatus"];
+	        this.message = source["message"];
+	        this.varName = source["varName"];
+	        this.varOp = source["varOp"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -493,6 +656,44 @@ export namespace main {
 	}
 	
 	
+	export class NodeTest {
+	    port: string;
+	    known: boolean;
+	    parts: CondPart[];
+	    value?: string;
+	    ms: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new NodeTest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.port = source["port"];
+	        this.known = source["known"];
+	        this.parts = this.convertValues(source["parts"], CondPart);
+	        this.value = source["value"];
+	        this.ms = source["ms"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	
 	
 	

@@ -138,6 +138,10 @@ export function StopScript() {
   return window['go']['main']['App']['StopScript']();
 }
 
+export function TestNode(arg1, arg2) {
+  return window['go']['main']['App']['TestNode'](arg1, arg2);
+}
+
 export function ValidateScript(arg1, arg2) {
   return window['go']['main']['App']['ValidateScript'](arg1, arg2);
 }
