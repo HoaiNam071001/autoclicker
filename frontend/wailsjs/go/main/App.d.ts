@@ -68,6 +68,4 @@ export function StepTypes():Promise<Array<main.StepTypeDoc>>;
 
 export function StopScript():Promise<void>;
 
-export function TestCond(arg1:main.Script,arg2:string,arg3:Array<number>):Promise<main.CondTest>;
-
 export function ValidateScript(arg1:main.Script,arg2:Record<string, any>):Promise<void>;

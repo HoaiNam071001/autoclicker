@@ -1,6 +1,6 @@
 // Inspector – cấu hình bước đang chọn (design v2, cột phải), sửa trực tiếp vào store (bước 15)
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { Eye, StepIcon, Target, Trash } from './icons';
+import { Eye, StepIcon, Target } from './icons';
 import { openOverlay } from '../windowMode';
 import NumInput, { fieldBox } from './NumInput';
 import Segmented from './Segmented';
@@ -11,16 +11,19 @@ import InputsPanel from './inputs/InputsPanel';
 import AnchorField, { AnchorMap } from './steps/AnchorField';
 import ScrollMap from './steps/ScrollMap';
 import {
-  boundsOf, changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, setScrollAt, pickCondPoint, stepById, toggleStep, toScreen, updateStep, useScript,
+  boundsOf, changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, setScrollAt, stepById, toggleStep, toScreen, updateStep, useScript,
 } from '../scriptStore';
 import {
   addInput, compatibleInputs, inputViews, moveInput, pinField, pinnedInput, pinToInput, removeInput, setPinnedValue, unpinField, updateInput,
 } from '../scriptInputs';
 import { loadMemory, stopAutoRun, useRunForm } from '../runForm';
-import { CAN_FAIL, Cond, fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, OnFail, PinField, SCROLL_NOTCH_PX, ScrollDirection, Step, STEP_LABEL, stepLabel, StepPoint, StepType } from '../types';
-import { anchorPoint, insideBounds } from '../anchor';
-import { condAt, flatOf, flatten, removeCondAt, updateCondAt } from '../stepTree';
-import { checkCapture, pickColor, pickCondColor, requestCapture, startCapture, templateUrl, testCond, testFind, updateCond, useImageState } from '../imageSteps';
+import {
+  fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, PinField, SCROLL_NOTCH_PX, ScrollDirection, Step, STEP_LABEL, stepLabel,
+  StepPoint, StepType, CAN_FAIL, Cond, OnFail,
+} from '../types';
+import { insideBounds } from '../anchor';
+import { flatOf, flatten } from '../stepTree';
+import { checkCapture, pickColor, requestCapture, startCapture, templateUrl, testFind, useImageState } from '../imageSteps';
 
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel'];
 // Trình duyệt gợi ý cho bước Mở (Windows: open.go đổi sang tên lệnh chrome / msedge / firefox)
@@ -779,129 +782,27 @@ const OPS = [
   { id: 'gt', label: 'lớn hơn' }, { id: 'lt', label: 'nhỏ hơn' }, { id: 'empty', label: 'trống' },
 ];
 
-const COND_KINDS: { id: Cond['kind']; label: string }[] = [
-  { id: 'text', label: 'Thấy chữ' }, { id: 'image', label: 'Thấy ảnh' }, { id: 'pixel', label: 'Màu pixel' },
-  { id: 'input', label: 'Giá trị input' }, { id: 'result', label: 'Bước trước thành công / thất bại' },
-];
-const emptyCond = (kind: Cond['kind']): Cond =>
-  kind === 'image' ? { kind, threshold: 90 } : kind === 'pixel' ? { kind, color: '#000000', tolerance: 10 } : kind === 'input' ? { kind, op: 'eq' } : { kind, findText: '' };
-
-// Điều kiện của khối (bước 20c): chữ / ảnh / màu / input / bước trước, ghép nhiều điều kiện (và / hoặc), Thử điều kiện.
+// Điều kiện của khối – bản cơ bản (20b): thấy chữ, so input, bước trước. Ảnh / màu / ghép và-hoặc + Thử điều kiện: 20c.
 function CondFields({ step: s }: { step: Step }) {
-  const { condTests, busy, error } = useImageState();
-  const r = condTests[s.id];
-  const multi = s.cond?.kind === 'all' || s.cond?.kind === 'any';
-  return (
-    <>
-      <CondEditor step={s} path={[]} />
-      <div className="col-span-2 flex flex-col gap-1.5">
-        <button onClick={() => testCond(s.id)} disabled={busy === s.id}
-          title="Xét điều kiện trên màn hình hiện tại (app ẩn đi một chút) – một lần, không chờ"
-          className="h-8 rounded-control border border-line bg-surface text-ink enabled:hover:bg-hover disabled:opacity-50">
-          {busy === s.id ? 'Đang xét…' : 'Thử điều kiện'}
-        </button>
-        {r && (
-          <div className="flex flex-col gap-1 text-xs">
-            <span className={`font-semibold ${!r.known ? 'text-warn' : r.ok ? 'text-ok' : 'text-danger-text'}`}>
-              {!r.known ? 'Chưa biết – phụ thuộc lúc chạy' : r.ok ? 'Đúng lúc này' : 'Sai lúc này'}
-              {s.type === 'if' && r.known && <span className="font-normal text-muted"> → chạy {r.ok ? 'các bước bên trong' : 'nhánh “Nếu không”'}</span>}
-              <span className="font-normal text-muted"> · {r.ms} ms</span>
-            </span>
-            {r.parts.map((p, i) => (
-              <span key={i} className="flex gap-1.5 text-muted">
-                <span className={!p.known ? 'text-warn' : p.ok ? 'text-ok' : 'text-danger-text'}>{!p.known ? '?' : p.ok ? '✓' : '✗'}</span>
-                <span>{multi && <b className="font-semibold">Điều kiện {p.path.map((n) => n + 1).join('.')}: </b>}{p.detail}</span>
-              </span>
-            ))}
-            {r.parts.some((p) => p.hit) && (
-              <button onClick={() => openOverlay('point', s.id)} className="self-start text-muted underline">xem trên màn hình</button>
-            )}
-          </div>
-        )}
-        {error && busy === '' && <span className="text-xs text-danger-text">{error}</span>}
-      </div>
-    </>
-  );
-}
-
-// Sửa một điều kiện tại path (gốc hoặc điều kiện con của nhóm và / hoặc).
-function CondEditor({ step: s, path }: { step: Step; path: number[] }) {
   const script = useScript();
-  const { region } = script;
-  const { busy } = useImageState();
-  const root = s.cond ?? emptyCond('text');
-  const c = condAt(root, path) ?? emptyCond('text');
-  const set = (patch: Partial<Cond>) => updateCond(s.id, path, (x) => ({ ...x, ...patch }));
-  const replace = (next: Cond) => updateStep(s.id, { cond: updateCondAt(root, path, () => next) });
-  const nested = path.length > 0;
-  const multi = c.kind === 'all' || c.kind === 'any';
-  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
-  const k = c.templateScale || 1;
-  const yesNo = (yes: string, no: string) => (
-    <Field label="" wide group>
-      <Segmented value={c.not ? 'no' : 'yes'} full label={`${yes} / ${no}`} onChange={(v) => set({ not: v === 'no' || undefined })}
-        options={[{ id: 'yes', label: yes }, { id: 'no', label: no }]} />
-    </Field>
-  );
-  const waitField = (
-    <>
-      <Field label="Chờ tối đa">
-        <NumInput value={c.waitMs ?? 0} min={0} unit="ms" onChange={(waitMs) => set({ waitMs: waitMs || undefined })} />
-      </Field>
-      <span className={`self-end pb-2 ${hint}`}>{c.waitMs ? `Đợi tới ${fmtSec(c.waitMs)} rồi mới kết luận “không thấy”` : 'Xem một lần (0) – không đợi'}</span>
-    </>
-  );
-  const areaField = (
-    <Field label="Tìm trong" wide group>
-      <Segmented value={c.searchArea ?? 'region'} onChange={(v) => set({ searchArea: v === 'screen' ? 'screen' : undefined })} full
-        options={[{ id: 'region', label: 'Vùng của kịch bản' }, { id: 'screen', label: 'Cả màn hình' }]} />
-      <span className={hint}>Thấy thì bước “Click theo kết quả bước trước” bên trong click được vào đúng chỗ đó.</span>
-    </Field>
-  );
-
+  const c: Cond = s.cond ?? { kind: 'text', findText: '' };
+  const set = (patch: Partial<Cond>) => updateStep(s.id, { cond: { ...c, ...patch } });
+  const basic = c.kind === 'text' || c.kind === 'input' || c.kind === 'result';
   return (
     <>
-      <Field label={nested ? '' : 'Điều kiện'} wide group>
-        <div className="flex gap-1.5">
-          <select value={multi ? 'multi' : c.kind} aria-label="Loại điều kiện" className={`${selectBox} min-w-0 flex-1`}
-            onChange={(e) => {
-              const v = e.target.value;
-              if (v === 'multi') replace({ kind: 'all', conds: [c, emptyCond('text')] });
-              else if (v !== c.kind) replace({ ...emptyCond(v as Cond['kind']), ...(v === 'input' ? { left: `{{${script.inputs?.[0]?.key ?? 'bien'}}}` } : {}) });
-            }}>
-            {COND_KINDS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-            {!nested && <option value="multi">Nhiều điều kiện (và / hoặc)</option>}
-          </select>
-          {nested && (
-            <button onClick={() => updateStep(s.id, { cond: removeCondAt(root, path) })} aria-label="Bỏ điều kiện này" title="Bỏ điều kiện này"
-              className="grid h-8 w-8 flex-none place-items-center rounded-control border border-line text-muted hover:bg-hover hover:text-danger-text"><Trash /></button>
-          )}
-        </div>
+      <Field label="Điều kiện" wide group>
+        <Segmented value={basic ? c.kind : 'text'} full label="Loại điều kiện"
+          onChange={(kind) => set(kind === 'input' ? { kind, left: c.left ?? `{{${script.inputs?.[0]?.key ?? 'bien'}}}`, op: c.op ?? 'eq' } : { kind })}
+          options={[{ id: 'text', label: 'Thấy chữ' }, { id: 'input', label: 'Giá trị input' }, { id: 'result', label: 'Bước trước' }]} />
+        {!basic && <span className="text-xs text-warn">Điều kiện “{c.kind}” (từ file / AI) chưa sửa được ở đây – sắp có (bước 20c). Vẫn chạy được.</span>}
+        <span className={hint}>Thấy ảnh / màu pixel, ghép và / hoặc: sắp có (bước 20c).</span>
       </Field>
-
-      {multi && (
-        <>
-          <Field label="" wide group>
-            <Segmented value={c.kind === 'any' ? 'any' : 'all'} full label="Cách ghép" onChange={(kind: 'all' | 'any') => set({ kind })}
-              options={[{ id: 'all', label: 'Tất cả đúng (và)' }, { id: 'any', label: 'Một cái đúng (hoặc)' }]} />
-          </Field>
-          {(c.conds ?? []).map((_, i) => (
-            <div key={i} className="col-span-2 grid grid-cols-2 gap-3 rounded-card border border-line p-2.5">
-              <span className="col-span-2 -mb-1 text-xs font-semibold text-muted">Điều kiện {i + 1}{i > 0 && <span className="font-normal"> · {c.kind === 'all' ? 'và' : 'hoặc'}</span>}</span>
-              <CondEditor step={s} path={[...path, i]} />
-            </div>
-          ))}
-          <button onClick={() => set({ conds: [...(c.conds ?? []), emptyCond('text')] })}
-            className="col-span-2 h-8 rounded-control border border-dashed border-line-strong text-[13px] text-muted hover:bg-hover hover:text-ink">
-            + Thêm điều kiện
-          </button>
-          <label className="col-span-2 flex items-center gap-2 text-[13px] text-ink"><Switch on={!!c.not} onChange={(v) => set({ not: v || undefined })} label="Đảo" />Đảo cả nhóm (đúng ↔ sai)</label>
-        </>
-      )}
-
       {c.kind === 'text' && (
         <>
-          {yesNo('Thấy chữ', 'Không thấy chữ')}
+          <Field label="" wide group>
+            <Segmented value={c.not ? 'no' : 'yes'} full label="Thấy / không thấy" onChange={(v) => set({ not: v === 'no' || undefined })}
+              options={[{ id: 'yes', label: 'Thấy chữ' }, { id: 'no', label: 'Không thấy chữ' }]} />
+          </Field>
           <div className="col-span-2 flex flex-col gap-1.5 text-muted">
             <span className="flex items-center justify-between">Chữ cần tìm
               <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
@@ -914,74 +815,17 @@ function CondEditor({ step: s, path }: { step: Step; path: number[] }) {
               <label className="flex items-center gap-2"><Switch on={!!c.textNoAccent} onChange={(v) => set({ textNoAccent: v || undefined })} label="Bỏ qua dấu" />Bỏ qua dấu</label>
             </div>
           </div>
-          {waitField}
-          {areaField}
+          <Field label="Chờ tối đa">
+            <NumInput value={c.waitMs ?? 0} min={0} unit="ms" onChange={(waitMs) => set({ waitMs: waitMs || undefined })} />
+          </Field>
+          <span className={`self-end pb-2 ${hint}`}>{c.waitMs ? `Đợi chữ hiện tới ${fmtSec(c.waitMs)} rồi mới kết luận` : 'Xem một lần (0) – không đợi'}</span>
+          <Field label="Tìm trong" wide group>
+            <Segmented value={c.searchArea ?? 'region'} onChange={(v) => set({ searchArea: v === 'screen' ? 'screen' : undefined })} full
+              options={[{ id: 'region', label: 'Vùng của kịch bản' }, { id: 'screen', label: 'Cả màn hình' }]} />
+            <span className={hint}>Thấy chữ thì bước “Click theo kết quả bước trước” bên trong click được vào đúng chữ đó.</span>
+          </Field>
         </>
       )}
-
-      {c.kind === 'image' && (
-        <>
-          {yesNo('Thấy ảnh', 'Không thấy ảnh')}
-          <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-            <span>Ảnh mẫu</span>
-            <div className="relative grid min-h-[72px] place-items-center overflow-hidden rounded-card border border-line bg-soft p-2 text-[13px]">
-              {c.template ? (
-                <>
-                  <img src={templateUrl(c.template)} alt="Ảnh mẫu" className="max-h-[110px] max-w-full object-contain"
-                    style={size ? { width: Math.min(size.w / k, 280) } : undefined}
-                    onLoad={(e) => setSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })} />
-                  {size && <span className="absolute right-1.5 bottom-1.5 rounded bg-hud/80 px-1.5 font-mono text-[11px] text-hud-text">{Math.round(size.w / k)} × {Math.round(size.h / k)}</span>}
-                </>
-              ) : 'Chưa có ảnh mẫu – bấm “Khoanh ảnh mẫu”'}
-            </div>
-            <button onClick={() => startCapture(s.id, path)} className="h-8 rounded-control border border-line bg-surface text-ink hover:bg-hover">
-              {c.template ? 'Khoanh lại' : 'Khoanh ảnh mẫu'}
-            </button>
-            {!c.template && <span className="text-xs text-danger-text">Chưa có ảnh mẫu – chạy sẽ báo lỗi.</span>}
-          </div>
-          <Field label="Độ khớp tối thiểu">
-            <NumInput value={c.threshold ?? 90} min={1} unit="%" onChange={(threshold) => set({ threshold: Math.min(threshold, 100) })} />
-          </Field>
-          <span className={`self-end pb-2 ${hint}`}>Ảnh khoanh đúng thường khớp 95–100%</span>
-          {waitField}
-          {areaField}
-        </>
-      )}
-
-      {c.kind === 'pixel' && (
-        <>
-          {yesNo('Có màu này', 'Khác màu này')}
-          <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-            <span>Điểm</span>
-            {c.points?.[0] ? (
-              <AnchorField value={c.points[0]} onChange={(p) => set({ points: [{ ...c.points![0], ...p }] })}
-                onAnchor={(ax, ay) => set({ points: [anchorPoint(toScreen(c.points![0], region), boundsOf(region), ax, ay)] })}
-                pick={<button aria-label="Chọn trên màn hình" title="Chọn trên màn hình" onClick={() => pickCondPoint(s.id, path)}
-                  className="grid h-8 w-9 flex-none place-items-center rounded-control border border-line text-muted hover:bg-hover hover:text-ink"><Target /></button>} />
-            ) : (
-              <button onClick={() => pickCondPoint(s.id, path)} className="h-8 rounded-control border border-line bg-surface text-ink hover:bg-hover">Chọn điểm trên màn hình</button>
-            )}
-          </div>
-          <Field label="Màu" wide group>
-            <div className="flex gap-2">
-              <span className={`${fieldBox} flex-1 gap-2 ${/^#[0-9a-fA-F]{6}$/.test(c.color ?? '') ? '' : 'border-danger'}`}>
-                <span className="h-4 w-4 flex-none rounded border border-line" style={{ background: c.color }} />
-                <input value={c.color ?? ''} onChange={(e) => set({ color: e.target.value.trim() })} spellCheck={false}
-                  className="min-w-0 flex-1 bg-transparent font-mono text-[13px] text-ink outline-none" />
-              </span>
-              <button onClick={() => pickCondColor(s.id, path)} disabled={!c.points?.[0] || busy === s.id}
-                title="Lấy màu đang hiện tại điểm này trên màn hình"
-                className="h-8 rounded-control border border-line px-2.5 text-[13px] whitespace-nowrap text-ink enabled:hover:bg-hover disabled:opacity-50">Lấy màu</button>
-            </div>
-          </Field>
-          <Field label="Sai số màu">
-            <NumInput prefix="±" value={c.tolerance ?? 0} onChange={(tolerance) => set({ tolerance: Math.min(tolerance, 255) })} />
-          </Field>
-          <span className={`self-end pb-2 ${hint}`}>Mỗi kênh R / G / B lệch ≤ {c.tolerance ?? 0}</span>
-          {waitField}
-        </>
-      )}
-
       {c.kind === 'input' && (
         <div className="col-span-2 flex flex-col gap-1.5 text-muted">
           <span>So sánh <span className="text-xs">(mỗi vế gõ chữ hoặc <span className="font-mono">{'{{biến}}'}</span>)</span></span>
@@ -995,15 +839,14 @@ function CondEditor({ step: s, path }: { step: Step; path: number[] }) {
               onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
           )}
           <label className="flex items-center gap-2 pt-1 text-[13px] text-ink"><Switch on={!!c.not} onChange={(v) => set({ not: v || undefined })} label="Đảo" />Đảo (đúng ↔ sai)</label>
-          <span className={hint}>Bằng / khác / chứa không phân biệt hoa thường; lớn / nhỏ so số. Thử điều kiện dùng giá trị mặc định của input.</span>
+          <span className={hint}>Bằng / khác / chứa không phân biệt hoa thường; lớn / nhỏ so số.</span>
         </div>
       )}
-
       {c.kind === 'result' && (
         <Field label="" wide group>
           <Segmented value={c.not ? 'fail' : 'ok'} full label="Bước trước" onChange={(v) => set({ not: v === 'fail' || undefined })}
             options={[{ id: 'ok', label: 'Thành công' }, { id: 'fail', label: 'Thất bại' }]} />
-          <span className={hint}>Bước chạy ngay trước khối này – dùng với “Khi không thấy → Bỏ qua” của bước đó. Chỉ biết lúc chạy.</span>
+          <span className={hint}>Bước chạy ngay trước khối này – dùng với “Khi không thấy → Bỏ qua” của bước đó.</span>
         </Field>
       )}
     </>
