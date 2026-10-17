@@ -105,7 +105,29 @@ func (a *App) Displays() []DisplayInfo {
 	return out
 }
 
-// SetOverlayDisplay dời overlay sang màn i và nhớ lựa chọn cho các lần mở overlay sau (đến khi tắt app).
+// OverlayDisplayFor chọn màn cho lần mở overlay tới: màn chứa tâm khung r (vùng của kịch bản, toàn màn hình = màn
+// chính) – mở overlay luôn ở đúng màn đang soạn, không phải màn chứa cửa sổ app. Trả chỉ số màn (-1 = không đổi).
+func (a *App) OverlayDisplayFor(r Rect) int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if i := displayAt(displays(), Point{X: r.X + r.W/2, Y: r.Y + r.H/2}); i >= 0 {
+		a.ovDisp = i
+		return i
+	}
+	return -1
+}
+
+// displayAt – chỉ số màn chứa điểm p, -1 nếu không màn nào.
+func displayAt(ds []Rect, p Point) int {
+	for i, d := range ds {
+		if p.X >= d.X && p.X < d.X+d.W && p.Y >= d.Y && p.Y < d.Y+d.H {
+			return i
+		}
+	}
+	return -1
+}
+
+// SetOverlayDisplay dời overlay sang màn i (nút Màn 1 / 2 trên overlay); lần mở sau lại theo vùng (OverlayDisplayFor).
 func (a *App) SetOverlayDisplay(i int) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()

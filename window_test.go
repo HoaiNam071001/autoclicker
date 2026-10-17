@@ -41,3 +41,15 @@ func TestCaptureAreaDisplays(t *testing.T) {
 		t.Errorf("cả màn với vùng ở màn phụ: %v", got)
 	}
 }
+
+func TestDisplayAt(t *testing.T) {
+	ds := []Rect{{0, 0, 1920, 1080}, {1920, 406, 1512, 982}}
+	for _, c := range []struct {
+		p    Point
+		want int
+	}{{Point{X: 960, Y: 540}, 0}, {Point{X: 2676, Y: 897}, 1}, {Point{X: 1919, Y: 1079}, 0}, {Point{X: 1920, Y: 406}, 1}, {Point{X: 2000, Y: 100}, -1}} {
+		if got := displayAt(ds, c.p); got != c.want {
+			t.Errorf("%v: %d, muốn %d", c.p, got, c.want)
+		}
+	}
+}

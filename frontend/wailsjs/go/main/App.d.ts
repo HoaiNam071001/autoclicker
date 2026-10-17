@@ -30,6 +30,8 @@ export function OpenScript():Promise<main.ScriptFile>;
 
 export function OpenScriptPath(arg1:string):Promise<main.ScriptFile>;
 
+export function OverlayDisplayFor(arg1:main.Rect):Promise<number>;
+
 export function PauseScript():Promise<boolean>;
 
 export function PixelColorAt(arg1:number,arg2:number):Promise<string>;

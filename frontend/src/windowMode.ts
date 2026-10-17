@@ -1,4 +1,6 @@
-import { SetWindowMode } from '../wailsjs/go/main/App';
+import { OverlayDisplayFor, SetWindowMode } from '../wailsjs/go/main/App';
+import { main } from '../wailsjs/go/models';
+import type { Rect } from './types';
 
 export type WindowMode = 'main' | 'overlay' | 'minibar';
 
@@ -19,9 +21,17 @@ export type OverlayTool = 'point' | 'drag' | 'region' | 'preview' | 'select' | '
 export let overlayTool: OverlayTool = 'region';
 export let overlayFocus: string | null = null;
 
-export function openOverlay(tool: OverlayTool = 'point', focus: string | null = null) {
+// Khung đang soạn (vùng của kịch bản, toàn màn hình = màn chính) – scriptStore đăng ký; overlay mở trên màn chứa nó.
+let editingBounds: () => Rect | null = () => null;
+export const setEditingBounds = (f: () => Rect | null) => {
+  editingBounds = f;
+};
+
+export async function openOverlay(tool: OverlayTool = 'point', focus: string | null = null) {
   overlayTool = tool;
   overlayFocus = focus;
+  const r = editingBounds();
+  if (inWails && r) await OverlayDisplayFor(main.Rect.createFrom(r)).catch(() => -1);
   return setWindowMode('overlay');
 }
 

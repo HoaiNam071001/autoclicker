@@ -58,6 +58,10 @@ export function OpenScriptPath(arg1) {
   return window['go']['main']['App']['OpenScriptPath'](arg1);
 }
 
+export function OverlayDisplayFor(arg1) {
+  return window['go']['main']['App']['OverlayDisplayFor'](arg1);
+}
+
 export function PauseScript() {
   return window['go']['main']['App']['PauseScript']();
 }

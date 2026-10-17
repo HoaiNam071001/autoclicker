@@ -3,7 +3,7 @@ import { EventsOn } from '../wailsjs/runtime/runtime';
 import { ScreenBounds } from '../wailsjs/go/main/App';
 import { Anchor, makeStep, Point, Rect, Script, sampleSteps, Step, STEP_LABEL, StepPoint, StepType } from './types';
 import { anchorPoint, fmtPoint, insideBounds, nearestAnchor, resolvePoint } from './anchor';
-import { inWails, openOverlay, setWindowMode } from './windowMode';
+import { inWails, openOverlay, setEditingBounds, setWindowMode } from './windowMode';
 import { apply, IDENTITY, Mat, rectToRect } from './transform';
 import { allSteps, Branch, cloneStep, flatOf, flatten, insertAt, Loc, mapAll, mapStep, moveTo, removeAt, updateCondAt } from './stepTree';
 
@@ -40,6 +40,7 @@ let state: EditorState = {
   screen: { x: 0, y: 0, w: window.screen.width, h: window.screen.height }, // trình duyệt: tạm lấy cỡ màn hình
 };
 const listeners = new Set<() => void>();
+setEditingBounds(() => state.script.region ?? state.screen); // overlay mở trên màn chứa vùng / màn chính
 
 const set = (patch: Partial<EditorState>) => {
   state = { ...state, ...patch };
