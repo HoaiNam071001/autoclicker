@@ -10,6 +10,65 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - **Tiếp theo:** 20: F5 → F6 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17 (tách docs/TASKS.md thành docs/tasks/)
 
+## Tổng quan
+
+> Bảng tự sinh – sau khi tick chạy `python3 scripts/tasks-index.py`. Bấm tên bước để mở file chi tiết.
+
+<!-- index:start -->
+**29 / 41 bước xong code** · 🧪 **[9 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
+
+### Phase 3 – Design v2 & tự động hoá (theo thứ tự làm)
+
+| Trạng thái | Bước | Mục con xong | Kiểm tra tay |
+|---|---|---|---|
+| ✅ xong | [27. UI v2 cho các màn đang có + theme sáng / tối](phase3/27-ui-v2.md) | 18 / 18 |  |
+| ✅ xong | [27b. Dựng sẵn UI cho tính năng chưa có](phase3/27b-ui-sap-co.md) | 13 / 13 |  |
+| ✅ xong | [29. Neo điểm theo 4 góc vùng](phase3/29-neo-diem.md) | 10 / 10 |  |
+| ✅ xong | [21. Lưu / tải kịch bản](phase3/21-luu-tai.md) | 8 / 8 |  |
+| 🟡 đang làm | [30. Sửa nhiều điểm cùng lúc: di chuyển, co giãn, xoay, xiên](phase3/30-sua-nhieu-diem.md) | 9 / 10 | [1 việc](checks.md) |
+| ✅ xong | [21b. Input của kịch bản](phase3/21b-input.md) | 13 / 13 |  |
+| ✅ xong | [23. Cuộn + Mở URL / app](phase3/23-cuon-mo-url.md) | 6 / 6 |  |
+| 🧪 chờ kiểm tra tay | [25. Chờ ảnh, click theo ảnh, chờ pixel](phase3/25-cho-anh.md) | 8 / 8 | [1 việc](checks.md) |
+| 🧪 chờ kiểm tra tay | [25e. Tìm theo chữ (OCR)](phase3/25e-ocr.md) | 5 / 5 | [1 việc](checks.md) |
+| ✅ xong | [25b. Khi thất bại](phase3/25b-khi-that-bai.md) | 4 / 4 |  |
+| 🟡 đang làm | [20. Flow kiểu n8n – mỗi bước là một module, rẽ nhánh theo kết quả](phase3/20-flow.md) | 38 / 48 | [4 việc](checks.md) |
+| ⬜ chưa làm | [26. Focus cửa sổ theo tên](phase3/26-focus-cua-so.md) | 0 / 3 |  |
+| ⬜ chưa làm | [25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật](phase3/25d-web-dom.md) | 0 / 9 |  |
+| ⬜ chưa làm | [22. Hẹn giờ + thông báo + CLI / API local](phase3/22-hen-gio-cli-api.md) | 0 / 5 |  |
+| ⬜ chưa làm | [31a. Kết nối AI qua MCP – tạo / sửa kịch bản](phase3/31-mcp-ai.md) | 0 / 7 |  |
+| ⬜ chưa làm | [31b. MCP – AI nhìn màn hình](phase3/31-mcp-ai.md) | 0 / 3 |  |
+| ⬜ chưa làm | [31c. MCP – AI tự thử và chạy kịch bản](phase3/31-mcp-ai.md) | 0 / 4 |  |
+| ⬜ chưa làm | [24. Ghi macro](phase3/24-ghi-macro.md) | – |  |
+| ⬜ chưa làm | [28. Mở rộng](phase3/28-mo-rong.md) | 0 / 5 |  |
+
+### Phase 0 – 2
+
+| Trạng thái | Bước | Mục con xong | Kiểm tra tay |
+|---|---|---|---|
+| ✅ xong | [1. Cài môi trường](phase0.md) | – |  |
+| ✅ xong | [2. Khởi tạo project](phase0.md) | – |  |
+| ✅ xong | [3. Spike click](phase0.md) | 3 / 3 |  |
+| ✅ xong | [4. Spike hotkey toàn cục](phase0.md) | 4 / 4 |  |
+| ✅ xong | [5. Spike overlay](phase0.md) | 4 / 4 |  |
+| ✅ xong | [6. Định nghĩa model](phase1-mvp.md) | – |  |
+| ✅ xong | [7. Engine chạy bước](phase1-mvp.md) | 5 / 5 |  |
+| ✅ xong | [8. Pause / Resume / Stop](phase1-mvp.md) | 5 / 5 |  |
+| ✅ xong | [9. Dừng khẩn cấp](phase1-mvp.md) | 4 / 4 |  |
+| ✅ xong | [10. Chọn vùng](phase1-mvp.md) | 4 / 4 |  |
+| ✅ xong | [11. Chọn điểm](phase1-mvp.md) | 5 / 5 |  |
+| ✅ xong | [12. Marker & đường nối](phase1-mvp.md) | 4 / 4 |  |
+| ✅ xong | [13. Chọn điểm kéo thả](phase1-mvp.md) | 6 / 6 |  |
+| ✅ xong | [13b. Dựng UI tĩnh từ bản thiết kế](phase1-mvp.md) | – |  |
+| ✅ xong | [14. Danh sách bước](phase1-mvp.md) | 5 / 5 |  |
+| ✅ xong | [15. Form cấu hình bước](phase1-mvp.md) | 5 / 5 |  |
+| ✅ xong | [16. Cài đặt chạy](phase1-mvp.md) | 7 / 7 |  |
+| 🟡 đang làm | [17. DPI & đa màn hình](phase1-mvp.md) | 5 / 6 | [2 việc](checks.md) |
+| ⬜ chưa làm | [18. Build & thử máy sạch](phase1-mvp.md) | – |  |
+| ✅ xong | [19. Ngẫu nhiên hoá](phase2.md) | 5 / 5 |  |
+| ✅ xong | [19b. Xem trước kịch bản](phase2.md) | 4 / 4 |  |
+| ✅ xong | [19c. Xem / sửa riêng một bước trên overlay](phase2.md) | 3 / 3 |  |
+<!-- index:end -->
+
 ## Các file
 
 | File | Nội dung |

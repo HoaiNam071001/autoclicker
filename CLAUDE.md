@@ -10,6 +10,7 @@ Desktop app tự động click theo kịch bản (chọn vùng, chọn điểm, 
    - Mục cha tick khi hết phần code. Việc *Kiểm tra tay* của phần đã xong code ghi vào **`checks.md`** (mới nhất ở trên, nhóm theo bước), file bước chỉ để dòng link; người dùng thử xong thì tick ở `checks.md` + ghi `log.md`.
    - Bước mới → file mới `docs/tasks/phase3/<số>-<tên>.md` + một dòng trong bảng ở `README.md`. File quá dài (~200 dòng) thì tách theo phần con.
    - Trước khi kết thúc, rà lại các mục cha có mọi mục con code đã `[x]` mà chưa tick.
+   - Tick / thêm bước / sửa `checks.md` xong → chạy `python3 scripts/tasks-index.py` để cập nhật bảng *Tổng quan* trong `README.md` (bảng tự sinh, không sửa tay).
 3. Người dùng trao đổi bằng **tiếng Việt** – trả lời, comment UI và tài liệu bằng tiếng Việt; tên biến/hàm bằng tiếng Anh.
 
 ## Lệnh
