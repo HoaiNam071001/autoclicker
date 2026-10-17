@@ -1,0 +1,207 @@
+// Input của kịch bản (bước 21b) – thao tác trên store: ghim trường, tạo / sửa / xoá input, tính bước nào dùng input.
+// Giá trị thật áp lúc chạy ở Go (resolveInputs, inputs.go). Trường đã ghim luôn giữ bằng giá trị mặc định của input,
+// nên Xem trước / overlay không cần resolve vẫn đúng với lần chạy dùng mặc định.
+import { getEditor, updateScript } from './scriptStore';
+import { InputType, InputValue, PinField, Script, ScriptInput, Step, STEP_LABEL } from './types';
+import { InputView, isValidKey, splitVars, varsIn } from './components/inputs/model';
+import type { RunSection } from './components/inputs/RunDialog';
+
+const PIN: Record<PinField, { key: string; label: string; type: InputType; min?: number }> = {
+  clicks: { key: 'clicks', label: 'Số click', type: 'number', min: 1 },
+  clickInterval: { key: 'click_interval', label: 'Giữa các click', type: 'ms' },
+  holdMs: { key: 'hold_ms', label: 'Giữ chuột trong', type: 'ms' },
+  dragMs: { key: 'drag_ms', label: 'Thời gian kéo', type: 'ms' },
+  delayAfter: { key: 'delay', label: 'Chờ sau bước', type: 'ms' },
+  jitterMs: { key: 'jitter_ms', label: 'Ngẫu nhiên thời gian', type: 'ms' },
+  jitterPx: { key: 'jitter_px', label: 'Ngẫu nhiên vị trí', type: 'number' },
+  enabled: { key: 'enabled', label: 'Bật bước', type: 'bool' },
+};
+
+// Kiểu input ghim được vào trường (khớp inputKind trong inputs.go).
+export const kindOf = (t: InputType) => (t === 'number' || t === 'ms' ? 'int' : t === 'bool' ? 'bool' : 'string');
+export const fieldKind = (f: PinField) => (f === 'enabled' ? 'bool' : 'int');
+
+const inputsOf = (sc: Script) => sc.inputs ?? [];
+const setInputs = (inputs: ScriptInput[]) => updateScript({ inputs: inputs.length ? inputs : undefined });
+const stepNo = (sc: Script, id: string) => String(sc.steps.findIndex((s) => s.id === id) + 1).padStart(2, '0');
+
+const uniqueKey = (base: string, inputs: ScriptInput[]) => {
+  let k = base;
+  for (let i = 2; inputs.some((x) => x.key === k); i++) k = `${base}_${i}`;
+  return k;
+};
+
+// Input đang ghim trường field của bước id.
+export const pinnedInput = (sc: Script, id: string, field: PinField) =>
+  inputsOf(sc).find((i) => i.targets?.some((t) => t.stepId === id && t.field === field));
+
+// Input có thể dùng chung cho trường này (cùng kiểu, chưa ghim vào chính trường đó).
+export const compatibleInputs = (sc: Script, field: PinField) =>
+  inputsOf(sc).filter((i) => kindOf(i.type) === fieldKind(field));
+
+// Bước dùng mỗi input (ghim hoặc {{key}} trong bước gõ chữ), theo thứ tự bước; bước đã xoá không tính.
+export function inputUsage(sc: Script): Map<string, Step[]> {
+  const out = new Map<string, Step[]>(inputsOf(sc).map((i) => [i.key, []]));
+  sc.steps.forEach((s) => {
+    const keys = new Set<string>();
+    inputsOf(sc).forEach((i) => i.targets?.some((t) => t.stepId === s.id) && keys.add(i.key));
+    if (s.type === 'type') varsIn(s.text).forEach((k) => keys.add(k));
+    keys.forEach((k) => out.get(k)?.push(s));
+  });
+  return out;
+}
+
+// Số input bước id dùng – chip "N input" trên thẻ bước.
+export const stepInputCount = (sc: Script, id: string) => {
+  let n = 0;
+  inputUsage(sc).forEach((steps) => steps.some((s) => s.id === id) && n++);
+  return n;
+};
+
+export function inputViews(sc: Script): InputView[] {
+  const usage = inputUsage(sc);
+  return inputsOf(sc).map((i) => ({
+    ...i,
+    unit: i.type === 'ms' ? 'ms' : undefined,
+    usedBy: (usage.get(i.key) ?? []).map((s) => ({ n: stepNo(sc, s.id), title: STEP_LABEL[s.type] })),
+  }));
+}
+
+// Giá trị từ ô nhập (chuỗi) → đúng kiểu input; '' / không hợp lệ → undefined (trống).
+export function parseValue(type: InputType, v: InputValue | undefined): InputValue | undefined {
+  if (v === undefined || v === '') return undefined;
+  if (kindOf(type) === 'int') {
+    const n = typeof v === 'number' ? v : /^\s*-?\d+\s*$/.test(String(v)) ? Number(v) : NaN;
+    return Number.isNaN(n) ? undefined : n;
+  }
+  if (type === 'bool') return v === true || v === 'true';
+  return String(v);
+}
+
+// Ghi giá trị mặc định vào mọi trường đang ghim (giữ trường = mặc định).
+const withTargets = (steps: Step[], inp: ScriptInput, value: InputValue | undefined) => {
+  if (value === undefined || !inp.targets?.length) return steps;
+  return steps.map((s) => {
+    const ts = inp.targets!.filter((t) => t.stepId === s.id);
+    if (!ts.length) return s;
+    const patch: Partial<Step> = {};
+    ts.forEach((t) => Object.assign(patch, { [t.field]: t.field === 'enabled' ? !!value : Number(value) }));
+    return { ...s, ...patch };
+  });
+};
+
+// ---- Ghim ----
+
+// Ghim trường thành input mới: giá trị hiện tại làm mặc định. Trả key.
+export function pinField(id: string, field: PinField): string | undefined {
+  const sc = getEditor().script;
+  const s = sc.steps.find((x) => x.id === id);
+  if (!s || pinnedInput(sc, id, field)) return;
+  const p = PIN[field];
+  const n = sc.steps.indexOf(s) + 1;
+  const key = uniqueKey(`${p.key}_${n}`, inputsOf(sc));
+  const label = `${field === 'delayAfter' && s.type === 'wait' ? 'Thời gian chờ' : p.label} (B${n})`;
+  setInputs([...inputsOf(sc), { key, label, type: p.type, default: s[field] as InputValue, min: p.min, targets: [{ stepId: id, field }] }]);
+  return key;
+}
+
+// Ghim trường vào input có sẵn (một input cho nhiều bước): trường nhận giá trị mặc định của input.
+export function pinToInput(id: string, field: PinField, key: string) {
+  const sc = getEditor().script;
+  const inputs = inputsOf(sc).map((i) => ({
+    ...i,
+    targets: i.key === key
+      ? [...(i.targets ?? []), { stepId: id, field }]
+      : i.targets?.filter((t) => !(t.stepId === id && t.field === field)),
+  }));
+  const inp = inputs.find((i) => i.key === key);
+  if (!inp) return;
+  updateScript({ inputs, steps: withTargets(sc.steps, { ...inp, targets: [{ stepId: id, field }] }, inp.default) });
+}
+
+// Bỏ ghim: input không còn bước nào dùng thì xoá luôn.
+export function unpinField(id: string, field: PinField) {
+  const sc = getEditor().script;
+  const usage = inputUsage(sc);
+  const inputs = inputsOf(sc).flatMap((i) => {
+    const targets = i.targets?.filter((t) => !(t.stepId === id && t.field === field));
+    if (targets?.length === i.targets?.length) return [i];
+    const stillUsed = targets?.length || usage.get(i.key)?.some((s) => s.type === 'type' && varsIn(s.text).includes(i.key));
+    return stillUsed ? [{ ...i, targets }] : [];
+  });
+  setInputs(inputs);
+}
+
+// Sửa giá trị trường đang ghim trong inspector = sửa mặc định của input (và mọi trường khác ghim cùng input).
+export function setPinnedValue(id: string, field: PinField, value: InputValue) {
+  const sc = getEditor().script;
+  const inp = pinnedInput(sc, id, field);
+  if (!inp) return;
+  updateInput(inp.key, { default: value });
+}
+
+// ---- Tab Input ----
+
+export function addInput(partial: Partial<ScriptInput> = {}): string {
+  const sc = getEditor().script;
+  const key = uniqueKey(partial.key && isValidKey(partial.key) ? partial.key : `bien_${inputsOf(sc).length + 1}`, inputsOf(sc));
+  setInputs([...inputsOf(sc), { label: partial.label ?? key, type: 'text', ...partial, key }]);
+  return key;
+}
+
+// Sửa một input. Đổi key → đổi luôn {{key}} trong ô chữ; đổi mặc định → ghi vào trường đang ghim;
+// đổi sang kiểu không hợp với trường đang ghim → bỏ các ghim đó.
+export function updateInput(key: string, patch: Partial<ScriptInput>): string | null {
+  const sc = getEditor().script;
+  const cur = inputsOf(sc).find((i) => i.key === key);
+  if (!cur) return null;
+  if (patch.key !== undefined && patch.key !== key) {
+    if (!isValidKey(patch.key)) return 'Key chỉ gồm chữ không dấu, số, _ và không bắt đầu bằng số';
+    if (inputsOf(sc).some((i) => i.key === patch.key)) return `Đã có input ${patch.key}`;
+  }
+  let next: ScriptInput = { ...cur, ...patch };
+  if (patch.type && kindOf(patch.type) !== kindOf(cur.type)) {
+    next = { ...next, default: parseValue(patch.type, cur.default), targets: next.targets?.filter((t) => fieldKind(t.field) === kindOf(next.type)) };
+  }
+  if ('default' in patch) next.default = parseValue(next.type, patch.default);
+  let steps = withTargets(sc.steps, next, next.default);
+  if (next.key !== key) steps = steps.map((s) => (s.type === 'type' ? { ...s, text: renameVar(s.text, key, next.key) } : s));
+  updateScript({ steps, inputs: inputsOf(sc).map((i) => (i.key === key ? next : i)) });
+  return null;
+}
+
+const renameVar = (text: string, from: string, to: string) =>
+  splitVars(text).map((p) => (p.varKey === from ? `{{${to}}}` : p.text)).join('');
+
+export const removeInput = (key: string) => setInputs(inputsOf(getEditor().script).filter((i) => i.key !== key));
+
+export function moveInput(from: string, to: string) {
+  const inputs = [...inputsOf(getEditor().script)];
+  const a = inputs.findIndex((i) => i.key === from), b = inputs.findIndex((i) => i.key === to);
+  if (a < 0 || b < 0) return;
+  inputs.splice(b, 0, ...inputs.splice(a, 1));
+  setInputs(inputs);
+}
+
+// Nhóm ô trong form Chạy theo bước dùng input (artboard RunDialog); bước gõ chữ có câu mẫu để xem trước "Sẽ gõ".
+export function runSections(sc: Script): RunSection[] {
+  const usage = inputUsage(sc);
+  const groups = new Map<string, RunSection & { order: number }>();
+  for (const i of inputsOf(sc)) {
+    const steps = usage.get(i.key) ?? [];
+    const id = steps.map((s) => s.id).join(',');
+    let g = groups.get(id);
+    if (!g) {
+      g = {
+        steps: steps.length ? steps.map((s) => stepNo(sc, s.id)).join(', ') : '—',
+        title: steps.length ? [...new Set(steps.map((s) => STEP_LABEL[s.type]))].join(', ') : 'Chưa bước nào dùng',
+        keys: [],
+        template: steps.find((s) => s.type === 'type')?.text,
+        order: steps.length ? sc.steps.indexOf(steps[0]) : Infinity,
+      };
+      groups.set(id, g);
+    }
+    g.keys.push(i.key);
+  }
+  return [...groups.values()].sort((a, b) => a.order - b.order).map(({ order: _, ...r }) => r);
+}

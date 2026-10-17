@@ -1,0 +1,155 @@
+package main
+
+import (
+	"strings"
+	"testing"
+)
+
+func inputScript() Script {
+	return Script{
+		Name: "Nhắn tin",
+		Steps: []Step{
+			{ID: "s1", Type: StepClick, Points: []Point{{X: 10, Y: 10}}, Clicks: 1, DelayAfter: 500, Enabled: true},
+			{ID: "s2", Type: StepText, Text: "xin chào {{M1}} và {{M2}}", DelayAfter: 300, Enabled: true},
+			{ID: "s3", Type: StepClick, Points: []Point{{X: 20, Y: 20}}, Clicks: 1, DelayAfter: 500, Enabled: true},
+		},
+		Inputs: []ScriptInput{
+			{Key: "click_delay", Label: "Chờ sau khi click", Type: InputMs, Default: 500.0,
+				Targets: []InputTarget{{StepID: "s1", Field: "delayAfter"}, {StepID: "s3", Field: "delayAfter"}}},
+			{Key: "M1", Label: "Tên người nhận", Type: InputText, Required: true},
+			{Key: "M2", Label: "Tên thứ hai", Type: InputText, Default: "Lan"},
+		},
+	}
+}
+
+func TestResolveInputs(t *testing.T) {
+	sc := inputScript()
+	out, err := resolveInputs(sc, map[string]any{"click_delay": "1000", "M1": "Hoà", "M2": ""})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out.Steps[0].DelayAfter != 1000 || out.Steps[2].DelayAfter != 1000 {
+		t.Errorf("một input ghim hai bước: muốn 1000 / 1000, có %d / %d", out.Steps[0].DelayAfter, out.Steps[2].DelayAfter)
+	}
+	if got := out.Steps[1].Text; got != "xin chào Hoà và Lan" {
+		t.Errorf("thay biến (M2 trống lấy mặc định): %q", got)
+	}
+	if sc.Steps[0].DelayAfter != 500 || sc.Steps[1].Text != "xin chào {{M1}} và {{M2}}" {
+		t.Error("resolveInputs sửa vào kịch bản gốc")
+	}
+
+	// thiếu giá trị → mặc định; số từ JSON (float64)
+	out, err = resolveInputs(sc, map[string]any{"M1": "A", "click_delay": 250.0})
+	if err != nil || out.Steps[0].DelayAfter != 250 {
+		t.Fatalf("số float64: %v %d", err, out.Steps[0].DelayAfter)
+	}
+}
+
+func TestResolveInputsErrors(t *testing.T) {
+	cases := []struct {
+		name   string
+		edit   func(*Script)
+		values map[string]any
+		want   string
+	}{
+		{"thiếu bắt buộc", nil, map[string]any{}, "Tên người nhận (M1): chưa nhập"},
+		{"sai kiểu", nil, map[string]any{"M1": "a", "click_delay": "nhanh"}, "cần số nguyên"},
+		{"số lẻ", nil, map[string]any{"M1": "a", "click_delay": 1.5}, "cần số nguyên"},
+		{"số âm", nil, map[string]any{"M1": "a", "click_delay": -1.0}, "không được âm"},
+		{"input lạ", nil, map[string]any{"M1": "a", "M9": "x"}, `không có input "M9"`},
+		{"biến không có", func(sc *Script) { sc.Steps[1].Text = "chào {{ten}}" }, map[string]any{"M1": "a"}, "bước 2: biến {{ten}} không có"},
+		{"không bước nào dùng", func(sc *Script) { sc.Steps[1].Text = "chào {{M1}}" }, map[string]any{"M1": "a"}, "(M2): không bước nào dùng"},
+		{"ngoài khoảng", func(sc *Script) { m := 100; sc.Inputs[0].Max = &m }, map[string]any{"M1": "a"}, "ngoài khoảng ≤ 100"},
+		{"không có trong danh sách", func(sc *Script) {
+			sc.Inputs[2].Type, sc.Inputs[2].Options = InputSelect, []string{"Lan", "Mai"}
+		}, map[string]any{"M1": "a", "M2": "Hùng"}, "không có trong danh sách"},
+		{"chỉ ghim vào bước đã xoá", func(sc *Script) {
+			sc.Steps = sc.Steps[1:2]
+		}, map[string]any{"M1": "a"}, "(click_delay): không bước nào dùng"},
+	}
+	for _, c := range cases {
+		sc := inputScript()
+		if c.edit != nil {
+			c.edit(&sc)
+		}
+		_, err := resolveInputs(sc, c.values)
+		if err == nil || !strings.Contains(err.Error(), c.want) {
+			t.Errorf("%s: muốn lỗi chứa %q, có %v", c.name, c.want, err)
+		}
+	}
+}
+
+func TestResolveInputsStructuredError(t *testing.T) {
+	sc := inputScript()
+	sc.Steps[1].Text = "{{lạ}} {{ten}}"
+	_, err := resolveInputs(sc, map[string]any{"M1": "a"})
+	se, ok := err.(*ScriptError)
+	if !ok || se.Step != 2 || se.StepID != "s2" || se.Field != "text" {
+		t.Fatalf("muốn ScriptError bước 2 / s2 / text, có %#v", err)
+	}
+}
+
+func TestExpandVarsEscape(t *testing.T) {
+	got, err := expandVars(`\{{M1}} là {{M1}}, {{ không phải biến`, func(k string) (string, bool) { return "Tú", k == "M1" })
+	if err != nil || got != "{{M1}} là Tú, {{ không phải biến" {
+		t.Fatalf("%q %v", got, err)
+	}
+}
+
+func TestResolveBoolInput(t *testing.T) {
+	sc := inputScript()
+	sc.Inputs = append(sc.Inputs, ScriptInput{Key: "on3", Type: InputBool, Default: true, Targets: []InputTarget{{StepID: "s3", Field: "enabled"}}})
+	out, err := resolveInputs(sc, map[string]any{"M1": "a", "on3": "false"})
+	if err != nil || out.Steps[2].Enabled {
+		t.Fatalf("bool từ chuỗi: %v enabled=%v", err, out.Steps[2].Enabled)
+	}
+}
+
+func TestNoInputsKeepsScript(t *testing.T) {
+	sc := sampleScript()
+	out, err := resolveInputs(sc, nil)
+	if err != nil || out.Steps[3].Text != "xin chào" {
+		t.Fatalf("%v %q", err, out.Steps[3].Text)
+	}
+}
+
+func TestCheckInputs(t *testing.T) {
+	bad := map[string]string{
+		"key có dấu":      `{"version":2,"steps":[],"inputs":[{"key":"tên","type":"text"}]}`,
+		"key trùng":       `{"version":2,"steps":[],"inputs":[{"key":"a","type":"text"},{"key":"a","type":"text"}]}`,
+		"kiểu lạ":         `{"version":2,"steps":[],"inputs":[{"key":"a","type":"date"}]}`,
+		"trường lạ":       `{"version":2,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"ms","targets":[{"stepId":"s","field":"points"}]}]}`,
+		"sai kiểu trường": `{"version":2,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"text","targets":[{"stepId":"s","field":"delayAfter"}]}]}`,
+	}
+	for name, in := range bad {
+		if _, err := decodeScript([]byte(in)); err == nil {
+			t.Errorf("%s: muốn lỗi", name)
+		}
+	}
+	sc, err := decodeScript([]byte(`{"version":2,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"ms","targets":[{"stepId":"s","field":"delayAfter"},{"stepId":"x","field":"delayAfter"}]}]}`))
+	if err != nil || len(sc.Inputs[0].Targets) != 1 {
+		t.Fatalf("bỏ ghim vào bước không còn: %v %+v", err, sc.Inputs)
+	}
+	if _, err := decodeScript([]byte(`{"version":1,"steps":[]}`)); err != nil {
+		t.Errorf("file version 1 vẫn mở được: %v", err)
+	}
+}
+
+func TestInputMemoryRoundTrip(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME", dir)            // macOS / Linux: UserConfigDir theo HOME
+	t.Setenv("XDG_CONFIG_HOME", dir) // Linux
+	t.Setenv("AppData", dir)         // Windows
+	a := &App{}
+	m := InputMemory{Last: map[string]any{"M1": "Lan"}, Presets: []InputPreset{{Name: "Gửi cho Lan", Values: map[string]any{"M1": "Lan"}}}, AutoRun: true}
+	if err := a.SaveInputMemory("/k.json", m); err != nil {
+		t.Fatal(err)
+	}
+	got := a.GetInputMemory("/k.json")
+	if got.Last["M1"] != "Lan" || len(got.Presets) != 1 || !got.AutoRun {
+		t.Fatalf("%+v", got)
+	}
+	if other := a.GetInputMemory("/khac.json"); other.Last != nil {
+		t.Fatalf("kịch bản khác không được dùng chung: %+v", other)
+	}
+}

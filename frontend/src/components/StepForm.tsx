@@ -5,12 +5,18 @@ import { openOverlay } from '../windowMode';
 import NumInput, { fieldBox } from './NumInput';
 import Segmented from './Segmented';
 import { Switch } from './RunSettings';
-import PinButton from './inputs/PinButton';
+import PinButton, { KeyChip, PinMenu } from './inputs/PinButton';
+import VarTextInput from './inputs/VarTextInput';
+import InputsPanel from './inputs/InputsPanel';
 import AnchorField, { AnchorMap } from './steps/AnchorField';
 import {
   boundsOf, changeStepType, endpoints, pickPointFor, setAnchor, setDragFromPrev, setDragRelative, toggleStep, updateStep, useScript,
 } from '../scriptStore';
-import { fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, Step, STEP_LABEL, StepPoint, StepType } from '../types';
+import {
+  addInput, compatibleInputs, inputViews, moveInput, pinField, pinnedInput, pinToInput, removeInput, setPinnedValue, unpinField, updateInput,
+} from '../scriptInputs';
+import { loadMemory, stopAutoRun, useRunForm } from '../runForm';
+import { fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, PinField, Step, STEP_LABEL, StepPoint, StepType } from '../types';
 
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'wait', 'type', 'key'];
 const isMac = navigator.platform.startsWith('Mac');
@@ -30,7 +36,9 @@ const hint = 'text-xs text-muted';
 type Props = { step: Step; index: number };
 
 export default function StepForm({ step: s, index }: Props) {
-  const { region } = useScript();
+  const script = useScript();
+  const { region } = script;
+  const [tab, setTab] = useState<'step' | 'inputs'>('step');
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   const setPoint = (i: number, p: Partial<StepPoint>) =>
     set({ points: s.points.map((q, j) => (j === i ? { ...q, ...p } : q)) });
@@ -53,11 +61,13 @@ export default function StepForm({ step: s, index }: Props) {
       </div>
 
       <div className="-mt-1 flex gap-[18px] border-b border-line" role="tablist">
-        <button role="tab" aria-selected className="relative h-[34px] px-0.5 font-semibold">
-          Bước<span className="absolute inset-x-[20%] -bottom-px h-[3px] rounded-sm bg-accent" />
-        </button>
-        <button role="tab" aria-selected={false} disabled title="Sắp có (bước 21b)" className="h-[34px] px-0.5 text-muted opacity-60">Input</button>
+        <TabBtn active={tab === 'step'} onClick={() => setTab('step')}>Bước</TabBtn>
+        <TabBtn active={tab === 'inputs'} onClick={() => setTab('inputs')} title="Các giá trị hỏi khi bấm Chạy">
+          Input {!!script.inputs?.length && <span className="rounded-full bg-accent-soft px-1.5 text-[11px] font-semibold text-accent-text">{script.inputs.length}</span>}
+        </TabBtn>
       </div>
+
+      {tab === 'inputs' ? <InputsTab /> : <>
 
       <label className="flex flex-col gap-1.5 text-muted">Hành động
         <select value={s.type} onChange={(e) => changeStepType(s.id, e.target.value as StepType)} className={selectBox}>
@@ -84,28 +94,25 @@ export default function StepForm({ step: s, index }: Props) {
 
         {s.type === 'click' && (
           <>
-            <Field pin label="Số click"><NumInput value={s.clicks} min={1} onChange={(v) => set({ clicks: v })} /></Field>
-            {s.clicks > 1 && (
-              <Field pin label="Giữa các click"><NumInput value={s.clickInterval} unit="ms" onChange={(v) => set({ clickInterval: v })} /></Field>
-            )}
+            <NumField label="Số click" step={s} field="clicks" min={1} />
+            {s.clicks > 1 && <NumField label="Giữa các click" step={s} field="clickInterval" unit="ms" />}
           </>
         )}
-        {s.type === 'hold' && (
-          <Field pin label="Giữ chuột trong"><NumInput value={s.holdMs} unit="ms" onChange={(v) => set({ holdMs: v })} /></Field>
-        )}
-        {s.type === 'drag' && (
-          <Field pin label="Thời gian kéo"><NumInput value={s.dragMs} unit="ms" onChange={(v) => set({ dragMs: v })} /></Field>
-        )}
+        {s.type === 'hold' && <NumField label="Giữ chuột trong" step={s} field="holdMs" unit="ms" />}
+        {s.type === 'drag' && <NumField label="Thời gian kéo" step={s} field="dragMs" unit="ms" />}
 
         {s.type === 'type' && (
-          <label className="col-span-2 flex flex-col gap-1.5 text-muted">Nội dung gõ
-            <textarea value={s.text} onChange={(e) => set({ text: e.target.value })} rows={3}
-              className="rounded-control border border-line bg-field px-2.5 py-2 font-mono text-[13px] text-ink outline-none focus:ring-focus" />
+          <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+            <span className="flex items-center justify-between">Nội dung gõ
+              <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
+            </span>
+            <VarTextInput value={s.text} onChange={(text) => set({ text })} inputs={script.inputs ?? []}
+              onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
             <span className={`text-xs ${s.text ? '' : 'text-danger-text'}`}>
               {s.text ? `${[...s.text].length} ký tự · ` : 'Chưa nhập nội dung – chạy sẽ báo lỗi · '}
-              Gõ vào ô đang focus – thường đặt sau một bước click. Tắt bộ gõ tiếng Việt khi chạy.
+              Gõ vào ô đang focus – thường đặt sau một bước click. Tắt bộ gõ tiếng Việt khi chạy. <span className="font-mono">{'\\{{'}</span> để gõ ra <span className="font-mono">{'{{'}</span>.
             </span>
-          </label>
+          </div>
         )}
 
         {s.type === 'key' && (
@@ -157,18 +164,15 @@ export default function StepForm({ step: s, index }: Props) {
 
       {/* Chờ sau bước + ngẫu nhiên thời gian (bước 19) ở cuối, giống artboard */}
       <section className="mt-auto grid grid-cols-2 gap-3 border-t border-line pt-3">
-        <Field pin label={s.type === 'wait' ? 'Thời gian chờ' : 'Chờ sau bước'}>
-          <NumInput value={s.delayAfter} unit="ms" onChange={(v) => set({ delayAfter: v })} />
-        </Field>
-        <Field pin label="Ngẫu nhiên">
-          <NumInput prefix="±" value={s.jitterMs} unit="ms" onChange={(v) => set({ jitterMs: v })} />
-        </Field>
+        <NumField label={s.type === 'wait' ? 'Thời gian chờ' : 'Chờ sau bước'} step={s} field="delayAfter" unit="ms" />
+        <NumField label="Ngẫu nhiên" step={s} field="jitterMs" unit="ms" prefix="±" />
         <span className={`col-span-2 -mt-1 ${hint}`}>
           {s.jitterMs > 0
             ? `Chờ ${Math.max(s.delayAfter - s.jitterMs, 0)}–${s.delayAfter + s.jitterMs} ms${s.type === 'click' && s.clicks > 1 ? ', giữa các click cũng lệch' : ''}`
             : 'Thời gian chờ cố định (ngẫu nhiên = 0)'}
         </span>
       </section>
+      </>}
     </aside>
   );
 }
@@ -345,17 +349,62 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: (i: number, p
   );
 }
 
-// pin: thêm nút ghim (đặt làm input của kịch bản) – giao diện có sẵn, logic ở bước 21b
 // group: bên trong là nhóm nút (Segmented) – dùng <div>, vì <label> bọc nút thì bấm chữ nhãn sẽ bấm luôn nút đầu
-function Field({ label, children, wide = false, pin = false, group = false }: {
-  label: string; children: ReactNode; wide?: boolean; pin?: boolean; group?: boolean;
+function Field({ label, children, wide = false, group = false }: {
+  label: string; children: ReactNode; wide?: boolean; group?: boolean;
 }) {
   const Tag = group ? 'div' : 'label';
+  return <Tag className={`flex flex-col gap-1.5 text-muted ${wide ? 'col-span-2' : ''}`}>{label}{children}</Tag>;
+}
+
+// Ô số ghim được (bước 21b): đã ghim → viền nét đứt + chip key cạnh nhãn, sửa số = sửa mặc định của input
+// (mọi trường ghim cùng input đổi theo).
+function NumField({ label, step: s, field, unit, prefix, min }: {
+  label: string; step: Step; field: Exclude<PinField, 'enabled'>; unit?: string; prefix?: string; min?: number;
+}) {
+  const script = useScript();
+  const inp = pinnedInput(script, s.id, field);
+  const others = compatibleInputs(script, field).filter((i) => i !== inp);
   return (
-    <Tag className={`flex flex-col gap-1.5 text-muted ${wide ? 'col-span-2' : ''}`}>{label}
-      {pin ? <span className="flex gap-1.5 [&>*:first-child]:min-w-0 [&>*:first-child]:flex-1">{children}<PinSoon /></span> : children}
-    </Tag>
+    <div className="flex flex-col gap-1.5 text-muted">
+      <span className="flex min-w-0 items-center gap-1.5"><span className="truncate">{label}</span>{inp && <KeyChip k={inp.key} />}</span>
+      <span className="flex gap-1.5">
+        <NumInput value={s[field]} min={min} unit={unit} prefix={prefix} pinned={!!inp} className="min-w-0 flex-1"
+          onChange={(v) => (inp ? setPinnedValue(s.id, field, v) : updateStep(s.id, { [field]: v }))} />
+        <PinMenu pinnedKey={inp?.key} options={others} onPinNew={() => pinField(s.id, field)}
+          onPinTo={(key) => pinToInput(s.id, field, key)} onUnpin={() => unpinField(s.id, field)} />
+      </span>
+    </div>
   );
 }
 
-const PinSoon = () => <PinButton pinned={false} disabled title="Đặt làm input – sắp có (bước 21b)" />;
+const PinSoon = () => <PinButton pinned={false} disabled title="Ghim toạ độ làm input – sắp có" />;
+
+function TabBtn({ active, onClick, title, children }: { active: boolean; onClick: () => void; title?: string; children: ReactNode }) {
+  return (
+    <button role="tab" aria-selected={active} onClick={onClick} title={title}
+      className={`relative flex h-[34px] items-center gap-1.5 px-0.5 ${active ? 'font-semibold' : 'text-muted hover:text-ink'}`}>
+      {children}
+      {active && <span className="absolute inset-x-[15%] -bottom-px h-[3px] rounded-sm bg-accent" />}
+    </button>
+  );
+}
+
+// Tab Input: input của cả kịch bản (không riêng bước đang chọn).
+function InputsTab() {
+  const script = useScript();
+  const { memory } = useRunForm();
+  useEffect(() => {
+    loadMemory();
+  }, [script.name]);
+  return (
+    <InputsPanel inputs={inputViews(script)} onUpdate={updateInput} onRemove={removeInput} onMove={moveInput}
+      onAdd={() => addInput({ label: 'Input mới' })}
+      footer={memory.autoRun && !!script.inputs?.length && (
+        <div className="flex items-center gap-2 rounded-lg bg-soft px-3 py-2 text-xs text-muted">
+          <span className="flex-1">Bấm Chạy đang chạy luôn với giá trị lần trước, không hỏi (Shift + bấm Chạy để sửa)</span>
+          <button onClick={stopAutoRun} className="font-semibold text-accent-text">Hỏi lại</button>
+        </div>
+      )} />
+  );
+}

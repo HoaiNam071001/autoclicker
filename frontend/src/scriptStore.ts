@@ -4,7 +4,6 @@ import { ScreenBounds } from '../wailsjs/go/main/App';
 import { Anchor, makeStep, Point, Rect, Script, sampleSteps, Step, STEP_LABEL, StepPoint, StepType } from './types';
 import { anchorPoint, fmtPoint, insideBounds, nearestAnchor, resolvePoint } from './anchor';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
-import { runScript } from './engineStore';
 import { apply, IDENTITY, Mat, rectToRect } from './transform';
 
 // Store kịch bản đang soạn – dùng chung giữa MainScreen và OverlayScreen (hai màn không cùng mount).
@@ -115,9 +114,6 @@ export const markSaved = (path: string, name: string, notice: string, stillDirty
 export const selectStep = (id: string) => set({ selected: id });
 export const setNotice = (notice: string) => set({ notice });
 export const setCountdown = (countdown: boolean) => set({ countdown });
-
-// Chạy kịch bản đang soạn (nút Chạy, F8 khi chưa chạy).
-export const runCurrent = () => runScript(state.script, state.countdown);
 
 const setSteps = (steps: Step[]) => updateScript({ steps });
 
@@ -578,5 +574,4 @@ export const hasPoints = () => state.script.steps.some((s) => selectableIndexes(
 if (inWails) {
   ScreenBounds().then((screen) => set({ screen })).catch(() => {});
   EventsOn('hotkey:f6', (p: Point) => placePoint(p));
-  EventsOn('hotkey:f8start', () => runCurrent());
 }

@@ -2,7 +2,7 @@
 // KHÔNG dùng trong app thật và không thêm các loại này vào types.ts / model.go – mỗi loại sẽ vào model ở bước làm logic.
 import { StepIconName } from '../components/icons';
 import { LibraryProps } from '../components/Library';
-import type { ScriptInput } from '../components/inputs/model';
+import type { InputView } from '../components/inputs/model';
 import type { Preset, RunSection } from '../components/inputs/RunDialog';
 
 export type DemoStep = {
@@ -73,7 +73,7 @@ export const findDemoStep = (id: string): DemoStep | undefined => {
 
 // ---- Input của kịch bản (đợt 2 của 27b) ----
 
-export const demoInputs: ScriptInput[] = [
+export const demoInputs: InputView[] = [
   { key: 'profile', label: 'Trang cá nhân', type: 'text', required: true, prefix: 'facebook.com/', usedBy: [{ n: '01', title: 'Mở URL' }] },
   { key: 'wait_s', label: 'Thời gian chờ nút', type: 'number', default: 10, unit: 's', usedBy: [{ n: '03', title: 'Chờ ảnh' }] },
   { key: 'click_delay', label: 'Chờ sau khi click', type: 'ms', default: 500, unit: 'ms', usedBy: [{ n: '04', title: 'Click theo ảnh' }] },

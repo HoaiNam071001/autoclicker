@@ -6,6 +6,8 @@ export function ClearDraft():Promise<void>;
 
 export function ConfirmQuit():Promise<void>;
 
+export function GetInputMemory(arg1:string):Promise<main.InputMemory>;
+
 export function GetSettings():Promise<main.Settings>;
 
 export function Greet(arg1:string):Promise<string>;
@@ -28,9 +30,11 @@ export function RecentScripts():Promise<Array<string>>;
 
 export function ResumeScript():Promise<boolean>;
 
-export function RunScript(arg1:main.Script,arg2:number):Promise<void>;
+export function RunScript(arg1:main.Script,arg2:Record<string, any>,arg3:number):Promise<void>;
 
 export function SaveDraft(arg1:main.Draft):Promise<void>;
+
+export function SaveInputMemory(arg1:string,arg2:main.InputMemory):Promise<void>;
 
 export function SaveScript(arg1:main.Script,arg2:string):Promise<main.ScriptFile>;
 
@@ -46,4 +50,4 @@ export function SetWindowMode(arg1:string):Promise<void>;
 
 export function StopScript():Promise<void>;
 
-export function ValidateScript(arg1:main.Script):Promise<void>;
+export function ValidateScript(arg1:main.Script,arg2:Record<string, any>):Promise<void>;

@@ -1,24 +1,32 @@
 // Tab Input của inspector (artboard InputsTab): các giá trị hỏi khi bấm Chạy, theo thứ tự – kéo ⋮⋮ để sắp xếp,
-// bấm một dòng để mở rộng sửa nhãn / kiểu / mặc định / bắt buộc / gợi ý, xoá (bỏ ghim) input.
-import { useState } from 'react';
+// bấm một dòng để mở rộng sửa key / nhãn / kiểu / mặc định / bắt buộc / gợi ý, xoá input.
+import { ReactNode, useEffect, useState } from 'react';
 import { closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Trash } from '../icons';
 import { Switch } from '../RunSettings';
 import { fieldBox } from '../NumInput';
-import { fmtValue, INPUT_TYPE_LABEL, InputType, ScriptInput } from './model';
+import { fmtValue, INPUT_TYPE_LABEL, InputType, InputView, ScriptInput } from './model';
 
-type Props = { inputs: ScriptInput[]; onChange: (inputs: ScriptInput[]) => void; onAdd?: () => void };
+type Props = {
+  inputs: InputView[];
+  onUpdate: (key: string, patch: Partial<ScriptInput>) => string | null | void; // trả lỗi (key trùng / sai) nếu có
+  onRemove: (key: string) => void;
+  onMove: (from: string, to: string) => void;
+  onAdd?: () => void;
+  footer?: ReactNode; // thêm ở cuối (vd "đang chạy luôn không hỏi")
+};
 
-export default function InputsPanel({ inputs, onChange, onAdd }: Props) {
+// Kiểu đổi được khi input đang ghim vào trường số / bật tắt.
+const kindTypes: Record<string, InputType[]> = { int: ['number', 'ms'], bool: ['bool'] };
+
+export default function InputsPanel({ inputs, onUpdate, onRemove, onMove, onAdd, footer }: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const onDragEnd = ({ active, over }: DragEndEvent) => {
-    if (!over || active.id === over.id) return;
-    onChange(arrayMove(inputs, inputs.findIndex((i) => i.key === active.id), inputs.findIndex((i) => i.key === over.id)));
+    if (over && active.id !== over.id) onMove(String(active.id), String(over.id));
   };
-  const update = (key: string, patch: Partial<ScriptInput>) => onChange(inputs.map((i) => (i.key === key ? { ...i, ...patch } : i)));
 
   return (
     <div className="flex flex-1 flex-col gap-3.5">
@@ -28,7 +36,12 @@ export default function InputsPanel({ inputs, onChange, onAdd }: Props) {
           <div className="flex flex-col gap-1.5">
             {inputs.map((inp) => (
               <Row key={inp.key} inp={inp} open={open === inp.key} onToggle={() => setOpen(open === inp.key ? null : inp.key)}
-                onChange={(p) => update(inp.key, p)} onRemove={() => onChange(inputs.filter((i) => i.key !== inp.key))} />
+                onChange={(p) => {
+                  const err = onUpdate(inp.key, p);
+                  if (!err && p.key) setOpen(p.key);
+                  return err;
+                }}
+                onRemove={() => onRemove(inp.key)} />
             ))}
           </div>
         </SortableContext>
@@ -36,13 +49,15 @@ export default function InputsPanel({ inputs, onChange, onAdd }: Props) {
       {inputs.length === 0 && <p className="py-4 text-center text-[13px] text-muted">Chưa có input – bấm ghim cạnh một trường hoặc gõ {'{{'} trong ô chữ.</p>}
       <button onClick={onAdd} disabled={!onAdd}
         className="h-[38px] rounded-lg border border-dashed border-line-strong text-muted enabled:hover:bg-hover enabled:hover:text-ink">+ Thêm input</button>
+      {footer}
       <p className="mt-auto text-xs text-muted">Giá trị lần chạy trước lưu trên máy này, không ghi vào file kịch bản.</p>
     </div>
   );
 }
 
 function Row({ inp, open, onToggle, onChange, onRemove }: {
-  inp: ScriptInput; open: boolean; onToggle: () => void; onChange: (p: Partial<ScriptInput>) => void; onRemove: () => void;
+  inp: InputView; open: boolean; onToggle: () => void;
+  onChange: (p: Partial<ScriptInput>) => string | null | void; onRemove: () => void;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: inp.key });
   const handle = (
@@ -63,36 +78,57 @@ function Row({ inp, open, onToggle, onChange, onRemove }: {
           <div className="truncate font-mono text-xs text-muted">{inp.key}  ·  {inp.required && inp.default === undefined ? 'bắt buộc' : `mặc định ${fmtValue(inp.default, inp.unit)}`}</div>
         </div>
         <span className="rounded-[5px] bg-soft px-[7px] py-0.5 text-[11px] whitespace-nowrap text-muted">{INPUT_TYPE_LABEL[inp.type]}</span>
-        {used && <span className="rounded-[5px] border border-line px-1.5 py-px font-mono text-[11px] text-muted">{used}</span>}
+        {used
+          ? <span className="rounded-[5px] border border-line px-1.5 py-px font-mono text-[11px] text-muted">{used}</span>
+          : <span className="text-[11px] text-warn" title="Chưa bước nào dùng – chạy sẽ báo lỗi">chưa dùng</span>}
       </div>
     );
   }
 
   const label = 'flex flex-col gap-[5px] text-[13px] text-muted';
   const input = `${fieldBox} text-sm text-ink outline-none`;
+  const pinnedKind = inp.targets?.length ? (inp.targets[0].field === 'enabled' ? 'bool' : 'int') : null;
+  const types = pinnedKind ? kindTypes[pinnedKind] : (Object.keys(INPUT_TYPE_LABEL) as InputType[]);
   return (
     <div ref={setNodeRef} style={style} className={`ring-selected flex flex-col gap-2.5 rounded-card p-3 ${lift}`}>
       <div className="flex items-center gap-2.5" onClick={onToggle}>
         {handle}
         <span className="var-token text-[13px]">{inp.key}</span>
-        <span className="truncate text-xs text-muted">dùng ở {inp.usedBy.map((u) => `B${u.n} ${u.title}`).join(', ') || 'chưa bước nào'}</span>
+        <span className={`truncate text-xs ${used ? 'text-muted' : 'text-warn'}`}>
+          {used ? `dùng ở ${inp.usedBy.map((u) => `B${u.n} ${u.title}`).join(', ')}` : 'chưa bước nào dùng – chạy sẽ báo lỗi'}
+        </span>
         <button onClick={(e) => { e.stopPropagation(); onRemove(); }} aria-label="Xoá input" title="Xoá input (bỏ ghim, biến {{…}} trong ô chữ sẽ báo lỗi)"
           className="ml-auto grid h-7 w-7 flex-none place-items-center rounded-md text-muted hover:bg-hover hover:text-danger-text"><Trash className="h-3.5 w-3.5" /></button>
       </div>
-      <label className={label}>Nhãn
-        <input value={inp.label} onChange={(e) => onChange({ label: e.target.value })} className={input} />
-      </label>
+      <div className="grid grid-cols-2 gap-2">
+        <label className={label}>Nhãn
+          <input value={inp.label} onChange={(e) => onChange({ label: e.target.value })} className={input} />
+        </label>
+        <KeyField value={inp.key} onCommit={(key) => onChange({ key })} />
+      </div>
       <div className="grid grid-cols-2 gap-2">
         <label className={label}>Kiểu
-          <select value={inp.type} onChange={(e) => onChange({ type: e.target.value as InputType })} className={input}>
-            {Object.entries(INPUT_TYPE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          <select value={inp.type} onChange={(e) => onChange({ type: e.target.value as InputType })} className={input}
+            title={pinnedKind ? 'Đang ghim vào trường – chỉ đổi được kiểu cùng loại' : undefined}>
+            {types.map((k) => <option key={k} value={k}>{INPUT_TYPE_LABEL[k]}</option>)}
           </select>
         </label>
-        <label className={label}>Mặc định
-          <input value={inp.default === undefined ? '' : String(inp.default)} placeholder="(trống)"
-            onChange={(e) => onChange({ default: e.target.value === '' ? undefined : e.target.value })} className={`${input} font-mono`} />
-        </label>
+        {inp.type === 'bool' ? (
+          <div className={label}>Mặc định
+            <span className="flex h-8 items-center"><Switch on={inp.default === true} onChange={(v) => onChange({ default: v })} label="Mặc định" /></span>
+          </div>
+        ) : inp.type === 'select' ? (
+          <label className={label}>Mặc định
+            <select value={inp.default === undefined ? '' : String(inp.default)} onChange={(e) => onChange({ default: e.target.value })} className={input}>
+              <option value="">(trống)</option>
+              {inp.options?.map((o) => <option key={o}>{o}</option>)}
+            </select>
+          </label>
+        ) : (
+          <DefaultField inp={inp} onCommit={(v) => onChange({ default: v })} className={`${input} font-mono`} />
+        )}
       </div>
+      {inp.type === 'select' && <OptionsField value={inp.options ?? []} onChange={(options) => onChange({ options })} />}
       <label className="flex items-center justify-between text-[13px]">Bắt buộc nhập
         <Switch on={!!inp.required} onChange={(required) => onChange({ required })} label="Bắt buộc nhập" />
       </label>
@@ -100,5 +136,57 @@ function Row({ inp, open, onToggle, onChange, onRemove }: {
         <input value={inp.hint ?? ''} onChange={(e) => onChange({ hint: e.target.value })} className={input} />
       </label>
     </div>
+  );
+}
+
+// Key: sửa nháp, Enter / rời ô mới đổi (đổi key = đổi luôn {{key}} trong ô chữ); lỗi hiện dưới ô.
+function KeyField({ value, onCommit }: { value: string; onCommit: (key: string) => string | null | void }) {
+  const [draft, setDraft] = useState(value);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => setDraft(value), [value]);
+  const commit = () => {
+    if (draft === value) return setErr(null);
+    setErr(onCommit(draft) || null);
+  };
+  return (
+    <label className="flex flex-col gap-[5px] text-[13px] text-muted">Key
+      <input value={draft} onChange={(e) => setDraft(e.target.value.trim())} onBlur={commit} spellCheck={false}
+        onKeyDown={(e) => e.key === 'Enter' && commit()}
+        className={`${fieldBox} font-mono text-sm text-ink outline-none ${err ? 'border-danger' : ''}`} />
+      {err && <span className="text-xs text-danger-text">{err}</span>}
+    </label>
+  );
+}
+
+// Mặc định dạng chữ / số: giữ nháp khi gõ, số sai thì báo (không ghi).
+function DefaultField({ inp, onCommit, className }: { inp: InputView; onCommit: (v: string) => void; className: string }) {
+  const shown = inp.default === undefined ? '' : String(inp.default);
+  const [draft, setDraft] = useState(shown);
+  useEffect(() => setDraft(shown), [shown]);
+  const isNum = inp.type === 'number' || inp.type === 'ms';
+  const bad = isNum && draft !== '' && !/^\d+$/.test(draft.trim());
+  return (
+    <label className="flex flex-col gap-[5px] text-[13px] text-muted">Mặc định
+      <input value={draft} placeholder="(trống)" inputMode={isNum ? 'numeric' : undefined}
+        onChange={(e) => {
+          setDraft(e.target.value);
+          if (!isNum || e.target.value === '' || /^\d+$/.test(e.target.value.trim())) onCommit(e.target.value);
+        }}
+        onBlur={() => setDraft(shown)} className={`${className} ${bad ? 'border-danger' : ''}`} />
+    </label>
+  );
+}
+
+// Danh sách chọn: mỗi lựa chọn một dòng.
+function OptionsField({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const [draft, setDraft] = useState(value.join('\n'));
+  return (
+    <label className="flex flex-col gap-[5px] text-[13px] text-muted">Các lựa chọn <span className="text-xs">(mỗi dòng một lựa chọn)</span>
+      <textarea value={draft} rows={3} onChange={(e) => {
+          setDraft(e.target.value);
+          onChange(e.target.value.split('\n').map((s) => s.trim()).filter(Boolean));
+        }}
+        className="rounded-control border border-line bg-field px-2.5 py-1.5 text-sm text-ink outline-none focus:ring-focus" />
+    </label>
   );
 }

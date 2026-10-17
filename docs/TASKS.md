@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 30 (sửa nhiều điểm) – xong code + test, chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 21b → 23 → 25 … (bảng thứ tự đầu Phase 3); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
+- **Đang làm:** 23 (cuộn + mở URL / app). 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 25 → 25b … (bảng thứ tự đầu Phase 3); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17
 
 ## Quyết định đã chốt
@@ -279,9 +279,11 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] Tab Xem trước: nút *Sửa điểm* chuyển sang công cụ *Chọn nhiều*, xong bấm *Xem trước* chạy lại theo vị trí mới
   - [ ] Kiểm tra tay trong app
   - Xong khi: chọn 5 điểm, co giãn 150%, xoay 10°, xiên, lật → overlay và lần chạy thật khớp nhau; Ctrl+Z quay lại đúng từng bước; đổi vùng với cả 3 cách xử lý cho kết quả như mô tả
-- [ ] **21b. Input của kịch bản** – Người soạn đánh dấu giá trị nào được đổi khi chạy; bấm Chạy thì điền form. Go áp giá trị vào bản sao kịch bản rồi mới đưa engine, **engine không đổi**. Cùng đổi `version` với 21; CSV (28) dựa vào đây.
+- [x] **21b. Input của kịch bản** – Người soạn đánh dấu giá trị nào được đổi khi chạy; bấm Chạy thì điền form. Go áp giá trị vào bản sao kịch bản rồi mới đưa engine, **engine không đổi**. Cùng đổi `version` với 21; CSV (28) dựa vào đây.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
-  - [ ] Model `Script.inputs`: `key`, `label`, `type` (`number`, `ms`, `text`, `multiline`, `bool`, `select`, `point`), `default`, `required`, `min` / `max`, `options`, `hint`, `targets: [{stepId, field}]`. Ví dụ:
+  - Đã làm (2026-10-17): `inputs.go` (`ScriptInput`, `resolveInputs`, `ScriptError`, `GetInputMemory` / `SaveInputMemory` → `inputs.json`), file kịch bản `version` 2; `RunScript` / `ValidateScript` nhận `values`. Frontend: `scriptInputs.ts` (ghim / dùng chung / bỏ ghim, sửa input, bước dùng input, nhóm form Chạy), `runForm.ts` (Chạy / F8 → form, chạy luôn, preset), `PinMenu`, `NumField` + tab Input trong `StepForm.tsx`
+  - Khác plan: kiểu `point` (ghim toạ độ) chưa làm – nút ghim cạnh toạ độ vẫn *Sắp có*; ghim `enabled` (bool) có ở Go nhưng chưa có nút trên UI. Ghim vào bước đã xoá được giữ lại (hoàn tác xoá bước thì ghim quay lại), lúc chạy bỏ qua. Trường đã ghim luôn bằng mặc định của input nên Xem trước dùng mặc định, không gọi resolve
+  - [x] Model `Script.inputs`: `key`, `label`, `type` (`number`, `ms`, `text`, `multiline`, `bool`, `select`, `point`), `default`, `required`, `min` / `max`, `options`, `hint`, `targets: [{stepId, field}]`. Ví dụ:
     ```json
     "inputs": [
       { "key": "click_delay", "label": "Chờ sau khi click", "type": "ms", "default": 500,
@@ -291,17 +293,18 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
     ```
     - Nguồn: **trường được ghim** (`targets`, một input cho nhiều bước) và **biến `{{key}}`** trong trường chữ (gõ chữ, URL, tên cửa sổ) – tự tạo input khi gõ biến mới
     - Key: chữ không dấu, số, `_`; nhãn tiếng Việt ở `label`; `\{{` để gõ ra `{{`; không ghim được trường tự tính (kéo thả "từ điểm trước")
-  - [ ] Go: `resolveInputs(script, values) (Script, error)` – sao chép, ghi trường ghim, thay `{{…}}`, `validateScript`; `RunScript(sc, values, countdown)`; Xem trước dùng chung resolve
-  - [ ] Lỗi rõ: thiếu bắt buộc, sai kiểu / ngoài khoảng, biến không có trong `inputs`, input không bước nào dùng, toạ độ ngoài vùng
-  - [ ] Giá trị lần trước + preset lưu trong `UserConfigDir` theo từng kịch bản, **không** ghi vào file kịch bản
-  - [ ] Inspector [`StepInputs`]: `components/PinButton.tsx` (32×32 cạnh mỗi trường số / chữ; đã ghim nền `accent-soft`); trường đã ghim `field-pinned` + chip key `var-token` cạnh nhãn
-  - [ ] Ô chữ có biến [`StepInputs`]: `components/VarTextInput.tsx` – tô `{{biến}}` bằng `var-token`; gõ `{{` mở popup gợi ý (key mono `accent-text` + nhãn `muted`, "+ Tạo input mới…"); dòng phụ "N biến, tự thêm vào tab Input"
-  - [ ] Tab Input [`InputsTab`]: `components/InputsPanel.tsx` – chip số input ở tab; mỗi dòng ⋮⋮ kéo, nhãn + `*`, `key · mặc định` mono, chip kiểu, chip bước dùng; input đang sửa mở rộng (`ring-selected`): nhãn, kiểu, mặc định, bắt buộc, gợi ý; bỏ ghim; "+ Thêm input"
-  - [ ] Thẻ bước: chip viền `line` "N input"
-  - [ ] Form Chạy [`RunDialog`, `RunDialogDark`]: `components/RunDialog.tsx` (popup 560, bo 12) – đầu có tên kịch bản + số input; "Bộ giá trị" (select preset + "Lưu bộ mới"); ô nhóm theo bước, ô đã đổi `ring-focus` + "đã đổi, mặc định … · khôi phục", `*` màu `warn`; khung "Sẽ gõ" xem trước câu sau khi thay biến; chân: "Lần sau chạy luôn với giá trị này", "Đếm ngược 3 giây", Huỷ / Chạy (`btn-primary`, F8)
-  - [ ] Nút Chạy / F8 mở form khi kịch bản có input; chạy thẳng nếu đã bật "Lần sau chạy luôn"; thanh mini hiện tên preset
-  - [ ] Chuẩn bị cho MCP (31): `resolveInputs` và kiểm tra input viết ở Go (không ở frontend) để CLI / MCP gọi được; `validateScript` trả lỗi có cấu trúc `{stepId, field, message}` thay vì chỉ chuỗi
-  - [ ] Test: ghi đè trường; thay biến (có tiếng Việt); thiếu biến; sai kiểu; escape; một input nhiều bước; input trong nhóm (sau bước 20)
+  - [x] Go: `resolveInputs(script, values) (Script, error)` – sao chép, ghi trường ghim, thay `{{…}}`, `validateScript`; `RunScript(sc, values, countdown)`; Xem trước dùng chung resolve
+  - [x] Lỗi rõ: thiếu bắt buộc, sai kiểu / ngoài khoảng, biến không có trong `inputs`, input không bước nào dùng, toạ độ ngoài vùng
+  - [x] Giá trị lần trước + preset lưu trong `UserConfigDir` theo từng kịch bản, **không** ghi vào file kịch bản
+  - [x] Inspector [`StepInputs`]: `components/PinButton.tsx` (32×32 cạnh mỗi trường số / chữ; đã ghim nền `accent-soft`); trường đã ghim `field-pinned` + chip key `var-token` cạnh nhãn
+  - [x] Ô chữ có biến [`StepInputs`]: `components/VarTextInput.tsx` – tô `{{biến}}` bằng `var-token`; gõ `{{` mở popup gợi ý (key mono `accent-text` + nhãn `muted`, "+ Tạo input mới…"); dòng phụ "N biến, tự thêm vào tab Input"
+  - [x] Tab Input [`InputsTab`]: `components/InputsPanel.tsx` – chip số input ở tab; mỗi dòng ⋮⋮ kéo, nhãn + `*`, `key · mặc định` mono, chip kiểu, chip bước dùng; input đang sửa mở rộng (`ring-selected`): nhãn, kiểu, mặc định, bắt buộc, gợi ý; bỏ ghim; "+ Thêm input"
+  - [x] Thẻ bước: chip viền `line` "N input"
+  - [x] Form Chạy [`RunDialog`, `RunDialogDark`]: `components/RunDialog.tsx` (popup 560, bo 12) – đầu có tên kịch bản + số input; "Bộ giá trị" (select preset + "Lưu bộ mới"); ô nhóm theo bước, ô đã đổi `ring-focus` + "đã đổi, mặc định … · khôi phục", `*` màu `warn`; khung "Sẽ gõ" xem trước câu sau khi thay biến; chân: "Lần sau chạy luôn với giá trị này", "Đếm ngược 3 giây", Huỷ / Chạy (`btn-primary`, F8)
+  - [x] Nút Chạy / F8 mở form khi kịch bản có input; chạy thẳng nếu đã bật "Lần sau chạy luôn"; thanh mini hiện tên preset
+  - [x] Chuẩn bị cho MCP (31): `resolveInputs` và kiểm tra input viết ở Go (không ở frontend) để CLI / MCP gọi được; `validateScript` trả lỗi có cấu trúc `{stepId, field, message}` thay vì chỉ chuỗi
+  - [x] Test: ghi đè trường; thay biến (có tiếng Việt); thiếu biến; sai kiểu; escape; một input nhiều bước; input trong nhóm (sau bước 20) – Go `inputs_test.go` (trừ input trong nhóm – làm ở 20); vitest `scriptInputs.test.ts` (ghim, dùng chung, đổi key, nhóm form Chạy)
+  - [x] Kiểm tra tay trong app
   - Xong khi: B1 click 500 → chạy với 1000 ms; B2 "xin chào {{M1}} và {{M2}}" gõ đúng giá trị điền
 - [ ] **23. Cuộn + Mở URL / app** – Loại bước đơn giản.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
@@ -482,3 +485,6 @@ Người dùng gõ trên Claude: *"tạo kịch bản mở bài Tinh Hà Say 2 t
 - **2026-10-17** – Theo yêu cầu: overlay gọn hơn – thanh công cụ tự ẩn (hiện khi chuột sát mép trên / rời overlay qua mép trên / rê vào gợi ý, lúc mở hiện 2,5 s); banner hướng dẫn thành viên gợi ý một dòng (tên công cụ + câu ngắn, thông báo tự tắt sau 3,5 s); ô toạ độ thu nhỏ góc trên trái; thanh biến đổi / hộp ánh xạ dời lên. `npm run build` OK, chụp headless trạng thái ẩn / hiện; chưa kiểm tra tay, chưa commit.
 - **2026-10-17** – Theo yêu cầu: thêm bước 31 (kết nối AI qua MCP để AI tạo / sửa / chạy kịch bản từ câu lệnh bằng lời), chia 31a (tạo / sửa kịch bản, sau 21b) · 31b (AI nhìn màn hình, sau 25) · 31c (AI tự thử và chạy, sau 26); cập nhật bảng thứ tự Phase 3, quyết định đã chốt, bước 22 dùng chung server, thêm ví dụ mở bài nhạc. Chỉ sửa plan, chưa code.
 - **2026-10-17** – Theo yêu cầu: MCP làm sau – dời 31a / 31b / 31c xuống sau 22 (dùng chung server HTTP + token); thêm quy tắc *giữ đường cho MCP* vào quyết định đã chốt và mục *Chuẩn bị cho MCP* trong 21b, 23, 25, 25c, 26, 22. Chỉ sửa plan.
+- **2026-10-17** – Bước 21b (input của kịch bản): Go `inputs.go` – `Script.inputs`, `resolveInputs` (ghi trường ghim, thay `{{biến}}`, `\\{{` thoát, lỗi thiếu / sai kiểu / ngoài khoảng / biến lạ / input không dùng), `ScriptError` có cấu trúc (validateScript cũng trả loại này – chuẩn bị MCP), giá trị lần trước + preset trong `inputs.json`, file `version` 2. Frontend: ghim thật (`PinMenu`: input mới hoặc dùng chung), ô chữ có biến, tab Input (sửa key đổi luôn `{{key}}`), chip "N input", form Chạy thật (preset lưu / xoá, lỗi trong form, chạy luôn + "Hỏi lại"), thanh mini hiện bộ giá trị. `go test` OK (8 test mới), `npm test` 24 test OK, `npm run build` OK, chạy headless trên trình duyệt (ghim, menu, biến, tab Input, form Chạy thật + #demo). Chưa kiểm tra tay trong app, chưa commit.
+- **2026-10-17** – Theo câu hỏi của người dùng (đã bật "Lần sau chạy luôn" thì sửa input thế nào): Shift + bấm Chạy luôn mở form; form tick sẵn "Lần sau chạy luôn" khi đang bật (bỏ tick = lần sau hỏi lại); nút Chạy có gợi ý khi đang chạy luôn; vẫn còn nút "Hỏi lại" ở tab Input. `npm run build` + `npm test` OK; chưa kiểm tra tay, chưa commit.
+- **2026-10-17** – Người dùng xác nhận kiểm tra tay bước 21b OK → tick, commit. Bắt đầu bước 23.

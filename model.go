@@ -66,13 +66,14 @@ const (
 )
 
 type Script struct {
-	Version    int    `json:"version"` // định dạng file, xem storage.go
-	Name       string `json:"name"`
-	Region     *Rect  `json:"region"`     // nil = toàn màn hình (màn chính); toạ độ điểm neo theo cạnh vùng
-	Loops      int    `json:"loops"`      // 0 = vô hạn
-	MaxMinutes int    `json:"maxMinutes"` // 0 = không giới hạn
-	Steps      []Step `json:"steps"`
-	AnchorMode string `json:"anchorMode,omitempty"` // "" = góc gần nhất | start = luôn trên trái
+	Version    int           `json:"version"` // định dạng file, xem storage.go
+	Name       string        `json:"name"`
+	Region     *Rect         `json:"region"`     // nil = toàn màn hình (màn chính); toạ độ điểm neo theo cạnh vùng
+	Loops      int           `json:"loops"`      // 0 = vô hạn
+	MaxMinutes int           `json:"maxMinutes"` // 0 = không giới hạn
+	Steps      []Step        `json:"steps"`
+	AnchorMode string        `json:"anchorMode,omitempty"` // "" = góc gần nhất | start = luôn trên trái
+	Inputs     []ScriptInput `json:"inputs,omitempty"`     // giá trị hỏi khi bấm Chạy (inputs.go)
 }
 
 // NewStep trả bước mới với giá trị mặc định theo loại – dùng cho nút "+ Thêm bước".

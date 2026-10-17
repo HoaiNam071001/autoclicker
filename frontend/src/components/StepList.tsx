@@ -11,7 +11,8 @@ import { Copy, Power, Region, StepIcon, Trash } from './icons';
 import {
   duplicateStep, moveStep, removeStep, selectStep, setMulti, setRegion, toggleMultiStep, toggleStep, undoDelete, useEditor,
 } from '../scriptStore';
-import { fmtMs, fmtPos, Step, STEP_LABEL } from '../types';
+import { fmtMs, fmtPos, Script, Step, STEP_LABEL } from '../types';
+import { stepInputCount } from '../scriptInputs';
 import { openOverlay } from '../windowMode';
 
 import AddStepPalette from './AddStepPalette';
@@ -20,7 +21,8 @@ import { CardBody, cardClass, tileClass } from './StepCard';
 const isMac = navigator.platform.startsWith('Mac');
 
 export default function StepList() {
-  const { script: { steps, region }, selected, deleted, multi } = useEditor();
+  const { script, selected, deleted, multi } = useEditor();
+  const { steps, region } = script;
   const multiSteps = new Set(multi.map((k) => k.split(':')[0]));
   const [palette, setPalette] = useState(false);
   // Ctrl+K (macOS: Cmd+K) mở / đóng bảng thêm bước
@@ -66,7 +68,7 @@ export default function StepList() {
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
           <ol className="flex flex-col gap-1.5">
-            {steps.map((s, i) => <Card key={s.id} step={s} index={i} selected={s.id === selected} inMulti={multiSteps.has(s.id)} />)}
+            {steps.map((s, i) => <Card key={s.id} step={s} index={i} selected={s.id === selected} inMulti={multiSteps.has(s.id)} script={script} />)}
           </ol>
         </SortableContext>
       </DndContext>
@@ -88,7 +90,8 @@ export default function StepList() {
 }
 
 // inMulti: có điểm đang chọn nhiều (bước 30) – Shift / ⌘ / Ctrl + click thẻ thêm / bỏ điểm của bước; click thường bỏ chọn nhiều.
-function Card({ step: s, index: i, selected, inMulti }: { step: Step; index: number; selected: boolean; inMulti: boolean }) {
+function Card({ step: s, index: i, selected, inMulti, script }: { step: Step; index: number; selected: boolean; inMulti: boolean; script: Script }) {
+  const inputs = stepInputCount(script, s.id);
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: s.id });
   const iconBtn = 'grid h-7 w-7 place-items-center rounded-md text-muted hover:bg-hover hover:text-ink';
 
@@ -108,6 +111,7 @@ function Card({ step: s, index: i, selected, inMulti }: { step: Step; index: num
       <CardBody n={String(i + 1).padStart(2, '0')} enabled={s.enabled}
         title={`${STEP_LABEL[s.type]}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`}
         tags={!s.enabled && <span className="rounded-full bg-soft px-[7px] py-px text-[11px] text-muted">Tắt</span>}
+        chips={inputs ? [`${inputs} input`] : undefined}
         detail={fmtPos(s)} delay={`${fmtMs(s.delayAfter)}${s.jitterMs > 0 ? ` ±${s.jitterMs}` : ''}`} />
       {/* nút nổi ở góc phải khi rê chuột – không đẩy bố cục */}
       <span onClick={(e) => e.stopPropagation()} className="absolute inset-y-0 right-2 hidden items-center gap-0.5 group-hover:flex">

@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 import { DebugButtons, RecordButton, StatusBar, Toolbar } from '../components/AppChrome';
 import { MousePos, StopScript } from '../../wailsjs/go/main/App';
 import { inWails, openOverlay } from '../windowMode';
-import { removeStep, runCurrent, useEditor } from '../scriptStore';
+import { removeStep, useEditor } from '../scriptStore';
+import { closeRunForm, deletePreset, loadMemory, savePreset, startRun, submitRun, useRunForm } from '../runForm';
+import { inputViews, runSections } from '../scriptInputs';
+import RunDialog from '../components/inputs/RunDialog';
 import { newScript, openScript, save, useFile } from '../scriptFile';
 import SaveChangesDialog from '../components/SaveChangesDialog';
 import TitleBar from '../components/TitleBar';
@@ -20,12 +23,17 @@ const modKey = isMac ? '⌘' : 'Ctrl+';
 const clock = (ms: number) => new Date(ms).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
 export default function MainScreen() {
-  const { script, selected, notice, dirty, path } = useEditor();
+  const { script, selected, notice, dirty, path, countdown: editorCountdown } = useEditor();
   const { draftAt, error: fileError } = useFile();
   const { steps } = script;
   const cur = steps.find((s) => s.id === selected) ?? steps[0]; // undefined khi chưa có bước nào
   const idx = steps.indexOf(cur) + 1;
   const { running, lastError, stopReason, hotkeyError } = useEngine();
+  const runForm = useRunForm();
+  const autoRun = !!script.inputs?.length && !!runForm.memory.autoRun;
+  useEffect(() => {
+    loadMemory();
+  }, [path, script.name]);
 
   // Toạ độ chuột thật ở status bar – để đọc nhanh toạ độ khi nhập tay.
   const [mouse, setMouse] = useState<Point | null>(null);
@@ -69,8 +77,10 @@ export default function MainScreen() {
       <Toolbar name={script.name} nameTitle={path ?? 'Chưa lưu thành file'} unsaved={dirty}
         unsavedTitle={`Có thay đổi chưa lưu xuống file (${modKey}S) – bản nháp vẫn tự lưu trên máy`}
         loop={loopSummary(script)} loopPanel={<RunSettings />}
-        running={running} onRun={() => (running ? StopScript() : runCurrent())}
-        runDisabled={!inWails} runTitle={inWails ? undefined : 'Chỉ chạy được trong app'}
+        running={running} onRun={(e) => (running ? StopScript() : startRun(e.shiftKey))}
+        runDisabled={!inWails}
+        runTitle={!inWails ? 'Chỉ chạy được trong app'
+          : autoRun ? 'Chạy luôn với giá trị lần trước – Shift + bấm để sửa input' : undefined}
         onPreview={() => openOverlay('preview')} extra={<><RecordButton soon /><DebugButtons soon /></>} />
 
       <div className="flex min-h-0 flex-1 border-t border-line">
@@ -94,6 +104,12 @@ export default function MainScreen() {
         {draftAt && dirty && <span title="Bản nháp lưu trên máy – mở lại app vẫn còn">Bản nháp tự lưu lúc <span className="font-mono">{clock(draftAt)}</span></span>}
       </StatusBar>
       <SaveChangesDialog />
+      {runForm.open && (
+        <RunDialog scriptName={script.name} inputs={inputViews(script)} sections={runSections(script)}
+          presets={runForm.memory.presets ?? []} initialValues={runForm.memory.last} initialPreset={runForm.memory.lastPreset} initialRemember={!!runForm.memory.autoRun}
+          countdown={editorCountdown} error={runForm.error} onClose={closeRunForm} onRun={submitRun}
+          onSavePreset={savePreset} onDeletePreset={deletePreset} />
+      )}
     </div>
   );
 }

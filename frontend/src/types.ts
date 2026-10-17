@@ -50,10 +50,32 @@ export interface Script {
   maxMinutes: number; // 0 = không giới hạn
   steps: Step[];
   anchorMode?: AnchorMode; // điểm mới đặt neo theo: bỏ trống = góc gần nhất, start = luôn trên trái
+  inputs?: ScriptInput[]; // giá trị hỏi khi bấm Chạy (bước 21b, inputs.go)
 }
 export type AnchorMode = 'start';
 const scriptMatchesGo: Same<keyof Script, keyof Fields<main.Script>> = true;
 void scriptMatchesGo;
+
+// ---- Input của kịch bản (bước 21b) – khớp ScriptInput trong inputs.go ----
+export type InputType = 'text' | 'multiline' | 'number' | 'ms' | 'bool' | 'select';
+export type InputValue = string | number | boolean;
+// Trường ghim được (pinFields trong inputs.go): số → input number / ms, enabled → bool.
+export type PinField = 'clicks' | 'clickInterval' | 'holdMs' | 'dragMs' | 'delayAfter' | 'jitterMs' | 'jitterPx' | 'enabled';
+export interface InputTarget { stepId: string; field: PinField }
+export interface ScriptInput {
+  key: string; // chữ không dấu, số, _ – dùng trong {{key}}
+  label: string;
+  type: InputType;
+  default?: InputValue; // trống = không có mặc định
+  required?: boolean;
+  min?: number;
+  max?: number;
+  options?: string[]; // select
+  hint?: string; // gợi ý dưới ô trong form Chạy
+  targets?: InputTarget[]; // trường được ghim
+}
+const inputMatchesGo: Same<keyof ScriptInput, keyof Fields<main.ScriptInput>> = true;
+void inputMatchesGo;
 
 // Tạo bước với giá trị trống, ghi đè bằng p (dùng cho dữ liệu mẫu / demo).
 export const makeStep = (p: Partial<Step> & Pick<Step, 'id' | 'type'>): Step => ({

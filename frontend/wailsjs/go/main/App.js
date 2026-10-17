@@ -10,6 +10,10 @@ export function ConfirmQuit() {
   return window['go']['main']['App']['ConfirmQuit']();
 }
 
+export function GetInputMemory(arg1) {
+  return window['go']['main']['App']['GetInputMemory'](arg1);
+}
+
 export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }
@@ -54,12 +58,16 @@ export function ResumeScript() {
   return window['go']['main']['App']['ResumeScript']();
 }
 
-export function RunScript(arg1, arg2) {
-  return window['go']['main']['App']['RunScript'](arg1, arg2);
+export function RunScript(arg1, arg2, arg3) {
+  return window['go']['main']['App']['RunScript'](arg1, arg2, arg3);
 }
 
 export function SaveDraft(arg1) {
   return window['go']['main']['App']['SaveDraft'](arg1);
+}
+
+export function SaveInputMemory(arg1, arg2) {
+  return window['go']['main']['App']['SaveInputMemory'](arg1, arg2);
 }
 
 export function SaveScript(arg1, arg2) {
@@ -90,6 +98,6 @@ export function StopScript() {
   return window['go']['main']['App']['StopScript']();
 }
 
-export function ValidateScript(arg1) {
-  return window['go']['main']['App']['ValidateScript'](arg1);
+export function ValidateScript(arg1, arg2) {
+  return window['go']['main']['App']['ValidateScript'](arg1, arg2);
 }

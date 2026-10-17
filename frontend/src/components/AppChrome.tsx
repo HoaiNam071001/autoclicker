@@ -7,7 +7,7 @@ export function Toolbar({ name, nameTitle, unsaved, unsavedTitle, loop, loopPane
   name: string; nameTitle?: string;
   unsaved?: boolean; unsavedTitle?: string;
   loop: string; loopPanel: ReactNode; // chữ trên nút "N vòng" + nội dung popup
-  running: boolean; runDisabled?: boolean; runTitle?: string; onRun: () => void;
+  running: boolean; runDisabled?: boolean; runTitle?: string; onRun: (e: { shiftKey: boolean }) => void;
   onPreview: () => void;
   extra?: ReactNode; // nút thêm cạnh nút Chạy (debug, ghi macro…)
 }) {

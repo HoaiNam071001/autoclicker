@@ -1,8 +1,7 @@
-// Input của kịch bản – kiểu dữ liệu cho phần giao diện (bước 27b). Bước 21b chuyển vào types.ts + model.go
-// (Script.inputs) và thêm resolveInputs bên Go; tới lúc đó chỉ màn #demo dùng.
+// Input của kịch bản – phần dùng cho giao diện (tách biến, nhãn kiểu, hiển thị giá trị). Model ở types.ts (khớp inputs.go).
+import type { InputType, InputValue, ScriptInput } from '../../types';
 
-export type InputType = 'text' | 'multiline' | 'number' | 'ms' | 'bool' | 'select' | 'point';
-export type InputValue = string | number | boolean;
+export type { InputType, InputValue, ScriptInput };
 
 export const INPUT_TYPE_LABEL: Record<InputType, string> = {
   text: 'Chữ',
@@ -11,20 +10,13 @@ export const INPUT_TYPE_LABEL: Record<InputType, string> = {
   ms: 'ms',
   bool: 'Bật / tắt',
   select: 'Danh sách chọn',
-  point: 'Toạ độ',
 };
 
-export type ScriptInput = {
-  key: string; // chữ không dấu, số, _ – dùng trong {{key}}
-  label: string;
-  type: InputType;
-  default?: InputValue;
-  required?: boolean;
-  hint?: string;
+// Input kèm thông tin hiển thị: bước nào dùng (ghim hoặc {{key}}), đơn vị / tiền tố trong ô.
+export type InputView = ScriptInput & {
+  usedBy: { n: string; title: string }[];
   unit?: string; // hiện bên phải ô (s, ms)
   prefix?: string; // hiện mờ bên trái ô (facebook.com/)
-  options?: string[]; // type = select
-  usedBy: { n: string; title: string }[]; // bước dùng input này (ghim hoặc {{key}})
 };
 
 export const isValidKey = (k: string) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(k);

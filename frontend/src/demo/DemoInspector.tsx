@@ -7,7 +7,7 @@ import NumInput from '../components/NumInput';
 import PinButton, { KeyChip } from '../components/inputs/PinButton';
 import VarTextInput from '../components/inputs/VarTextInput';
 import InputsPanel from '../components/inputs/InputsPanel';
-import { ScriptInput } from '../components/inputs/model';
+import { InputView } from '../components/inputs/model';
 import { DemoGroup, DemoStep } from './demoScript';
 import {
   ClickImageFields, FocusWindowFields, GroupFields, OnTimeoutFields, OpenFields, ScrollFields, WaitImageFields, WaitPixelFields,
@@ -21,8 +21,8 @@ import {
 type Props = {
   step: DemoStep | DemoGroup;
   n: string;
-  inputs: ScriptInput[];
-  setInputs: (inputs: ScriptInput[]) => void;
+  inputs: InputView[];
+  setInputs: (inputs: InputView[]) => void;
 };
 
 export default function DemoInspector({ step, n, inputs, setInputs }: Props) {
@@ -50,7 +50,14 @@ export default function DemoInspector({ step, n, inputs, setInputs }: Props) {
       </div>
 
       {tab === 'inputs'
-        ? <InputsPanel inputs={inputs} onChange={setInputs} onAdd={() => setInputs([...inputs, newInput(inputs)])} />
+        ? <InputsPanel inputs={inputs} onAdd={() => setInputs([...inputs, newInput(inputs)])}
+            onUpdate={(key, p) => setInputs(inputs.map((i) => (i.key === key ? { ...i, ...p } : i)))}
+            onRemove={(key) => setInputs(inputs.filter((i) => i.key !== key))}
+            onMove={(from, to) => {
+              const next = [...inputs];
+              next.splice(next.findIndex((i) => i.key === to), 0, ...next.splice(next.findIndex((i) => i.key === from), 1));
+              setInputs(next);
+            }} />
         : <StepTab step={step} inputs={inputs} setInputs={setInputs} />}
     </aside>
   );
@@ -58,7 +65,7 @@ export default function DemoInspector({ step, n, inputs, setInputs }: Props) {
 
 const inGroup = (s: DemoStep) => ['d3', 'd4', 'd5', 'd6'].includes(s.id);
 
-const newInput = (inputs: ScriptInput[]): ScriptInput =>
+const newInput = (inputs: InputView[]): InputView =>
   ({ key: `bien_${inputs.length + 1}`, label: 'Input mới', type: 'text', usedBy: [] });
 
 function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {

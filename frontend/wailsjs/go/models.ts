@@ -1,5 +1,67 @@
 export namespace main {
 	
+	export class InputTarget {
+	    stepId: string;
+	    field: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new InputTarget(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.stepId = source["stepId"];
+	        this.field = source["field"];
+	    }
+	}
+	export class ScriptInput {
+	    key: string;
+	    label: string;
+	    type: string;
+	    default?: any;
+	    required?: boolean;
+	    min?: number;
+	    max?: number;
+	    options?: string[];
+	    hint?: string;
+	    targets?: InputTarget[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ScriptInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.key = source["key"];
+	        this.label = source["label"];
+	        this.type = source["type"];
+	        this.default = source["default"];
+	        this.required = source["required"];
+	        this.min = source["min"];
+	        this.max = source["max"];
+	        this.options = source["options"];
+	        this.hint = source["hint"];
+	        this.targets = this.convertValues(source["targets"], InputTarget);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class Point {
 	    x: number;
 	    y: number;
@@ -108,6 +170,7 @@ export namespace main {
 	    maxMinutes: number;
 	    steps: Step[];
 	    anchorMode?: string;
+	    inputs?: ScriptInput[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Script(source);
@@ -122,6 +185,7 @@ export namespace main {
 	        this.maxMinutes = source["maxMinutes"];
 	        this.steps = this.convertValues(source["steps"], Step);
 	        this.anchorMode = source["anchorMode"];
+	        this.inputs = this.convertValues(source["inputs"], ScriptInput);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -178,6 +242,58 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class InputPreset {
+	    name: string;
+	    values: Record<string, any>;
+	
+	    static createFrom(source: any = {}) {
+	        return new InputPreset(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.values = source["values"];
+	    }
+	}
+	export class InputMemory {
+	    last?: Record<string, any>;
+	    lastPreset?: string;
+	    presets?: InputPreset[];
+	    autoRun?: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new InputMemory(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.last = source["last"];
+	        this.lastPreset = source["lastPreset"];
+	        this.presets = this.convertValues(source["presets"], InputPreset);
+	        this.autoRun = source["autoRun"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	
 	
 	
 	
@@ -213,6 +329,7 @@ export namespace main {
 		    return a;
 		}
 	}
+	
 	export class Settings {
 	    theme: string;
 	    recent?: string[];

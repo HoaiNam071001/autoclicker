@@ -18,7 +18,8 @@ import (
 
 // ScriptVersion – định dạng file kịch bản hiện tại. Tăng khi đổi model theo cách file cũ không đọc đúng được,
 // và thêm bước chuyển đổi trong decodeScript.
-const ScriptVersion = 1
+// 2 (bước 21b): thêm inputs – app cũ không biết inputs nên không được mở file mới.
+const ScriptVersion = 2
 
 const (
 	draftFile  = "draft.json"
@@ -96,7 +97,7 @@ func checkScript(sc *Script) error {
 		}
 		ids[s.ID] = true
 	}
-	return nil
+	return checkInputs(sc)
 }
 
 func checkStep(s *Step) error {

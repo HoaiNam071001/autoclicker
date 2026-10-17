@@ -26,11 +26,12 @@ type EngineState = {
   stopReason: string;
   countdown: number; // giây còn lại trước khi chạy, 0 = không đếm ngược
   hotkeyError: string; // Go không nghe được phím toàn cục (thiếu quyền)
+  preset: string; // bộ giá trị input của lần chạy này ('' = tự điền / không có input) – hiện trên thanh mini
 };
 
 // Store chung nghe event từ Go ngay khi load, để màn mở sau (mini bar) vẫn có dữ liệu mới nhất.
 let state: EngineState = {
-  running: false, progress: null, receivedAt: 0, lastError: '', stopReason: '', countdown: 0, hotkeyError: '',
+  running: false, progress: null, receivedAt: 0, lastError: '', stopReason: '', countdown: 0, hotkeyError: '', preset: '',
 };
 const listeners = new Set<() => void>();
 const set = (patch: Partial<EngineState>) => {
@@ -50,20 +51,21 @@ export const setLastError = (lastError: string) => set({ lastError });
 
 const COUNTDOWN_SEC = 3;
 
-// Chạy kịch bản: kiểm tra trước (lỗi thì ở lại màn chính), thu cửa sổ thành mini bar,
-// chạy tới khi xong / dừng, rồi về màn chính.
-export async function runScript(script: Script, countdown: boolean) {
+// Chạy kịch bản với giá trị input (Go áp vào bản sao – resolveInputs): kiểm tra trước (lỗi thì ở lại màn chính),
+// thu cửa sổ thành mini bar, chạy tới khi xong / dừng, rồi về màn chính. Form Chạy: runForm.ts.
+export async function runScript(script: Script, countdown: boolean, values: Record<string, unknown> = {}, preset = '') {
   if (state.running || !inWails) return;
   const sc = main.Script.createFrom(script);
+  set({ preset });
   try {
-    await ValidateScript(sc);
+    await ValidateScript(sc, values);
   } catch (e) {
     set({ lastError: String(e), stopReason: '' });
     return;
   }
   await setWindowMode('minibar');
   try {
-    await RunScript(sc, countdown ? COUNTDOWN_SEC : 0);
+    await RunScript(sc, values, countdown ? COUNTDOWN_SEC : 0);
   } catch (e) {
     set({ lastError: String(e) });
   }

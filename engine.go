@@ -12,7 +12,8 @@ import (
 // dragStepMs – khoảng thời gian giữa các lần di chuột khi kéo thả.
 const dragStepMs = 10
 
-// validateScript kiểm tra kịch bản trước khi chạy để không dừng giữa chừng vì dữ liệu sai.
+// validateScript kiểm tra kịch bản (đã áp input) trước khi chạy để không dừng giữa chừng vì dữ liệu sai.
+// Lỗi là *ScriptError (bước / trường) để UI và AI biết chỗ sửa.
 // screen: khung màn hình khi Region = nil; W = 0 thì bỏ qua kiểm tra điểm nằm trong vùng (không biết màn hình).
 func validateScript(sc Script, screen Rect) error {
 	b := bounds(sc, screen)
@@ -28,7 +29,7 @@ func validateScript(sc Script, screen Rect) error {
 		}
 		enabled++
 		if s.Type == StepDrag && s.DragFromPrev && !hasPrevPoint {
-			return fmt.Errorf("bước %d: kéo từ điểm trước đó nhưng phía trước không có bước chuột nào", i+1)
+			return stepErr(i, s, "dragFromPrev", "kéo từ điểm trước đó nhưng phía trước không có bước chuột nào")
 		}
 		need := 0
 		switch s.Type {
@@ -39,29 +40,29 @@ func validateScript(sc Script, screen Rect) error {
 		case StepWait:
 		case StepText:
 			if s.Text == "" {
-				return fmt.Errorf("bước %d: chưa nhập nội dung gõ", i+1)
+				return stepErr(i, s, "text", "chưa nhập nội dung gõ")
 			}
 		case StepKey:
 			if len(s.Keys) == 0 {
-				return fmt.Errorf("bước %d: chưa chọn phím", i+1)
+				return stepErr(i, s, "keys", "chưa chọn phím")
 			}
 		default:
-			return fmt.Errorf("bước %d: loại bước không hợp lệ %q", i+1, s.Type)
+			return stepErr(i, s, "type", "loại bước không hợp lệ %q", s.Type)
 		}
 		if len(s.Points) < need {
-			return fmt.Errorf("bước %d: cần %d điểm, mới có %d", i+1, need, len(s.Points))
+			return stepErr(i, s, "points", "cần %d điểm, mới có %d", need, len(s.Points))
 		}
 		for j := 0; j < need; j++ {
 			skip := s.Type == StepDrag && (j == 0 && s.DragFromPrev || j == 1 && s.DragRelative)
 			if !skip && !inside(s.Points[j]) {
 				q := resolvePoint(s.Points[j], b)
-				return fmt.Errorf("bước %d: điểm X %d Y %d nằm ngoài vùng", i+1, q.X, q.Y)
+				return stepErr(i, s, "points", "điểm X %d Y %d nằm ngoài vùng", q.X, q.Y)
 			}
 		}
 		hasPrevPoint = hasPrevPoint || need > 0
 	}
 	if enabled == 0 {
-		return errors.New("kịch bản không có bước nào được bật")
+		return &ScriptError{Msg: "kịch bản không có bước nào được bật"}
 	}
 	return nil
 }

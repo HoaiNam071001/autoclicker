@@ -46,7 +46,8 @@ export default function MiniBar() {
         : counting ? `Bắt đầu sau ${engine.countdown} giây…`
         : !p ? 'Đang bắt đầu…'
         : `${paused ? 'Tạm dừng · ' : ''}Bước ${p.step} / ${p.total}${cur ? `: ${STEP_LABEL[cur.type]}` : ''}`}
-      lines={[`vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`]}
+      lines={[`vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`,
+        ...(engine.preset ? [`bộ giá trị: ${engine.preset}`] : [])]}
       canPause={running && !counting} onPause={() => (paused ? ResumeScript() : PauseScript())} onStop={stop} />
   );
 }

@@ -19,17 +19,25 @@ type runHandle struct {
 	eng    *engine
 }
 
-// ValidateScript kiểm tra kịch bản trước khi chạy (frontend gọi trước khi thu cửa sổ thành mini bar).
-func (a *App) ValidateScript(sc Script) error {
-	return validateScript(sc, mainScreen())
+// ValidateScript áp giá trị input rồi kiểm tra như lúc chạy (frontend gọi trước khi thu cửa sổ thành mini bar).
+func (a *App) ValidateScript(sc Script, values map[string]any) error {
+	out, err := resolveInputs(sc, values)
+	if err != nil {
+		return err
+	}
+	return validateScript(out, mainScreen())
 }
 
-// RunScript đếm ngược countdown giây rồi chạy kịch bản; chỉ trả về khi chạy xong / bị dừng
+// RunScript áp giá trị input (resolveInputs) vào bản sao kịch bản, đếm ngược countdown giây rồi chạy; chỉ trả về khi chạy xong / bị dừng
 // (StopScript, F8, góc màn hình – kể cả lúc đang đếm ngược) / lỗi. Bị dừng không tính là lỗi.
 // Emit "engine:state" (true khi bắt đầu, false khi kết thúc), "engine:countdown" (số giây còn lại)
 // và "engine:progress" (Progress) trong lúc chạy.
-func (a *App) RunScript(sc Script, countdown int) error {
+func (a *App) RunScript(sc Script, values map[string]any, countdown int) error {
 	screen := mainScreen()
+	sc, err := resolveInputs(sc, values)
+	if err != nil {
+		return err
+	}
 	if err := validateScript(sc, screen); err != nil {
 		return err
 	}
@@ -69,7 +77,7 @@ func (a *App) RunScript(sc Script, countdown int) error {
 
 	go watchCorners(ctx, robotgo.Location, hardCorners(displays()), in, func() { a.stopWith(StopByCorner) })
 
-	err := eng.run(ctx)
+	err = eng.run(ctx)
 	if errors.Is(err, context.Canceled) {
 		return nil
 	}
