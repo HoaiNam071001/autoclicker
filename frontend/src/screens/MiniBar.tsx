@@ -4,7 +4,7 @@ import { PauseScript, ResumeScript, StopScript } from '../../wailsjs/go/main/App
 import { Pause, Play, Stop, StepIcon, StepIconName } from '../components/icons';
 import { elapsedNow, fmtElapsed, Progress, useEngine } from '../engineStore';
 import { useScript } from '../scriptStore';
-import { findStep, STEP_LABEL } from '../types';
+import { findStep, STEP_LABEL, stepLabel } from '../types';
 import { inWails, setWindowMode } from '../windowMode';
 
 // Số mẫu khi xem trên trình duyệt (#minibar)
@@ -48,7 +48,7 @@ export default function MiniBar() {
       title={!running ? 'Chưa chạy'
         : counting ? `Bắt đầu sau ${engine.countdown} giây…`
         : !p ? 'Đang bắt đầu…'
-        : `${paused ? 'Tạm dừng · ' : ''}Bước ${p.path && p.path.includes('.') ? p.path : p.step} / ${p.total}${cur ? `: ${STEP_LABEL[cur.type]}` : ''}`}
+        : `${paused ? 'Tạm dừng · ' : ''}Bước ${p.path && p.path.includes('.') ? p.path : p.step} / ${p.total}${cur ? `: ${stepLabel(cur)}` : ''}`}
       lines={[
         ...(p?.block ? [p.block] : []),
         ...(p?.retry ? [`thử lại ${p.retry} / ${p.retries}`] : []),

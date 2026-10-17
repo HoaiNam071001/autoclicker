@@ -1,7 +1,7 @@
 // Xem trước kịch bản: con trỏ giả chạy theo các bước trên overlay, không điều khiển chuột thật.
 import { useEffect, useRef, useState } from 'react';
 import { boundsOf, endpoints } from '../scriptStore';
-import { fmtCond, fmtKey, Point, Rect, SCROLL_ARROW, scrollDelta, ScrollDirection, Step, STEP_LABEL } from '../types';
+import { fmtCond, fmtKey, Point, Rect, SCROLL_ARROW, scrollDelta, ScrollDirection, Step, STEP_LABEL, stepLabel } from '../types';
 import { previewOrder } from '../stepTree';
 import { fmtScreens } from './steps/ScrollMap';
 import { MockPage, unitText, usePageKind } from './MockPage';
@@ -125,7 +125,7 @@ export function useSimulation(steps: Step[], region: Rect | null, speed: number)
     try {
       for (const { step: s, path } of previewOrder(steps)) {
         alive();
-        patch({ step: path, label: `${STEP_LABEL[s.type]}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`, bubble: '' });
+        patch({ step: path, label: `${stepLabel(s)}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`, bubble: '' });
         const e = ends.get(s.id);
         switch (s.type) {
           case 'click':

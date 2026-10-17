@@ -14,7 +14,7 @@ import {
   duplicateStep, moveStepTo, removeStep, selectStep, setInsertInto, setMulti, setRegion, toggleMultiStep, toggleStep,
   undoDelete, useEditor,
 } from '../scriptStore';
-import { findStep, fmtMs, fmtPos, OnFail, Script, Step, STEP_LABEL } from '../types';
+import { findStep, fmtMs, fmtPos, OnFail, Script, Step, STEP_LABEL, stepLabel } from '../types';
 import { Branch, dropLoc, flatOf, isBlock, Row, rows as buildRows } from '../stepTree';
 import { stepInputCount } from '../scriptInputs';
 import { templateUrl } from '../imageSteps';
@@ -111,7 +111,7 @@ export default function StepList() {
 
       {deleted && (
         <div className="flex items-center justify-between rounded-card bg-soft px-3 py-2 text-[13px]">
-          <span>Đã xoá bước {deleted.path} ({STEP_LABEL[deleted.step.type]}{deleted.step.children?.length ? ` và ${countAll(deleted.step) - 1} bước bên trong` : ''})</span>
+          <span>Đã xoá bước {deleted.path} ({stepLabel(deleted.step)}{deleted.step.children?.length ? ` và ${countAll(deleted.step) - 1} bước bên trong` : ''})</span>
           <button onClick={undoDelete} className="font-semibold text-accent-text">Hoàn tác</button>
         </div>
       )}
@@ -207,7 +207,7 @@ function Card({ row, selected, inMulti, script, folded, onFold }: {
           <StepIcon type={s.type} />
         </button>
         <CardBody n={depth ? path : path.padStart(2, '0')} enabled={active}
-          title={`${STEP_LABEL[s.type]}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`}
+          title={`${stepLabel(s)}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`}
           chips={[...(inputs ? [`${inputs} input`] : []), ...(s.onFail ? [failChip(s.onFail, script)] : []), ...(foldable && folded ? [`${inner} bước bên trong`] : [])]}
           tags={<>
             {!s.enabled && <span className="rounded-full bg-soft px-[7px] py-px text-[11px] text-muted">Tắt</span>}

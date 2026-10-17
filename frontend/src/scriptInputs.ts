@@ -2,7 +2,7 @@
 // Giá trị thật áp lúc chạy ở Go (resolveInputs, inputs.go). Trường đã ghim luôn giữ bằng giá trị mặc định của input,
 // nên Xem trước / overlay không cần resolve vẫn đúng với lần chạy dùng mặc định.
 import { getEditor, updateScript } from './scriptStore';
-import { Cond, InputType, InputValue, PinField, Script, ScriptInput, Step, STEP_LABEL } from './types';
+import { Cond, InputType, InputValue, PinField, Script, ScriptInput, Step, STEP_LABEL, stepLabel } from './types';
 import { allSteps, flatOf, flatten, mapAll } from './stepTree';
 import { InputView, isValidKey, splitVars, varsIn } from './components/inputs/model';
 import type { RunSection } from './components/inputs/RunDialog';
@@ -92,7 +92,7 @@ export function inputViews(sc: Script): InputView[] {
   return inputsOf(sc).map((i) => ({
     ...i,
     unit: i.type === 'ms' ? 'ms' : undefined,
-    usedBy: (usage.get(i.key) ?? []).map((s) => ({ n: stepNo(sc, s.id), title: STEP_LABEL[s.type] })),
+    usedBy: (usage.get(i.key) ?? []).map((s) => ({ n: stepNo(sc, s.id), title: stepLabel(s) })),
   }));
 }
 
@@ -224,7 +224,7 @@ export function runSections(sc: Script): RunSection[] {
     if (!g) {
       g = {
         steps: steps.length ? steps.map((s) => stepNo(sc, s.id)).join(', ') : '—',
-        title: steps.length ? [...new Set(steps.map((s) => STEP_LABEL[s.type]))].join(', ') : 'Chưa bước nào dùng',
+        title: steps.length ? [...new Set(steps.map((s) => stepLabel(s)))].join(', ') : 'Chưa bước nào dùng',
         keys: [],
         template: steps.find((s) => s.type === 'type')?.text,
         order: steps.length ? flatten(sc.steps).findIndex((f) => f.step.id === steps[0].id) : Infinity,

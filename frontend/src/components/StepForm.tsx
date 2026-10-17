@@ -17,10 +17,7 @@ import {
   addInput, compatibleInputs, inputViews, moveInput, pinField, pinnedInput, pinToInput, removeInput, setPinnedValue, unpinField, updateInput,
 } from '../scriptInputs';
 import { loadMemory, stopAutoRun, useRunForm } from '../runForm';
-import {
-  fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, PinField, SCROLL_NOTCH_PX, ScrollDirection, Step, STEP_LABEL,
-  StepPoint, StepType, CAN_FAIL, Cond, OnFail,
-} from '../types';
+import { CAN_FAIL, Cond, fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, OnFail, PinField, SCROLL_NOTCH_PX, ScrollDirection, Step, STEP_LABEL, stepLabel, StepPoint, StepType } from '../types';
 import { anchorPoint, insideBounds } from '../anchor';
 import { condAt, flatOf, flatten, removeCondAt, updateCondAt } from '../stepTree';
 import { checkCapture, pickColor, pickCondColor, requestCapture, startCapture, templateUrl, testCond, testFind, updateCond, useImageState } from '../imageSteps';
@@ -59,7 +56,7 @@ export default function StepForm({ step: s, index }: Props) {
       <div className="flex items-center gap-3">
         <span className="grid h-9 w-9 flex-none place-items-center rounded-[9px] bg-accent-soft text-accent-text"><StepIcon type={s.type} className="h-[18px] w-[18px]" /></span>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[15px] font-semibold">{STEP_LABEL[s.type]}</div>
+          <div className="truncate text-[15px] font-semibold">{stepLabel(s)}</div>
           <div className="text-xs text-muted">Bước {index}{s.enabled ? '' : ' · đang tắt'}</div>
         </div>
         {atPoint && (
@@ -82,7 +79,7 @@ export default function StepForm({ step: s, index }: Props) {
       {TYPES.includes(s.type) && (
         <label className="flex flex-col gap-1.5 text-muted">Hành động
           <select value={s.type} onChange={(e) => changeStepType(s.id, e.target.value as StepType)} className={selectBox}>
-            {TYPES.map((t) => <option key={t} value={t}>{STEP_LABEL[t]}</option>)}
+            {TYPES.map((t) => <option key={t} value={t}>{t === s.type ? stepLabel(s) : STEP_LABEL[t]}</option>)}
           </select>
         </label>
       )}
@@ -694,7 +691,7 @@ function OnFailFields({ step: s }: { step: Step }) {
           className={`${selectBox} ${target < 0 ? 'border-danger' : ''}`}>
           {target < 0 && <option value="">— chọn bước —</option>}
           {others.map((x) => (
-            <option key={x.id} value={x.id}>Bước {pathAt(x.id)} · {STEP_LABEL[x.type]}{x.enabled ? '' : ' (đang tắt)'}</option>
+            <option key={x.id} value={x.id}>Bước {pathAt(x.id)} · {stepLabel(x)}{x.enabled ? '' : ' (đang tắt)'}</option>
           ))}
         </select>
       )}
@@ -1027,22 +1024,22 @@ function ClickImageFields({ step: s }: { step: Step }) {
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   return (
     <>
-      <Field label="Vị trí ảnh" wide group>
+      <Field label="Click vào" wide group>
         <Segmented value={s.imageSource ?? 'prev'} onChange={(imageSource: 'prev' | 'search') => set({ imageSource })} full
-          options={[{ id: 'prev', label: prev ? `Kết quả bước ${prev.n}` : 'Kết quả bước trước' }, { id: 'search', label: 'Tự tìm (ảnh / chữ)' }]} />
+          options={[{ id: 'prev', label: prev ? `Kết quả bước ${prev.n}` : 'Kết quả bước trước' }, { id: 'search', label: 'Tự tìm (ảnh / chữ)' }]} label="Click vào" />
         <span className={`text-xs ${s.imageSource !== 'search' && !prev ? 'text-danger-text' : 'text-muted'}`}>
-          {s.imageSource === 'search' ? 'Tìm ảnh mẫu / chữ riêng lúc chạy (chờ như bước Chờ ảnh)'
-            : prev ? `Click vào chỗ bước ${prev.n} (${STEP_LABEL[prev.x.type]}) tìm thấy – không chụp lại`
-            : 'Phía trước chưa có bước Chờ ảnh – thêm một bước Chờ ảnh, hoặc chọn “Tự tìm”'}
+          {s.imageSource === 'search' ? `Tự tìm ${s.findBy === 'text' ? 'chữ' : 'ảnh mẫu'} lúc chạy (chờ như bước ${s.findBy === 'text' ? 'Chờ chữ' : 'Chờ ảnh'}) rồi click vào giữa`
+            : prev ? `Click vào chỗ bước ${prev.n} (${stepLabel(prev.x)}) tìm thấy – không chụp lại`
+            : 'Phía trước chưa có bước Chờ ảnh / Chờ chữ – thêm một bước, hoặc chọn “Tự tìm”'}
         </span>
       </Field>
       {s.imageSource === 'search' && <ImageSearchFields step={s} />}
-      <Field label="Lệch so với tâm ảnh" wide group>
+      <Field label={`Lệch so với tâm ${s.imageSource === 'search' && s.findBy === 'text' ? 'chữ' : 'chỗ thấy'}`} wide group>
         <div className="flex gap-2">
           <NumInput signed prefix="ΔX" value={s.dx ?? 0} onChange={(dx) => set({ dx })} className="flex-1" />
           <NumInput signed prefix="ΔY" value={s.dy ?? 0} onChange={(dy) => set({ dy })} className="flex-1" />
         </div>
-        <span className={hint}>Vd ảnh mẫu là nhãn “Họ tên”, ô nhập nằm bên phải 150 px → ΔX 150.</span>
+        <span className={hint}>Vd tìm nhãn “Họ tên”, ô nhập nằm bên phải 150 px → ΔX 150.</span>
       </Field>
       <Field label="Nút chuột" wide group>
         <Segmented value={s.button} onChange={(button: MouseButton) => set({ button })} full label="Nút chuột"

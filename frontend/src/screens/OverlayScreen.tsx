@@ -9,7 +9,7 @@ import {
 } from '../scriptStore';
 import { frameRect, MapDialog, modKeyName, paramsPreview, TransformBar, TransformFrame, useTransformGesture } from '../components/TransformTool';
 import { bbox, NO_TF, TfParams, translate } from '../transform';
-import { Point, Rect, SCROLL_ARROW, scrollDelta, STEP_LABEL, StepPoint } from '../types';
+import { Point, Rect, SCROLL_ARROW, scrollDelta, STEP_LABEL, stepLabel, StepPoint } from '../types';
 import { fmtAxis } from '../anchor';
 import { allSteps, flatOf, flatten } from '../stepTree';
 import { inWails, OverlayTool, overlayFocus, overlayTool, safeArea, setWindowMode } from '../windowMode';
@@ -623,7 +623,7 @@ export default function OverlayScreen() {
           <>
             <span className="flex items-center gap-2 px-2.5 font-semibold">
               <span className="grid h-7 w-7 place-items-center rounded-full bg-accent text-[13px] text-on-accent">{focusIdx}</span>
-              Bước {focusIdx} · {STEP_LABEL[focusStep.type]}
+              Bước {focusIdx} · {stepLabel(focusStep)}
             </span>
             <button onClick={() => { if (repicking) { cancelPick(); setRepicking(false); } else { startPick(focus); setRepicking(true); } }}
               className={`${toolBtn} ${repicking ? 'bg-white/14 text-white' : 'hover:bg-white/6'}`}>

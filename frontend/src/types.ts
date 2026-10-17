@@ -135,6 +135,14 @@ export const makeStep = (p: Partial<Step> & Pick<Step, 'id' | 'type'>): Step => 
   text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true, ...p,
 });
 
+// Tên hiện cho một bước cụ thể: Chờ ảnh / Click theo ảnh đang tìm theo chữ thì là "Chờ chữ" / "Click theo chữ".
+export function stepLabel(s: Step): string {
+  if (s.findBy === 'text' && (s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search'))) {
+    return s.type === 'waitImage' ? 'Chờ chữ' : 'Click theo chữ';
+  }
+  return STEP_LABEL[s.type];
+}
+
 export const STEP_LABEL: Record<StepType, string> = {
   click: 'Click',
   double: 'Double click',
