@@ -16,9 +16,13 @@ export function FlowGuide():Promise<main.FlowGuideDoc>;
 
 export function GetInputMemory(arg1:string):Promise<main.InputMemory>;
 
+export function GetRun(arg1:string,arg2:string,arg3:string):Promise<main.RunRecord>;
+
 export function GetSettings():Promise<main.Settings>;
 
 export function Greet(arg1:string):Promise<string>;
+
+export function ListRuns(arg1:string,arg2:string):Promise<Array<main.RunSummary>>;
 
 export function LoadDraft():Promise<main.Draft>;
 
@@ -44,7 +48,9 @@ export function RequestScreenCapture():Promise<boolean>;
 
 export function ResumeScript():Promise<boolean>;
 
-export function RunScript(arg1:main.Script,arg2:Record<string, any>,arg3:number):Promise<void>;
+export function RunScript(arg1:main.Script,arg2:Record<string, any>,arg3:main.RunOptions):Promise<void>;
+
+export function RunShot(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
 export function SaveDraft(arg1:main.Draft):Promise<void>;
 
@@ -65,6 +71,8 @@ export function SetOverlayDisplay(arg1:number):Promise<void>;
 export function SetTheme(arg1:string):Promise<void>;
 
 export function SetWindowMode(arg1:string):Promise<void>;
+
+export function StepScript():Promise<boolean>;
 
 export function StepTypes():Promise<Array<main.StepTypeDoc>>;
 

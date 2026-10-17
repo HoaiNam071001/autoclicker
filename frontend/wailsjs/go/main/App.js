@@ -30,12 +30,20 @@ export function GetInputMemory(arg1) {
   return window['go']['main']['App']['GetInputMemory'](arg1);
 }
 
+export function GetRun(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GetRun'](arg1, arg2, arg3);
+}
+
 export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }
 
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
+}
+
+export function ListRuns(arg1, arg2) {
+  return window['go']['main']['App']['ListRuns'](arg1, arg2);
 }
 
 export function LoadDraft() {
@@ -90,6 +98,10 @@ export function RunScript(arg1, arg2, arg3) {
   return window['go']['main']['App']['RunScript'](arg1, arg2, arg3);
 }
 
+export function RunShot(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['RunShot'](arg1, arg2, arg3, arg4);
+}
+
 export function SaveDraft(arg1) {
   return window['go']['main']['App']['SaveDraft'](arg1);
 }
@@ -128,6 +140,10 @@ export function SetTheme(arg1) {
 
 export function SetWindowMode(arg1) {
   return window['go']['main']['App']['SetWindowMode'](arg1);
+}
+
+export function StepScript() {
+  return window['go']['main']['App']['StepScript']();
 }
 
 export function StepTypes() {

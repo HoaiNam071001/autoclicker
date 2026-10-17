@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"errors"
+	"image"
 	"math/rand/v2"
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -120,6 +122,7 @@ type Progress struct {
 	Wait      *WaitProgress `json:"wait,omitempty"`    // đang chờ ảnh / pixel
 	Retry     int           `json:"retry,omitempty"`   // đang thử lại lần thứ mấy (0 = lần đầu)
 	Retries   int           `json:"retries,omitempty"` // số lần thử lại tối đa của bước hiện tại
+	Break     string        `json:"break,omitempty"`   // đang dừng trước node NodeID vì debug: breakpoint | step
 }
 
 // progressEvery – giãn cách tối thiểu giữa 2 lần báo tiến độ trong cùng một bước (tránh dội event).
@@ -139,6 +142,9 @@ type engine struct {
 	ocr        TextReader                     // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
 
 	onNode  func(StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
+	shots   map[string]image.Image // ảnh màn hình lúc node thất bại theo tên file (nil = không chụp – runlog.go)
+	debug   bool                   // dừng ở node có Breakpoint (chạy từ app); không thì bỏ qua breakpoint
+	step    atomic.Bool            // chạy từng node: dừng trước mỗi node (StepScript bật, ResumeScript tắt)
 	failed  string                 // id node làm lần chạy dừng vì lỗi (runner gửi engine:failed)
 	miss    *FindResult            // node chờ ảnh hết giờ: chỗ giống nhất (để xem lại vì sao không thấy)
 	tpls    map[string]gray        // ảnh mẫu đã giải mã theo id node
@@ -213,11 +219,37 @@ func (e *engine) Pause() bool {
 }
 
 func (e *engine) Resume() bool {
+	e.step.Store(false)
 	if !e.gate.resume() {
 		return false
 	}
-	e.update(true, func(*Progress) {})
+	e.update(true, func(p *Progress) { p.Break = "" })
 	return true
+}
+
+// Step chạy node kế rồi dừng lại (debug, F10); đang chạy thì dừng trước node sau.
+func (e *engine) Step() bool {
+	e.step.Store(true)
+	e.gate.resume()
+	e.update(true, func(p *Progress) { p.Break = "" })
+	return true
+}
+
+// breakBefore – debug: tạm dừng trước node s nếu đang chạy từng node / s có breakpoint (wait sau đó chặn tới khi tiếp).
+func (e *engine) breakBefore(s Step, loop int) {
+	why := ""
+	switch {
+	case !s.Enabled: // node tắt chỉ đi qua, không đáng dừng
+		return
+	case e.step.Load():
+		why = "step"
+	case e.debug && s.Breakpoint:
+		why = "breakpoint"
+	default:
+		return
+	}
+	e.gate.pause()
+	e.update(true, func(p *Progress) { p.Loop, p.Step, p.NodeID, p.Ref, p.Break = loop, e.order[s.ID], s.ID, s.Ref, why })
 }
 
 func (e *engine) click(button string, double bool) error {

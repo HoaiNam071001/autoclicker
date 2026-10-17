@@ -15,6 +15,7 @@ import FlowEditor from '../components/flow/FlowEditor';
 import StepForm from '../components/StepForm';
 import RunSettings, { loopSummary } from '../components/RunSettings';
 import { STOP_REASON, useEngine } from '../engineStore';
+import { useRunLog } from '../runStore';
 import { Point } from '../types';
 
 const MOUSE_POLL_MS = 250;
@@ -28,6 +29,8 @@ export default function MainScreen() {
   const { steps } = script;
   const cur = steps.find((s) => s.id === selected); // undefined khi chưa chọn node nào
   const { running, lastError, stopReason, hotkeyError } = useEngine();
+  const { summary, live } = useRunLog();
+  const endMessage = !running && live && summary?.status === 'success' ? summary.message : undefined;
   const runForm = useRunForm();
   const autoRun = !!script.inputs?.length && !!runForm.memory.autoRun;
   useEffect(() => {
@@ -69,7 +72,10 @@ export default function MainScreen() {
         runDisabled={!inWails}
         runTitle={!inWails ? 'Chỉ chạy được trong app'
           : autoRun ? 'Chạy luôn với giá trị lần trước – Shift + bấm để sửa input' : undefined}
-        onPreview={() => openOverlay('preview')} extra={<><RecordButton soon /><DebugButtons soon /></>} />
+        onPreview={() => openOverlay('preview')}
+        extra={<><RecordButton soon />
+          <DebugButtons disabled={!inWails || running} fromDisabled={!cur} fromTitle={cur ? `Chạy một vòng bắt đầu từ ${cur.ref} – các node trước đó không chạy` : 'Chọn một node để chạy từ đó'}
+            onFrom={() => cur && startRun(false, { from: cur.id })} onStep={() => startRun(false, { step: true })} /></>} />
 
       <div className="flex min-h-0 flex-1 border-t border-line">
         <Library />
@@ -81,6 +87,7 @@ export default function MainScreen() {
       <StatusBar running={running} mouse={mouse ? `X ${mouse.x} Y ${mouse.y}` : 'X — Y —'}>
         {hotkeyError && <span className="text-danger-text">{hotkeyError}</span>}
         {lastError && <span className="text-danger-text">Lỗi lần chạy trước: {lastError}</span>}
+        {endMessage && <span className="text-ok" title="Lời nhắn của node Kết thúc">Xong: {endMessage}</span>}
         {stopReason && <span>{STOP_REASON[stopReason] ?? stopReason}</span>}
         {fileError && <span className="text-danger-text">{fileError}</span>}
         {notice && <span className="text-accent-text">{notice}</span>}

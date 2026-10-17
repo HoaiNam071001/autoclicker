@@ -1,6 +1,7 @@
 // Thanh mini khi đang chạy (design v2, artboard MiniBar) – cửa sổ nhỏ always-on-top, 540×96 (window.go)
 import { useEffect, useReducer } from 'react';
-import { PauseScript, ResumeScript, StopScript } from '../../wailsjs/go/main/App';
+import { PauseScript, ResumeScript, StepScript, StopScript } from '../../wailsjs/go/main/App';
+import { StepOver } from '../components/AppChrome';
 import { Pause, Play, Stop, StepIcon, StepIconName } from '../components/icons';
 import { elapsedNow, fmtElapsed, Progress, useEngine } from '../engineStore';
 import { useScript } from '../store';
@@ -14,6 +15,7 @@ const CIRC = 2 * Math.PI * R;
 
 // Đang chờ gì (Progress.wait.kind – imagestep.go, nodes.go watch)
 const WAIT_LABEL: Record<string, string> = { image: 'đang tìm', text: 'đang tìm chữ', pixel: 'đang chờ màu', cond: 'đang xét điều kiện' };
+const BREAK_LABEL: Record<string, string> = { breakpoint: 'điểm dừng', step: 'node kế' };
 
 export default function MiniBar() {
   const engine = useEngine();
@@ -50,21 +52,23 @@ export default function MiniBar() {
       title={!running ? 'Chưa chạy'
         : counting ? `Bắt đầu sau ${engine.countdown} giây…`
         : !p ? 'Đang bắt đầu…'
-        : `${paused ? 'Tạm dừng · ' : ''}${p.ref ?? 'Node'} (${p.step} / ${p.total})${cur ? `: ${cur.name || stepLabel(cur)}` : ''}`}
+        : `${p.break ? `Dừng trước ${BREAK_LABEL[p.break]} · ` : paused ? 'Tạm dừng · ' : ''}${p.ref ?? 'Node'} (${p.step} / ${p.total})${cur ? `: ${cur.name || stepLabel(cur)}` : ''}`}
       lines={[
         ...(p?.retry ? [`thử lại ${p.retry} / ${p.retries}`] : []),
         ...(w ? [`${WAIT_LABEL[w.kind] ?? 'đang chờ'} ${(waitNow / 1000).toFixed(1)} / ${w.timeoutMs / 1000} s${w.kind === 'image' || w.kind === 'pixel' ? `   khớp nhất ${w.best}%` : ''}`] : []),
         `vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`,
         ...(engine.preset ? [`bộ giá trị: ${engine.preset}`] : [])]}
-      canPause={running && !counting} onPause={() => (paused ? ResumeScript() : PauseScript())} onStop={stop} />
+      canPause={running && !counting} onPause={() => (paused ? ResumeScript() : PauseScript())} onStop={stop}
+      onStep={paused && p?.break ? () => StepScript() : undefined} />
   );
 }
 
 // Phần hiển thị (dùng chung với #demo-minibar). progress: 0..1 – vòng tiến độ (đang chờ ảnh: theo thời gian chờ);
 // lines: 1–2 dòng mono (vòng / click / thời gian; "đang tìm x / y s   thử lại a / b"…).
-export function MiniBarView({ title, lines, icon, progress, paused, countdown, canPause, onPause, onStop }: {
+// onStep: đang dừng vì debug – hiện nút chạy node kế (F10); nút Tiếp tục chạy tới điểm dừng sau.
+export function MiniBarView({ title, lines, icon, progress, paused, countdown, canPause, onPause, onStop, onStep }: {
   title: string; lines: string[]; icon: StepIconName; progress: number; paused: boolean; countdown: number;
-  canPause: boolean; onPause: () => void; onStop: () => void;
+  canPause: boolean; onPause: () => void; onStop: () => void; onStep?: () => void;
 }) {
   const counting = countdown > 0;
   return (
@@ -90,7 +94,11 @@ export function MiniBarView({ title, lines, icon, progress, paused, countdown, c
         <span className="truncate font-semibold">{title}</span>
         {lines.map((l) => <span key={l} className="whitespace-pre font-mono text-xs text-muted">{l}</span>)}
       </div>
-      <button aria-label={paused ? 'Tiếp tục' : 'Tạm dừng'} disabled={!canPause} onClick={onPause}
+      {onStep && (
+        <button aria-label="Chạy node kế rồi dừng" title="Chạy node kế rồi dừng (F10)" onClick={onStep}
+          className="grid h-11 w-11 place-items-center rounded-[9px] border border-line bg-surface hover:bg-hover"><StepOver /></button>
+      )}
+      <button aria-label={paused ? 'Tiếp tục' : 'Tạm dừng'} title={onStep ? 'Chạy tiếp tới điểm dừng sau' : undefined} disabled={!canPause} onClick={onPause}
         className="grid h-11 w-11 place-items-center rounded-[9px] border border-line bg-surface hover:bg-hover disabled:opacity-40">
         {paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
       </button>

@@ -19,6 +19,7 @@ export type Progress = {
   retry?: number; // đang thử lại lần thứ mấy (0 / trống = lần đầu)
   retries?: number; // số lần thử lại tối đa của bước hiện tại
   wait?: { kind: 'image' | 'text' | 'pixel'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (imagestep.go)
+  break?: 'breakpoint' | 'step'; // debug: đang dừng trước node nodeId (Tiếp / F10)
 };
 
 // lastError: lỗi của lần chạy gần nhất – giữ ở store vì màn gọi RunScript bị gỡ khi chuyển sang mini bar.
@@ -61,11 +62,15 @@ const COUNTDOWN_SEC = 3;
 // Lỗi từ Go (Wails trả Error hoặc chuỗi) → chữ hiện cho người dùng, bỏ tiền tố "Error: ".
 export const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e)).replace(/^Error:\s*/, '');
 
+// Debug (bước 20 F5): from = chạy một vòng từ node này; step = dừng trước mỗi node (Tiếp / F10).
+export type Debug = { from?: string; step?: boolean };
+
 // Chạy kịch bản với giá trị input (Go áp vào bản sao – resolveInputs): kiểm tra trước (lỗi thì ở lại màn chính),
 // thu cửa sổ thành mini bar, chạy tới khi xong / dừng, rồi về màn chính. Form Chạy: runForm.ts.
-export async function runScript(script: Script, countdown: boolean, values: Record<string, unknown> = {}, preset = '') {
+// path: file kịch bản – Go gom lịch sử chạy theo file.
+export async function runScript(script: Script, countdown: boolean, values: Record<string, unknown> = {}, preset = '', path = '', debug: Debug = {}) {
   if (state.running || !inWails) return;
-  const sc = main.Script.createFrom(script);
+  const sc = main.Script.createFrom(debug.from ? { ...script, start: debug.from } : script);
   set({ preset });
   try {
     await ValidateScript(sc, values);
@@ -75,7 +80,7 @@ export async function runScript(script: Script, countdown: boolean, values: Reco
   }
   await setWindowMode('minibar');
   try {
-    await RunScript(sc, values, countdown ? COUNTDOWN_SEC : 0);
+    await RunScript(sc, values, main.RunOptions.createFrom({ countdown: countdown ? COUNTDOWN_SEC : 0, path, source: 'user', ...debug }));
   } catch (e) {
     set({ lastError: errorText(e) });
   }

@@ -78,14 +78,15 @@ type Rect struct {
 // Step – một node của flow (bước 20): chạy xong trả StepResult (flow.go), cổng ra trong đó chọn cạnh đi tiếp.
 type Step struct {
 	ID            string   `json:"id"`
-	Type          string   `json:"type"`           // stepTypes: click | … | waitPixel | if | switch | switchScreen | counter | end | setVar
-	Ref           string   `json:"ref"`            // mã ngắn n1, n2… (duy nhất) – node sau đọc kết quả bằng {{n2.output.x}}
-	Name          string   `json:"name,omitempty"` // tên hiện trên thẻ ("" = tên theo loại)
-	Pos           *Pos     `json:"pos,omitempty"`  // vị trí thẻ trên canvas (nil = chưa đặt, xếp tự động)
-	Points        []Point  `json:"points"`         // drag dùng points[0] -> points[1]; scroll tuỳ chọn 1 điểm; type/key/wait/open không cần
-	Button        string   `json:"button"`         // left | right | center
-	Clicks        int      `json:"clicks"`         // click: số lần click
-	ClickInterval int      `json:"clickInterval"`  // ms giữa các click
+	Type          string   `json:"type"`                 // stepTypes: click | … | waitPixel | if | switch | switchScreen | counter | end | setVar
+	Ref           string   `json:"ref"`                  // mã ngắn n1, n2… (duy nhất) – node sau đọc kết quả bằng {{n2.output.x}}
+	Name          string   `json:"name,omitempty"`       // tên hiện trên thẻ ("" = tên theo loại)
+	Pos           *Pos     `json:"pos,omitempty"`        // vị trí thẻ trên canvas (nil = chưa đặt, xếp tự động)
+	Breakpoint    bool     `json:"breakpoint,omitempty"` // debug: chạy từ app thì tạm dừng trước node này (bước 20 F5)
+	Points        []Point  `json:"points"`               // drag dùng points[0] -> points[1]; scroll tuỳ chọn 1 điểm; type/key/wait/open không cần
+	Button        string   `json:"button"`               // left | right | center
+	Clicks        int      `json:"clicks"`               // click: số lần click
+	ClickInterval int      `json:"clickInterval"`        // ms giữa các click
 	HoldMs        int      `json:"holdMs"`
 	DragMs        int      `json:"dragMs"`
 	DragFromPrev  bool     `json:"dragFromPrev"` // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])

@@ -20,6 +20,7 @@ export type EditorState = {
   past: Script[]; // hoàn tác (cũ nhất trước)
   future: Script[]; // làm lại
   screen: Rect; // khung màn hình chính (robotgo) – "toàn màn hình" neo theo khung này, khớp mainScreen (anchor.go)
+  opened: number; // tăng mỗi lần thay cả kịch bản (replaceScript) – nhật ký chạy của kịch bản cũ bỏ đi (runStore)
 };
 
 // Trình duyệt (không có Go): dữ liệu mẫu nối thành chuỗi để xem canvas / overlay.
@@ -43,6 +44,7 @@ let state: EditorState = {
   past: [],
   future: [],
   screen: { x: 0, y: 0, w: window.screen.width, h: window.screen.height }, // trình duyệt: tạm lấy cỡ màn hình
+  opened: 0,
 };
 const listeners = new Set<() => void>();
 setEditingBounds(() => state.script.region ?? state.screen); // overlay mở trên màn chứa vùng / màn chính
@@ -120,7 +122,7 @@ window.addEventListener('keydown', (e) => {
 // Thay cả kịch bản (mở file, kịch bản mới, khôi phục nháp): bỏ chọn / hoàn tác / điểm A đang chờ của kịch bản cũ.
 export function replaceScript(script: Script, path: string | null, dirty: boolean, notice = '') {
   lastEdit = 0;
-  setEditor({ script, path, dirty, selected: script.start || script.steps[0]?.id || '', picked: [], dragA: null, notice, multi: [], past: [], future: [] });
+  setEditor({ script, path, dirty, selected: script.start || script.steps[0]?.id || '', picked: [], dragA: null, notice, multi: [], past: [], future: [], opened: state.opened + 1 });
 }
 
 // Sau khi lưu: đường dẫn + tên mới (Lưu thành đổi tên theo file), giữ nguyên phần còn lại đang soạn.

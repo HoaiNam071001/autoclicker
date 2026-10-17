@@ -5,7 +5,7 @@ import { EventsOn } from '../wailsjs/runtime/runtime';
 import { GetInputMemory, SaveInputMemory, ValidateScript } from '../wailsjs/go/main/App';
 import { main } from '../wailsjs/go/models';
 import { getEditor } from './store';
-import { errorText, runScript } from './engineStore';
+import { Debug, errorText, runScript } from './engineStore';
 import { parseValue } from './scriptInputs';
 import { inWails, setWindowMode } from './windowMode';
 import { InputValue, Script } from './types';
@@ -64,10 +64,13 @@ async function saveMemory(m: Memory) {
 }
 
 let busy = false; // từ lúc bấm Chạy tới khi chạy xong – F8 (phím toàn cục) tới trễ không chạy lần nữa
+let debug: Debug = {}; // cách chạy của lần bấm gần nhất – giữ qua form Chạy
 
 // Nút Chạy / F8 khi chưa chạy. ask: luôn mở form kể cả khi đã bật "chạy luôn" (Shift + bấm Chạy).
-export async function startRun(ask = false) {
+// dbg: nút debug – chạy từ node đang chọn / chạy từng node.
+export async function startRun(ask = false, dbg: Debug = {}) {
   if (busy || state.open) return;
+  debug = dbg;
   const { script, countdown } = getEditor();
   if (!script.inputs?.length) return run(script, countdown, {}, '');
   const m = await loadMemory();
@@ -79,7 +82,7 @@ export async function startRun(ask = false) {
 async function run(script: Script, countdown: boolean, values: Values, preset: string) {
   busy = true;
   try {
-    await runScript(script, countdown, values, preset);
+    await runScript(script, countdown, values, preset, getEditor().path ?? '', debug);
   } finally {
     busy = false;
   }

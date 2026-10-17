@@ -7,13 +7,15 @@ import { Region } from '../icons';
 import { layoutFlow } from '../../flow/layout';
 import { portsOf } from '../../flow/model';
 import { nodeViews } from '../../flow/view';
-import { RunState } from './model';
+import { runHead, runRows, runTrace } from '../../flow/run';
+import RunLog from './RunLog';
 import {
   applyLayout, clearInsertAt, connectPort, copySelected, insertAfterSelected, moveNode, pasteClip, removeEdge, removeSteps, selectNodes, selectStep,
   getEditor, setInsertAt, setRegion, toggleMultiStep, useEditor,
 } from '../../store';
 import { stepInputCount } from '../../scriptInputs';
 import { useEngine } from '../../engineStore';
+import { closeRunLog, shotUrl, useRunLog } from '../../runStore';
 import { openOverlay } from '../../windowMode';
 import type { Script } from '../../types';
 
@@ -25,17 +27,25 @@ const layoutOf = (sc: Script) => layoutFlow(sc.steps.map((s) => ({ id: s.id, por
 export default function FlowEditor() {
   const { script, selected, picked, path } = useEditor();
   const { running, progress, failedStep } = useEngine();
+  const log = useRunLog();
   const [palette, setPalette] = useState(false);
   const [fitKey, setFitKey] = useState(0);
+  const [focus, setFocus] = useState<{ id: string; key: number }>();
 
-  // Trạng thái chạy trên thẻ: node đang chạy, node làm lần chạy trước dừng (nhật ký đầy đủ: F5)
-  const run = useMemo(() => {
-    const m = new Map<string, { run: RunState }>();
-    if (failedStep) m.set(failedStep, { run: 'fail' });
-    if (running && progress?.nodeId) m.set(progress.nodeId, { run: 'running' });
-    return m;
-  }, [failedStep, running, progress?.nodeId]);
-  const views = useMemo(() => nodeViews(script, { inputs: (id) => stepInputCount(script, id), run }), [script, run]);
+  // Trạng thái chạy trên thẻ + cạnh đã đi: từ nhật ký lần đang xem (đóng nhật ký thì thôi tô).
+  // failedStep: lỗi không gắn với kết quả node nào (vd lặp quá 10 000 node) vẫn tô đỏ node đó.
+  const trace = useMemo(() => {
+    const t = runTrace(log.open ? log.results : [], script.edges, running ? progress?.nodeId : undefined);
+    if (log.open && failedStep && !t.nodes.has(failedStep)) t.nodes.set(failedStep, { run: 'fail' });
+    return t;
+  }, [log.open, log.results, script.edges, running, progress?.nodeId, failedStep]);
+  const views = useMemo(() => nodeViews(script, { inputs: (id) => stepInputCount(script, id), run: trace.nodes }), [script, trace]);
+  const rows = useMemo(() => (log.open ? runRows(log.results, script.steps, script.edges) : []), [log.open, log.results, script.steps, script.edges]);
+  const head = runHead(log.results, log.summary, log.live, running);
+  const jump = (id: string) => {
+    selectStep(id);
+    setFocus((f) => ({ id, key: (f?.key ?? 0) + 1 }));
+  };
   const positions = useMemo(() => Object.fromEntries(script.steps.flatMap((s) => (s.pos ? [[s.id, s.pos]] : []))), [script.steps]);
 
   // Mở kịch bản khác: node chưa có vị trí (file viết tay / AI tạo) thì tự xếp – không tính là sửa; xong thì vừa màn hình.
@@ -98,6 +108,7 @@ export default function FlowEditor() {
 
       <div className="relative min-h-0 flex-1">
         <FlowCanvas nodes={views} edges={script.edges} start={script.start} positions={positions} selected={selected || null} picked={picked} fitKey={fitKey}
+          focus={focus} taken={trace.taken} activeEdge={trace.active}
           onSelect={(id, additive) => {
             if (id && additive) return toggleMultiStep(id);
             selectStep(id ?? '');
@@ -119,6 +130,11 @@ export default function FlowEditor() {
           </p>
         )}
       </div>
+
+      {log.open && (
+        <RunLog key={log.summary?.id ?? 'live'} title={head.title} summary={head.summary} tone={head.tone} rows={rows} nodes={views} selected={selected || null}
+          onSelect={jump} onClose={closeRunLog} loadShot={shotUrl} />
+      )}
 
       {palette && <AddStepPalette onClose={() => setPalette(false)} onCancel={clearInsertAt} />}
     </main>

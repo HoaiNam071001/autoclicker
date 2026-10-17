@@ -40,7 +40,8 @@ export type LogLine = { t: string; level: 'info' | 'warn' | 'error'; msg: string
 export type RunRow = {
   nodeId: string;
   at: string; // giờ bắt đầu, mono
-  status: 'success' | 'fail' | 'skipped' | 'running';
+  loop?: number; // vòng thứ mấy của kịch bản
+  status: 'success' | 'fail' | 'skipped' | 'cancelled' | 'running';
   port?: string;
   next?: string; // ref node kế (hoặc "dừng" / "kết thúc")
   ms?: number;
@@ -48,6 +49,7 @@ export type RunRow = {
   output?: Record<string, unknown>;
   error?: { code: string; message: string };
   logs?: LogLine[];
+  shot?: string; // ảnh màn hình lúc thất bại (file trong lịch sử chạy)
 };
 
 // Cỡ thẻ node – cố định để xếp tự động (flow/layout.ts) không cần đo DOM. NodeCard dùng đúng các số này.

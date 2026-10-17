@@ -51,6 +51,7 @@ export function nodeViews(sc: Pick<Script, 'steps' | 'start' | 'edges'>, opt: Vi
       enabled: s.enabled,
       chips: [...(n ? [`${n} input`] : []), ...(s.retry?.count ? [`thử lại ${s.retry.count}`] : [])],
       warn: warningOf(s, ok.has(s.id), refs),
+      breakpoint: s.breakpoint,
       run: r?.run,
       visits: r?.visits,
     };

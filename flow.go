@@ -43,7 +43,9 @@ type StepResult struct {
 	Output     map[string]any `json:"output,omitempty"`
 	Error      *StepError     `json:"error,omitempty"`
 	Logs       []LogLine      `json:"logs,omitempty"`
-	Attempts   int            `json:"attempts"` // số lần chạy (1 + số lần thử lại đã dùng)
+	Attempts   int            `json:"attempts"`       // số lần chạy (1 + số lần thử lại đã dùng)
+	Loop       int            `json:"loop"`           // vòng thứ mấy của kịch bản, từ 1
+	Shot       string         `json:"shot,omitempty"` // ảnh màn hình lúc node thất bại (file trong lịch sử chạy, runlog.go)
 	StartedAt  time.Time      `json:"startedAt"`
 	DurationMs int64          `json:"durationMs"`
 }

@@ -141,7 +141,7 @@ export default function DemoFlow() {
               onLayout={() => relayout(nodes, edges)}
               taken={run ? new Set(run.taken) : undefined} activeEdge={run?.active} />
           </div>
-          {run && <RunLog title={run.title} summary={run.summary} ok={run.ok} rows={run.rows} nodes={views} selected={selected} onSelect={jump} />}
+          {run && <RunLog title={run.title} summary={run.summary} tone={run.ok === null ? 'running' : run.ok ? 'ok' : 'fail'} rows={run.rows} nodes={views} selected={selected} onSelect={jump} />}
         </main>
 
         {cur && curView && (

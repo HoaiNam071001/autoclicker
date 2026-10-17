@@ -1,15 +1,15 @@
 // Thanh bên thư viện kịch bản (artboard Main): tìm, danh sách kịch bản (chấm "chưa lưu", giờ hẹn), mở gần đây,
 // lịch sử chạy, Kịch bản mới / Mở / Lưu. Thu gọn / mở rộng bằng nút ở đầu cột hoặc Ctrl/Cmd+B (nhớ bằng localStorage).
-// Giao diện dựng ở bước 27b; lưu / mở nối ở bước 21 (scriptFile.ts); lịch sử ở 25c, hẹn giờ ở 22 – app thật hiện "Sắp có".
+// Giao diện dựng ở bước 27b; lưu / mở nối ở bước 21 (scriptFile.ts); lịch sử chạy ở 20 F5 (runStore.ts); hẹn giờ ở 22.
 import { ReactNode, useEffect, useState } from 'react';
 import { useEditor } from '../store';
 import { fileName, newScript, openRecent, openScript, save, useFile } from '../scriptFile';
 import { inWails } from '../windowMode';
+import { openRun, useRunLog } from '../runStore';
 import { SidebarToggle } from './icons';
-import { Soon } from './StepCard';
 
 export type LibraryScript = { name: string; unsaved?: boolean; schedule?: string };
-export type LibraryRun = { script: string; when: string; result: string; ok: boolean };
+export type LibraryRun = { id?: string; script: string; when: string; result: string; ok: boolean; muted?: boolean; active?: boolean };
 export type LibraryProps = {
   scripts: LibraryScript[];
   active: number;
@@ -20,9 +20,11 @@ export type LibraryProps = {
   onOpen?: () => void;
   onSave?: () => void;
   onRecent?: (path: string) => void;
+  onHistory?: (id: string) => void; // mở lần chạy trong lịch sử – nhật ký + tô đường đã đi
 };
 
 const KEY = 'library-collapsed';
+const RUNS_SHOWN = 8; // lịch sử giữ 50 lần – mặc định hiện 8 lần mới nhất
 const isMac = navigator.platform.startsWith('Mac');
 const mod = isMac ? '⌘' : 'Ctrl+';
 
@@ -38,15 +40,32 @@ const loadCollapsed = () => {
 export default function Library() {
   const { script, dirty, path } = useEditor();
   const { recent } = useFile();
+  const log = useRunLog();
+  const history = log.history.map((h): LibraryRun => ({
+    id: h.id, script: SOURCE[h.source] ?? h.source, when: whenOf(h.startedAt), ok: h.status !== 'fail', muted: h.status === 'stopped',
+    result: h.status === 'fail' ? `Thất bại: ${h.error ?? ''}` : h.status === 'stopped' ? 'Đã dừng' : `Thành công${h.message ? `: ${h.message}` : ''}`,
+    active: log.open && !log.live && log.summary?.id === h.id,
+  }));
   return (
-    <LibraryView scripts={[{ name: script.name, unsaved: dirty }]} active={0} recent={recent.filter((r) => r !== path)} history={[]}
-      ready={inWails} onNew={newScript} onOpen={openScript} onSave={() => save()} onRecent={openRecent} />
+    <LibraryView scripts={[{ name: script.name, unsaved: dirty }]} active={0} recent={recent.filter((r) => r !== path)} history={history}
+      ready={inWails} onNew={newScript} onOpen={openScript} onSave={() => save()} onRecent={openRecent} onHistory={openRun} />
   );
 }
 
-export function LibraryView({ scripts, active, recent, history, ready, onNew, onOpen, onSave, onRecent }: LibraryProps) {
+const SOURCE: Record<string, string> = { user: 'Chạy tay', schedule: 'Hẹn giờ', cli: 'Dòng lệnh', ai: 'AI' };
+const two = (n: number) => String(n).padStart(2, '0');
+// "14:32" hôm nay, "14:32 16/10" ngày khác
+const whenOf = (iso: string) => {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const t = `${two(d.getHours())}:${two(d.getMinutes())}`;
+  return d.toDateString() === new Date().toDateString() ? t : `${t} ${two(d.getDate())}/${two(d.getMonth() + 1)}`;
+};
+
+export function LibraryView({ scripts, active, recent, history, ready, onNew, onOpen, onSave, onRecent, onHistory }: LibraryProps) {
   const [collapsed, setCollapsed] = useState(loadCollapsed);
   const [q, setQ] = useState('');
+  const [allRuns, setAllRuns] = useState(false);
   useEffect(() => {
     try {
       localStorage.setItem(KEY, collapsed ? '1' : '0');
@@ -120,15 +139,22 @@ export function LibraryView({ scripts, active, recent, history, ready, onNew, on
         {recentShown.length === 0 && <span className="px-3 py-1 text-[13px] text-muted">{recent.length ? 'Không có file nào khớp' : 'Chưa có'}</span>}
       </Section>
 
-      <Section title="Lịch sử chạy" soonStep={ready ? undefined : '25c'}>
-        {history.map((h, i) => (
-          <a key={i} href="#" onClick={(e) => e.preventDefault()} className="flex items-center gap-2 rounded-md px-3 py-[7px] text-[13px] hover:bg-hover">
-            <span className={`h-1.5 w-1.5 flex-none rounded-full ${h.ok ? 'bg-ok' : 'bg-danger'}`} />
+      <Section title="Lịch sử chạy">
+        {(allRuns ? history : history.slice(0, RUNS_SHOWN)).map((h, i) => (
+          <a key={h.id ?? i} href="#" title={h.result} aria-current={h.active}
+            onClick={(e) => { e.preventDefault(); if (h.id) onHistory?.(h.id); }}
+            className={`flex items-center gap-2 rounded-md px-3 py-[7px] text-[13px] ${h.active ? 'bg-hover font-semibold' : 'hover:bg-hover'}`}>
+            <span className={`h-1.5 w-1.5 flex-none rounded-full ${h.muted ? 'bg-muted' : h.ok ? 'bg-ok' : 'bg-danger'}`} />
             <span className="min-w-0 flex-1 truncate">{h.script}</span>
             <span className="font-mono text-[11px] text-muted" title={h.result}>{h.when}</span>
           </a>
         ))}
         {history.length === 0 && <span className="px-3 py-1 text-[13px] text-muted">Chưa có lần chạy nào</span>}
+        {history.length > RUNS_SHOWN && (
+          <button onClick={() => setAllRuns(!allRuns)} className="rounded-md px-3 py-1 text-left text-[13px] text-muted hover:bg-hover hover:text-ink">
+            {allRuns ? 'Thu gọn' : `Xem thêm ${history.length - RUNS_SHOWN} lần`}
+          </button>
+        )}
       </Section>
 
       <div className="mt-auto flex flex-col gap-1 px-1">
@@ -146,10 +172,10 @@ export function LibraryView({ scripts, active, recent, history, ready, onNew, on
   );
 }
 
-function Section({ title, soonStep, children }: { title: string; soonStep?: string; children: ReactNode }) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-muted">{title}{soonStep && <Soon step={soonStep} />}</span>
+      <span className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-muted">{title}</span>
       {children}
     </div>
   );

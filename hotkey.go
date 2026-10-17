@@ -8,12 +8,14 @@ import (
 
 // startHotkeys nghe phím toàn cục (kể cả khi app không được focus). Gọi trong startup.
 //   - F8: đang chạy → dừng; không chạy → emit "hotkey:f8start" để frontend chạy kịch bản đang soạn
+//   - F10: đang chạy → chạy node kế rồi dừng (debug, StepScript)
 //   - F6: lưu vị trí chuột hiện tại thành điểm mới – emit "hotkey:f6" (Point); bỏ qua khi đang chạy
 //
-// macOS: cần quyền Accessibility; F6 / F8 mặc định là phím media nên phải bấm kèm fn.
+// macOS: cần quyền Accessibility; F6 / F8 / F10 mặc định là phím media nên phải bấm kèm fn.
 func (a *App) startHotkeys() {
 	f6 := hook.KeycharToRawcode("f6")
 	f8 := hook.KeycharToRawcode("f8")
+	f10 := hook.KeycharToRawcode("f10")
 	evs := hook.Start()
 	go func() {
 		for ev := range evs {
@@ -26,6 +28,8 @@ func (a *App) startHotkeys() {
 				} else {
 					runtime.EventsEmit(a.ctx, "hotkey:f8start")
 				}
+			case ev.Kind == hook.KeyDown && ev.Rawcode == f10 && a.current() != nil:
+				a.StepScript()
 			case ev.Kind == hook.KeyDown && ev.Rawcode == f6 && a.current() == nil:
 				x, y := robotgo.Location()
 				runtime.EventsEmit(a.ctx, "hotkey:f6", Point{X: x, Y: y})

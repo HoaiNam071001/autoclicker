@@ -36,23 +36,26 @@ export function Toolbar({ name, nameTitle, unsaved, unsavedTitle, loop, loopPane
   );
 }
 
-// Nút debug (bước 25c): chạy từ bước đang chọn, chạy từng bước (Tiếp = F10). soon: giao diện có, logic chưa.
-export function DebugButtons({ soon, onFrom, onStep }: { soon?: boolean; onFrom?: () => void; onStep?: () => void }) {
+// Nút debug (bước 20 F5): chạy từ node đang chọn (một vòng), chạy từng node (dừng trước mỗi node, Tiếp = F10).
+// soon: giao diện có, logic chưa (màn mẫu). fromTitle: lý do nút "Từ node này" tắt (chưa chọn node…).
+export function DebugButtons({ soon, disabled, fromDisabled, fromTitle, onFrom, onStep }: {
+  soon?: boolean; disabled?: boolean; fromDisabled?: boolean; fromTitle?: string; onFrom?: () => void; onStep?: () => void;
+}) {
   const cls = 'flex h-9 items-center gap-2 rounded-control border border-line bg-surface px-3 text-[13px] enabled:hover:bg-hover disabled:opacity-50';
-  const title = (t: string) => (soon ? `${t} – sắp có (bước 25c)` : t);
+  const title = (t: string) => (soon ? `${t} – sắp có` : t);
   return (
     <div className="flex gap-1">
-      <button disabled={soon} onClick={onFrom} title={title('Chạy từ bước đang chọn tới hết')} className={cls}>
-        <Play className="h-2.5 w-2.5" />Từ bước này
+      <button disabled={soon || disabled || fromDisabled} onClick={onFrom} title={title(fromTitle ?? 'Chạy một vòng bắt đầu từ node đang chọn – các node trước đó không chạy')} className={cls}>
+        <Play className="h-2.5 w-2.5" />Từ node này
       </button>
-      <button disabled={soon} onClick={onStep} title={title('Chạy từng bước: dừng sau mỗi bước, bấm Tiếp / F10 để chạy bước kế')} className={cls}>
-        <StepOver />Từng bước <span className="font-mono text-[11px] text-muted">F10</span>
+      <button disabled={soon || disabled} onClick={onStep} title={title('Chạy từng node: dừng trước mỗi node, bấm Tiếp / F10 để chạy node kế')} className={cls}>
+        <StepOver />Từng node <span className="font-mono text-[11px] text-muted">F10</span>
       </button>
     </div>
   );
 }
 
-const StepOver = () => (
+export const StepOver = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M4 14a8 8 0 0 1 15-4M19 4v6h-6" /><circle cx="12" cy="19" r="1.6" />
   </svg>

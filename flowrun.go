@@ -83,7 +83,11 @@ func (e *engine) runLoop(ctx context.Context, loop int) error {
 			return fmt.Errorf("vòng %d: đã chạy %d node mà chưa xong – có thể lặp vô hạn ở %s; thêm node Đếm để giới hạn số vòng lặp",
 				loop, maxNodeRuns, strings.Join(trail, " → "))
 		}
+		e.breakBefore(s, loop)
 		res := e.execNode(ctx, s, loop)
+		if res.Status == StatusFail {
+			e.shoot(&res)
+		}
 		e.results[s.ID], e.rv.byRef[s.Ref], e.rv.last = &res, &res, &res
 		if e.onNode != nil {
 			e.onNode(res)
@@ -111,7 +115,7 @@ func (e *engine) runLoop(ctx context.Context, loop int) error {
 
 // execNode chạy một node, thử lại theo Retry; không bao giờ trả lỗi – mọi kết quả nằm trong StepResult.
 func (e *engine) execNode(ctx context.Context, s Step, loop int) StepResult {
-	res := StepResult{NodeID: s.ID, Ref: s.Ref, StartedAt: time.Now()}
+	res := StepResult{NodeID: s.ID, Ref: s.Ref, Loop: loop, StartedAt: time.Now()}
 	defer func() { res.DurationMs = time.Since(res.StartedAt).Milliseconds() }()
 	logf := func(level, format string, a ...any) {
 		res.Logs = append(res.Logs, LogLine{AtMs: time.Since(res.StartedAt).Milliseconds(), Level: level, Msg: fmt.Sprintf(format, a...)})

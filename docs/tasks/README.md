@@ -6,9 +6,9 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3 xong code – sang F5. Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 20: F5 → F6 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
-- **Cập nhật lần cuối:** 2026-10-17 (tách docs/TASKS.md thành docs/tasks/)
+- **Đang làm:** 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3, F5 xong code – sang F6. Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 20: F6 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
+- **Cập nhật lần cuối:** 2026-10-17 (20 F5 xong code)
 
 ## Tính năng của hệ thống
 
@@ -63,8 +63,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | ✅ | Chạy N vòng / vô hạn / theo thời gian | Đếm ngược, F8 chạy / dừng, tạm dừng / tiếp tục, thanh mini | [8](phase1-mvp.md), [16](phase1-mvp.md) |
 | ✅ | Dừng khẩn cấp | Rê chuột vào góc màn hình | [9](phase1-mvp.md) |
 | 🟡 | Xem trước bằng con trỏ giả | Có – **chưa** đi theo nhánh rẽ (làm ở F6) | [19b](phase2.md), [20 F6](phase3/20-flow.md) |
-| ⬜ | Canvas khi chạy + nhật ký từng node | Node đang chạy / xong / lỗi, bảng nhật ký, lời nhắn Kết thúc thành công | [20 F5](phase3/20-flow.md) |
-| ⬜ | Lịch sử chạy, debug | Lưu 50 lần chạy gần nhất, chạy từ node / từng node, breakpoint | [20 F5](phase3/20-flow.md) |
+| 🧪 | Canvas khi chạy + nhật ký từng node | Đường đã đi, node xong / lỗi / ×n, bảng nhật ký (output, log, ảnh lúc lỗi), lời nhắn Kết thúc thành công | [20 F5](phase3/20-flow.md) |
+| 🧪 | Lịch sử chạy, debug | Lưu 50 lần chạy gần nhất / kịch bản, mở lại từ thư viện; điểm dừng, từng node (F10), chạy từ node | [20 F5](phase3/20-flow.md) |
 | ⬜ | Hẹn giờ, thông báo, CLI / API local | Chạy lúc HH:mm, báo Telegram / Discord, lệnh `autoclicker run` | [22](phase3/22-hen-gio-cli-api.md) |
 | ⬜ | Chạy theo từng dòng CSV | | [28](phase3/28-mo-rong.md) |
 
@@ -89,7 +89,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 > Bảng tự sinh – sau khi tick chạy `python3 scripts/tasks-index.py`. Bấm tên bước để mở file chi tiết.
 
 <!-- index:start -->
-**29 / 41 bước xong code** · 🧪 **[9 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
+**29 / 41 bước xong code** · 🧪 **[13 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
 
 ### Phase 3 – Design v2 & tự động hoá (theo thứ tự làm)
 
@@ -105,7 +105,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 🧪 chờ kiểm tra tay | [25. Chờ ảnh, click theo ảnh, chờ pixel](phase3/25-cho-anh.md) | 8 / 8 | [1 việc](checks.md) |
 | 🧪 chờ kiểm tra tay | [25e. Tìm theo chữ (OCR)](phase3/25e-ocr.md) | 5 / 5 | [1 việc](checks.md) |
 | ✅ xong | [25b. Khi thất bại](phase3/25b-khi-that-bai.md) | 4 / 4 |  |
-| 🟡 đang làm | [20. Flow kiểu n8n – mỗi bước là một module, rẽ nhánh theo kết quả](phase3/20-flow.md) | 38 / 48 | [4 việc](checks.md) |
+| 🟡 đang làm | [20. Flow kiểu n8n – mỗi bước là một module, rẽ nhánh theo kết quả](phase3/20-flow.md) | 44 / 48 | [8 việc](checks.md) |
 | ⬜ chưa làm | [26. Focus cửa sổ theo tên](phase3/26-focus-cua-so.md) | 0 / 3 |  |
 | ⬜ chưa làm | [25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật](phase3/25d-web-dom.md) | 0 / 9 |  |
 | ⬜ chưa làm | [22. Hẹn giờ + thông báo + CLI / API local](phase3/22-hen-gio-cli-api.md) | 0 / 5 |  |

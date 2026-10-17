@@ -123,6 +123,7 @@ const STATUS: Record<RunRow['status'], [string, string]> = {
   success: ['Thành công', 'bg-soft text-ok'],
   fail: ['Thất bại', 'bg-danger-soft text-danger-text'],
   skipped: ['Bỏ qua', 'bg-soft text-muted'],
+  cancelled: ['Đã dừng', 'bg-soft text-muted'],
   running: ['Đang chạy', 'bg-accent-soft text-accent-text'],
 };
 export const StatusChip = ({ status }: { status: RunRow['status'] }) => (

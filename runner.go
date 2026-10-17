@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"errors"
+	"image"
+	"time"
 
 	"github.com/go-vgo/robotgo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -28,12 +30,16 @@ func (a *App) ValidateScript(sc Script, values map[string]any) error {
 	return validateScript(out, mainScreen())
 }
 
-// RunScript áp giá trị input (resolveInputs) vào bản sao kịch bản, đếm ngược countdown giây rồi chạy; chỉ trả về khi chạy xong / bị dừng
+// RunScript áp giá trị input (resolveInputs) vào bản sao kịch bản, đếm ngược opt.Countdown giây rồi chạy; chỉ trả về khi chạy xong / bị dừng
 // (StopScript, F8, góc màn hình – kể cả lúc đang đếm ngược) / lỗi. Bị dừng không tính là lỗi.
 // Emit "engine:state" (true khi bắt đầu, false khi kết thúc), "engine:countdown" (số giây còn lại)
-// "engine:progress" (Progress) và "engine:node" (StepResult mỗi node xong) trong lúc chạy.
-func (a *App) RunScript(sc Script, values map[string]any, countdown int) error {
+// "engine:progress" (Progress) và "engine:node" (StepResult mỗi node xong) trong lúc chạy, "engine:done" (RunSummary)
+// khi chạy xong – lần chạy lưu vào lịch sử (runlog.go).
+func (a *App) RunScript(sc Script, values map[string]any, opt RunOptions) error {
 	screen := mainScreen()
+	if opt.From != "" {
+		sc.Start, sc.Loops = opt.From, 1 // chạy từ node: một vòng, node trước đó không chạy (biến của chúng trống)
+	}
 	sc, err := resolveInputs(sc, values)
 	if err != nil {
 		return err
@@ -51,7 +57,17 @@ func (a *App) RunScript(sc Script, values map[string]any, countdown int) error {
 	eng := newEngine(in, sc, func(p Progress) {
 		runtime.EventsEmit(a.ctx, "engine:progress", p)
 	})
-	eng.onNode = func(r StepResult) { runtime.EventsEmit(a.ctx, "engine:node", r) } // nhật ký chạy (bước 20 F5)
+	if opt.Source == "" {
+		opt.Source = SourceUser
+	}
+	rec := RunRecord{RunSummary: RunSummary{Script: sc.Name, Source: opt.Source}, Inputs: values, Results: []StepResult{}}
+	eng.shots = map[string]image.Image{}
+	eng.debug = opt.Source == SourceUser
+	eng.step.Store(opt.Step)
+	eng.onNode = func(r StepResult) {
+		rec.add(r, eng.byID[r.NodeID].Type)
+		runtime.EventsEmit(a.ctx, "engine:node", r)
+	}
 	eng.screen = screen
 	eng.displays = displays()
 	h := &runHandle{cancel: cancel, eng: eng}
@@ -69,7 +85,7 @@ func (a *App) RunScript(sc Script, values map[string]any, countdown int) error {
 	}()
 	runtime.EventsEmit(a.ctx, "engine:state", true)
 
-	for n := countdown; n > 0; n-- {
+	for n := opt.Countdown; n > 0; n-- {
 		runtime.EventsEmit(a.ctx, "engine:countdown", n)
 		if sleep(ctx, 1000) != nil {
 			return nil // dừng khi đang đếm ngược
@@ -79,7 +95,10 @@ func (a *App) RunScript(sc Script, values map[string]any, countdown int) error {
 
 	go watchCorners(ctx, robotgo.Location, hardCorners(displays()), in, func() { a.stopWith(StopByCorner) })
 
+	rec.StartedAt = time.Now()
+	rec.ID = newRunID(rec.StartedAt)
 	err = eng.run(ctx)
+	a.finishRun(&rec, eng, opt, err)
 	if errors.Is(err, context.Canceled) {
 		return nil
 	}
@@ -88,6 +107,25 @@ func (a *App) RunScript(sc Script, values map[string]any, countdown int) error {
 		runtime.EventsEmit(a.ctx, "engine:failed", FailedStep{StepID: eng.failed, Miss: eng.miss})
 	}
 	return err
+}
+
+// finishRun ghi kết quả cuối vào lịch sử chạy rồi emit "engine:done". Lưu lỗi thì vẫn báo xong (lịch sử chỉ là phụ).
+func (a *App) finishRun(rec *RunRecord, eng *engine, opt RunOptions, err error) {
+	rec.DurationMs = time.Since(rec.StartedAt).Milliseconds()
+	switch {
+	case errors.Is(err, context.Canceled):
+		rec.Status = RunStopped
+	case err != nil:
+		rec.Status, rec.Error = RunFail, err.Error()
+	default:
+		rec.Status = RunSuccess
+	}
+	if base, e := configDir(); e == nil {
+		if e = saveRun(runsDir(base, rec.Script, opt.Path), *rec, eng.shots); e != nil {
+			runtime.LogErrorf(a.ctx, "lưu lịch sử chạy: %v", e)
+		}
+	}
+	runtime.EventsEmit(a.ctx, "engine:done", rec.RunSummary)
 }
 
 // FailedStep – bước làm lần chạy dừng vì lỗi (event engine:failed).
@@ -123,7 +161,15 @@ func (a *App) PauseScript() bool {
 	return false
 }
 
-// ResumeScript chạy tiếp sau khi tạm dừng.
+// StepScript – debug: chạy node kế rồi dừng lại (F10). Trả false nếu không có gì đang chạy.
+func (a *App) StepScript() bool {
+	if h := a.current(); h != nil {
+		return h.eng.Step()
+	}
+	return false
+}
+
+// ResumeScript chạy tiếp sau khi tạm dừng (kể cả đang dừng vì debug – tắt chạy từng node).
 func (a *App) ResumeScript() bool {
 	if h := a.current(); h != nil {
 		return h.eng.Resume()

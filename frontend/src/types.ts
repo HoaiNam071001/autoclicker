@@ -28,11 +28,14 @@ export interface StepResult {
   error?: { code: ErrorCode; message: string };
   logs?: { atMs: number; level: 'info' | 'warn' | 'error'; msg: string }[];
   attempts: number;
+  loop: number; // vòng thứ mấy, từ 1
+  shot?: string; // ảnh lúc thất bại (lịch sử chạy – RunShot)
   startedAt: string;
   durationMs: number;
 }
 const edgeMatchesGo: Same<keyof Edge, keyof Fields<main.Edge>> = true;
-void edgeMatchesGo; // StepResult chưa có trong binding (chưa method public nào trả nó) – thêm kiểm tra khi có RunNode (F5)
+const resultMatchesGo: Same<keyof StepResult, keyof Fields<main.StepResult>> = true;
+void edgeMatchesGo, resultMatchesGo;
 
 export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel';
 // Node điều khiển (bước 20 F3, nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
@@ -75,6 +78,7 @@ export interface Step {
   ref: string; // mã ngắn n1, n2… (duy nhất) – biến {{n2.output.x}}
   name?: string; // tên trên thẻ, bỏ trống = tên theo loại
   pos?: Point; // vị trí thẻ trên canvas
+  breakpoint?: boolean; // debug: chạy từ app thì tạm dừng trước node này
   points: StepPoint[]; // drag: points[0] -> points[1]; B lệch so với A (dragRelative) không dùng neo
   button: MouseButton;
   clicks: number;

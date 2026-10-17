@@ -139,10 +139,11 @@ func (e *engine) runControl(ctx context.Context, s Step, logf func(level, format
 			}
 			return "", nil, &endErr{msg}
 		}
-		if s.Message != "" {
-			logf("info", "%s", s.Message)
+		if s.Message == "" {
+			return "", nil, nil // không có cổng ra → xong vòng
 		}
-		return "", nil, nil // không có cổng ra → xong vòng
+		logf("info", "%s", s.Message)
+		return "", map[string]any{"message": s.Message}, nil // lời nhắn hiện ở thanh trạng thái / nhật ký (F5)
 
 	case StepSetVar:
 		var v any = s.Value
