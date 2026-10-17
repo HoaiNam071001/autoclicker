@@ -7,7 +7,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
 - **Đang làm:** 25 (chờ ảnh, click theo ảnh, chờ pixel). 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 25b → 25c … (bảng thứ tự đầu Phase 3); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
+- **Tiếp theo:** 25b → 25c → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17
 
 ## Quyết định đã chốt
@@ -17,12 +17,13 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 - Font **Be Vietnam Pro** + **IBM Plex Mono** cài local qua `@fontsource/*` (app phải chạy được offline).
 - UI theo **phương án A (MainScreen)** cho MVP. Phương án B (PreviewScreen) giữ làm tham khảo.
 - **Design v2** (2026-10-16, `design/DESIGN.md`) thay bản thiết kế cũ `autoclicker-ui/` từ bước 27: theme sáng / tối, một màu nhấn, gradient chỉ ở 4 chỗ, bố cục 3 cột kiểu Windows 11; font Plus Jakarta Sans + JetBrains Mono (vẫn cài local); bỏ màu riêng cho kéo thả và nhóm `dark-*`.
-- Thứ tự Phase 3 (2026-10-16, bảng đầu Phase 3): 27 → 27b → 29 → 21 → 30 → 21b → 23 → 25 → 25b → 25c → 26 → 20 → 22 → 31a → 31b → 31c → 24 → 28 (thêm 31 ngày 2026-10-17); chờ ảnh / click theo ảnh làm sớm (cốt lõi cho web / app), nhóm bước làm sau xử lý hết giờ. Không làm bản chạy trên điện thoại.
+- Thứ tự Phase 3 (2026-10-16, bảng đầu Phase 3): 27 → 27b → 29 → 21 → 30 → 21b → 23 → 25 → 25b → 25c → 26 → 25d → 20 → 22 → 31a → 31b → 31c → 24 → 28 (thêm 31 ngày 2026-10-17; 25d tách từ 28 cùng ngày); chờ ảnh / click theo ảnh làm sớm (cốt lõi cho web / app), nhóm bước làm sau xử lý hết giờ. Không làm bản chạy trên điện thoại.
 - **Tự động hoá qua AI là mục tiêu chính** (31, 2026-10-17): người dùng ra lệnh bằng lời trên Claude / GPT / … (vd "mở bài Tinh Hà Say 2") và AI tự tạo kịch bản, không cần soạn tay. Kết nối qua **MCP** (giao thức chuẩn mà Claude, ChatGPT, Cursor, Gemini CLI… đều hỗ trợ), không viết riêng plugin cho từng AI. App là MCP server; AI tạo / sửa kịch bản qua cùng `checkScript` / `validateScript` như người soạn; kịch bản do AI tạo mở trong app để người dùng duyệt, AI chỉ chạy thật khi người dùng cho phép. **MCP làm sau** (sau 22), nhưng các bước trước phải giữ đường cho nó – mỗi bước có mục *Chuẩn bị cho MCP*:
   - Logic nằm ở **Go** (kiểm tra, `resolveInputs`, chạy bước, chụp / tìm ảnh, đổi toạ độ, danh sách cửa sổ), frontend chỉ gọi – MCP / CLI / API dùng lại, không viết lại
   - Lỗi trả có cấu trúc (`stepId`, `field`, thông điệp) để AI tự sửa được; `id` bước ổn định để sửa theo bước
   - Mỗi loại bước có mô tả + ví dụ JSON trong `model.go` (bắt đầu từ 23) để sau sinh schema cho AI
   - Kịch bản đổi từ ngoài app (file / API / AI) phải nạp lại được vào store, vẫn hoàn tác được; việc chạy từ ngoài đi qua cùng một chỗ hỏi quyền
+- **Web qua DOM** (25d, 2026-10-17): tìm phần tử bằng HTML qua CDP (Chrome / Edge / Brave, profile riêng), bấm / cuộn bằng **robotgo** (chuột thật) – CDP `Input.*` chỉ là dự phòng chạy nền. Toạ độ trang → màn hình **đo bằng chuột** (như overlay), không tính từ kích thước cửa sổ. Selector ưu tiên chữ / aria / role, tránh class sinh tự động. Chờ ảnh (25) vẫn giữ cho app desktop và trang không nối CDP được.
 - **Theme tối = bảng Slate** (`design/newdarkmode.md`, 2026-10-16): theme cũ nhiều nút bị chìm. Có thêm 2 bảng Dimmed / Nord trong file, chưa dùng.
 - **Neo điểm theo trục** (29): X neo trái / phải, Y neo trên / dưới (thêm giữa, %), lưu offset dương + tên neo, UI hiện dạng ±; làm ngay sau UI (27, 27b), trước 21, để định dạng file có neo ngay từ đầu (không cần chuyển đổi). Biến đổi nhiều điểm (30) làm sau 27 + 21, ghi lại offset theo neo.
 - **UI trước, logic sau** (27b): tính năng chưa có vẫn hiện trong app nhưng tắt + nhãn *Sắp có*; dữ liệu giả chỉ ở màn `#demo` (`frontend/src/demo/`), không thêm loại bước chưa làm vào `types.ts` / `model.go`.
@@ -199,10 +200,11 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 | 6 | 21b. Input | Cần 21 (preset theo từng kịch bản); mở đường cho chuỗi web / app (23, 25) |
 | 7–8 | 23 → 25 | Cuộn / mở URL đơn giản, rồi chờ ảnh – cốt lõi tương tác web / app |
 | 9–11 | 25b → 25c → 26 | Xử lý khi không thấy ảnh, debug chỗ dễ lỗi, focus cửa sổ – xong 26 là chạy được ví dụ Facebook |
-| 12 | 20. Nhóm bước | Dùng lại thử lại / bỏ qua của 25b |
-| 13 | 22. Hẹn giờ / CLI / API local | Chạy không cần ngồi canh; dựng server HTTP + token mà MCP dùng lại |
-| 14–16 | 31a → 31b → 31c. MCP cho AI | Người dùng chọn làm sau (2026-10-17); các bước trước đã có mục *Chuẩn bị cho MCP* nên lúc này chủ yếu là bọc hàm Go sẵn có thành tool |
-| 17–18 | 24 → 28 | Ghi macro, mở rộng |
+| 12 | 25d. Web qua DOM | Người dùng yêu cầu (2026-10-17): web bền hơn ảnh mẫu; cần focus (26), hết giờ (25b); làm trước MCP vì AI dùng DOM tốt hơn ảnh chụp |
+| 13 | 20. Nhóm bước | Dùng lại thử lại / bỏ qua của 25b |
+| 14 | 22. Hẹn giờ / CLI / API local | Chạy không cần ngồi canh; dựng server HTTP + token mà MCP dùng lại |
+| 15–17 | 31a → 31b → 31c. MCP cho AI | Người dùng chọn làm sau (2026-10-17); các bước trước đã có mục *Chuẩn bị cho MCP* nên lúc này chủ yếu là bọc hàm Go sẵn có thành tool |
+| 18–19 | 24 → 28 | Ghi macro, mở rộng |
 | – | 17 (Windows), 18 | Khi có máy Windows; riêng *Kiểm tra tay macOS* của 17 làm lúc nào cũng được (nên làm trước 25 vì chụp ảnh phụ thuộc tỷ lệ màn hình) |
 
 - [x] **27. UI v2 cho các màn đang có + theme sáng / tối** – Đổi giao diện mọi thứ đang chạy được sang design v2, không đổi logic.
@@ -342,6 +344,17 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [ ] Model: `focusWindow` (`title` hoặc process); Engine: `robotgo.ActivateName`, không thấy → `onTimeout`
   - [ ] UI: icon `focusWindow`; ô nhập (nhận biến) + chọn từ danh sách cửa sổ đang mở
   - [ ] Chuẩn bị cho MCP (31): danh sách cửa sổ là hàm Go (`ListWindows`) dùng chung cho UI và MCP
+- [ ] **25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật** *(người dùng yêu cầu, 2026-10-17; tách từ 28)* – Tìm phần tử trên trang theo chữ / selector (vd nút "Xem lịch sử"), tính toạ độ màn hình của nó rồi click / cuộn bằng robotgo như bước thường. Bền hơn ảnh mẫu (không phụ thuộc theme, zoom, hover), nhanh hơn (vài ms), đọc được trạng thái phần tử; AI (31) đọc DOM chính xác hơn nhìn ảnh chụp.
+  - Cách làm: **DOM để tìm, robotgo để bấm** → event thật của hệ điều hành (`isTrusted = true`, khó bị coi là bot), dùng lại engine / xem trước / thanh mini. Dự phòng *chạy nền* (cửa sổ thu nhỏ / bị che): `Input.dispatchMouseEvent` của CDP – người dùng chọn "chuột thật / chạy nền"
+  - [ ] Kết nối Chrome / Edge / Brave qua **CDP** (`chromedp`): app mở trình duyệt với `--remote-debugging-port` + **profile riêng** trong `UserConfigDir/autoclicker/browser-profile` (từ Chrome 136 không bật debug được trên profile mặc định – lần đầu người dùng đăng nhập lại, sau đó profile tự nhớ); nối vào phiên đang mở nếu có. Safari / Firefox không hỗ trợ. Phương án sau (nếu cần profile đang dùng): extension Chrome nói chuyện với app qua WebSocket
+  - [ ] Selector, ưu tiên theo độ bền: chữ hiển thị (`text=Xem lịch sử`) / `aria-label` / `role` → `id` / `data-*` → CSS / XPath; **tránh class sinh tự động** (React / Facebook `x1n2onr6…`); cho nhiều selector dự phòng (trang đổi ngôn ngữ); chọn tab theo URL / tiêu đề; phần tử trong iframe cộng toạ độ iframe
+  - [ ] **Đổi toạ độ trang → màn hình bằng cách đo** (giống overlay, xem *Quyết định đã chốt*), không tính từ `screenX` + chiều cao thanh tab (sai khi mở DevTools, thanh bookmark, thanh "Chrome đang bị điều khiển", DPI 125%…): robotgo đưa chuột tới 2 điểm trong trang, nghe `mousemove` qua CDP lấy `clientX/Y` → suy ra tỷ lệ (zoom × DPI) + độ lệch; `screen = offset + client × scale`. Đo lại khi cửa sổ dời / đổi cỡ (`screenX/Y`, `outerWidth/Height` đổi) hoặc đổi zoom
+  - [ ] Trước khi bấm: phần tử ngoài viewport → cuộn (robotgo 1–2 nấc giữa trang rồi **đọc lại rect** đến khi lọt viewport; không cần cuộn thật thì `scrollIntoView({block:"center"})`); chờ ổn định (rect giống nhau 2 lần cách ~100 ms); **không bị che**: `document.elementFromPoint(tâm)` phải là phần tử hoặc con của nó, không thì chờ / lỗi; cửa sổ trình duyệt phải ở trên cùng (focus như 26)
+  - [ ] Model: `webWait` (chờ phần tử hiện / mất, timeout, ghim được), `webClick` (nút chuột, số click, vị trí trong phần tử: tâm / ±dx dy), `webScroll` (cuộn tới phần tử / theo nấc trong phần tử), `webType` (focus ô rồi gõ bằng bước gõ chữ sẵn có), `webRead` (đọc chữ / thuộc tính vào biến – nối với biến / điều kiện 28); hết giờ dùng `onTimeout` của 25b. Thêm vào `model.go`, `types.ts`, `steptypes.go` (mô tả + ví dụ JSON)
+  - [ ] Engine: interface `Browser` (như `Input` / `Screen`), test bằng trình duyệt giả (DOM giả + toạ độ); test thật `AUTOCLICKER_REAL=1` mở trang HTML cục bộ
+  - [ ] UI: inspector (selector + dự phòng, tab, chuột thật / chạy nền), **Thử tìm** (khung phần tử trên overlay, toạ độ, chữ đọc được, ms); nút **Chọn phần tử trên trang** (inject script tô viền phần tử dưới chuột, click → tự sinh selector theo thứ tự ưu tiên ở trên); trạng thái kết nối trình duyệt
+  - [ ] Chuẩn bị cho MCP (31): `FindElement(selector) → {rect màn hình, chữ, hiện / bị che}` và `PageOutline()` (cây accessibility rút gọn cho AI) là hàm Go độc lập UI – Thử tìm, Xem trên màn hình, MCP dùng chung
+  - [ ] Kiểm tra tay: trang có nút "Xem lịch sử" nằm dưới màn hình → bước chờ + click chạy đúng khi dời cửa sổ, zoom 125%, mở DevTools, có popup che
 - [ ] **20. Nhóm bước** – Lặp riêng một nhóm N lần; dùng chung thử lại / bỏ qua của 25b.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
   - [ ] Model: `group` (`name`, `repeat` – ghim được, `children`); tăng `version` + chuyển đổi file cũ
@@ -381,7 +394,7 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 - [ ] **24. Ghi macro** – Ghi click / kéo / gõ phím bằng gohook, gộp thành bước, tự tính delay; nút Ghi trên toolbar, F9 dừng.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
 - [ ] **28. Mở rộng** – Làm sau cùng.
-  - [ ] Chrome qua DOM (`chromedp`): `web.goto`, `web.waitVisible`, `web.click`, `web.type`, `web.scroll` theo selector; nút "chọn phần tử trên trang"
+  - Chrome qua DOM: đã chuyển lên **25d** (2026-10-17)
   - [ ] CSV: mỗi cột là một input key, chạy kịch bản cho từng dòng (mỗi dòng một lần `resolveInputs`)
   - [ ] OCR: đọc chữ trong vùng vào biến, rẽ nhánh theo nội dung (Tesseract)
   - [ ] Tìm phần tử bằng AI: mô tả bằng lời ("nút Gửi"), model có vision trả toạ độ; dự phòng khi ảnh mẫu không khớp
@@ -504,3 +517,4 @@ Người dùng gõ trên Claude: *"tạo kịch bản mở bài Tinh Hà Say 2 t
 - **2026-10-17** – Sửa (người dùng báo: Thử tìm > 90% nhưng chạy thật chỉ 41%): lúc chạy, thanh mini (giữa trên màn hình) và **con trỏ chuột** lọt vào ảnh chụp (robotgo / ScreenCaptureKit mặc định vẽ con trỏ), Thử tìm thì app đã ẩn. macOS ≥ 14: tự chụp bằng ScreenCaptureKit **bỏ cửa sổ của chính app + không vẽ con trỏ** (`capture_darwin.go`, cgo Objective-C); Windows: `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` cho cửa sổ app lúc khởi động (`internal/winexclude`, vet GOOS=windows OK, chưa chạy thật); đọc màu pixel cũng chụp 1×1 theo cách này; khoanh ảnh / thử tìm không cần ẩn app nữa (hết nhấp nháy) – chỉ ẩn khi hệ không hỗ trợ. Chuyện đặt 40% vẫn dừng ở 41%: chờ người dùng gửi câu lỗi đầy đủ (bước nào, cần bao nhiêu %). `go test`, test thật OK. Chưa commit.
 - **2026-10-17** – Từ ảnh người dùng gửi: bước dừng là **bước 2** (Chờ ảnh khớp ≥ 90%), người dùng hạ ngưỡng ở bước 4 – code đúng, giao diện chưa cho thấy. Thêm: ảnh mẫu thu nhỏ trên thẻ bước; chạy lỗi → Go gửi `engine:failed` (id bước + chỗ giống nhất nếu chờ ảnh hết giờ) → tự chọn bước lỗi, thẻ viền đỏ + nhãn "Dừng ở đây", inspector "Lần chạy trước hết giờ không thấy – chỗ giống nhất khớp n%", xem trên màn hình; cảnh báo khi độ khớp < 70%. `go test`, `npm test`, `npm run build` OK; chụp headless. Chưa kiểm tra tay, chưa commit.
 - **2026-10-17** – Sửa (người dùng báo): khoanh ảnh sát đáy màn hình thì nút "Dùng ảnh này / Khoanh lại" nằm dưới Dock – thêm `safeArea()` (`windowMode.ts`, theo `screen.availTop/availHeight`, trừ Dock / taskbar / thanh menu); nút đặt dưới khung → trên khung → cạnh khung trong vùng an toàn, nhãn cỡ né nút; phím **Enter = Dùng ảnh này**, Esc = khoanh lại; thanh số của Chọn nhiều cũng theo `safeArea`. `npm run build` OK, headless khung sát đáy → nút lên trên. Chưa kiểm tra tay, chưa commit.
+- **2026-10-17** – Kế hoạch: thêm bước **25d. Web qua DOM** (tách từ 28, theo yêu cầu người dùng) – tìm phần tử bằng HTML qua CDP, đo toạ độ trang → màn hình bằng chuột, click / cuộn bằng robotgo; xếp sau 26, trước 20 (bảng thứ tự + *Quyết định đã chốt*). Chỉ sửa tài liệu.
