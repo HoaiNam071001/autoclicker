@@ -17,10 +17,10 @@ import (
 
 // Lưu / mở kịch bản (bước 21): file .json, bản nháp tự lưu và danh sách mở gần đây trong configDir().
 
-// ScriptVersion – định dạng file kịch bản hiện tại. Tăng khi đổi model theo cách file cũ không đọc đúng được,
-// và thêm bước chuyển đổi trong decodeScript.
+// ScriptVersion – định dạng file kịch bản hiện tại. Tăng khi đổi model theo cách file cũ không đọc đúng được.
 // 2 (bước 21b): thêm inputs – app cũ không biết inputs nên không được mở file mới.
-const ScriptVersion = 2
+// 4 (bước 20): kịch bản thành flow node + cạnh. File cũ hơn KHÔNG chuyển đổi (người dùng chốt 2026-10-17) – báo không mở được.
+const ScriptVersion = 4
 
 const (
 	draftFile  = "draft.json"
@@ -63,6 +63,8 @@ func decodeScript(b []byte) (Script, error) {
 		return Script{}, errors.New("không phải file kịch bản (thiếu version)")
 	case sc.Version > ScriptVersion:
 		return Script{}, fmt.Errorf("file tạo bởi phiên bản app mới hơn (version %d, app đọc được tới %d) – hãy cập nhật app", sc.Version, ScriptVersion)
+	case sc.Version < ScriptVersion:
+		return Script{}, fmt.Errorf("kịch bản tạo bằng bản cũ (version %d, dạng danh sách bước), không mở được – bản này dùng dạng flow (version %d)", sc.Version, ScriptVersion)
 	}
 	if err := checkScript(&sc); err != nil {
 		return Script{}, err
@@ -70,8 +72,8 @@ func decodeScript(b []byte) (Script, error) {
 	return sc, nil
 }
 
-// checkScript kiểm tra giá trị nằm trong miền hợp lệ và bổ sung phần trống (slice nil, id trùng, nút / cách bấm mặc định)
-// để frontend dùng ngay được.
+// checkScript kiểm tra giá trị nằm trong miền hợp lệ và bổ sung phần trống (slice nil, id / ref trùng, nút / cách bấm mặc định,
+// cạnh trỏ node không còn) để frontend dùng ngay được. Không kiểm tra đủ flow – validateFlow làm lúc Chạy.
 func checkScript(sc *Script) error {
 	if sc.Loops < 0 || sc.MaxMinutes < 0 {
 		return errors.New("số vòng / số phút không được âm")
@@ -98,7 +100,58 @@ func checkScript(sc *Script) error {
 		}
 		ids[s.ID] = true
 	}
+	fixRefs(sc.Steps)
+	checkEdges(sc, ids)
 	return checkInputs(sc)
+}
+
+// fixRefs đặt ref cho node chưa có / trùng / sai dạng: n1, n2… (số nhỏ nhất chưa dùng).
+func fixRefs(steps []Step) {
+	used := map[string]bool{}
+	bad := []int{}
+	for i, s := range steps {
+		if !validRef(s.Ref) || used[s.Ref] {
+			bad = append(bad, i)
+			continue
+		}
+		used[s.Ref] = true
+	}
+	n := 0
+	for _, i := range bad {
+		for n++; used[fmt.Sprintf("n%d", n)]; n++ {
+		}
+		steps[i].Ref = fmt.Sprintf("n%d", n)
+		used[steps[i].Ref] = true
+	}
+}
+
+// checkEdges bỏ cạnh hỏng (trỏ node không còn, thiếu cổng, trùng cổng – sửa tay file), đặt id cạnh trống / trùng;
+// start trỏ node không còn thì bỏ trống.
+func checkEdges(sc *Script, ids map[string]bool) {
+	if sc.Edges == nil {
+		sc.Edges = []Edge{}
+	}
+	out := sc.Edges[:0]
+	seenPort := map[[2]string]bool{}
+	seenID := map[string]bool{}
+	n := 0
+	for _, e := range sc.Edges {
+		key := [2]string{e.From, e.Port}
+		if !ids[e.From] || !ids[e.To] || e.Port == "" || seenPort[key] {
+			continue
+		}
+		seenPort[key] = true
+		for e.ID == "" || seenID[e.ID] {
+			n++
+			e.ID = fmt.Sprintf("e%d", n)
+		}
+		seenID[e.ID] = true
+		out = append(out, e)
+	}
+	sc.Edges = out
+	if !ids[sc.Start] {
+		sc.Start = ""
+	}
 }
 
 func checkStep(s *Step) error {
@@ -115,16 +168,11 @@ func checkStep(s *Step) error {
 	if s.Direction != "" && !slices.Contains(scrollDirections, s.Direction) {
 		return fmt.Errorf("hướng cuộn không hợp lệ: %q", s.Direction)
 	}
-	if s.ImageSource != "" && s.ImageSource != ImageFromPrev && s.ImageSource != ImageFromSearch {
+	if s.ImageSource != "" && s.ImageSource != ImageFromNode && s.ImageSource != ImageFromSearch {
 		return fmt.Errorf("nguồn vị trí ảnh không hợp lệ: %q", s.ImageSource)
 	}
-	if f := s.OnFail; f != nil {
-		if f.Action != FailStop && f.Action != FailNext && f.Action != FailGoto {
-			return fmt.Errorf("cách xử lý khi thất bại không hợp lệ: %q", f.Action)
-		}
-		if f.Retries < 0 || f.Retries > maxRetries {
-			return fmt.Errorf("số lần thử lại phải trong 0–%d", maxRetries)
-		}
+	if r := s.Retry; r != nil && (r.Count < 0 || r.Count > maxRetries || r.DelayMs < 0) {
+		return fmt.Errorf("số lần thử lại phải trong 0–%d, thời gian nghỉ không âm", maxRetries)
 	}
 	if s.FindBy != "" && s.FindBy != FindByText {
 		return fmt.Errorf("cách tìm không hợp lệ: %q", s.FindBy)

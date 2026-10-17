@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync/atomic"
 	"time"
 )
 
@@ -18,13 +19,13 @@ const (
 	StepOpen   = "open"   // mở Target (URL / file / app) bằng App hoặc app mặc định của máy (open.go)
 
 	StepWaitImage  = "waitImage"  // chờ tới khi thấy ảnh mẫu Template trên màn hình (imagestep.go)
-	StepClickImage = "clickImage" // click vào chỗ thấy ảnh: kết quả bước chờ ảnh trước (ImageSource prev) hoặc tự tìm
+	StepClickImage = "clickImage" // click vào chỗ thấy ảnh: output của node ImageFrom (ImageSource node) hoặc tự tìm
 	StepWaitPixel  = "waitPixel"  // chờ tới khi điểm Points[0] có màu Color (± Tolerance)
 )
 
 // Nguồn vị trí của bước click theo ảnh (Step.ImageSource).
 const (
-	ImageFromPrev   = "prev"   // chỗ bước chờ ảnh / click theo ảnh gần nhất phía trước tìm thấy
+	ImageFromNode   = "node"   // chỗ node ImageFrom (chờ ảnh / chữ, click theo ảnh tự tìm) tìm thấy lần chạy gần nhất
 	ImageFromSearch = "search" // tự tìm ảnh mẫu riêng của bước
 )
 
@@ -53,13 +54,17 @@ type Rect struct {
 	H int `json:"h"`
 }
 
+// Step – một node của flow (bước 20): chạy xong trả StepResult (flow.go), cổng ra trong đó chọn cạnh đi tiếp.
 type Step struct {
 	ID            string   `json:"id"`
-	Type          string   `json:"type"`          // click | double | hold | drag | wait | type | key | scroll | open
-	Points        []Point  `json:"points"`        // drag dùng points[0] -> points[1]; scroll tuỳ chọn 1 điểm; type/key/wait/open không cần
-	Button        string   `json:"button"`        // left | right | center
-	Clicks        int      `json:"clicks"`        // click: số lần click
-	ClickInterval int      `json:"clickInterval"` // ms giữa các click
+	Type          string   `json:"type"`           // click | double | hold | drag | wait | type | key | scroll | open | waitImage | clickImage | waitPixel
+	Ref           string   `json:"ref"`            // mã ngắn n1, n2… (duy nhất) – node sau đọc kết quả bằng {{n2.output.x}}
+	Name          string   `json:"name,omitempty"` // tên hiện trên thẻ ("" = tên theo loại)
+	Pos           *Pos     `json:"pos,omitempty"`  // vị trí thẻ trên canvas (nil = chưa đặt, xếp tự động)
+	Points        []Point  `json:"points"`         // drag dùng points[0] -> points[1]; scroll tuỳ chọn 1 điểm; type/key/wait/open không cần
+	Button        string   `json:"button"`         // left | right | center
+	Clicks        int      `json:"clicks"`         // click: số lần click
+	ClickInterval int      `json:"clickInterval"`  // ms giữa các click
 	HoldMs        int      `json:"holdMs"`
 	DragMs        int      `json:"dragMs"`
 	DragFromPrev  bool     `json:"dragFromPrev"` // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
@@ -83,7 +88,8 @@ type Step struct {
 	TimeoutMs     int     `json:"timeoutMs,omitempty"`     // chờ tối đa
 	IntervalMs    int     `json:"intervalMs,omitempty"`    // kiểm tra mỗi
 	SearchArea    string  `json:"searchArea,omitempty"`    // "" = vùng của kịch bản | screen = cả màn chứa vùng (không có vùng: màn chính)
-	ImageSource   string  `json:"imageSource,omitempty"`   // clickImage: prev | search
+	ImageSource   string  `json:"imageSource,omitempty"`   // clickImage: node | search
+	ImageFrom     string  `json:"imageFrom,omitempty"`     // clickImage ImageSource node: id node lấy chỗ thấy
 	Dx            int     `json:"dx,omitempty"`            // clickImage: lệch so với tâm ảnh
 	Dy            int     `json:"dy,omitempty"`
 	FindBy        string  `json:"findBy,omitempty"`       // waitImage / clickImage tự tìm: "" = ảnh mẫu | text = chữ
@@ -91,7 +97,7 @@ type Step struct {
 	TextExact     bool    `json:"textExact,omitempty"`    // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
 	TextNoAccent  bool    `json:"textNoAccent,omitempty"` // FindBy text: bỏ qua dấu
 	Occurrence    int     `json:"occurrence,omitempty"`   // FindBy text: chỗ thứ mấy (trên → dưới, trái → phải); 0 = chỗ đầu
-	OnFail        *OnFail `json:"onFail,omitempty"`       // bước thất bại (không thấy ảnh / chữ / màu, lỗi): nil = dừng kịch bản
+	Retry         *Retry  `json:"retry,omitempty"`        // thất bại thì thử lại; hết lượt vẫn lỗi → cổng fail
 	Color         string  `json:"color,omitempty"`        // waitPixel: #RRGGBB
 	Tolerance     int     `json:"tolerance,omitempty"`    // waitPixel: sai số mỗi kênh màu (0–255)
 }
@@ -99,21 +105,28 @@ type Step struct {
 // Step.FindBy
 const FindByText = "text"
 
-// OnFail – làm gì khi bước thất bại: thử lại thêm Retries lần, vẫn không được thì Action.
-// (Bước 20 thêm Action "else" = chạy các bước nhánh khác rồi đi tiếp – xem docs/TASKS.md.)
-type OnFail struct {
-	Retries int    `json:"retries,omitempty"` // 0 = không thử lại
-	Action  string `json:"action"`            // stop | next | goto
-	Goto    string `json:"goto,omitempty"`    // action goto: id bước nhảy tới (cùng danh sách, trước hoặc sau)
+// Retry – node thất bại (không thấy ảnh / chữ / màu, lỗi) thì thử lại thêm Count lần, nghỉ DelayMs giữa các lần.
+// Thử hết vẫn lỗi → StepResult fail, đi ra cổng fail (không nối thì dừng kịch bản).
+type Retry struct {
+	Count   int `json:"count,omitempty"`
+	DelayMs int `json:"delayMs,omitempty"`
 }
 
-const (
-	FailStop = "stop" // dừng kịch bản, báo lỗi (mặc định)
-	FailNext = "next" // bỏ qua, sang bước sau
-	FailGoto = "goto" // nhảy tới bước Goto
-)
-
 const maxRetries = 100
+
+// Pos – vị trí thẻ node trên canvas (toạ độ canvas, không phải màn hình).
+type Pos struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
+
+// Edge – cạnh của flow: node From đi ra cổng Port thì chạy node To. Mỗi cổng tối đa một cạnh.
+type Edge struct {
+	ID   string `json:"id"`
+	From string `json:"from"`
+	Port string `json:"port"`
+	To   string `json:"to"`
+}
 
 // Cách neo điểm mới đặt (Script.AnchorMode).
 const (
@@ -127,15 +140,20 @@ type Script struct {
 	Region     *Rect         `json:"region"`     // nil = toàn màn hình (màn chính); toạ độ điểm neo theo cạnh vùng
 	Loops      int           `json:"loops"`      // 0 = vô hạn
 	MaxMinutes int           `json:"maxMinutes"` // 0 = không giới hạn
-	Steps      []Step        `json:"steps"`
+	Steps      []Step        `json:"steps"`      // các node của flow – thứ tự trong mảng không quyết định thứ tự chạy
+	Start      string        `json:"start"`      // id node bắt đầu
+	Edges      []Edge        `json:"edges"`
 	AnchorMode string        `json:"anchorMode,omitempty"` // "" = góc gần nhất | start = luôn trên trái
 	Inputs     []ScriptInput `json:"inputs,omitempty"`     // giá trị hỏi khi bấm Chạy (inputs.go)
 }
 
+// stepSeq – thêm vào id bước mới: gọi NewStep liên tiếp có thể cùng UnixNano (đồng hồ thô) → id trùng.
+var stepSeq atomic.Int64
+
 // NewStep trả bước mới với giá trị mặc định theo loại – dùng cho nút "+ Thêm bước".
 func (a *App) NewStep(stepType string) (Step, error) {
 	s := Step{
-		ID:         fmt.Sprintf("%d", time.Now().UnixNano()),
+		ID:         fmt.Sprintf("%d-%d", time.Now().UnixNano(), stepSeq.Add(1)),
 		Type:       stepType,
 		Points:     []Point{},
 		Button:     "left",
@@ -170,7 +188,7 @@ func (a *App) NewStep(stepType string) (Step, error) {
 	case StepWaitImage:
 		s.Threshold, s.TimeoutMs, s.IntervalMs, s.DelayAfter = 90, 10000, 250, 300
 	case StepClickImage:
-		s.ImageSource, s.Threshold, s.TimeoutMs, s.IntervalMs = ImageFromPrev, 90, 10000, 250
+		s.ImageSource, s.Threshold, s.TimeoutMs, s.IntervalMs = ImageFromNode, 90, 10000, 250
 	case StepWaitPixel:
 		s.Points = []Point{{}}
 		s.Color, s.Tolerance, s.TimeoutMs, s.IntervalMs, s.DelayAfter = "#000000", 10, 5000, 100, 300
@@ -182,5 +200,5 @@ func (a *App) NewStep(stepType string) (Step, error) {
 
 // NewScript trả kịch bản rỗng mặc định.
 func (a *App) NewScript() Script {
-	return Script{Version: ScriptVersion, Name: "Kịch bản 1", Loops: 1, Steps: []Step{}}
+	return Script{Version: ScriptVersion, Name: "Kịch bản 1", Loops: 1, Steps: []Step{}, Edges: []Edge{}}
 }

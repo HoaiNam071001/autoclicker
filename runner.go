@@ -31,7 +31,7 @@ func (a *App) ValidateScript(sc Script, values map[string]any) error {
 // RunScript áp giá trị input (resolveInputs) vào bản sao kịch bản, đếm ngược countdown giây rồi chạy; chỉ trả về khi chạy xong / bị dừng
 // (StopScript, F8, góc màn hình – kể cả lúc đang đếm ngược) / lỗi. Bị dừng không tính là lỗi.
 // Emit "engine:state" (true khi bắt đầu, false khi kết thúc), "engine:countdown" (số giây còn lại)
-// và "engine:progress" (Progress) trong lúc chạy.
+// "engine:progress" (Progress) và "engine:node" (StepResult mỗi node xong) trong lúc chạy.
 func (a *App) RunScript(sc Script, values map[string]any, countdown int) error {
 	screen := mainScreen()
 	sc, err := resolveInputs(sc, values)
@@ -51,6 +51,7 @@ func (a *App) RunScript(sc Script, values map[string]any, countdown int) error {
 	eng := newEngine(in, sc, func(p Progress) {
 		runtime.EventsEmit(a.ctx, "engine:progress", p)
 	})
+	eng.onNode = func(r StepResult) { runtime.EventsEmit(a.ctx, "engine:node", r) } // nhật ký chạy (bước 20 F5)
 	eng.screen = screen
 	eng.displays = displays()
 	h := &runHandle{cancel: cancel, eng: eng}

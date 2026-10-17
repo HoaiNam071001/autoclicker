@@ -15,7 +15,7 @@ const {
 } = await import('./scriptInputs');
 
 const base = (): Script => ({
-  version: 2, name: 'K', region: null, loops: 1, maxMinutes: 0,
+  version: 4, name: 'K', region: null, loops: 1, maxMinutes: 0, start: '', edges: [],
   steps: [
     makeStep({ id: 'a', type: 'click', points: [{ x: 1, y: 1 }], delayAfter: 500 }),
     makeStep({ id: 'b', type: 'type', text: 'xin chào {{M1}}' }),

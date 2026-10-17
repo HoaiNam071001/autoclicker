@@ -12,6 +12,8 @@ export function Displays():Promise<Array<main.DisplayInfo>>;
 
 export function FindImage(arg1:main.Script,arg2:string):Promise<main.FindResult>;
 
+export function FlowGuide():Promise<main.FlowGuideDoc>;
+
 export function GetInputMemory(arg1:string):Promise<main.InputMemory>;
 
 export function GetSettings():Promise<main.Settings>;

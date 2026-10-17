@@ -115,23 +115,23 @@ func TestNoInputsKeepsScript(t *testing.T) {
 
 func TestCheckInputs(t *testing.T) {
 	bad := map[string]string{
-		"key có dấu":      `{"version":2,"steps":[],"inputs":[{"key":"tên","type":"text"}]}`,
-		"key trùng":       `{"version":2,"steps":[],"inputs":[{"key":"a","type":"text"},{"key":"a","type":"text"}]}`,
-		"kiểu lạ":         `{"version":2,"steps":[],"inputs":[{"key":"a","type":"date"}]}`,
-		"trường lạ":       `{"version":2,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"ms","targets":[{"stepId":"s","field":"points"}]}]}`,
-		"sai kiểu trường": `{"version":2,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"text","targets":[{"stepId":"s","field":"delayAfter"}]}]}`,
+		"key có dấu":      `{"version":4,"steps":[],"inputs":[{"key":"tên","type":"text"}]}`,
+		"key trùng":       `{"version":4,"steps":[],"inputs":[{"key":"a","type":"text"},{"key":"a","type":"text"}]}`,
+		"kiểu lạ":         `{"version":4,"steps":[],"inputs":[{"key":"a","type":"date"}]}`,
+		"trường lạ":       `{"version":4,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"ms","targets":[{"stepId":"s","field":"points"}]}]}`,
+		"sai kiểu trường": `{"version":4,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"text","targets":[{"stepId":"s","field":"delayAfter"}]}]}`,
 	}
 	for name, in := range bad {
 		if _, err := decodeScript([]byte(in)); err == nil {
 			t.Errorf("%s: muốn lỗi", name)
 		}
 	}
-	sc, err := decodeScript([]byte(`{"version":2,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"ms","targets":[{"stepId":"s","field":"delayAfter"},{"stepId":"x","field":"delayAfter"}]}]}`))
+	sc, err := decodeScript([]byte(`{"version":4,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"ms","targets":[{"stepId":"s","field":"delayAfter"},{"stepId":"x","field":"delayAfter"}]}]}`))
 	if err != nil || len(sc.Inputs[0].Targets) != 1 {
 		t.Fatalf("bỏ ghim vào bước không còn: %v %+v", err, sc.Inputs)
 	}
-	if _, err := decodeScript([]byte(`{"version":1,"steps":[]}`)); err != nil {
-		t.Errorf("file version 1 vẫn mở được: %v", err)
+	if _, err := decodeScript([]byte(`{"version":3,"steps":[]}`)); err == nil || !strings.Contains(err.Error(), "bản cũ") {
+		t.Errorf("file version cũ (danh sách bước) phải bị từ chối: %v", err)
 	}
 }
 

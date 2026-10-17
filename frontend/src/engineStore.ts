@@ -9,8 +9,10 @@ import { inWails, setWindowMode } from './windowMode';
 export type Progress = {
   loop: number;
   loops: number; // 0 = vô hạn
-  step: number;
+  step: number; // số thứ tự node đang chạy (thứ tự hiển thị flowOrder, trong các node đang bật)
   total: number;
+  nodeId?: string; // node đang chạy (bước 20)
+  ref?: string;
   clicks: number;
   elapsedMs: number; // không tính thời gian tạm dừng
   paused: boolean;

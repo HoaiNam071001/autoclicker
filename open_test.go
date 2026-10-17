@@ -97,8 +97,8 @@ func TestValidateScrollOpen(t *testing.T) {
 	}
 	for name, s := range cases {
 		sc := Script{Region: &Rect{W: 100, H: 100}, Steps: []Step{s}}
-		if err := validateScript(sc, Rect{}); err == nil || !strings.HasPrefix(err.Error(), "bước 1:") {
-			t.Errorf("%s: muốn lỗi bước 1, có %v", name, err)
+		if err := validateScript(sc, Rect{}); err == nil || !strings.HasPrefix(err.Error(), "n1:") {
+			t.Errorf("%s: muốn lỗi ở n1, có %v", name, err)
 		}
 	}
 }

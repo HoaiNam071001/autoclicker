@@ -22,6 +22,10 @@ export function FindImage(arg1, arg2) {
   return window['go']['main']['App']['FindImage'](arg1, arg2);
 }
 
+export function FlowGuide() {
+  return window['go']['main']['App']['FlowGuide']();
+}
+
 export function GetInputMemory(arg1) {
   return window['go']['main']['App']['GetInputMemory'](arg1);
 }

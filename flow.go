@@ -1,0 +1,180 @@
+package main
+
+import (
+	"regexp"
+	"slices"
+	"time"
+)
+
+// Flow (bước 20): kịch bản là đồ thị – node (Step) + cạnh (Edge). Mỗi node chạy xong trả StepResult; cổng ra (Port)
+// trong kết quả chọn cạnh đi tiếp. Cổng fail không nối = dừng kịch bản báo lỗi; cổng khác không nối = kết thúc.
+
+// Cổng ra.
+const (
+	PortSuccess = "success"
+	PortFail    = "fail"
+)
+
+// StepResult.Status
+const (
+	StatusSuccess   = "success"
+	StatusFail      = "fail"
+	StatusSkipped   = "skipped"   // node tắt – đi tiếp cổng success
+	StatusCancelled = "cancelled" // người dùng dừng / hết thời gian chạy
+)
+
+// StepError.Code – loại lỗi, để UI / AI xử lý theo loại thay vì đọc chữ.
+const (
+	ErrNotFound     = "not_found"     // chờ ảnh / chữ / màu hết giờ không thấy
+	ErrTimeout      = "timeout"       // quá thời gian khác
+	ErrPermission   = "permission"    // thiếu quyền (Screen Recording, Accessibility)
+	ErrInvalidInput = "invalid_input" // dữ liệu node sai lúc chạy (biến trống, điểm ngoài màn…)
+	ErrCancelled    = "cancelled"
+	ErrInternal     = "internal"
+)
+
+// StepResult – kết quả một lần chạy node. Engine gửi lên UI (event engine:node), lưu vào nhật ký chạy;
+// node sau đọc qua biến {{n2.status}}, {{n2.output.x}}, {{n2.error.message}}.
+type StepResult struct {
+	NodeID     string         `json:"nodeId"`
+	Ref        string         `json:"ref"`
+	Status     string         `json:"status"`
+	Port       string         `json:"port,omitempty"` // cổng đi ra ("" khi bị huỷ)
+	Output     map[string]any `json:"output,omitempty"`
+	Error      *StepError     `json:"error,omitempty"`
+	Logs       []LogLine      `json:"logs,omitempty"`
+	Attempts   int            `json:"attempts"` // số lần chạy (1 + số lần thử lại đã dùng)
+	StartedAt  time.Time      `json:"startedAt"`
+	DurationMs int64          `json:"durationMs"`
+}
+
+type StepError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type LogLine struct {
+	AtMs  int64  `json:"atMs"`  // ms tính từ lúc node bắt đầu
+	Level string `json:"level"` // info | warn | error
+	Msg   string `json:"msg"`
+}
+
+// portsOf – cổng ra hợp lệ của node, theo thứ tự hiện trên thẻ (trên → dưới). Node điều khiển (F3) thêm cổng riêng.
+func portsOf(s Step) []string {
+	return []string{PortSuccess, PortFail}
+}
+
+func hasPort(s Step, port string) bool {
+	for _, p := range portsOf(s) {
+		if p == port {
+			return true
+		}
+	}
+	return false
+}
+
+var refPattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]{0,31}$`)
+
+// validRef: mã node dùng được trong biến {{ref.output.x}} – chữ cái đầu, chữ / số / _, không trùng tên dành riêng.
+func validRef(r string) bool {
+	return refPattern.MatchString(r) && r != "vars" && r != "last"
+}
+
+// edgeOut trả node đích của cổng (from, port), "" nếu cổng chưa nối.
+func edgeOut(edges []Edge, from, port string) string {
+	for _, e := range edges {
+		if e.From == from && e.Port == port {
+			return e.To
+		}
+	}
+	return ""
+}
+
+// flowOrder – thứ tự hiển thị node (đánh số marker overlay, Xem trước, form Chạy): duyệt sâu từ start, ở mỗi node đi
+// các cổng theo thứ tự portsOf (nhánh success / true / case đầu trước), node đã gặp thì bỏ qua; node không đi tới được
+// xếp cuối theo thứ tự trong mảng. frontend/src/flow.ts phải cùng công thức (test chung testdata/flow_order.json).
+func flowOrder(sc Script) []string {
+	byID := make(map[string]Step, len(sc.Steps))
+	for _, s := range sc.Steps {
+		byID[s.ID] = s
+	}
+	seen := map[string]bool{}
+	order := make([]string, 0, len(sc.Steps))
+	var stack []string
+	if _, ok := byID[sc.Start]; ok {
+		stack = append(stack, sc.Start)
+	}
+	for len(stack) > 0 {
+		id := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		order = append(order, id)
+		ports := portsOf(byID[id])
+		for i := len(ports) - 1; i >= 0; i-- { // đẩy ngược để cổng đầu được lấy ra trước
+			if to := edgeOut(sc.Edges, id, ports[i]); to != "" && !seen[to] {
+				if _, ok := byID[to]; ok {
+					stack = append(stack, to)
+				}
+			}
+		}
+	}
+	for _, s := range sc.Steps {
+		if !seen[s.ID] {
+			order = append(order, s.ID)
+		}
+	}
+	return order
+}
+
+// reachableFrom – các node đi tới được từ start theo mọi cạnh (node còn lại sẽ không bao giờ chạy – UI cảnh báo).
+func reachableFrom(sc Script) map[string]bool {
+	seen := map[string]bool{}
+	stack := []string{}
+	if sc.Start != "" {
+		stack = append(stack, sc.Start)
+	}
+	for len(stack) > 0 {
+		id := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		for _, e := range sc.Edges {
+			if e.From == id {
+				stack = append(stack, e.To)
+			}
+		}
+	}
+	return seen
+}
+
+// linearToFlow – CẦU NỐI TẠM tới bước 20 F4b (canvas thay danh sách bước): danh sách bước cũ chưa có start / cạnh thì
+// nối thành chuỗi theo thứ tự mảng (success → node kế), click theo ảnh chưa chọn node nguồn thì lấy node chờ ảnh / chữ
+// gần nhất phía trước, node chưa có mã thì đặt n1, n2… Kịch bản đã có start hoặc cạnh giữ nguyên. Sửa trên bản sao
+// mảng node (không đụng kịch bản của nơi gọi). Gọi ở đầu validateScript và engine.run. Xoá ở F4b.
+func linearToFlow(sc *Script) {
+	if sc.Start != "" || len(sc.Edges) > 0 || len(sc.Steps) == 0 {
+		return
+	}
+	sc.Steps = slices.Clone(sc.Steps)
+	fixRefs(sc.Steps)
+	sc.Edges = nil
+	sc.Start = sc.Steps[0].ID
+	for i := 0; i+1 < len(sc.Steps); i++ {
+		sc.Edges = append(sc.Edges, Edge{ID: "auto" + sc.Steps[i].ID, From: sc.Steps[i].ID, Port: PortSuccess, To: sc.Steps[i+1].ID})
+	}
+	src := ""
+	for i := range sc.Steps {
+		s := &sc.Steps[i]
+		if s.Type == StepClickImage && s.ImageSource != ImageFromSearch && s.ImageFrom == "" {
+			s.ImageFrom = src
+		}
+		if s.Enabled && (s.Type == StepWaitImage || s.Type == StepClickImage && s.ImageSource == ImageFromSearch) {
+			src = s.ID
+		}
+	}
+}

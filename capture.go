@@ -61,6 +61,9 @@ func (s robotgoScreen) Pixel(x, y int) (color.RGBA, error) {
 }
 
 // captureArea kiểm tra vùng chụp nằm gọn trong một màn hình (ds – khung các màn; rỗng = không kiểm tra).
+// errNoPermission – thiếu quyền ghi màn hình (macOS Screen Recording) – StepError code permission.
+var errNoPermission = errors.New("chưa cấp quyền ghi màn hình (Screen Recording) – System Settings → Privacy & Security → Screen Recording, bật cho app / terminal rồi mở lại")
+
 func captureArea(r Rect, ds []Rect) error {
 	if r.W <= 0 || r.H <= 0 {
 		return errors.New("vùng tìm rỗng")

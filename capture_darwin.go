@@ -82,7 +82,7 @@ func requestScreenCapture() bool { return C.request() == 1 }
 
 func screenCaptureCheck() error {
 	if !screenCaptureAllowed() {
-		return errors.New("chưa cấp quyền ghi màn hình (Screen Recording) – System Settings → Privacy & Security → Screen Recording, bật cho app / terminal rồi mở lại")
+		return errNoPermission
 	}
 	return nil
 }

@@ -5,6 +5,21 @@ import (
 	"testing"
 )
 
+// Kịch bản flow mẫu cho AI đọc được và chạy qua kiểm tra đầy đủ (input lấy mặc định).
+func TestFlowExampleValidates(t *testing.T) {
+	sc, err := decodeScript([]byte(flowExample))
+	if err != nil {
+		t.Fatal(err)
+	}
+	sc, err = resolveInputs(sc, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := validateScript(sc, Rect{W: 1920, H: 1080}); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // Mọi loại bước NewStep nhận đều có mô tả; ví dụ đọc được qua checkStep và đúng loại.
 func TestStepTypeDocs(t *testing.T) {
 	docs := map[string]bool{}

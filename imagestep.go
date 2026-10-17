@@ -89,20 +89,38 @@ func (e *engine) waitLoop(ctx context.Context, s Step, kind string, check func()
 
 var errTimeout = errors.New("hết giờ")
 
-// findImage chờ tới khi thấy ảnh mẫu; trả tâm chỗ thấy (toạ độ robotgo) và nhớ lại cho bước click theo ảnh sau.
-func (e *engine) findImage(ctx context.Context, s Step) (Point, error) {
+// hit – chỗ thấy ảnh / chữ (toạ độ robotgo): output của node chờ ảnh / chữ, node click theo ảnh lấy lại qua ImageFrom.
+type hit struct {
+	Box   Rect
+	Score int    // % khớp (tìm theo chữ: 100)
+	Text  string // tìm theo chữ: dòng chứa chữ
+}
+
+func (h hit) center() Point { return Point{X: h.Box.X + h.Box.W/2, Y: h.Box.Y + h.Box.H/2} }
+
+func (h hit) output() map[string]any {
+	c := h.center()
+	out := map[string]any{"x": c.X, "y": c.Y, "w": h.Box.W, "h": h.Box.H, "score": h.Score}
+	if h.Text != "" {
+		out["text"] = h.Text
+	}
+	return out
+}
+
+// findImage chờ tới khi thấy ảnh mẫu (hoặc chữ, FindBy text); trả chỗ thấy.
+func (e *engine) findImage(ctx context.Context, s Step) (hit, error) {
 	area := e.searchArea(s)
 	if err := captureArea(area, e.displays); err != nil {
-		return Point{}, err
+		return hit{}, err
 	}
 	if s.FindBy == FindByText {
 		return e.findTextStep(ctx, s, area)
 	}
 	tpl, err := e.template(s)
 	if err != nil {
-		return Point{}, err
+		return hit{}, err
 	}
-	var at Point
+	var at hit
 	var miss FindResult // chỗ giống nhất tới giờ – hết giờ thì báo lại
 	best, err := e.waitLoop(ctx, s, "image", func() (bool, int, error) {
 		img, err := e.scr.Capture(area)
@@ -118,26 +136,25 @@ func (e *engine) findImage(ctx context.Context, s Step) (Point, error) {
 		if score < s.Threshold {
 			return false, score, nil
 		}
-		at = Point{X: area.X + int((float64(m.X)+float64(m.W)/2)/sc), Y: area.Y + int((float64(m.Y)+float64(m.H)/2)/sc)}
+		at = hit{Score: score, Box: Rect{X: area.X + int(float64(m.X)/sc), Y: area.Y + int(float64(m.Y)/sc), W: int(float64(m.W) / sc), H: int(float64(m.H) / sc)}}
 		return true, score, nil
 	})
 	if errors.Is(err, errTimeout) {
 		e.miss = &miss
-		return Point{}, fmt.Errorf("không thấy ảnh mẫu sau %s (khớp nhất %d%%, cần %d%%)", fmtSeconds(s.TimeoutMs), best, s.Threshold)
+		return hit{}, &notFoundErr{fmt.Sprintf("không thấy ảnh mẫu sau %s (khớp nhất %d%%, cần %d%%)", fmtSeconds(s.TimeoutMs), best, s.Threshold)}
 	}
 	if err != nil {
-		return Point{}, err
+		return hit{}, err
 	}
-	e.found, e.hasFound = at, true
 	return at, nil
 }
 
-// findTextStep chờ tới khi đọc được chữ s.FindText trong vùng; trả tâm chữ (toạ độ robotgo).
-func (e *engine) findTextStep(ctx context.Context, s Step, area Rect) (Point, error) {
-	var at Point
+// findTextStep chờ tới khi đọc được chữ s.FindText trong vùng; trả khung chữ (toạ độ robotgo).
+func (e *engine) findTextStep(ctx context.Context, s Step, area Rect) (hit, error) {
+	var at hit
 	var read []string
 	_, err := e.waitLoop(ctx, s, "text", func() (bool, int, error) {
-		hit, lines, ok, err := locateText(e.scr, e.ocr, area, s)
+		box, lines, ok, err := locateText(e.scr, e.ocr, area, s)
 		if err != nil {
 			return false, 0, err
 		}
@@ -145,17 +162,16 @@ func (e *engine) findTextStep(ctx context.Context, s Step, area Rect) (Point, er
 			read = lines
 			return false, 0, nil
 		}
-		at = Point{X: hit.X + hit.W/2, Y: hit.Y + hit.H/2}
+		at = hit{Box: box, Score: 100, Text: s.FindText}
 		return true, 100, nil
 	})
 	if errors.Is(err, errTimeout) {
 		e.miss = &FindResult{Area: area, Read: read}
-		return Point{}, fmt.Errorf("không thấy chữ “%s” sau %s%s", s.FindText, fmtSeconds(s.TimeoutMs), readHint(read))
+		return hit{}, &notFoundErr{fmt.Sprintf("không thấy chữ “%s” sau %s%s", s.FindText, fmtSeconds(s.TimeoutMs), readHint(read))}
 	}
 	if err != nil {
-		return Point{}, err
+		return hit{}, err
 	}
-	e.found, e.hasFound = at, true
 	return at, nil
 }
 
@@ -206,28 +222,46 @@ func matchScaled(img image.Image, area Rect, tpl gray, tplScale float64) (Match,
 		W: int(math.Round(float64(m.W) * k)), H: int(math.Round(float64(m.H) * k)), Score: m.Score}, sc
 }
 
-// clickImage click vào chỗ thấy ảnh (+ Dx / Dy): kết quả bước chờ ảnh trước, hoặc tự tìm ảnh mẫu của bước.
-func (e *engine) clickImage(ctx context.Context, s Step) error {
-	p := e.found
+// clickImage click vào chỗ thấy (+ Dx / Dy): chỗ node ImageFrom thấy lần gần nhất trong vòng, hoặc tự tìm ảnh / chữ.
+// Output: chỗ đã click, kèm chỗ thấy khi tự tìm.
+func (e *engine) clickImage(ctx context.Context, s Step) (map[string]any, error) {
+	var out map[string]any
+	var p Point
 	if s.ImageSource == ImageFromSearch {
-		var err error
-		if p, err = e.findImage(ctx, s); err != nil {
-			return err
+		h, err := e.findImage(ctx, s)
+		if err != nil {
+			return nil, err
 		}
-	} else if !e.hasFound {
-		return errors.New("phía trước chưa có bước chờ ảnh nào tìm thấy ảnh")
+		out, p = h.output(), h.center()
+	} else {
+		r := e.results[s.ImageFrom]
+		ref := e.byID[s.ImageFrom].Ref
+		if r == nil || r.Status != StatusSuccess {
+			return nil, fmt.Errorf("node %s chưa tìm thấy gì trong vòng này (chưa chạy hoặc lần gần nhất thất bại)", ref)
+		}
+		x, okX := r.Output["x"].(int)
+		y, okY := r.Output["y"].(int)
+		if !okX || !okY {
+			return nil, fmt.Errorf("node %s không có chỗ thấy (output x / y)", ref)
+		}
+		out, p = map[string]any{}, Point{X: x, Y: y}
 	}
-	if err := e.move(e.jitter(p.X+s.Dx, s.JitterPx), e.jitter(p.Y+s.Dy, s.JitterPx)); err != nil {
-		return err
+	x, y := e.jitter(p.X+s.Dx, s.JitterPx), e.jitter(p.Y+s.Dy, s.JitterPx)
+	if err := e.move(x, y); err != nil {
+		return nil, err
 	}
-	return e.click(s.Button, false)
+	if err := e.click(s.Button, false); err != nil {
+		return nil, err
+	}
+	out["clickX"], out["clickY"] = x, y
+	return out, nil
 }
 
-// waitPixel chờ tới khi điểm Points[0] có màu Color (mỗi kênh lệch ≤ Tolerance).
-func (e *engine) waitPixel(ctx context.Context, s Step) error {
+// waitPixel chờ tới khi điểm Points[0] có màu Color (mỗi kênh lệch ≤ Tolerance); trả màu đọc được.
+func (e *engine) waitPixel(ctx context.Context, s Step) (string, error) {
 	want, err := parseColor(s.Color)
 	if err != nil {
-		return err
+		return "", err
 	}
 	p := resolvePoint(s.Points[0], bounds(e.sc, e.screen))
 	var last string
@@ -241,9 +275,9 @@ func (e *engine) waitPixel(ctx context.Context, s Step) error {
 		return d <= s.Tolerance, 100 - d*100/255, nil
 	})
 	if errors.Is(err, errTimeout) {
-		return fmt.Errorf("điểm X %d Y %d vẫn màu %s sau %s (cần %s ± %d)", p.X, p.Y, last, fmtSeconds(s.TimeoutMs), s.Color, s.Tolerance)
+		return "", &notFoundErr{fmt.Sprintf("điểm X %d Y %d vẫn màu %s sau %s (cần %s ± %d)", p.X, p.Y, last, fmtSeconds(s.TimeoutMs), s.Color, s.Tolerance)}
 	}
-	return err
+	return last, err
 }
 
 func fmtSeconds(ms int) string {

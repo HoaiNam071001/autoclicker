@@ -8,10 +8,31 @@ export type Point = { x: number; y: number };
 // Điểm lưu trong bước: neo theo cạnh vùng từng trục (khớp Point trong model.go).
 export type StepPoint = Point & { ax?: Anchor; ay?: Anchor };
 export type Rect = { x: number; y: number; w: number; h: number };
-// Khi bước thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm retries lần, rồi action. Khớp OnFail trong model.go.
-export type OnFail = { retries?: number; action: 'stop' | 'next' | 'goto'; goto?: string };
-// Bước có thể "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại
+// Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
+export type Retry = { count?: number; delayMs?: number };
+// Node hay "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại (thử lại)
 export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'open'];
+
+// ---- Flow (bước 20, flow.go) ----
+// Cạnh: node from đi ra cổng port thì chạy node to. Mỗi cổng tối đa một cạnh. Khớp Edge trong model.go.
+export interface Edge { id: string; from: string; port: string; to: string }
+export type StepStatus = 'success' | 'fail' | 'skipped' | 'cancelled';
+export type ErrorCode = 'not_found' | 'timeout' | 'permission' | 'invalid_input' | 'cancelled' | 'internal';
+// Kết quả một lần chạy node (event engine:node) – khớp StepResult trong flow.go.
+export interface StepResult {
+  nodeId: string;
+  ref: string;
+  status: StepStatus;
+  port?: string;
+  output?: Record<string, unknown>;
+  error?: { code: ErrorCode; message: string };
+  logs?: { atMs: number; level: 'info' | 'warn' | 'error'; msg: string }[];
+  attempts: number;
+  startedAt: string;
+  durationMs: number;
+}
+const edgeMatchesGo: Same<keyof Edge, keyof Fields<main.Edge>> = true;
+void edgeMatchesGo; // StepResult chưa có trong binding (chưa method public nào trả nó) – thêm kiểm tra khi có RunNode (F5)
 
 export type StepType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel';
 export type ScrollDirection = 'up' | 'down' | 'left' | 'right';
@@ -20,9 +41,13 @@ export type Modifier = 'cmd' | 'ctrl' | 'alt' | 'shift';
 // chord: nhấn giữ cùng lúc (Ctrl+C+T) · sequence: giữ phím kèm, gõ lần lượt từng phím chính
 export type KeyMode = 'chord' | 'sequence';
 
+// Node của flow (bước 20) – khớp Step trong model.go.
 export interface Step {
   id: string;
   type: StepType;
+  ref: string; // mã ngắn n1, n2… (duy nhất) – biến {{n2.output.x}}
+  name?: string; // tên trên thẻ, bỏ trống = tên theo loại
+  pos?: Point; // vị trí thẻ trên canvas
   points: StepPoint[]; // drag: points[0] -> points[1]; B lệch so với A (dragRelative) không dùng neo
   button: MouseButton;
   clicks: number;
@@ -50,7 +75,8 @@ export interface Step {
   timeoutMs?: number; // chờ tối đa
   intervalMs?: number; // kiểm tra mỗi
   searchArea?: 'screen'; // bỏ trống = vùng của kịch bản
-  imageSource?: 'prev' | 'search'; // clickImage
+  imageSource?: 'node' | 'search'; // clickImage: chỗ node imageFrom thấy / tự tìm
+  imageFrom?: string; // clickImage imageSource node: id node lấy chỗ thấy
   dx?: number; // clickImage: lệch so với tâm ảnh
   dy?: number;
   findBy?: 'text'; // waitImage / clickImage tự tìm: bỏ trống = ảnh mẫu, text = tìm chữ (ocr.go)
@@ -58,7 +84,7 @@ export interface Step {
   textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
   textNoAccent?: boolean; // bỏ qua dấu
   occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu
-  onFail?: OnFail; // bước thất bại: bỏ trống = dừng kịch bản (engine.go runWithRetry)
+  retry?: Retry; // thất bại thì thử lại; hết lượt → cổng fail (flowrun.go execNode)
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
 }
@@ -76,7 +102,9 @@ export interface Script {
   region: Rect | null; // toạ độ màn hình thật (robotgo)
   loops: number; // 0 = vô hạn
   maxMinutes: number; // 0 = không giới hạn
-  steps: Step[];
+  steps: Step[]; // node của flow – thứ tự mảng không quyết định thứ tự chạy
+  start: string; // id node bắt đầu
+  edges: Edge[];
   anchorMode?: AnchorMode; // điểm mới đặt neo theo: bỏ trống = góc gần nhất, start = luôn trên trái
   inputs?: ScriptInput[]; // giá trị hỏi khi bấm Chạy (bước 21b, inputs.go)
 }
@@ -107,7 +135,7 @@ void inputMatchesGo;
 
 // Tạo bước với giá trị trống, ghi đè bằng p (dùng cho dữ liệu mẫu / demo).
 export const makeStep = (p: Partial<Step> & Pick<Step, 'id' | 'type'>): Step => ({
-  points: [], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false,
+  ref: '', points: [], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false,
   text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true, ...p,
 });
 
@@ -175,14 +203,14 @@ export const fmtKey = (s: Step) => {
 };
 
 export const sampleSteps: Step[] = [
-  { id: '1', type: 'click', points: [{ x: 412, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '2', type: 'double', points: [{ x: 640, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '3', type: 'click', points: [{ x: 812, y: 436 }], button: 'left', clicks: 5, clickInterval: 120, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 800, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '4', type: 'drag', points: [{ x: 300, y: 600 }, { x: 900, y: 600 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 400, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 1000, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '5', type: 'wait', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 2000, jitterMs: 0, jitterPx: 0, enabled: false },
-  { id: '6', type: 'click', points: [{ x: 1100, y: 520 }], button: 'right', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '7', type: 'type', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: 'xin chao 123', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '8', type: 'key', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: ['enter'], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '1', ref: 'n1', type: 'click', points: [{ x: 412, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '2', ref: 'n2', type: 'double', points: [{ x: 640, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '3', ref: 'n3', type: 'click', points: [{ x: 812, y: 436 }], button: 'left', clicks: 5, clickInterval: 120, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 800, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '4', ref: 'n4', type: 'drag', points: [{ x: 300, y: 600 }, { x: 900, y: 600 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 400, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 1000, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '5', ref: 'n5', type: 'wait', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 2000, jitterMs: 0, jitterPx: 0, enabled: false },
+  { id: '6', ref: 'n6', type: 'click', points: [{ x: 1100, y: 520 }], button: 'right', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '7', ref: 'n7', type: 'type', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: 'xin chao 123', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true },
+  { id: '8', ref: 'n8', type: 'key', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: ['enter'], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
 ];
 
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);

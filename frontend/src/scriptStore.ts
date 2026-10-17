@@ -25,7 +25,7 @@ type EditorState = {
 
 let state: EditorState = {
   // app thật: kịch bản trống cho tới khi scriptFile.ts nạp bản nháp; trình duyệt: dữ liệu mẫu
-  script: { version: 1, name: 'Kịch bản 1', region: null, loops: inWails ? 1 : 10, maxMinutes: 0, steps: inWails ? [] : sampleSteps },
+  script: { version: 4, name: 'Kịch bản 1', region: null, loops: inWails ? 1 : 10, maxMinutes: 0, steps: inWails ? [] : sampleSteps, start: '', edges: [] },
   path: null,
   dirty: false,
   selected: inWails ? '' : '3',
@@ -195,7 +195,7 @@ export function changeStepType(id: string, type: StepType) {
     threshold: s.threshold ?? 90,
     timeoutMs: s.timeoutMs ?? (type === 'waitPixel' ? 5000 : 10000),
     intervalMs: s.intervalMs ?? (type === 'waitPixel' ? 100 : 250),
-    imageSource: type === 'clickImage' ? s.imageSource ?? 'prev' : s.imageSource,
+    imageSource: type === 'clickImage' ? s.imageSource ?? 'node' : s.imageSource,
     color: type === 'waitPixel' ? s.color ?? '#000000' : s.color,
     tolerance: type === 'waitPixel' ? s.tolerance ?? 10 : s.tolerance,
   });
@@ -230,7 +230,7 @@ export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scrol
     scroll: { clicks: 0, direction: 'down', amount: 3, delayAfter: 500 },
     open: { clicks: 0, target: 'https://', delayAfter: 2000 },
     waitImage: { clicks: 0, threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 300 },
-    clickImage: { imageSource: 'prev', threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 500 },
+    clickImage: { imageSource: 'node', threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 500 },
     waitPixel: {
       clicks: 0, points: [nearestAnchor({ x: b.x + Math.round(b.w / 2), y: b.y + Math.round(b.h / 2) }, b)],
       color: '#000000', tolerance: 10, timeoutMs: 5000, intervalMs: 100, delayAfter: 300,

@@ -19,7 +19,7 @@ import {
 import { loadMemory, stopAutoRun, useRunForm } from '../runForm';
 import {
   fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, MouseButton, PinField, SCROLL_NOTCH_PX, ScrollDirection, Step, STEP_LABEL, stepLabel,
-  StepPoint, StepType, CAN_FAIL, OnFail,
+  StepPoint, StepType, CAN_FAIL,
 } from '../types';
 import { insideBounds } from '../anchor';
 import { checkCapture, pickColor, requestCapture, startCapture, templateUrl, testFind, useImageState } from '../imageSteps';
@@ -158,7 +158,7 @@ export default function StepForm({ step: s, index }: Props) {
         {s.type === 'waitImage' && <ImageSearchFields step={s} />}
         {s.type === 'clickImage' && <ClickImageFields step={s} />}
         {s.type === 'waitPixel' && <WaitPixelFields step={s} setPoint={setPoint} />}
-        {CAN_FAIL.includes(s.type) && <OnFailFields step={s} />}
+        {CAN_FAIL.includes(s.type) && <RetryFields step={s} />}
 
         {s.type === 'open' && (
           <>
@@ -646,44 +646,28 @@ function TextSearchFields({ step: s }: { step: Step }) {
   );
 }
 
-// Khi thất bại: thử lại N lần, rồi dừng / bỏ qua / nhảy tới bước (engine.go runWithRetry).
-function OnFailFields({ step: s }: { step: Step }) {
-  const { steps } = useScript();
-  const f: OnFail = s.onFail ?? { action: 'stop' };
-  const set = (patch: Partial<OnFail>) => {
-    const next = { ...f, ...patch };
-    if (next.action !== 'goto') delete next.goto;
-    if (!next.retries) delete next.retries;
-    updateStep(s.id, { onFail: next.action === 'stop' && !next.retries ? undefined : next });
+// Khi thất bại: thử lại N lần, nghỉ giữa các lần; hết lượt vẫn lỗi → dừng kịch bản (cổng fail – nối nhánh khác trên canvas, bước 20 F4b).
+function RetryFields({ step: s }: { step: Step }) {
+  const r = s.retry ?? {};
+  const set = (patch: Partial<NonNullable<Step['retry']>>) => {
+    const next = { ...r, ...patch };
+    updateStep(s.id, { retry: next.count ? next : undefined });
   };
   const what = s.type === 'open' ? 'mở không được' : s.type === 'waitPixel' ? 'không đổi màu' : 'không thấy';
-  const target = steps.findIndex((x) => x.id === f.goto);
-  const others = steps.map((x, j) => ({ x, j })).filter(({ x }) => x.id !== s.id);
   return (
     <Field label={`Khi ${what}`} wide group>
       <div className="flex flex-wrap items-center gap-2 text-[13px] text-ink">
         <span className="flex items-center gap-2">Thử lại
-          <NumInput value={f.retries ?? 0} min={0} onChange={(n) => set({ retries: Math.min(n, 100) })} className="w-20" unit="lần" />
+          <NumInput value={r.count ?? 0} min={0} onChange={(n) => set({ count: Math.min(n, 100) })} className="w-20" unit="lần" />
         </span>
-        <span className="text-muted">{f.retries ? 'vẫn không được thì' : 'rồi'}</span>
+        {!!r.count && (
+          <span className="flex items-center gap-2">nghỉ
+            <NumInput value={r.delayMs ?? 0} min={0} onChange={(delayMs) => set({ delayMs })} className="w-24" unit="ms" />
+          </span>
+        )}
       </div>
-      <Segmented value={f.action} full label={`Khi ${what}`}
-        onChange={(action: OnFail['action']) => set({ action, ...(action === 'goto' && !f.goto ? { goto: others.find(({ j }) => j > steps.indexOf(s))?.x.id ?? others[0]?.x.id } : {}) })}
-        options={[{ id: 'stop', label: 'Dừng kịch bản' }, { id: 'next', label: 'Bỏ qua' }, { id: 'goto', label: 'Nhảy tới bước' }]} />
-      {f.action === 'goto' && (
-        <select value={f.goto ?? ''} onChange={(e) => set({ goto: e.target.value })}
-          className={`${selectBox} ${target < 0 ? 'border-danger' : ''}`}>
-          {target < 0 && <option value="">— chọn bước —</option>}
-          {others.map(({ x, j }) => (
-            <option key={x.id} value={x.id}>Bước {j + 1} · {stepLabel(x)}{x.enabled ? '' : ' (đang tắt)'}</option>
-          ))}
-        </select>
-      )}
-      <span className={`text-xs ${f.action === 'goto' && target < 0 ? 'text-danger-text' : 'text-muted'}`}>
-        {f.action === 'stop' ? `Dừng cả kịch bản, báo lỗi ở bước này${f.retries ? ` (sau ${f.retries + 1} lần thử)` : ''}.`
-          : f.action === 'next' ? `Bỏ qua bước này, chạy tiếp bước sau.${s.type === 'waitImage' ? ' Bước Click theo kết quả bước này cũng sẽ không có chỗ để click – đặt “Bỏ qua” cho nó luôn.' : ''}`
-          : target < 0 ? 'Bước nhảy tới đã bị xoá – chọn lại.'
-          : `Chạy tiếp từ bước ${target + 1}${target < steps.indexOf(s) ? ' (quay lại – như lặp lại đoạn trước, tối đa 1000 lần mỗi vòng)' : ' (bỏ qua các bước ở giữa)'}.`}
+      <span className="text-xs text-muted">
+        {`Thử hết vẫn ${what} thì dừng kịch bản, báo lỗi ở bước này${r.count ? ` (sau ${r.count + 1} lần thử)` : ''}. Rẽ sang nhánh khác khi thất bại: làm trên canvas flow (sắp có).`}
       </span>
     </Field>
   );
@@ -701,8 +685,8 @@ function ClickImageFields({ step: s }: { step: Step }) {
   return (
     <>
       <Field label="Click vào" wide group>
-        <Segmented value={s.imageSource ?? 'prev'} onChange={(imageSource: 'prev' | 'search') => set({ imageSource })} full
-          options={[{ id: 'prev', label: prev ? `Kết quả bước ${prev.n}` : 'Kết quả bước trước' }, { id: 'search', label: 'Tự tìm (ảnh / chữ)' }]} label="Click vào" />
+        <Segmented value={s.imageSource ?? 'node'} onChange={(imageSource: 'node' | 'search') => set({ imageSource })} full
+          options={[{ id: 'node', label: prev ? `Kết quả bước ${prev.n}` : 'Kết quả bước trước' }, { id: 'search', label: 'Tự tìm (ảnh / chữ)' }]} label="Click vào" />
         <span className={`text-xs ${s.imageSource !== 'search' && !prev ? 'text-danger-text' : 'text-muted'}`}>
           {s.imageSource === 'search' ? `Tự tìm ${s.findBy === 'text' ? 'chữ' : 'ảnh mẫu'} lúc chạy (chờ như bước ${s.findBy === 'text' ? 'Chờ chữ' : 'Chờ ảnh'}) rồi click vào giữa`
             : prev ? `Click vào chỗ bước ${prev.n} (${stepLabel(prev.x)}) tìm thấy – không chụp lại`

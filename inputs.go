@@ -83,14 +83,18 @@ var varRe = regexp.MustCompile(`\\\{\{|\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}`)
 
 // ScriptError – lỗi kiểm tra kịch bản có cấu trúc (bước / trường / input) để UI, CLI và AI (MCP, bước 31) biết chỗ sửa.
 type ScriptError struct {
-	Step   int    `json:"step,omitempty"` // thứ tự bước từ 1, 0 = không thuộc bước nào
+	Step   int    `json:"step,omitempty"` // vị trí node trong mảng steps từ 1, 0 = không thuộc node nào
 	StepID string `json:"stepId,omitempty"`
+	Ref    string `json:"ref,omitempty"` // mã node (n2) – hiện trong lời báo lỗi
 	Field  string `json:"field,omitempty"`
 	Input  string `json:"input,omitempty"` // key input liên quan
 	Msg    string `json:"message"`
 }
 
 func (e *ScriptError) Error() string {
+	if e.Ref != "" {
+		return fmt.Sprintf("%s: %s", e.Ref, e.Msg)
+	}
 	if e.Step > 0 {
 		return fmt.Sprintf("bước %d: %s", e.Step, e.Msg)
 	}
@@ -98,7 +102,7 @@ func (e *ScriptError) Error() string {
 }
 
 func stepErr(i int, s Step, field, format string, a ...any) *ScriptError {
-	return &ScriptError{Step: i + 1, StepID: s.ID, Field: field, Msg: fmt.Sprintf(format, a...)}
+	return &ScriptError{Step: i + 1, StepID: s.ID, Ref: s.Ref, Field: field, Msg: fmt.Sprintf(format, a...)}
 }
 
 func inputErr(in ScriptInput, format string, a ...any) *ScriptError {

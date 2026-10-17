@@ -35,8 +35,7 @@ export default function MiniBar() {
   const progress = w ? waitNow / w.timeoutMs : !p || p.total === 0 ? 0
     : p.loops > 0 ? ((p.loop - 1) * p.total + p.step) / (p.loops * p.total)
     : p.step / p.total;
-  // p.step đếm trong các bước đang bật (engine.go)
-  const cur = p && p.step > 0 ? steps.filter((s) => s.enabled)[p.step - 1] : undefined;
+  const cur = p?.nodeId ? steps.find((s) => s.id === p.nodeId) : undefined;
 
   const stop = () => {
     StopScript();

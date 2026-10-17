@@ -134,7 +134,7 @@ func TestStopInfiniteLoopReleasesButton(t *testing.T) {
 
 func TestValidateScript(t *testing.T) {
 	cases := map[string]Script{
-		"không có bước nào được bật": {Steps: []Step{step(StepWait, func(s *Step) { s.Enabled = false })}},
+		"không có node nào được bật": {Steps: []Step{step(StepWait, func(s *Step) { s.Enabled = false })}},
 		"cần 2 điểm":                 {Steps: []Step{step(StepDrag, func(s *Step) { s.Points = s.Points[:1] })}},
 		"chưa nhập nội dung gõ":      {Steps: []Step{step(StepText, nil)}},
 		"chưa chọn phím":             {Steps: []Step{step(StepKey, func(s *Step) { s.Keys = nil })}},
@@ -303,16 +303,13 @@ func TestDragFromPrevAndRelative(t *testing.T) {
 	}
 }
 
-func TestValidateDragFromPrevNeedsPrevPoint(t *testing.T) {
-	sc := Script{Steps: []Step{
+func TestDragFromPrevNeedsPrevPoint(t *testing.T) {
+	sc := Script{Loops: 1, Steps: []Step{
 		step(StepKey, nil),
 		step(StepDrag, func(s *Step) { s.DragFromPrev = true }),
 	}}
-	if err := validateScript(sc, Rect{}); err == nil || !strings.Contains(err.Error(), "bước 2: kéo từ điểm trước đó") {
+	err := newEngine(&fakeInput{}, sc, nil).run(context.Background())
+	if err == nil || !strings.Contains(err.Error(), "n2: kéo từ điểm trước đó") {
 		t.Errorf("muốn lỗi thiếu điểm trước, nhận %v", err)
-	}
-	sc.Steps[0] = step(StepClick, nil) // có bước click phía trước → hợp lệ
-	if err := validateScript(sc, Rect{}); err != nil {
-		t.Errorf("không muốn lỗi: %v", err)
 	}
 }

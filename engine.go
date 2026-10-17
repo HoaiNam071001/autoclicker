@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"math/rand/v2"
 	"slices"
 	"strings"
@@ -21,22 +20,21 @@ const scrollGapMs = 30
 // Lỗi là *ScriptError (bước / trường) để UI và AI biết chỗ sửa.
 // screen: khung màn hình khi Region = nil; W = 0 thì bỏ qua kiểm tra điểm nằm trong vùng (không biết màn hình).
 func validateScript(sc Script, screen Rect) error {
+	linearToFlow(&sc)
+	if err := validateFlow(sc); err != nil {
+		return err
+	}
 	b := bounds(sc, screen)
 	inside := func(p Point) bool {
 		q := resolvePoint(p, b)
 		return b.W == 0 || q.X >= b.X && q.X <= b.X+b.W && q.Y >= b.Y && q.Y <= b.Y+b.H
 	}
 	enabled := 0
-	hasPrevPoint := false // đã có bước chuột (để lại vị trí chuột) phía trước chưa
-	hasPrevImage := false // đã có bước chờ ảnh / click theo ảnh tự tìm phía trước chưa (click theo kết quả bước trước)
 	for i, s := range sc.Steps {
 		if !s.Enabled {
 			continue
 		}
 		enabled++
-		if s.Type == StepDrag && s.DragFromPrev && !hasPrevPoint {
-			return stepErr(i, s, "dragFromPrev", "kéo từ điểm trước đó nhưng phía trước không có bước chuột nào")
-		}
 		need := 0
 		switch s.Type {
 		case StepClick, StepDouble, StepHold:
@@ -56,16 +54,11 @@ func validateScript(sc Script, screen Rect) error {
 				return stepErr(i, s, "target", "chưa nhập URL / app cần mở")
 			}
 		case StepWaitImage, StepClickImage:
-			if s.Type == StepClickImage && s.ImageSource != ImageFromSearch {
-				if !hasPrevImage {
-					return stepErr(i, s, "imageSource", "click theo kết quả bước trước nhưng phía trước không có bước chờ ảnh nào")
+			// click theo chỗ node khác thấy: nguồn đã kiểm tra ở validateFlow
+			if s.Type == StepWaitImage || s.ImageSource == ImageFromSearch {
+				if err := checkImageStep(i, s); err != nil {
+					return err
 				}
-			} else if err := checkImageStep(i, s); err != nil {
-				return err
-			}
-			hasPrevImage = true
-			if s.Type == StepClickImage {
-				hasPrevPoint = true // click theo ảnh di chuột tới chỗ thấy ảnh
 			}
 		case StepWaitPixel:
 			need = 1
@@ -100,31 +93,12 @@ func validateScript(sc Script, screen Rect) error {
 				return stepErr(i, s, "points", "điểm X %d Y %d nằm ngoài vùng", q.X, q.Y)
 			}
 		}
-		hasPrevPoint = hasPrevPoint || need > 0 && s.Type != StepWaitPixel // chờ pixel không di chuột
+		if r := s.Retry; r != nil && (r.Count < 0 || r.Count > maxRetries || r.DelayMs < 0) {
+			return stepErr(i, s, "retry", "số lần thử lại phải trong 0–%d", maxRetries)
+		}
 	}
 	if enabled == 0 {
-		return &ScriptError{Msg: "kịch bản không có bước nào được bật"}
-	}
-	for i, s := range sc.Steps {
-		f := s.OnFail
-		if !s.Enabled || f == nil {
-			continue
-		}
-		if f.Retries < 0 || f.Retries > maxRetries {
-			return stepErr(i, s, "onFail", "số lần thử lại phải trong 0–%d", maxRetries)
-		}
-		if f.Action != FailGoto {
-			continue
-		}
-		j := slices.IndexFunc(sc.Steps, func(x Step) bool { return x.ID == f.Goto })
-		switch {
-		case j < 0:
-			return stepErr(i, s, "onFail", "khi thất bại nhảy tới bước không còn trong kịch bản – chọn lại bước")
-		case j == i:
-			return stepErr(i, s, "onFail", "khi thất bại nhảy về chính bước này – dùng “thử lại” thay vì nhảy")
-		case !sc.Steps[j].Enabled:
-			return stepErr(i, s, "onFail", "khi thất bại nhảy tới bước %d đang tắt", j+1)
-		}
+		return &ScriptError{Msg: "kịch bản không có node nào được bật"}
 	}
 	return nil
 }
@@ -133,8 +107,10 @@ func validateScript(sc Script, screen Rect) error {
 type Progress struct {
 	Loop      int           `json:"loop"`  // vòng hiện tại, từ 1
 	Loops     int           `json:"loops"` // 0 = vô hạn
-	Step      int           `json:"step"`  // thứ tự bước hiện tại trong các bước đang bật, từ 1
-	Total     int           `json:"total"` // số bước đang bật
+	Step      int           `json:"step"`  // số thứ tự node đang chạy (theo flowOrder, trong các node đang bật), từ 1
+	Total     int           `json:"total"` // số node đang bật
+	NodeID    string        `json:"nodeId,omitempty"`
+	Ref       string        `json:"ref,omitempty"`
 	Clicks    int           `json:"clicks"`
 	ElapsedMs int64         `json:"elapsedMs"` // không tính thời gian tạm dừng
 	Paused    bool          `json:"paused"`
@@ -159,11 +135,14 @@ type engine struct {
 	scr        Screen                         // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
 	ocr        TextReader                     // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
 
-	failed   string      // id bước làm lần chạy dừng vì lỗi (runner gửi engine:failed)
-	miss     *FindResult // bước chờ ảnh hết giờ: chỗ giống nhất (để xem lại vì sao không thấy)
-	found    Point       // chỗ bước chờ ảnh / click theo ảnh gần nhất tìm thấy (ImageFromPrev)
-	hasFound bool
-	tpls     map[string]gray // ảnh mẫu đã giải mã theo id bước
+	onNode  func(StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
+	failed  string                 // id node làm lần chạy dừng vì lỗi (runner gửi engine:failed)
+	miss    *FindResult            // node chờ ảnh hết giờ: chỗ giống nhất (để xem lại vì sao không thấy)
+	tpls    map[string]gray        // ảnh mẫu đã giải mã theo id node
+	byID    map[string]Step        // node theo id (run đặt)
+	order   map[string]int         // số thứ tự hiển thị của node (flowOrder) – thanh mini
+	results map[string]*StepResult // kết quả lần chạy gần nhất của từng node trong vòng này
+	rv      runVars                // bảng tra biến {{nX…}} / {{last…}} / {{vars…}}
 
 	last    Point // chỗ engine vừa đưa chuột tới – cho bước kéo "từ điểm trước đó"
 	hasLast bool
@@ -188,109 +167,6 @@ func (e *engine) jitter(v, j int) int {
 
 // jitterMs như jitter nhưng không âm – dùng cho thời gian chờ.
 func (e *engine) jitterMs(v, j int) int { return max(e.jitter(v, j), 0) }
-
-// run chạy tới khi đủ số vòng, hết MaxMinutes hoặc ctx bị huỷ.
-// Hết thời gian là kết thúc bình thường (nil); bị huỷ trả ctx.Err().
-// MaxMinutes tính theo đồng hồ thật, kể cả lúc tạm dừng.
-func (e *engine) run(ctx context.Context) error {
-	sc := e.sc
-	if err := validateScript(sc, e.screen); err != nil {
-		return err
-	}
-	runCtx := ctx
-	if sc.MaxMinutes > 0 {
-		var cancel context.CancelFunc
-		runCtx, cancel = context.WithTimeout(ctx, time.Duration(sc.MaxMinutes)*time.Minute)
-		defer cancel()
-	}
-
-	total := 0
-	for _, s := range sc.Steps {
-		if s.Enabled {
-			total++
-		}
-	}
-	e.mu.Lock()
-	e.start = time.Now()
-	e.prog = Progress{Loops: sc.Loops, Total: total}
-	e.mu.Unlock()
-
-	order := make([]int, len(sc.Steps)) // thứ tự bước trong các bước đang bật (hiện trên thanh mini)
-	n := 0
-	for i, s := range sc.Steps {
-		if s.Enabled {
-			n++
-		}
-		order[i] = n
-	}
-	for loop := 1; sc.Loops == 0 || loop <= sc.Loops; loop++ {
-		jumps := 0
-		for i := 0; i < len(sc.Steps); i++ {
-			s := sc.Steps[i]
-			if !s.Enabled {
-				continue
-			}
-			err := e.runWithRetry(runCtx, s, loop, order[i])
-			if err == nil {
-				err = sleep(runCtx, e.jitterMs(s.DelayAfter, s.JitterMs))
-			}
-			if err == nil {
-				continue
-			}
-			if ctx.Err() == nil && errors.Is(err, context.DeadlineExceeded) {
-				return nil // hết MaxMinutes
-			}
-			if ctx.Err() != nil {
-				return ctx.Err()
-			}
-			if f := s.OnFail; f != nil {
-				switch f.Action {
-				case FailNext:
-					continue
-				case FailGoto:
-					if jumps++; jumps > maxJumps {
-						e.failed = s.ID
-						return fmt.Errorf("vòng %d, bước %d: nhảy bước quá %d lần trong một vòng – kiểm tra “khi thất bại” có tạo vòng lặp không dừng không", loop, i+1, maxJumps)
-					}
-					i = slices.IndexFunc(sc.Steps, func(x Step) bool { return x.ID == f.Goto }) - 1 // vòng for tăng lên 1
-					continue
-				}
-			}
-			e.failed = s.ID
-			return fmt.Errorf("vòng %d, bước %d: %w", loop, i+1, err)
-		}
-	}
-	return nil
-}
-
-// maxJumps – số lần "khi thất bại: nhảy tới bước" tối đa trong một vòng (chặn vòng lặp không dừng).
-const maxJumps = 1000
-
-// runWithRetry chạy bước, thất bại thì thử lại thêm OnFail.Retries lần (thanh mini hiện "thử lại x / y").
-// Bước tìm ảnh thất bại thì quên chỗ thấy cũ để Click theo kết quả bước trước không click nhầm chỗ cũ.
-func (e *engine) runWithRetry(ctx context.Context, s Step, loop, n int) error {
-	tries := 1
-	if s.OnFail != nil {
-		tries += max(s.OnFail.Retries, 0)
-	}
-	var err error
-	for t := 1; t <= tries; t++ {
-		if err = e.gate.wait(ctx); err != nil {
-			return err
-		}
-		e.update(true, func(p *Progress) {
-			p.Loop, p.Step, p.Retry, p.Retries = loop, n, t-1, tries-1
-		})
-		if err = e.runStep(ctx, s); err == nil || ctx.Err() != nil {
-			break
-		}
-		e.hasFound = false
-	}
-	if tries > 1 {
-		e.update(true, func(p *Progress) { p.Retry, p.Retries = 0, 0 })
-	}
-	return err
-}
 
 // update sửa tiến độ rồi báo sang frontend (force = báo ngay, không giãn cách).
 func (e *engine) update(force bool, f func(*Progress)) {
@@ -354,7 +230,40 @@ func (e *engine) move(x, y int) error {
 	return e.in.Move(x, y)
 }
 
-func (e *engine) runStep(ctx context.Context, s Step) error {
+// runStep chạy hành động của node; output là giá trị node trả về cho node sau ({{nX.output.key}}).
+func (e *engine) runStep(ctx context.Context, s Step) (map[string]any, error) {
+	switch s.Type {
+	case StepWaitImage:
+		h, err := e.findImage(ctx, s)
+		if err != nil {
+			return nil, err
+		}
+		return h.output(), nil
+	case StepClickImage:
+		return e.clickImage(ctx, s)
+	case StepWaitPixel:
+		c, err := e.waitPixel(ctx, s)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]any{"color": c}, nil
+	}
+	if err := e.doStep(ctx, s); err != nil {
+		return nil, err
+	}
+	switch s.Type {
+	case StepClick, StepDouble, StepHold, StepDrag:
+		return map[string]any{"x": e.last.X, "y": e.last.Y}, nil // chỗ chuột dừng
+	case StepText:
+		return map[string]any{"text": s.Text}, nil
+	case StepOpen:
+		return map[string]any{"target": s.Target}, nil
+	}
+	return nil, nil
+}
+
+// doStep – hành động của các node không tìm ảnh (chuột, phím, cuộn, mở).
+func (e *engine) doStep(ctx context.Context, s Step) error {
 	in := e.in
 	// pt: toạ độ màn hình của điểm i (theo neo), mỗi lần gọi lệch ngẫu nhiên ± JitterPx.
 	pt := func(i int) (int, int) {
@@ -434,13 +343,6 @@ func (e *engine) runStep(ctx context.Context, s Step) error {
 		}
 	case StepOpen:
 		return e.open(s.Target, s.App)
-	case StepWaitImage:
-		_, err := e.findImage(ctx, s)
-		return err
-	case StepClickImage:
-		return e.clickImage(ctx, s)
-	case StepWaitPixel:
-		return e.waitPixel(ctx, s)
 	}
 	return nil
 }
@@ -504,7 +406,10 @@ func pressKeys(ctx context.Context, in Input, s Step) error {
 func (e *engine) drag(ctx context.Context, s Step, pt func(int) (int, int)) error {
 	in := e.in
 	ax, ay := pt(0)
-	if s.DragFromPrev && e.hasLast {
+	if s.DragFromPrev {
+		if !e.hasLast { // đồ thị không biết trước node nào chạy trước – kiểm tra lúc chạy
+			return errors.New("kéo từ điểm trước đó nhưng chưa node nào đưa chuột tới đâu")
+		}
 		ax, ay = e.last.X, e.last.Y
 	}
 	bx, by := pt(1)

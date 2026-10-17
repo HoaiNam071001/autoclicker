@@ -2,7 +2,9 @@
 // Store (F4b) và màn mẫu #demo-flow đều gọi qua đây; hoàn tác / làm lại do nơi gọi lo.
 // Quy tắc: mỗi cổng ra tối đa 1 cạnh; không nối node vào chính nó qua cùng một cạnh vô nghĩa (cho phép vòng lặp qua node khác).
 
-export type Edge = { id: string; from: string; port: string; to: string };
+import type { Edge } from './types';
+
+export type { Edge };
 export type Graph<N extends { id: string }> = { nodes: N[]; edges: Edge[] };
 
 let seq = 0;

@@ -11,7 +11,7 @@ import { Copy, Power, Region, StepIcon, Trash } from './icons';
 import {
   duplicateStep, moveStep, removeStep, selectStep, setMulti, setRegion, toggleMultiStep, toggleStep, undoDelete, useEditor,
 } from '../scriptStore';
-import { fmtMs, fmtPos, OnFail, Script, Step, STEP_LABEL, stepLabel } from '../types';
+import { fmtMs, fmtPos, Retry, Script, Step, STEP_LABEL, stepLabel } from '../types';
 import { stepInputCount } from '../scriptInputs';
 import { templateUrl } from '../imageSteps';
 import { useEngine } from '../engineStore';
@@ -92,12 +92,8 @@ export default function StepList() {
 }
 
 // inMulti: có điểm đang chọn nhiều (bước 30) – Shift / ⌘ / Ctrl + click thẻ thêm / bỏ điểm của bước; click thường bỏ chọn nhiều.
-// Chip "khi thất bại" trên thẻ bước: ↻2 → bỏ qua / → bước 5 / dừng
-function failChip(f: OnFail, script: Script) {
-  const retry = f.retries ? `↻${f.retries} ` : '';
-  const j = script.steps.findIndex((x) => x.id === f.goto);
-  return `${retry}${f.action === 'next' ? '→ bỏ qua' : f.action === 'goto' ? (j >= 0 ? `→ bước ${j + 1}` : '→ ?') : 'không thấy → dừng'}`;
-}
+// Chip "khi thất bại" trên thẻ bước: ↻2 = thử lại 2 lần
+const retryChip = (r: Retry) => `↻${r.count} lần`;
 
 function Card({ step: s, index: i, selected, inMulti, script }: { step: Step; index: number; selected: boolean; inMulti: boolean; script: Script }) {
   const inputs = stepInputCount(script, s.id);
@@ -122,7 +118,7 @@ function Card({ step: s, index: i, selected, inMulti, script }: { step: Step; in
       </button>
       <CardBody n={String(i + 1).padStart(2, '0')} enabled={s.enabled}
         title={`${stepLabel(s)}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`}
-        chips={[...(inputs ? [`${inputs} input`] : []), ...(s.onFail ? [failChip(s.onFail, script)] : [])]}
+        chips={[...(inputs ? [`${inputs} input`] : []), ...(s.retry?.count ? [retryChip(s.retry)] : [])]}
         tags={<>
           {!s.enabled && <span className="rounded-full bg-soft px-[7px] py-px text-[11px] text-muted">Tắt</span>}
           {failed && <span className="rounded-full bg-danger-soft px-[7px] py-px text-[11px] font-semibold text-danger-text">Dừng ở đây</span>}

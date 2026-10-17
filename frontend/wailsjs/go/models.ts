@@ -116,20 +116,36 @@ export namespace main {
 		    return a;
 		}
 	}
-	export class OnFail {
-	    retries?: number;
-	    action: string;
-	    goto?: string;
+	export class Edge {
+	    id: string;
+	    from: string;
+	    port: string;
+	    to: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new OnFail(source);
+	        return new Edge(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.retries = source["retries"];
-	        this.action = source["action"];
-	        this.goto = source["goto"];
+	        this.id = source["id"];
+	        this.from = source["from"];
+	        this.port = source["port"];
+	        this.to = source["to"];
+	    }
+	}
+	export class Retry {
+	    count?: number;
+	    delayMs?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Retry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.count = source["count"];
+	        this.delayMs = source["delayMs"];
 	    }
 	}
 	export class Point {
@@ -150,9 +166,26 @@ export namespace main {
 	        this.ay = source["ay"];
 	    }
 	}
+	export class Pos {
+	    x: number;
+	    y: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Pos(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.x = source["x"];
+	        this.y = source["y"];
+	    }
+	}
 	export class Step {
 	    id: string;
 	    type: string;
+	    ref: string;
+	    name?: string;
+	    pos?: Pos;
 	    points: Point[];
 	    button: string;
 	    clicks: number;
@@ -180,6 +213,7 @@ export namespace main {
 	    intervalMs?: number;
 	    searchArea?: string;
 	    imageSource?: string;
+	    imageFrom?: string;
 	    dx?: number;
 	    dy?: number;
 	    findBy?: string;
@@ -187,7 +221,7 @@ export namespace main {
 	    textExact?: boolean;
 	    textNoAccent?: boolean;
 	    occurrence?: number;
-	    onFail?: OnFail;
+	    retry?: Retry;
 	    color?: string;
 	    tolerance?: number;
 	
@@ -199,6 +233,9 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.type = source["type"];
+	        this.ref = source["ref"];
+	        this.name = source["name"];
+	        this.pos = this.convertValues(source["pos"], Pos);
 	        this.points = this.convertValues(source["points"], Point);
 	        this.button = source["button"];
 	        this.clicks = source["clicks"];
@@ -226,6 +263,7 @@ export namespace main {
 	        this.intervalMs = source["intervalMs"];
 	        this.searchArea = source["searchArea"];
 	        this.imageSource = source["imageSource"];
+	        this.imageFrom = source["imageFrom"];
 	        this.dx = source["dx"];
 	        this.dy = source["dy"];
 	        this.findBy = source["findBy"];
@@ -233,7 +271,7 @@ export namespace main {
 	        this.textExact = source["textExact"];
 	        this.textNoAccent = source["textNoAccent"];
 	        this.occurrence = source["occurrence"];
-	        this.onFail = this.convertValues(source["onFail"], OnFail);
+	        this.retry = this.convertValues(source["retry"], Retry);
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	    }
@@ -263,6 +301,8 @@ export namespace main {
 	    loops: number;
 	    maxMinutes: number;
 	    steps: Step[];
+	    start: string;
+	    edges: Edge[];
 	    anchorMode?: string;
 	    inputs?: ScriptInput[];
 	
@@ -278,6 +318,8 @@ export namespace main {
 	        this.loops = source["loops"];
 	        this.maxMinutes = source["maxMinutes"];
 	        this.steps = this.convertValues(source["steps"], Step);
+	        this.start = source["start"];
+	        this.edges = this.convertValues(source["edges"], Edge);
 	        this.anchorMode = source["anchorMode"];
 	        this.inputs = this.convertValues(source["inputs"], ScriptInput);
 	    }
@@ -336,6 +378,7 @@ export namespace main {
 		    return a;
 		}
 	}
+	
 	export class FindResult {
 	    found: boolean;
 	    score: number;
@@ -381,6 +424,22 @@ export namespace main {
 		    }
 		    return a;
 		}
+	}
+	export class FlowGuideDoc {
+	    flow: string;
+	    commonFields: string;
+	    example: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FlowGuideDoc(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.flow = source["flow"];
+	        this.commonFields = source["commonFields"];
+	        this.example = source["example"];
+	    }
 	}
 	export class InputPreset {
 	    name: string;
@@ -432,6 +491,7 @@ export namespace main {
 		    return a;
 		}
 	}
+	
 	
 	
 	
@@ -493,6 +553,8 @@ export namespace main {
 	    fields: string[];
 	    pinnable: string[];
 	    example: string;
+	    outputs: string[];
+	    ports: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new StepTypeDoc(source);
@@ -506,6 +568,8 @@ export namespace main {
 	        this.fields = source["fields"];
 	        this.pinnable = source["pinnable"];
 	        this.example = source["example"];
+	        this.outputs = source["outputs"];
+	        this.ports = source["ports"];
 	    }
 	}
 	export class TemplateShot {

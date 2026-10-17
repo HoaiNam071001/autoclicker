@@ -14,10 +14,16 @@ func sampleScript() Script {
 		Region: &Rect{X: 10, Y: 20, W: 1000, H: 700},
 		Loops:  3,
 		Steps: []Step{
-			{ID: "a", Type: StepClick, Points: []Point{{X: 300, Y: 300, Ax: AnchorEnd}}, Button: "right", Clicks: 2, Keys: []string{}, KeyMode: KeyChord, Modifiers: []string{}, DelayAfter: 500, Enabled: true},
-			{ID: "b", Type: StepDrag, Points: []Point{{X: 1, Y: 2}, {X: 5000, Y: 40, Ax: AnchorRatio, Ay: AnchorCenter}}, Button: "left", DragMs: 400, DragRelative: true, Keys: []string{}, KeyMode: KeyChord, Modifiers: []string{}},
-			{ID: "c", Type: StepKey, Points: []Point{}, Button: "left", Keys: []string{"c", "t"}, KeyMode: KeySequence, Modifiers: []string{"ctrl"}, JitterMs: 50},
-			{ID: "d", Type: StepText, Points: []Point{}, Button: "left", Text: "xin chào", Keys: []string{}, KeyMode: KeyChord, Modifiers: []string{}},
+			{ID: "a", Ref: "n1", Type: StepClick, Points: []Point{{X: 300, Y: 300, Ax: AnchorEnd}}, Button: "right", Clicks: 2, Keys: []string{}, KeyMode: KeyChord, Modifiers: []string{}, DelayAfter: 500, Enabled: true},
+			{ID: "b", Ref: "n2", Type: StepDrag, Points: []Point{{X: 1, Y: 2}, {X: 5000, Y: 40, Ax: AnchorRatio, Ay: AnchorCenter}}, Button: "left", DragMs: 400, DragRelative: true, Keys: []string{}, KeyMode: KeyChord, Modifiers: []string{}},
+			{ID: "c", Ref: "n3", Type: StepKey, Points: []Point{}, Button: "left", Keys: []string{"c", "t"}, KeyMode: KeySequence, Modifiers: []string{"ctrl"}, JitterMs: 50},
+			{ID: "d", Ref: "n4", Type: StepText, Points: []Point{}, Button: "left", Text: "xin chào", Keys: []string{}, KeyMode: KeyChord, Modifiers: []string{}},
+		},
+		Start: "a",
+		Edges: []Edge{
+			{ID: "e1", From: "a", Port: PortSuccess, To: "b"},
+			{ID: "e2", From: "a", Port: PortFail, To: "d"},
+			{ID: "e3", From: "b", Port: PortSuccess, To: "c"},
 		},
 		AnchorMode: AnchorTopLeft,
 	}
@@ -41,16 +47,16 @@ func TestScriptFileRoundTrip(t *testing.T) {
 
 func TestDecodeScriptErrors(t *testing.T) {
 	cases := map[string]string{
-		"không phải JSON":   `{"version":1,`,
+		"không phải JSON":   `{"version":4,`,
 		"thiếu version":     `{"name":"x","steps":[]}`,
 		"version mới hơn":   `{"version":99,"steps":[]}`,
-		"loại bước lạ":      `{"version":1,"steps":[{"id":"a","type":"jump"}]}`,
-		"thiếu điểm":        `{"version":1,"steps":[{"id":"a","type":"drag","points":[{"x":1,"y":1}]}]}`,
-		"neo lạ":            `{"version":1,"steps":[{"id":"a","type":"click","points":[{"x":1,"y":1,"ax":"left"}]}]}`,
-		"vùng rỗng":         `{"version":1,"region":{"x":0,"y":0,"w":0,"h":10},"steps":[]}`,
-		"số âm":             `{"version":1,"steps":[{"id":"a","type":"wait","delayAfter":-1}]}`,
-		"phím kèm lạ":       `{"version":1,"steps":[{"id":"a","type":"key","keys":["a"],"modifiers":["super"]}]}`,
-		"cách neo kịch bản": `{"version":1,"anchorMode":"nearest","steps":[]}`,
+		"loại bước lạ":      `{"version":4,"steps":[{"id":"a","type":"jump"}]}`,
+		"thiếu điểm":        `{"version":4,"steps":[{"id":"a","type":"drag","points":[{"x":1,"y":1}]}]}`,
+		"neo lạ":            `{"version":4,"steps":[{"id":"a","type":"click","points":[{"x":1,"y":1,"ax":"left"}]}]}`,
+		"vùng rỗng":         `{"version":4,"region":{"x":0,"y":0,"w":0,"h":10},"steps":[]}`,
+		"số âm":             `{"version":4,"steps":[{"id":"a","type":"wait","delayAfter":-1}]}`,
+		"phím kèm lạ":       `{"version":4,"steps":[{"id":"a","type":"key","keys":["a"],"modifiers":["super"]}]}`,
+		"cách neo kịch bản": `{"version":4,"anchorMode":"nearest","steps":[]}`,
 	}
 	for name, in := range cases {
 		if _, err := decodeScript([]byte(in)); err == nil {
@@ -59,9 +65,24 @@ func TestDecodeScriptErrors(t *testing.T) {
 	}
 }
 
+// Sửa tay file: cạnh trỏ node không còn / thiếu cổng / trùng cổng bị bỏ, id cạnh trống được đặt, start không còn → trống.
+func TestDecodeScriptRepairsEdges(t *testing.T) {
+	sc, err := decodeScript([]byte(`{"version":4,"start":"zz","steps":[{"id":"a","type":"wait"},{"id":"b","type":"wait"}],
+		"edges":[{"from":"a","port":"success","to":"b"},{"from":"a","port":"success","to":"a"},{"from":"a","port":"fail","to":"x"},{"from":"b","to":"a"}]}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(sc.Edges) != 1 || sc.Edges[0].To != "b" || sc.Edges[0].ID == "" || sc.Start != "" {
+		t.Fatalf("cạnh / start chưa sửa: %+v start %q", sc.Edges, sc.Start)
+	}
+	if sc.Steps[0].Ref != "n1" || sc.Steps[1].Ref != "n2" {
+		t.Fatalf("chưa đặt ref: %q %q", sc.Steps[0].Ref, sc.Steps[1].Ref)
+	}
+}
+
 // File sửa tay / tối giản: thiếu field thì bổ sung giá trị trống, id trống / trùng được đặt lại.
 func TestDecodeScriptFillsDefaults(t *testing.T) {
-	sc, err := decodeScript([]byte(`{"version":1,"steps":[{"type":"wait"},{"id":"x","type":"click","points":[{"x":1,"y":1}]},{"id":"x","type":"type"}]}`))
+	sc, err := decodeScript([]byte(`{"version":4,"steps":[{"type":"wait"},{"id":"x","type":"click","points":[{"x":1,"y":1}]},{"id":"x","type":"type"}]}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +117,7 @@ func TestDraftRoundTrip(t *testing.T) {
 		t.Fatalf("nháp đọc lại khác: %+v", got)
 	}
 	// nháp hỏng → bỏ qua, không lỗi
-	os.WriteFile(filepath.Join(dir, draftFile), []byte(`{"script":{"version":1,"steps":[{"type":"?"}]}}`), 0o644)
+	os.WriteFile(filepath.Join(dir, draftFile), []byte(`{"script":{"version":4,"steps":[{"type":"?"}]}}`), 0o644)
 	if loadDraft(dir) != nil {
 		t.Fatal("nháp hỏng phải bỏ qua")
 	}
