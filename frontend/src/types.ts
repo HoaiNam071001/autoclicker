@@ -48,6 +48,11 @@ export interface Step {
   imageSource?: 'prev' | 'search'; // clickImage
   dx?: number; // clickImage: lệch so với tâm ảnh
   dy?: number;
+  findBy?: 'text'; // waitImage / clickImage tự tìm: bỏ trống = ảnh mẫu, text = tìm chữ (ocr.go)
+  findText?: string; // chữ cần tìm, nhận {{biến}}
+  textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
+  textNoAccent?: boolean; // bỏ qua dấu
+  occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
 }
@@ -178,7 +183,9 @@ export const fmtPos = (s: Step) =>
     : s.type === 'scroll' ? `${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount ?? 0} nấc ≈ ${(s.amount ?? 0) * SCROLL_NOTCH_PX} px ${s.points[0] ? `tại ${fmtPoint(s.points[0])}` : 'tại chuột'}`
     : s.type === 'open' ? `${s.target || '—'}${s.app ? ` · ${s.app}` : ''}`
     : s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search')
-      ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.template ? `khớp ≥ ${s.threshold}% · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa có ảnh mẫu'}`
+      ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.findBy === 'text'
+        ? (s.findText?.trim() ? `chữ “${s.findText}”${(s.occurrence ?? 0) > 1 ? ` (chỗ thứ ${s.occurrence})` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa nhập chữ cần tìm')
+        : s.template ? `khớp ≥ ${s.threshold}% · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa có ảnh mẫu'}`
     : s.type === 'clickImage' ? `chỗ bước trước thấy ảnh${s.dx || s.dy ? ` ${fmtSigned(s.dx ?? 0)},${fmtSigned(s.dy ?? 0)}` : ''}`
     : s.type === 'waitPixel' && s.points[0] ? `${fmtPoint(s.points[0])} = ${s.color} ±${s.tolerance} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`
     : s.points[0] ? fmtPoint(s.points[0]) : '—';

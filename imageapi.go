@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -24,14 +26,15 @@ type TemplateShot struct {
 
 // FindResult – kết quả thử tìm ảnh mẫu trên màn hình hiện tại.
 type FindResult struct {
-	Found bool `json:"found"` // độ khớp ≥ ngưỡng của bước
-	Score int  `json:"score"` // % khớp tốt nhất
-	X     int  `json:"x"`     // khung chỗ giống nhất (toạ độ robotgo)
-	Y     int  `json:"y"`
-	W     int  `json:"w"`
-	H     int  `json:"h"`
-	Area  Rect `json:"area"` // vùng đã tìm
-	Ms    int  `json:"ms"`   // thời gian tìm
+	Found bool     `json:"found"` // độ khớp ≥ ngưỡng của bước
+	Score int      `json:"score"` // % khớp tốt nhất
+	X     int      `json:"x"`     // khung chỗ giống nhất (toạ độ robotgo)
+	Y     int      `json:"y"`
+	W     int      `json:"w"`
+	H     int      `json:"h"`
+	Area  Rect     `json:"area"`           // vùng đã tìm
+	Ms    int      `json:"ms"`             // thời gian tìm
+	Read  []string `json:"read,omitempty"` // tìm theo chữ mà không thấy: các dòng đọc được trong vùng
 }
 
 // withHidden ẩn cửa sổ app, chạy f, rồi hiện lại – chỉ khi không chụp được mà bỏ qua cửa sổ app (macOS < 14, Linux…).
@@ -44,9 +47,9 @@ func (a *App) withHidden(f func() error) error {
 	return f()
 }
 
-// CaptureTemplate chụp vùng r (toạ độ robotgo, trên màn hình chính) làm ảnh mẫu.
+// CaptureTemplate chụp vùng r (toạ độ robotgo, nằm trong một màn hình) làm ảnh mẫu.
 func (a *App) CaptureTemplate(r Rect) (TemplateShot, error) {
-	if err := captureArea(r, mainScreen()); err != nil {
+	if err := captureArea(r, displays()); err != nil {
 		return TemplateShot{}, err
 	}
 	if r.W < 4 || r.H < 4 {
@@ -73,7 +76,13 @@ func (a *App) FindImage(sc Script, stepID string) (FindResult, error) {
 			s = &sc.Steps[i]
 		}
 	}
-	if s == nil || s.Template == "" {
+	if s == nil {
+		return FindResult{}, errors.New("không có bước này")
+	}
+	if s.FindBy == FindByText {
+		return a.findTextOnce(sc, *s)
+	}
+	if s.Template == "" {
 		return FindResult{}, errors.New("bước chưa có ảnh mẫu")
 	}
 	img, err := decodePNG(s.Template)
@@ -81,9 +90,9 @@ func (a *App) FindImage(sc Script, stepID string) (FindResult, error) {
 		return FindResult{}, err
 	}
 	e := newEngine(nil, sc, nil)
-	e.screen = mainScreen()
+	e.screen, e.displays = mainScreen(), displays()
 	area := e.searchArea(*s)
-	if err := captureArea(area, e.screen); err != nil {
+	if err := captureArea(area, e.displays); err != nil {
 		return FindResult{}, err
 	}
 	var res FindResult
@@ -99,6 +108,45 @@ func (a *App) FindImage(sc Script, stepID string) (FindResult, error) {
 			X: area.X + int(float64(m.X)/k), Y: area.Y + int(float64(m.Y)/k), W: int(float64(m.W) / k), H: int(float64(m.H) / k),
 		}
 		res.Found = res.Score >= s.Threshold
+		return nil
+	})
+	return res, err
+}
+
+// findTextOnce – nút "Thử tìm" của bước tìm theo chữ ({{biến}} lấy giá trị lần trước / mặc định).
+func (a *App) findTextOnce(sc Script, s Step) (FindResult, error) {
+	if strings.TrimSpace(s.FindText) == "" {
+		return FindResult{}, errors.New("chưa nhập chữ cần tìm")
+	}
+	text, err := expandVars(s.FindText, func(key string) (string, bool) {
+		for _, in := range sc.Inputs {
+			if in.Key == key && !isEmptyValue(in.Default) {
+				return valueString(in.Default), true
+			}
+		}
+		return "", false
+	})
+	if err != nil {
+		return FindResult{}, fmt.Errorf("thử tìm dùng giá trị mặc định của input: %w", err)
+	}
+	s.FindText = text
+	e := newEngine(nil, sc, nil)
+	e.screen, e.displays = mainScreen(), displays()
+	area := e.searchArea(s)
+	if err := captureArea(area, e.displays); err != nil {
+		return FindResult{}, err
+	}
+	var res FindResult
+	err = a.withHidden(func() error {
+		start := time.Now()
+		hit, read, ok, err := locateText(robotgoScreen{}, systemOCR{}, area, s)
+		if err != nil {
+			return err
+		}
+		res = FindResult{Found: ok, Area: area, Read: read, Ms: int(time.Since(start).Milliseconds()), X: hit.X, Y: hit.Y, W: hit.W, H: hit.H}
+		if ok {
+			res.Score = 100
+		}
 		return nil
 	})
 	return res, err

@@ -10,7 +10,7 @@ import { inWails, openOverlay, setWindowMode } from './windowMode';
 import { Rect } from './types';
 
 // fromRun: chỗ giống nhất của lần chạy hết giờ không thấy (engine:failed), không phải từ nút Thử tìm
-export type FindResult = { found: boolean; score: number; x: number; y: number; w: number; h: number; area: Rect; ms: number; fromRun?: boolean };
+export type FindResult = { found: boolean; score: number; x: number; y: number; w: number; h: number; area: Rect; ms: number; read?: string[]; fromRun?: boolean };
 
 type ImageState = {
   allowed: boolean | null; // quyền chụp màn hình (null = chưa kiểm tra)
@@ -50,6 +50,12 @@ export function startCapture(stepId: string | null) {
 export function addImageStep(type: 'waitImage' | 'clickImage' | 'waitPixel') {
   addStep(type);
   if (type === 'waitImage') startCapture(getEditor().selected);
+}
+
+// Bảng thêm bước: Chờ chữ / Click theo chữ = bước chờ ảnh / click theo ảnh (tự tìm) tìm theo chữ – không khoanh ảnh.
+export function addTextStep(type: 'waitImage' | 'clickImage') {
+  addStep(type);
+  updateStep(getEditor().selected, { findBy: 'text', findText: '', ...(type === 'clickImage' ? { imageSource: 'search' as const } : {}) });
 }
 
 // "Dùng ảnh này" trên overlay: chụp vùng r (toạ độ màn hình thật) – Go ẩn cửa sổ lúc chụp – ghi vào bước, về màn chính.

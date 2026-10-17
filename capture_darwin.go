@@ -14,7 +14,7 @@ package main
 static int preflight() { return CGPreflightScreenCaptureAccess() ? 1 : 0; }
 static int request()   { return CGRequestScreenCaptureAccess() ? 1 : 0; }
 
-// Chụp vùng (x, y, w, h – point, màn hình chính) bằng ScreenCaptureKit, bỏ mọi cửa sổ của chính app (thanh mini,
+// Chụp vùng (x, y, w, h – point, toạ độ toàn cục, nằm trong một màn) bằng ScreenCaptureKit, bỏ mọi cửa sổ của chính app (thanh mini,
 // overlay) và không vẽ con trỏ chuột. Trả 0 nếu được; *out: RGBA (malloc, Go giải phóng).
 static int capture_without_self(double x, double y, double w, double h, unsigned char **out, int *ow, int *oh) {
 	if (@available(macOS 14.0, *)) {
@@ -24,15 +24,18 @@ static int capture_without_self(double x, double y, double w, double h, unsigned
 		[SCShareableContent getShareableContentExcludingDesktopWindows:NO onScreenWindowsOnly:YES
 			completionHandler:^(SCShareableContent *content, NSError *err) {
 				if (err || !content) { rc = 2; dispatch_semaphore_signal(sem); return; }
+				// màn chứa tâm vùng; sourceRect tính từ góc màn đó
 				SCDisplay *disp = nil;
-				for (SCDisplay *d in content.displays) if (d.displayID == CGMainDisplayID()) disp = d;
+				CGPoint mid = CGPointMake(x + w / 2, y + h / 2);
+				for (SCDisplay *d in content.displays) if (CGRectContainsPoint(CGDisplayBounds(d.displayID), mid)) disp = d;
 				if (!disp) { rc = 3; dispatch_semaphore_signal(sem); return; }
+				CGRect db = CGDisplayBounds(disp.displayID);
 				NSMutableArray *mine = [NSMutableArray array];
 				for (SCRunningApplication *a in content.applications) if (a.processID == getpid()) [mine addObject:a];
 				SCContentFilter *f = [[SCContentFilter alloc] initWithDisplay:disp excludingApplications:mine exceptingWindows:@[]];
 				SCStreamConfiguration *c = [[SCStreamConfiguration alloc] init];
 				CGFloat k = f.pointPixelScale;
-				c.sourceRect = CGRectMake(x, y, w, h);
+				c.sourceRect = CGRectMake(x - db.origin.x, y - db.origin.y, w, h);
 				c.width = (size_t)(w * k);
 				c.height = (size_t)(h * k);
 				c.showsCursor = NO;

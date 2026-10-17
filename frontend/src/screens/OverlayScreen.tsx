@@ -1,6 +1,7 @@
 // Overlay chọn vùng / điểm – cửa sổ trong suốt phủ màn hình, always-on-top
 import { MouseEvent, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { MousePos } from '../../wailsjs/go/main/App';
+import { Displays, MousePos, SetOverlayDisplay } from '../../wailsjs/go/main/App';
+import { main } from '../../wailsjs/go/models';
 import {
   boundsOf, cancelDragA, cancelPick, endpoints, getEditor, hasPoints, movePoint, pickingStep, placePoint, placingType, pointKey,
   regionMapping, RegionMapMode, selectableIndexes, selectStep, setDragMode, setFocusLock, setMulti, setRegion, setRegionMapped, startPick,
@@ -115,6 +116,25 @@ export default function OverlayScreen() {
   const [mapMode, setMapMode] = useState<RegionMapMode>('anchor');
   const toolRef = useRef(tool);
   toolRef.current = tool;
+  // Nhiều màn hình: chọn màn cho overlay (Go dời cửa sổ, nhớ lựa chọn cho lần mở sau). Đổi màn thì đo lại toạ độ.
+  const [displays, setDisplays] = useState<main.DisplayInfo[]>([]);
+  const loadDisplays = () => { if (inWails) Displays().then(setDisplays).catch(() => {}); };
+  useEffect(loadDisplays, []);
+  const curDisp = displays.find((d) => d.current);
+  const pickDisplay = async (i: number) => {
+    if (curDisp?.index === i) return;
+    try {
+      await SetOverlayDisplay(i);
+    } catch {
+      return;
+    }
+    resetSamples();
+    setMeasured(false);
+    loadDisplays();
+  };
+  // "Toàn màn hình" (vùng = nil) là màn chính; ở màn phụ thì nút đặt vùng = cả màn đó.
+  const fullRegion: Rect | null = curDisp && !curDisp.main ? curDisp.rect : null;
+  const isFull = fullRegion ? !!region && ['x', 'y', 'w', 'h'].every((k) => region[k as keyof Rect] === fullRegion[k as keyof Rect]) : !region;
   // Thanh công cụ tự ẩn: mở khi chuột sát mép trên / rê vào gợi ý, đóng khi rời. Lúc mở overlay hiện một lúc.
   const [barOpen, setBarOpen] = useState(true);
   const barTimer = useRef<number | undefined>(undefined);
@@ -581,6 +601,7 @@ export default function OverlayScreen() {
       {/* Thông tin toạ độ: góc trên trái, chữ nhỏ */}
       <div data-ui className="absolute top-2 left-2 flex max-w-[240px] flex-col rounded-md border border-hud-line bg-hud/85 px-2 py-1 font-mono text-[11px] leading-[16px] text-hud-text/80">
         <span>{region ? `Vùng X ${region.x} Y ${region.y} · ${region.w} × ${region.h}` : 'Vùng: toàn màn hình'}</span>
+        {displays.length > 1 && curDisp && <span>Màn {curDisp.index + 1}{curDisp.main ? ' (chính)' : ''} / {displays.length}</span>}
         {focus && focusStep && (focusStep.type === 'drag' ? [['A', focusEnds?.start], ['B', focusEnds?.end]] as const : [['Điểm', focusEnds?.start]] as const).map(([k, p]) => (
           <span key={k}>{k}: {p ? `X ${p.x} Y ${p.y}` : '—'}</span>
         ))}
@@ -635,14 +656,30 @@ export default function OverlayScreen() {
                 {t.icon}{t.label}
               </button>
             ))}
-            {tool === 'region' && region && (
-              <button onClick={() => requestRegion(null)} className={`${toolBtn} font-normal hover:bg-white/6`}>Toàn màn hình</button>
+            {tool === 'region' && !isFull && (
+              <button onClick={() => requestRegion(fullRegion)} className={`${toolBtn} font-normal hover:bg-white/6`}>{fullRegion ? 'Toàn màn này' : 'Toàn màn hình'}</button>
             )}
             <span className="mx-1.5 h-[26px] w-px bg-white/16" />
             <span className="flex items-center gap-1.5 px-1.5 text-[13px] text-hud-text/60">
               <kbd className="rounded border border-hud-line px-1.5 font-mono text-hud-text">F6</kbd>lưu vị trí chuột
             </span>
             <button onClick={() => setTool('preview')} className={`${toolBtn} font-normal hover:bg-white/6`}>Xem trước</button>
+          </>
+        )}
+        {displays.length > 1 && (
+          <>
+            <span className="mx-1.5 h-[26px] w-px bg-white/16" />
+            <div className="flex rounded-lg bg-white/5 p-[3px]" role="radiogroup" aria-label="Màn hình">
+              {displays.map((d) => (
+                <button key={d.index} role="radio" aria-checked={d.current} onClick={() => pickDisplay(d.index)}
+                  title={`Màn ${d.index + 1}${d.main ? ' (chính)' : ''} · ${d.rect.w} × ${d.rect.h} tại X ${d.rect.x} Y ${d.rect.y}`}
+                  className={`flex h-[38px] items-center gap-1.5 rounded-md px-2.5 ${d.current ? 'bg-white/14 text-white' : 'hover:bg-white/6'}`}>
+                  <svg width="14" height="12" viewBox="0 0 14 12" aria-hidden><rect x="1" y="1" width="12" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.4" /><path d="M5 11h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+                  <span className="font-mono text-[13px]">{d.index + 1}</span>
+                  {d.main && <span className="text-[11px] text-hud-text/60">chính</span>}
+                </button>
+              ))}
+            </div>
           </>
         )}
         <button onClick={() => setWindowMode('main')} className={`${toolBtn} btn-primary ml-1 font-bold`}>Xong <span className="font-mono text-[11px] font-normal opacity-70">Esc</span></button>

@@ -93,6 +93,7 @@ type scorer struct {
 	n       float64
 	flat    bool
 	tmean   float64
+	minVar  float64   // phương sai cửa sổ (× n) dưới mức này = cửa sổ phẳng, không khớp mẫu có chi tiết
 	ii, ii2 []float64 // ảnh tích phân của s và s² (cỡ (w+1)×(h+1)) – trung bình / phương sai cửa sổ O(1)
 	iw      int
 }
@@ -113,6 +114,7 @@ func newScorer(s, t gray) *scorer {
 		sc.tnorm += d * d
 	}
 	sc.flat = sc.tnorm/sc.n < flatVar
+	sc.minVar = flatVar * sc.n / 4
 	sc.ii = make([]float64, (s.w+1)*(s.h+1))
 	sc.ii2 = make([]float64, (s.w+1)*(s.h+1))
 	for y := 0; y < s.h; y++ {
@@ -142,7 +144,7 @@ func (sc *scorer) at(x, y int) float64 {
 		return math.Max(0, 1-math.Abs(mean-sc.tmean)/255-math.Sqrt(v)/128)
 	}
 	varSum := sc.window(sc.ii2, x, y) - sum*sum/sc.n
-	if varSum < flatVar*sc.n/4 {
+	if varSum < sc.minVar {
 		return 0 // cửa sổ phẳng, mẫu có chi tiết → không khớp
 	}
 	var dot float64
@@ -162,7 +164,7 @@ const (
 	coarseMaxPixels = 250_000 // ảnh tìm thô tối đa chừng này px
 	coarseTpl       = 12      // thu nhỏ tới khi cạnh ngắn của mẫu còn chừng này px (đủ chi tiết để chọn ứng viên)
 	coarseMinTpl    = 4       // nhưng không nhỏ hơn
-	candidates      = 6
+	candidates      = 12      // nhiều chỗ na ná nhau (chữ, ô danh sách) → ứng viên đúng hay rơi khỏi top vài cái
 )
 
 // findTemplate trả chỗ giống mẫu t nhất trong s (cùng tỷ lệ px). Mẫu lớn hơn ảnh → Score 0.
@@ -183,6 +185,12 @@ func findTemplate(s, t gray) Match {
 	} else {
 		cs, ct := s.resize(s.w/f, s.h/f), t.resize(t.w/f, t.h/f)
 		sc := newScorer(cs, ct)
+		if full := newScorer(t, t); !full.flat && sc.tnorm > 0 {
+			// mẫu ít tương phản (chữ xám nhạt…): thu nhỏ xong có thể bị coi là một màu → vẫn so NCC,
+			// và hạ ngưỡng cửa sổ phẳng theo độ chi tiết của chính mẫu thu nhỏ
+			sc.flat = false
+			sc.minVar = math.Min(sc.minVar, sc.tnorm/4)
+		}
 		all := make([]cand, 0, (cs.w-ct.w+1)*(cs.h-ct.h+1))
 		for y := 0; y <= cs.h-ct.h; y++ {
 			for x := 0; x <= cs.w-ct.w; x++ {

@@ -96,7 +96,7 @@ function Card({ step: s, index: i, selected, inMulti, script }: { step: Step; in
   const inputs = stepInputCount(script, s.id);
   const failed = useEngine().failedStep === s.id;
   // ảnh mẫu thu nhỏ: nhìn danh sách là biết bước nào chờ ảnh nào
-  const tpl = s.template && (s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search'));
+  const tpl = s.template && s.findBy !== 'text' && (s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search'));
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: s.id });
   const iconBtn = 'grid h-7 w-7 place-items-center rounded-md text-muted hover:bg-hover hover:text-ink';
 

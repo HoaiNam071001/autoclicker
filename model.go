@@ -82,13 +82,21 @@ type Step struct {
 	Threshold     int     `json:"threshold,omitempty"`     // % khớp tối thiểu (1–100)
 	TimeoutMs     int     `json:"timeoutMs,omitempty"`     // chờ tối đa
 	IntervalMs    int     `json:"intervalMs,omitempty"`    // kiểm tra mỗi
-	SearchArea    string  `json:"searchArea,omitempty"`    // "" = vùng của kịch bản | screen = cả màn hình chính
+	SearchArea    string  `json:"searchArea,omitempty"`    // "" = vùng của kịch bản | screen = cả màn chứa vùng (không có vùng: màn chính)
 	ImageSource   string  `json:"imageSource,omitempty"`   // clickImage: prev | search
 	Dx            int     `json:"dx,omitempty"`            // clickImage: lệch so với tâm ảnh
 	Dy            int     `json:"dy,omitempty"`
-	Color         string  `json:"color,omitempty"`     // waitPixel: #RRGGBB
-	Tolerance     int     `json:"tolerance,omitempty"` // waitPixel: sai số mỗi kênh màu (0–255)
+	FindBy        string  `json:"findBy,omitempty"`       // waitImage / clickImage tự tìm: "" = ảnh mẫu | text = chữ
+	FindText      string  `json:"findText,omitempty"`     // FindBy text: chữ cần tìm; nhận {{biến}}
+	TextExact     bool    `json:"textExact,omitempty"`    // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
+	TextNoAccent  bool    `json:"textNoAccent,omitempty"` // FindBy text: bỏ qua dấu
+	Occurrence    int     `json:"occurrence,omitempty"`   // FindBy text: chỗ thứ mấy (trên → dưới, trái → phải); 0 = chỗ đầu
+	Color         string  `json:"color,omitempty"`        // waitPixel: #RRGGBB
+	Tolerance     int     `json:"tolerance,omitempty"`    // waitPixel: sai số mỗi kênh màu (0–255)
 }
+
+// Step.FindBy
+const FindByText = "text"
 
 // Cách neo điểm mới đặt (Script.AnchorMode).
 const (

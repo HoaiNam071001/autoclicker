@@ -8,6 +8,8 @@ export function ClearDraft():Promise<void>;
 
 export function ConfirmQuit():Promise<void>;
 
+export function Displays():Promise<Array<main.DisplayInfo>>;
+
 export function FindImage(arg1:main.Script,arg2:string):Promise<main.FindResult>;
 
 export function GetInputMemory(arg1:string):Promise<main.InputMemory>;
@@ -53,6 +55,8 @@ export function ScreenBounds():Promise<main.Rect>;
 export function ScreenCaptureAllowed():Promise<boolean>;
 
 export function SetDirty(arg1:boolean):Promise<void>;
+
+export function SetOverlayDisplay(arg1:number):Promise<void>;
 
 export function SetTheme(arg1:string):Promise<void>;
 

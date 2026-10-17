@@ -8,7 +8,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 - **Đang làm:** 25 (chờ ảnh, click theo ảnh, chờ pixel). 30 (sửa nhiều điểm) chờ kiểm tra tay; còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
 - **Tiếp theo:** 25b → 25c → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
-- **Cập nhật lần cuối:** 2026-10-17
+- **Cập nhật lần cuối:** 2026-10-17 (chọn màn hình cho overlay – 17; tìm theo chữ – 25e)
 
 ## Quyết định đã chốt
 
@@ -158,6 +158,9 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
 ### Hoàn thiện
 - [ ] **17. DPI & đa màn hình** – Test toạ độ ở scaling 100%, 125%, 150% và với 2 màn hình.
   - Đã chốt: không làm bộ chọn màn hình – overlay mở trên màn chứa cửa sổ app, toạ độ dùng hệ toạ độ chung (đã thử chọn vùng trên màn thứ 2 OK, 2026-10-15)
+  - [x] **Chọn màn hình cho overlay** *(người dùng yêu cầu, 2026-10-17 – đổi quyết định trên)*: `Displays()` / `SetOverlayDisplay(i)` (`window.go`); thanh công cụ overlay có nút Màn 1 / 2… khi > 1 màn, chọn rồi thì các lần mở overlay sau cũng mở ở màn đó (đến khi tắt app); về main thì dời cửa sổ về màn cũ. Wails chỉ đặt vị trí theo màn hiện tại → `moveToDisplay` cộng độ lệch giữa 2 màn; màn hiện tại đoán bằng cỡ màn (Wails) + chuột (`pickDisplay`, test `TestPickDisplay`). Ở màn phụ nút *Toàn màn này* đặt vùng = cả màn đó (vùng nil vẫn là màn chính). Đổi màn → đo lại toạ độ
+  - [x] **Tìm ảnh / chờ pixel trên màn phụ** *(người dùng báo lỗi, 2026-10-17: vùng = cả màn MacBook (1920, 406) → "vùng tìm nằm ngoài màn hình chính")*: ScreenCaptureKit chọn màn chứa tâm vùng, `sourceRect` tính từ góc màn đó; `captureArea` chỉ cần vùng nằm gọn trong **một** màn (vắt 2 màn → báo lỗi rõ); *Cả màn* = màn chứa vùng; macOS < 14 (robotgo) vẫn chỉ màn chính. Test `TestCaptureAreaDisplays`; chụp thật màn MacBook ra 3024×1964 OK
+  - [ ] Kiểm tra tay macOS 2 màn: đổi màn trên overlay, đặt điểm / chọn vùng ở màn phụ, Xong → main về đúng chỗ cũ
   - [x] Dừng khẩn cấp nhận góc của mọi màn hình: `displays()` (`input.go`, Windows nhân `robotgo.ScaleF` cho cùng hệ toạ độ với `robotgo.Location`), `hardCorners` bỏ góc tiếp giáp màn khác; test `TestHardCorners`. Máy dev: màn ngoài 1920×1080 + MacBook 1512×982 tại (1920, 406) → 6 góc cứng
   - [x] Overlay đo **tỷ lệ + độ lệch** (`coordMap.ts`, bình phương nhỏ nhất trên các mẫu chuột đứng yên) thay vì chỉ độ lệch – để scale ≠ 100% trên Windows vẽ vùng / marker đúng chỗ; điểm đặt / kéo marker vẫn lấy thẳng từ `MousePos`
   - Ghi chú: robotgo trên Windows tự nhân toạ độ chuột với scale màn chính (`Location`) và chia lại khi `Move` → lấy toạ độ bằng robotgo rồi click lại luôn khớp; chỉ phép đổi sang px trong cửa sổ mới cần tỷ lệ
@@ -326,8 +329,14 @@ Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]
   - [x] Thanh mini: vòng tiến độ theo thời gian chờ, "đang tìm x / y s · khớp nhất n%"
   - [x] Retina / DPI: ảnh mẫu lưu kèm tỷ lệ lúc chụp, tìm trên màn tỷ lệ khác thì co giãn mẫu (test 2x ↔ 1x)
   - [x] Chuẩn bị cho MCP (31): `CaptureTemplate(rect)`, `FindImage`, `PixelColorAt`, `matchScaled` là hàm Go độc lập với overlay, tạo ảnh mẫu từ toạ độ vùng; `stepTypeDocs` có 3 loại mới kèm ví dụ PNG thật
-  - Giới hạn: chỉ tìm trên **màn hình chính** (robotgo chụp theo màn chính) – màn phụ làm cùng 17; test thật `AUTOCLICKER_REAL=1 go test -run RealCapture`
+  - ~~Giới hạn: chỉ tìm trên màn hình chính~~ → tìm được trên mọi màn (2026-10-17, xem 17); test thật `AUTOCLICKER_REAL=1 go test -run RealCapture`
   - [ ] Kiểm tra tay: khoanh nút trên trang web → Thử tìm → chạy chờ ảnh + click theo ảnh khi cửa sổ dời chỗ; chờ pixel đổi màu; thanh mini khi đang chờ
+- [x] **25e. Tìm theo chữ (OCR)** *(người dùng yêu cầu, 2026-10-17 – tìm ảnh chưa đủ chính xác)* – Bước Chờ ảnh / Click theo ảnh (tự tìm) chọn **Tìm theo: Ảnh mẫu / Chữ**; bảng Ctrl+K có *Chờ chữ*, *Click theo chữ*.
+  - [x] Go: `ocr.go` (`TextReader`, `findText`: không phân biệt hoa / thường, bỏ khoảng trắng, tuỳ chọn bỏ dấu / cả dòng, chỗ thứ N theo thứ tự đọc; khung = hợp các từ chứa chuỗi), `ocr_darwin.go` (Vision, `vi-VT` + `en-US`, mức accurate; ảnh dẹt chèn nền cho tỷ lệ ≤ 3:1), `ocr_other.go` báo chưa hỗ trợ (Windows.Media.Ocr làm cùng 17 / 18). Model `findBy`, `findText` (nhận `{{biến}}`), `textExact`, `textNoAccent`, `occurrence`; hết giờ báo các dòng đọc được
+  - [x] UI: inspector ô chữ + công tắc + chỗ thứ; *Thử tìm* đọc chữ, không thấy thì hiện các dòng đọc được (bấm để dùng); thẻ bước / thanh mini / xem trước ghi chữ
+  - [x] Test `TestFindText`, `TestWaitTextThenClick`, `TestWaitTextTimeout`, `TestValidateTextStep`; thật: cả màn 1920×1080 ~0,9 s, thanh menu 1920×40 thấy "Bookmarks" ~0,6 s
+  - [x] Tìm ảnh chính xác hơn: khác tỷ lệ (mẫu 1x, màn Retina) thì thu nhỏ ảnh chụp thay vì phóng to mẫu; mẫu ít tương phản (chữ xám nhạt) không còn bị bước tìm thô coi là một màu; 12 ứng viên. Thử thật màn MacBook: đúng 37/127 → 106/127 (16 chỗ giống hệt). Test `TestFindTemplateLowContrast`, `TestMatchScaledDownscalesScreen`
+  - [ ] Kiểm tra tay: kịch bản Facebook đổi sang Chờ chữ / Click theo chữ
 - [ ] **25b. Xử lý khi hết giờ** – Chờ ảnh cần hướng xử lý khi không thấy.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
   - [ ] Model: `onTimeout: { action: "retry" | "skip" | "stop", retries, then: "skipGroup" | "stop" }`
@@ -518,3 +527,6 @@ Người dùng gõ trên Claude: *"tạo kịch bản mở bài Tinh Hà Say 2 t
 - **2026-10-17** – Từ ảnh người dùng gửi: bước dừng là **bước 2** (Chờ ảnh khớp ≥ 90%), người dùng hạ ngưỡng ở bước 4 – code đúng, giao diện chưa cho thấy. Thêm: ảnh mẫu thu nhỏ trên thẻ bước; chạy lỗi → Go gửi `engine:failed` (id bước + chỗ giống nhất nếu chờ ảnh hết giờ) → tự chọn bước lỗi, thẻ viền đỏ + nhãn "Dừng ở đây", inspector "Lần chạy trước hết giờ không thấy – chỗ giống nhất khớp n%", xem trên màn hình; cảnh báo khi độ khớp < 70%. `go test`, `npm test`, `npm run build` OK; chụp headless. Chưa kiểm tra tay, chưa commit.
 - **2026-10-17** – Sửa (người dùng báo): khoanh ảnh sát đáy màn hình thì nút "Dùng ảnh này / Khoanh lại" nằm dưới Dock – thêm `safeArea()` (`windowMode.ts`, theo `screen.availTop/availHeight`, trừ Dock / taskbar / thanh menu); nút đặt dưới khung → trên khung → cạnh khung trong vùng an toàn, nhãn cỡ né nút; phím **Enter = Dùng ảnh này**, Esc = khoanh lại; thanh số của Chọn nhiều cũng theo `safeArea`. `npm run build` OK, headless khung sát đáy → nút lên trên. Chưa kiểm tra tay, chưa commit.
 - **2026-10-17** – Kế hoạch: thêm bước **25d. Web qua DOM** (tách từ 28, theo yêu cầu người dùng) – tìm phần tử bằng HTML qua CDP, đo toạ độ trang → màn hình bằng chuột, click / cuộn bằng robotgo; xếp sau 26, trước 20 (bảng thứ tự + *Quyết định đã chốt*). Chỉ sửa tài liệu.
+- **2026-10-17** – Bước 17: chọn màn hình cho overlay khi có nhiều màn (`Displays`, `SetOverlayDisplay`, nút Màn 1 / 2 trên thanh overlay, *Toàn màn này*). `go test ./...`, `npm run build`, `npm test` OK; chưa kiểm tra tay trên 2 màn.
+- **2026-10-17** – Sửa (người dùng báo): chờ ảnh lỗi khi vùng ở màn phụ – chụp / tìm ảnh / lấy màu được trên mọi màn (ScreenCaptureKit theo màn chứa vùng). `go test ./...` OK, chụp thật màn MacBook OK; chưa chạy lại kịch bản của người dùng.
+- **2026-10-17** – Bước 25e: tìm theo chữ (Vision macOS) cho Chờ ảnh / Click theo ảnh + sửa độ chính xác tìm ảnh (khác tỷ lệ màn, mẫu ít tương phản). `go test ./...`, `npm run build`, `npm test` OK; thử thật đọc chữ + tìm ảnh trên 2 màn. Chưa kiểm tra tay trong app.

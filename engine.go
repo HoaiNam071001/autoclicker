@@ -129,10 +129,12 @@ type engine struct {
 	sc         Script
 	gate       pauseGate
 	screen     Rect                           // khung màn hình khi Region = nil (runner đặt = mainScreen); zero = gốc (0, 0)
+	displays   []Rect                         // khung các màn (tìm ảnh "cả màn", kiểm tra vùng chụp); nil = không kiểm tra
 	onProgress func(Progress)                 // có thể nil
 	intN       func(n int) int                // số ngẫu nhiên [0, n) – test thay bằng hàm cố định
 	open       func(target, app string) error // bước Mở – test thay bằng hàm ghi lại
 	scr        Screen                         // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
+	ocr        TextReader                     // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
 
 	failed   string      // id bước làm lần chạy dừng vì lỗi (runner gửi engine:failed)
 	miss     *FindResult // bước chờ ảnh hết giờ: chỗ giống nhất (để xem lại vì sao không thấy)
@@ -150,7 +152,7 @@ type engine struct {
 }
 
 func newEngine(in Input, sc Script, onProgress func(Progress)) *engine {
-	return &engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: openTarget, scr: robotgoScreen{}}
+	return &engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: openTarget, scr: robotgoScreen{}, ocr: systemOCR{}}
 }
 
 // jitter trả v lệch ngẫu nhiên đều trong [v-j, v+j]; j ≤ 0 → v. Dùng cho toạ độ (có thể âm ở màn phụ).
@@ -553,8 +555,20 @@ func (g *pauseGate) activeSince(start time.Time) time.Duration {
 	return d
 }
 
-// checkImageStep: bước chờ ảnh / click theo ảnh tự tìm có ảnh mẫu đọc được và thông số hợp lệ.
+// checkImageStep: bước chờ ảnh / click theo ảnh tự tìm có ảnh mẫu đọc được (hoặc chữ cần tìm) và thông số hợp lệ.
 func checkImageStep(i int, s Step) error {
+	if s.FindBy == FindByText {
+		if strings.TrimSpace(s.FindText) == "" {
+			return stepErr(i, s, "findText", "chưa nhập chữ cần tìm")
+		}
+		if s.Occurrence < 0 {
+			return stepErr(i, s, "occurrence", "chỗ thứ mấy phải ≥ 1")
+		}
+		if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
+			return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
+		}
+		return nil
+	}
 	if s.Template == "" {
 		return stepErr(i, s, "template", "chưa có ảnh mẫu – bấm “Khoanh ảnh mẫu”")
 	}

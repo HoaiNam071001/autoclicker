@@ -191,11 +191,11 @@ export function useSimulation(steps: Step[], region: Rect | null, speed: number)
             break;
           case 'waitImage':
             // không biết trước ảnh hiện lúc nào – chờ tượng trưng (≤ 1 s), ghi rõ ngưỡng / thời gian chờ tối đa
-            patch({ bubble: `Chờ ảnh (khớp ≥ ${s.threshold}%, tối đa ${(s.timeoutMs ?? 0) / 1000} s)` });
+            patch({ bubble: s.findBy === 'text' ? `Chờ chữ “${s.findText}” (tối đa ${(s.timeoutMs ?? 0) / 1000} s)` : `Chờ ảnh (khớp ≥ ${s.threshold}%, tối đa ${(s.timeoutMs ?? 0) / 1000} s)` });
             await wait(Math.min(s.timeoutMs ?? 0, 1000));
             break;
           case 'clickImage':
-            patch({ bubble: `Click theo ảnh${s.imageSource === 'search' ? ' (tự tìm)' : ''} – vị trí biết khi chạy thật` });
+            patch({ bubble: `Click theo ${s.imageSource === 'search' && s.findBy === 'text' ? `chữ “${s.findText}”` : 'ảnh'}${s.imageSource === 'search' ? ' (tự tìm)' : ''} – vị trí biết khi chạy thật` });
             await wait(KEY_SHOW_MS);
             break;
           case 'waitPixel':

@@ -211,6 +211,11 @@ func resolveInputs(sc Script, values map[string]any) (Script, error) {
 		switch s.Type {
 		case StepText:
 			field, name = &s.Text, "text"
+		case StepWaitImage, StepClickImage:
+			if s.FindBy != FindByText {
+				continue
+			}
+			field, name = &s.FindText, "findText"
 		case StepOpen:
 			// URL: mã hoá giá trị (dấu cách, tiếng Việt, &) để không làm hỏng URL
 			field, name, escape = &s.Target, "target", targetKind(s.Target) == targetURL

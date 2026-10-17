@@ -52,6 +52,7 @@ func (a *App) RunScript(sc Script, values map[string]any, countdown int) error {
 		runtime.EventsEmit(a.ctx, "engine:progress", p)
 	})
 	eng.screen = screen
+	eng.displays = displays()
 	h := &runHandle{cancel: cancel, eng: eng}
 	a.run = h
 	a.mu.Unlock()

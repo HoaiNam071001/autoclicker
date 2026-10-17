@@ -8,6 +8,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	goruntime "runtime"
 	"strconv"
 	"strings"
 
@@ -24,7 +25,7 @@ type Screen interface {
 
 type robotgoScreen struct{}
 
-// Capture chụp vùng r trên màn hình chính (màn phụ – bước 17). Ưu tiên cách chụp không dính cửa sổ app (thanh mini
+// Capture chụp vùng r (nằm gọn trong một màn hình, xem captureArea). Ưu tiên cách chụp không dính cửa sổ app (thanh mini
 // đang chạy, overlay) và con trỏ chuột – không thì thanh mini che mất chỗ cần tìm.
 func (robotgoScreen) Capture(r Rect) (image.Image, error) {
 	if err := screenCaptureCheck(); err != nil {
@@ -32,6 +33,10 @@ func (robotgoScreen) Capture(r Rect) (image.Image, error) {
 	}
 	if img, ok, err := captureNoSelf(r); ok {
 		return img, err
+	}
+	if m := mainScreen(); goruntime.GOOS == "darwin" && !inside(r, m) {
+		// robotgo trên macOS chỉ chụp màn chính; chụp màn phụ cần ScreenCaptureKit (macOS 14+)
+		return nil, errors.New("tìm ảnh trên màn hình phụ cần macOS 14 trở lên")
 	}
 	img, err := robotgo.CaptureImg(r.X, r.Y, r.W, r.H)
 	if err != nil {
@@ -55,15 +60,34 @@ func (s robotgoScreen) Pixel(x, y int) (color.RGBA, error) {
 	return parseColor("#" + robotgo.GetPixelColor(x, y))
 }
 
-// captureArea kiểm tra vùng chụp nằm trong màn hình chính (robotgo chưa chụp được màn phụ).
-func captureArea(r, main Rect) error {
+// captureArea kiểm tra vùng chụp nằm gọn trong một màn hình (ds – khung các màn; rỗng = không kiểm tra).
+func captureArea(r Rect, ds []Rect) error {
 	if r.W <= 0 || r.H <= 0 {
 		return errors.New("vùng tìm rỗng")
 	}
-	if main.W > 0 && (r.X < main.X || r.Y < main.Y || r.X+r.W > main.X+main.W || r.Y+r.H > main.Y+main.H) {
-		return errors.New("vùng tìm nằm ngoài màn hình chính – chưa hỗ trợ tìm ảnh trên màn hình phụ")
+	if len(ds) == 0 || displayOf(r, ds) >= 0 {
+		return nil
 	}
-	return nil
+	for _, d := range ds {
+		if r.X < d.X+d.W && d.X < r.X+r.W && r.Y < d.Y+d.H && d.Y < r.Y+r.H {
+			return errors.New("vùng tìm nằm vắt qua 2 màn hình – chọn lại vùng trong một màn")
+		}
+	}
+	return errors.New("vùng tìm nằm ngoài màn hình")
+}
+
+func inside(r, d Rect) bool {
+	return r.X >= d.X && r.Y >= d.Y && r.X+r.W <= d.X+d.W && r.Y+r.H <= d.Y+d.H
+}
+
+// displayOf trả chỉ số màn chứa trọn r, -1 nếu không có.
+func displayOf(r Rect, ds []Rect) int {
+	for i, d := range ds {
+		if inside(r, d) {
+			return i
+		}
+	}
+	return -1
 }
 
 // imageScale: px ảnh chụp trên 1 đơn vị toạ độ.

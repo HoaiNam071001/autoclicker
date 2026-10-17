@@ -50,7 +50,7 @@ export default function MiniBar() {
         : !p ? 'Đang bắt đầu…'
         : `${paused ? 'Tạm dừng · ' : ''}Bước ${p.step} / ${p.total}${cur ? `: ${STEP_LABEL[cur.type]}` : ''}`}
       lines={[
-        ...(w ? [`${w.kind === 'image' ? 'đang tìm' : 'đang chờ màu'} ${(waitNow / 1000).toFixed(1)} / ${w.timeoutMs / 1000} s   khớp nhất ${w.best}%`] : []),
+        ...(w ? [`${w.kind === 'image' ? 'đang tìm' : w.kind === 'text' ? 'đang tìm chữ' : 'đang chờ màu'} ${(waitNow / 1000).toFixed(1)} / ${w.timeoutMs / 1000} s${w.kind === 'text' ? '' : `   khớp nhất ${w.best}%`}`] : []),
         `vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`,
         ...(engine.preset ? [`bộ giá trị: ${engine.preset}`] : [])]}
       canPause={running && !counting} onPause={() => (paused ? ResumeScript() : PauseScript())} onStop={stop} />

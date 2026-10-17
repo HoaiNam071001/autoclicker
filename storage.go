@@ -118,6 +118,9 @@ func checkStep(s *Step) error {
 	if s.ImageSource != "" && s.ImageSource != ImageFromPrev && s.ImageSource != ImageFromSearch {
 		return fmt.Errorf("nguồn vị trí ảnh không hợp lệ: %q", s.ImageSource)
 	}
+	if s.FindBy != "" && s.FindBy != FindByText {
+		return fmt.Errorf("cách tìm không hợp lệ: %q", s.FindBy)
+	}
 	if s.SearchArea != "" && s.SearchArea != "screen" {
 		return fmt.Errorf("vùng tìm không hợp lệ: %q", s.SearchArea)
 	}

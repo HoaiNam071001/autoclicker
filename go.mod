@@ -6,6 +6,7 @@ require (
 	github.com/go-vgo/robotgo v1.3.5
 	github.com/robotn/gohook v0.50.0
 	github.com/wailsapp/wails/v2 v2.16.0
+	golang.org/x/text v0.42.0
 )
 
 require (
@@ -57,7 +58,6 @@ require (
 	golang.org/x/image v0.46.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/text v0.42.0 // indirect
 )
 
 // replace github.com/wailsapp/wails/v2 v2.16.0 => /Users/MAC/go/pkg/mod

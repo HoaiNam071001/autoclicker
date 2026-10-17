@@ -38,12 +38,15 @@ func (a *App) SetWindowMode(mode string) error {
 		x, y := runtime.WindowGetPosition(a.ctx)
 		w, h := runtime.WindowGetSize(a.ctx)
 		a.mainRect = winRect{x, y, w, h}
+		a.winDisp = a.detectDisplay()
+		a.mainDisp = a.winDisp
 	}
 
 	switch mode {
 	case ModeMain:
 		r := a.mainRect
 		runtime.WindowSetAlwaysOnTop(a.ctx, false)
+		a.moveToDisplay(a.mainDisp) // vị trí main lưu theo màn của nó (Wails tính vị trí theo màn hiện tại)
 		runtime.WindowSetSize(a.ctx, r.w, r.h)
 		runtime.WindowSetPosition(a.ctx, r.x, r.y)
 		if a.mainMax {
@@ -55,6 +58,11 @@ func (a *App) SetWindowMode(mode string) error {
 			return err
 		}
 		runtime.WindowSetAlwaysOnTop(a.ctx, true)
+		if mode == ModeOverlay && a.ovDisp >= 0 && a.moveToDisplay(a.ovDisp) {
+			if sw, sh, err = a.currentScreenSize(); err != nil {
+				return err
+			}
+		}
 		if mode == ModeOverlay {
 			// Dời về góc màn hiện tại TRƯỚC rồi mới phóng to: Wails lấy "màn hiện tại" là màn chứa phần lớn
 			// cửa sổ, phóng to trước thì cửa sổ có thể tràn sang màn bên cạnh và overlay mở nhầm màn.
@@ -71,6 +79,105 @@ func (a *App) SetWindowMode(mode string) error {
 	}
 	a.mode = mode
 	return nil
+}
+
+// DisplayInfo – một màn hình cho bộ chọn màn trên overlay. Khung theo toạ độ robotgo (như toạ độ điểm).
+type DisplayInfo struct {
+	Index   int  `json:"index"`
+	Rect    Rect `json:"rect"`
+	Main    bool `json:"main"`    // màn chính – "toàn màn hình" (vùng = nil) tính theo màn này
+	Current bool `json:"current"` // cửa sổ app / overlay đang ở màn này
+}
+
+// Displays trả danh sách màn hình (màn chính đứng đầu).
+func (a *App) Displays() []DisplayInfo {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	ds := displays()
+	cur := a.winDisp
+	if a.mode == ModeMain || cur < 0 || cur >= len(ds) {
+		cur = a.detectDisplay()
+	}
+	out := make([]DisplayInfo, len(ds))
+	for i, r := range ds {
+		out[i] = DisplayInfo{Index: i, Rect: r, Main: i == 0, Current: i == cur}
+	}
+	return out
+}
+
+// SetOverlayDisplay dời overlay sang màn i và nhớ lựa chọn cho các lần mở overlay sau (đến khi tắt app).
+func (a *App) SetOverlayDisplay(i int) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if i < 0 || i >= len(displays()) {
+		return fmt.Errorf("không có màn hình %d", i+1)
+	}
+	a.ovDisp = i
+	if a.mode != ModeOverlay || !a.moveToDisplay(i) {
+		return nil
+	}
+	sw, sh, err := a.currentScreenSize()
+	if err != nil {
+		return err
+	}
+	runtime.WindowSetPosition(a.ctx, 0, 0)
+	runtime.WindowSetSize(a.ctx, sw, sh)
+	return nil
+}
+
+// moveToDisplay dời cửa sổ sang màn i; trả true nếu đã dời (đang ở màn khác).
+// Wails chỉ đặt được vị trí tương đối theo màn hiện tại → cộng độ lệch giữa 2 màn. Thu nhỏ cửa sổ trước
+// để nó nằm gọn trong màn đích (Wails lấy "màn hiện tại" là màn chứa phần lớn cửa sổ); người gọi tự đặt lại cỡ.
+func (a *App) moveToDisplay(i int) bool {
+	ds := rawDisplays()
+	cur := a.winDisp
+	if i < 0 || i >= len(ds) || cur < 0 || cur >= len(ds) || cur == i {
+		return false
+	}
+	runtime.WindowSetSize(a.ctx, 320, 240)
+	runtime.WindowSetPosition(a.ctx, ds[i].X-ds[cur].X+40, ds[i].Y-ds[cur].Y+40)
+	a.winDisp = i
+	return true
+}
+
+// detectDisplay đoán màn đang chứa cửa sổ: Wails chỉ cho biết cỡ màn hiện tại (không có vị trí) → so cỡ;
+// nhiều màn cùng cỡ (hoặc cỡ không khớp – Windows scale) thì lấy màn có chuột (vừa bấm nút trong cửa sổ).
+func (a *App) detectDisplay() int {
+	ds := rawDisplays()
+	if len(ds) <= 1 {
+		return 0
+	}
+	w, h, _ := a.currentScreenSize()
+	mx, my := robotgo.Location()
+	return pickDisplay(ds, displays(), w, h, Point{X: mx, Y: my})
+}
+
+// pickDisplay: raw – khung màn theo đơn vị cửa sổ, scaled – theo toạ độ chuột robotgo (cùng thứ tự).
+func pickDisplay(raw, scaled []Rect, w, h int, mouse Point) int {
+	under := -1
+	for i, r := range scaled {
+		if mouse.X >= r.X && mouse.X < r.X+r.W && mouse.Y >= r.Y && mouse.Y < r.Y+r.H {
+			under = i
+		}
+	}
+	var same []int
+	for i, r := range raw {
+		if r.W == w && r.H == h {
+			same = append(same, i)
+		}
+	}
+	for _, i := range same {
+		if i == under {
+			return i
+		}
+	}
+	if len(same) > 0 {
+		return same[0]
+	}
+	if under >= 0 {
+		return under
+	}
+	return 0
 }
 
 // currentScreenSize trả kích thước (logical px) của màn hình chứa cửa sổ.

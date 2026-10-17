@@ -14,6 +14,10 @@ export function ConfirmQuit() {
   return window['go']['main']['App']['ConfirmQuit']();
 }
 
+export function Displays() {
+  return window['go']['main']['App']['Displays']();
+}
+
 export function FindImage(arg1, arg2) {
   return window['go']['main']['App']['FindImage'](arg1, arg2);
 }
@@ -104,6 +108,10 @@ export function ScreenCaptureAllowed() {
 
 export function SetDirty(arg1) {
   return window['go']['main']['App']['SetDirty'](arg1);
+}
+
+export function SetOverlayDisplay(arg1) {
+  return window['go']['main']['App']['SetOverlayDisplay'](arg1);
 }
 
 export function SetTheme(arg1) {

@@ -1,5 +1,59 @@
 export namespace main {
 	
+	export class Rect {
+	    x: number;
+	    y: number;
+	    w: number;
+	    h: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Rect(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.x = source["x"];
+	        this.y = source["y"];
+	        this.w = source["w"];
+	        this.h = source["h"];
+	    }
+	}
+	export class DisplayInfo {
+	    index: number;
+	    rect: Rect;
+	    main: boolean;
+	    current: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new DisplayInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.index = source["index"];
+	        this.rect = this.convertValues(source["rect"], Rect);
+	        this.main = source["main"];
+	        this.current = source["current"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class InputTarget {
 	    stepId: string;
 	    field: string;
@@ -112,6 +166,11 @@ export namespace main {
 	    imageSource?: string;
 	    dx?: number;
 	    dy?: number;
+	    findBy?: string;
+	    findText?: string;
+	    textExact?: boolean;
+	    textNoAccent?: boolean;
+	    occurrence?: number;
 	    color?: string;
 	    tolerance?: number;
 	
@@ -152,6 +211,11 @@ export namespace main {
 	        this.imageSource = source["imageSource"];
 	        this.dx = source["dx"];
 	        this.dy = source["dy"];
+	        this.findBy = source["findBy"];
+	        this.findText = source["findText"];
+	        this.textExact = source["textExact"];
+	        this.textNoAccent = source["textNoAccent"];
+	        this.occurrence = source["occurrence"];
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	    }
@@ -173,24 +237,6 @@ export namespace main {
 		    }
 		    return a;
 		}
-	}
-	export class Rect {
-	    x: number;
-	    y: number;
-	    w: number;
-	    h: number;
-	
-	    static createFrom(source: any = {}) {
-	        return new Rect(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.x = source["x"];
-	        this.y = source["y"];
-	        this.w = source["w"];
-	        this.h = source["h"];
-	    }
 	}
 	export class Script {
 	    version: number;
@@ -281,6 +327,7 @@ export namespace main {
 	    h: number;
 	    area: Rect;
 	    ms: number;
+	    read?: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new FindResult(source);
@@ -296,6 +343,7 @@ export namespace main {
 	        this.h = source["h"];
 	        this.area = this.convertValues(source["area"], Rect);
 	        this.ms = source["ms"];
+	        this.read = source["read"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

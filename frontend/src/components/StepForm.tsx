@@ -508,15 +508,25 @@ function CapturePermission() {
   );
 }
 
-// Ảnh mẫu + thử tìm + độ khớp / chờ tối đa / vùng tìm – dùng cho Chờ ảnh và Click theo ảnh (tự tìm).
+// Ảnh mẫu (hoặc chữ) + thử tìm + độ khớp / chờ tối đa / vùng tìm – dùng cho Chờ ảnh và Click theo ảnh (tự tìm).
 function ImageSearchFields({ step: s }: { step: Step }) {
   const { finds, busy, error } = useImageState();
   const find = finds[s.id];
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const k = s.templateScale || 1;
+  const byText = s.findBy === 'text';
   return (
     <>
-      <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+      <Field label="Tìm theo" wide group>
+        <Segmented value={byText ? 'text' : 'image'} full label="Tìm theo"
+          onChange={(v) => updateStep(s.id, { findBy: v === 'text' ? 'text' : undefined })}
+          options={[{ id: 'image', label: 'Ảnh mẫu' }, { id: 'text', label: 'Chữ' }]} />
+        <span className={hint}>
+          {byText ? 'Đọc chữ trên màn hình – không bị ảnh hưởng bởi theme sáng / tối, zoom, đổi màu khi rê chuột. Dùng khi nút / nhãn có chữ.'
+            : 'So từng điểm ảnh – dùng cho icon, nút không có chữ. Nút có chữ nên chọn “Chữ”.'}
+        </span>
+      </Field>
+      {byText ? <TextSearchFields step={s} /> : <div className="col-span-2 flex flex-col gap-1.5 text-muted">
         <span>Ảnh mẫu</span>
         <div className="relative grid min-h-[92px] place-items-center overflow-hidden rounded-card border border-line bg-soft p-2 text-[13px]">
           {s.template ? (
@@ -553,14 +563,14 @@ function ImageSearchFields({ step: s }: { step: Step }) {
           </span>
         )}
         {error && busy === '' && <span className="text-xs text-danger-text">{error}</span>}
-      </div>
-      <NumField label="Độ khớp tối thiểu" step={s} field="threshold" unit="%" min={1} />
+      </div>}
+      {!byText && <NumField label="Độ khớp tối thiểu" step={s} field="threshold" unit="%" min={1} />}
       <NumField label="Chờ tối đa" step={s} field="timeoutMs" unit="ms" min={1} />
       <Field label="Kiểm tra mỗi">
         <NumInput value={s.intervalMs ?? 250} min={20} unit="ms" onChange={(intervalMs) => updateStep(s.id, { intervalMs })} />
       </Field>
       <span className={`self-end pb-2 ${hint}`}>Không thấy sau {fmtSec(s.timeoutMs)} thì dừng kịch bản</span>
-      {(s.threshold ?? 0) < 70 && (
+      {!byText && (s.threshold ?? 0) < 70 && (
         <span className="col-span-2 -mt-1 text-xs text-warn">
           Độ khớp {s.threshold}% rất thấp – gần như chỗ nào cũng “khớp”, dễ click nhầm. Ảnh khoanh đúng thường khớp 95–100%;
           nên để 80–90% và bấm Thử tìm để xem độ khớp thật.
@@ -568,10 +578,70 @@ function ImageSearchFields({ step: s }: { step: Step }) {
       )}
       <Field label="Tìm trong" wide group>
         <Segmented value={s.searchArea ?? 'region'} onChange={(v) => updateStep(s.id, { searchArea: v === 'screen' ? 'screen' : undefined })} full
-          options={[{ id: 'region', label: 'Vùng của kịch bản' }, { id: 'screen', label: 'Cả màn hình chính' }]} />
-        <span className={hint}>Vùng nhỏ tìm nhanh hơn và ít nhầm hơn. Ảnh mẫu chụp ở màn Retina vẫn tìm được trên màn thường.</span>
+          options={[{ id: 'region', label: 'Vùng của kịch bản' }, { id: 'screen', label: 'Cả màn hình' }]} />
+        <span className={hint}>
+          {byText ? 'Vùng nhỏ đọc nhanh hơn (cả màn ~1 s mỗi lần) và ít nhầm chữ trùng ở chỗ khác.'
+            : 'Vùng nhỏ tìm nhanh hơn và ít nhầm hơn. Ảnh mẫu chụp ở màn Retina vẫn tìm được trên màn thường.'}
+          {' '}Cả màn hình = cả màn chứa vùng.
+        </span>
       </Field>
     </>
+  );
+}
+
+// Tìm theo chữ: ô chữ (nhận {{biến}}), cách so, chỗ thứ mấy, thử tìm.
+function TextSearchFields({ step: s }: { step: Step }) {
+  const script = useScript();
+  const { finds, busy, error } = useImageState();
+  const find = finds[s.id];
+  const set = (patch: Partial<Step>) => updateStep(s.id, patch);
+  const empty = !s.findText?.trim();
+  return (
+    <div className="col-span-2 flex flex-col gap-1.5 text-muted">
+      <span className="flex items-center justify-between">Chữ cần tìm
+        <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
+      </span>
+      <VarTextInput value={s.findText ?? ''} onChange={(findText) => set({ findText })} inputs={script.inputs ?? []}
+        placeholder="Xem lịch sử" onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
+      <span className={`text-xs ${empty ? 'text-danger-text' : ''}`}>
+        {empty ? 'Chưa nhập chữ – chạy sẽ báo lỗi. ' : ''}Không phân biệt hoa / thường, bỏ qua khoảng trắng. Click vào giữa chữ.
+      </span>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-1 text-[13px] text-ink">
+        <label className="flex items-center gap-2"><Switch on={!!s.textExact} onChange={(textExact) => set({ textExact: textExact || undefined })} label="Cả dòng" />Cả dòng đúng chữ này</label>
+        <label className="flex items-center gap-2"><Switch on={!!s.textNoAccent} onChange={(textNoAccent) => set({ textNoAccent: textNoAccent || undefined })} label="Bỏ qua dấu" />Bỏ qua dấu</label>
+        <span className="flex items-center gap-2">Chỗ thứ
+          <NumInput value={Math.max(s.occurrence ?? 1, 1)} min={1} onChange={(n) => set({ occurrence: n > 1 ? n : undefined })} className="w-20" />
+        </span>
+      </div>
+      <span className={hint}>
+        “Cả dòng”: chỉ khớp ô / nút chỉ có đúng chữ này (tránh khớp trong câu dài). “Bỏ qua dấu”: khi máy đọc sai dấu.
+        Chữ hiện nhiều lần → chỗ thứ mấy tính từ trên xuống, trái sang phải.
+      </span>
+      <button onClick={() => testFind(s.id)} disabled={empty || busy === s.id}
+        title="Đọc chữ trên màn hình hiện tại và tìm (app ẩn đi một chút)"
+        className="h-8 rounded-control border border-line bg-surface text-ink enabled:hover:bg-hover disabled:opacity-50">
+        {busy === s.id ? 'Đang đọc chữ…' : 'Thử tìm'}
+      </button>
+      {find && (
+        <span className={`flex flex-col gap-1 text-xs ${find.found ? 'text-ok' : 'text-warn'}`}>
+          <span className="flex flex-wrap items-center gap-x-2">
+            {find.found ? <>Thấy tại X {find.x + Math.round(find.w / 2)} Y {find.y + Math.round(find.h / 2)} · {find.ms} ms</>
+              : find.fromRun ? <>Lần chạy trước hết giờ không thấy chữ này</>
+              : <>Không thấy trên màn hình hiện tại{find.ms ? ` · ${find.ms} ms` : ''}</>}
+            {find.found && <button onClick={() => openOverlay('point', s.id)} className="text-muted underline">xem trên màn hình</button>}
+          </span>
+          {!find.found && (
+            <span className="text-muted">
+              {find.read?.length ? <>Đọc được: {find.read.slice(0, 12).map((t, i) => (
+                <button key={i} onClick={() => set({ findText: t })} title="Dùng chữ này"
+                  className="mr-1 mb-1 inline-block rounded border border-line px-1.5 text-ink hover:bg-hover">{t}</button>
+              ))}</> : 'Không đọc được chữ nào trong vùng tìm.'}
+            </span>
+          )}
+        </span>
+      )}
+      {error && busy === '' && <span className="text-xs text-danger-text">{error}</span>}
+    </div>
   );
 }
 
@@ -588,11 +658,11 @@ function ClickImageFields({ step: s }: { step: Step }) {
     <>
       <Field label="Vị trí ảnh" wide group>
         <Segmented value={s.imageSource ?? 'prev'} onChange={(imageSource: 'prev' | 'search') => set({ imageSource })} full
-          options={[{ id: 'prev', label: prev ? `Kết quả bước ${prev.n}` : 'Kết quả bước trước' }, { id: 'search', label: 'Tự tìm ảnh mẫu' }]} />
+          options={[{ id: 'prev', label: prev ? `Kết quả bước ${prev.n}` : 'Kết quả bước trước' }, { id: 'search', label: 'Tự tìm (ảnh / chữ)' }]} />
         <span className={`text-xs ${s.imageSource !== 'search' && !prev ? 'text-danger-text' : 'text-muted'}`}>
-          {s.imageSource === 'search' ? 'Chụp ảnh mẫu riêng, tìm lúc chạy (chờ như bước Chờ ảnh)'
+          {s.imageSource === 'search' ? 'Tìm ảnh mẫu / chữ riêng lúc chạy (chờ như bước Chờ ảnh)'
             : prev ? `Click vào chỗ bước ${prev.n} (${STEP_LABEL[prev.x.type]}) tìm thấy – không chụp lại`
-            : 'Phía trước chưa có bước Chờ ảnh – thêm một bước Chờ ảnh, hoặc chọn “Tự tìm ảnh mẫu”'}
+            : 'Phía trước chưa có bước Chờ ảnh – thêm một bước Chờ ảnh, hoặc chọn “Tự tìm”'}
         </span>
       </Field>
       {s.imageSource === 'search' && <ImageSearchFields step={s} />}

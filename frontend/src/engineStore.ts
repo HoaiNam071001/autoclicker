@@ -14,7 +14,7 @@ export type Progress = {
   clicks: number;
   elapsedMs: number; // không tính thời gian tạm dừng
   paused: boolean;
-  wait?: { kind: 'image' | 'pixel'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (imagestep.go)
+  wait?: { kind: 'image' | 'text' | 'pixel'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (imagestep.go)
 };
 
 // lastError: lỗi của lần chạy gần nhất – giữ ở store vì màn gọi RunScript bị gỡ khi chuyển sang mini bar.

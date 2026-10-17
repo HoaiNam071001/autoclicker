@@ -141,3 +141,37 @@ func BenchmarkFindTemplateRetinaSmall(b *testing.B) {
 		}
 	}
 }
+
+// Chữ xám nhạt mảnh trên nền trắng: thu nhỏ để tìm thô thì mẫu gần như một màu – vẫn phải tìm ra.
+func TestFindTemplateLowContrast(t *testing.T) {
+	w, h := 1600, 1000
+	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			img.Set(x, y, color.RGBA{250, 250, 250, 255})
+		}
+	}
+	// "chữ": nét dọc 1 px xám nhạt, khoảng cách không đều
+	r := rand.New(rand.NewPCG(7, 1))
+	for x := 1000; x < 1200; x += 2 + r.IntN(3) {
+		for y := 700; y < 740; y++ {
+			img.Set(x, y, color.RGBA{243, 243, 243, 255})
+		}
+	}
+	tpl := crop(img, image.Rect(990, 690, 1210, 750))
+	m := findTemplate(toGray(img), toGray(tpl))
+	if m.X != 990 || m.Y != 690 || m.Score < 0.99 {
+		t.Fatalf("muốn (990, 690) ~1.0, có %+v", m)
+	}
+}
+
+// Mẫu chụp ở màn 1x, chạy trên Retina: thu nhỏ ảnh chụp (không phóng to mẫu) – vị trí trả về theo px ảnh chụp.
+func TestMatchScaledDownscalesScreen(t *testing.T) {
+	big := scene(1600, 1000, 3)
+	button(big, 900, 600, 240, 80)
+	tpl1x := toGray(crop(big, image.Rect(900, 600, 1140, 680))).resize(120, 40)
+	m, k := matchScaled(big, Rect{W: 800, H: 500}, tpl1x, 1)
+	if k != 2 || abs(m.X-900) > 2 || abs(m.Y-600) > 2 || abs(m.W-240) > 1 || m.Score < 0.95 {
+		t.Fatalf("muốn ~(900, 600) 240 rộng, k = 2; có %+v k = %v", m, k)
+	}
+}

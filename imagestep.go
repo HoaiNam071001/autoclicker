@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -19,12 +20,22 @@ type WaitProgress struct {
 	Best      int    `json:"best"` // % khớp tốt nhất tới giờ (pixel: 100 = đúng màu)
 }
 
-// searchArea: vùng tìm ảnh theo toạ độ robotgo – vùng của kịch bản, hoặc cả màn hình chính.
+// searchArea: vùng tìm ảnh theo toạ độ robotgo – vùng của kịch bản, hoặc cả màn chứa vùng đó (không có vùng: màn chính).
 func (e *engine) searchArea(s Step) Rect {
-	if s.SearchArea == "screen" && e.screen.W > 0 {
+	b := bounds(e.sc, e.screen)
+	if s.SearchArea != "screen" {
+		return b
+	}
+	cx, cy := b.X+b.W/2, b.Y+b.H/2
+	for _, d := range e.displays {
+		if cx >= d.X && cx < d.X+d.W && cy >= d.Y && cy < d.Y+d.H {
+			return d
+		}
+	}
+	if e.screen.W > 0 {
 		return e.screen
 	}
-	return bounds(e.sc, e.screen)
+	return b
 }
 
 // template trả ảnh mẫu (xám) của bước, giải mã một lần mỗi lần chạy.
@@ -81,8 +92,11 @@ var errTimeout = errors.New("hết giờ")
 // findImage chờ tới khi thấy ảnh mẫu; trả tâm chỗ thấy (toạ độ robotgo) và nhớ lại cho bước click theo ảnh sau.
 func (e *engine) findImage(ctx context.Context, s Step) (Point, error) {
 	area := e.searchArea(s)
-	if err := captureArea(area, e.screen); err != nil {
+	if err := captureArea(area, e.displays); err != nil {
 		return Point{}, err
+	}
+	if s.FindBy == FindByText {
+		return e.findTextStep(ctx, s, area)
 	}
 	tpl, err := e.template(s)
 	if err != nil {
@@ -118,15 +132,78 @@ func (e *engine) findImage(ctx context.Context, s Step) (Point, error) {
 	return at, nil
 }
 
-// matchScaled co giãn mẫu về cùng tỷ lệ px với ảnh chụp (mẫu chụp trên Retina, chạy trên màn 1x…) rồi tìm.
+// findTextStep chờ tới khi đọc được chữ s.FindText trong vùng; trả tâm chữ (toạ độ robotgo).
+func (e *engine) findTextStep(ctx context.Context, s Step, area Rect) (Point, error) {
+	var at Point
+	var read []string
+	_, err := e.waitLoop(ctx, s, "text", func() (bool, int, error) {
+		hit, lines, ok, err := locateText(e.scr, e.ocr, area, s)
+		if err != nil {
+			return false, 0, err
+		}
+		if !ok {
+			read = lines
+			return false, 0, nil
+		}
+		at = Point{X: hit.X + hit.W/2, Y: hit.Y + hit.H/2}
+		return true, 100, nil
+	})
+	if errors.Is(err, errTimeout) {
+		e.miss = &FindResult{Area: area, Read: read}
+		return Point{}, fmt.Errorf("không thấy chữ “%s” sau %s%s", s.FindText, fmtSeconds(s.TimeoutMs), readHint(read))
+	}
+	if err != nil {
+		return Point{}, err
+	}
+	e.found, e.hasFound = at, true
+	return at, nil
+}
+
+// locateText chụp vùng, đọc chữ, tìm theo s; hit theo toạ độ robotgo. Không thấy → trả các dòng đọc được.
+func locateText(scr Screen, ocr TextReader, area Rect, s Step) (hit Rect, read []string, ok bool, err error) {
+	img, err := scr.Capture(area)
+	if err != nil {
+		return Rect{}, nil, false, err
+	}
+	lines, err := ocr.ReadText(img)
+	if err != nil {
+		return Rect{}, nil, false, err
+	}
+	hits := findText(lines, TextQuery{Text: s.FindText, Exact: s.TextExact, NoAccent: s.TextNoAccent})
+	n := max(s.Occurrence, 1)
+	if len(hits) < n {
+		return Rect{}, textLines(lines, 40), false, nil
+	}
+	k := imageScale(img, area)
+	b := hits[n-1].Box
+	return Rect{X: area.X + int(float64(b.X)/k), Y: area.Y + int(float64(b.Y)/k), W: int(float64(b.W) / k), H: int(float64(b.H) / k)}, nil, true, nil
+}
+
+// readHint – vài dòng đọc được, gợi ý vì sao không khớp (sai dấu, chữ khác…).
+func readHint(read []string) string {
+	if len(read) == 0 {
+		return " (không đọc được chữ nào trong vùng)"
+	}
+	show := read[:min(len(read), 5)]
+	return fmt.Sprintf(" – đọc được: “%s”%s", strings.Join(show, "”, “"), map[bool]string{true: "…", false: ""}[len(read) > 5])
+}
+
+// matchScaled đưa mẫu và ảnh chụp về cùng tỷ lệ px (mẫu chụp ở màn 1x, chạy trên Retina…) rồi tìm. Luôn thu nhỏ
+// bên nét hơn (trung bình theo ô ≈ cách màn 1x vẽ) thay vì phóng to bên kia – phóng to làm mẫu nhoè, độ khớp tụt.
 // Trả kết quả theo px ảnh chụp và tỷ lệ px / toạ độ của ảnh chụp.
 func matchScaled(img image.Image, area Rect, tpl gray, tplScale float64) (Match, float64) {
 	sc := imageScale(img, area)
-	if tplScale > 0 && math.Abs(sc-tplScale) > 0.01 {
-		k := sc / tplScale
-		tpl = tpl.resize(int(math.Round(float64(tpl.w)*k)), int(math.Round(float64(tpl.h)*k)))
+	g := toGray(img)
+	if tplScale <= 0 || math.Abs(sc-tplScale) <= 0.01 {
+		return findTemplate(g, tpl), sc
 	}
-	return findTemplate(toGray(img), tpl), sc
+	if k := tplScale / sc; k > 1 { // mẫu nét hơn ảnh chụp → thu nhỏ mẫu
+		return findTemplate(g, tpl.resize(int(math.Round(float64(tpl.w)/k)), int(math.Round(float64(tpl.h)/k)))), sc
+	}
+	k := sc / tplScale // ảnh chụp nét hơn → thu nhỏ ảnh chụp, đổi kết quả về px ảnh chụp
+	m := findTemplate(g.resize(int(math.Round(float64(g.w)/k)), int(math.Round(float64(g.h)/k))), tpl)
+	return Match{X: int(math.Round(float64(m.X) * k)), Y: int(math.Round(float64(m.Y) * k)),
+		W: int(math.Round(float64(m.W) * k)), H: int(math.Round(float64(m.H) * k)), Score: m.Score}, sc
 }
 
 // clickImage click vào chỗ thấy ảnh (+ Dx / Dy): kết quả bước chờ ảnh trước, hoặc tự tìm ảnh mẫu của bước.

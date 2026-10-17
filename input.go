@@ -61,6 +61,17 @@ func (robotgoInput) KeyToggle(key string, down bool, modifiers []string) error {
 	return robotgo.KeyToggle(key, "down", modifiers)
 }
 
+// rawDisplays trả khung các màn hình như robotgo báo (chưa nhân tỷ lệ) – cùng đơn vị với vị trí cửa sổ Wails.
+func rawDisplays() []Rect {
+	n := robotgo.DisplaysNum()
+	out := make([]Rect, 0, n)
+	for i := 0; i < n; i++ {
+		x, y, w, h := robotgo.GetDisplayBounds(i)
+		out = append(out, Rect{x, y, w, h})
+	}
+	return out
+}
+
 // displays trả khung các màn hình theo hệ toạ độ của robotgo.Location / Move.
 // Windows: robotgo nhân toạ độ chuột với tỷ lệ DPI màn chính (ScaleF) nên khung màn hình cũng phải nhân theo.
 func displays() []Rect {
