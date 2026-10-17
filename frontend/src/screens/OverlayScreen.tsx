@@ -94,7 +94,9 @@ export default function OverlayScreen() {
       window.removeEventListener('keydown', onAlt);
       window.removeEventListener('keyup', onAlt);
       clearTimeout(timer.current);
-      cancelPick(); // thoát overlay (Esc / Xong) mà chưa chọn lại điểm → huỷ
+      // Thoát overlay (Esc / Xong) mà chưa chọn lại điểm → huỷ. Chỉ khi đã rời overlay thật: StrictMode (wails dev)
+      // gỡ rồi gắn lại màn ngay khi mở – huỷ lúc đó sẽ mất loại bước (Double click / Giữ chuột) và chỗ chèn từ Ctrl+K.
+      if (location.hash !== '#overlay') cancelPick();
     };
   }, []);
 
