@@ -31,7 +31,7 @@ func runHTTP(t *testing.T, sc model.Script, clip *devicetest.FakeClipboard) (map
 func TestHTTPJSONAndDeepVars(t *testing.T) {
 	var got struct {
 		method, ctype, auth, q string
-		body              map[string]any
+		body                   map[string]any
 	}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		got.method, got.ctype, got.auth, got.q = r.Method, r.Header.Get("Content-Type"), r.Header.Get("Authorization"), r.URL.Query().Get("tim")
@@ -94,7 +94,9 @@ func TestHTTPErrors(t *testing.T) {
 		res, _ := runHTTP(t, model.Script{Loops: 1, Steps: []model.Step{httpStep(func(s *model.Step) { s.Ref = "n1"; f(s) })}}, &devicetest.FakeClipboard{})
 		return res["n1"]
 	}
-	r := one(func(s *model.Step) { s.URL, s.Query = srv.URL+"/x?token=bimat", []model.KV{{Key: "api_key", Value: "k123"}} })
+	r := one(func(s *model.Step) {
+		s.URL, s.Query = srv.URL+"/x?token=bimat", []model.KV{{Key: "api_key", Value: "k123"}}
+	})
 	if r.Status != model.StatusFail || r.Error.Code != model.ErrHTTPStatus || r.Output["status"] != 404 || r.Output["body"] != "không có" {
 		t.Errorf("404: %+v", r)
 	}
@@ -109,7 +111,9 @@ func TestHTTPErrors(t *testing.T) {
 	if r.Error == nil || r.Error.Code != model.ErrNetwork || strings.Contains(r.Error.Message, "xx") {
 		t.Errorf("không kết nối được: %+v", r.Error)
 	}
-	r = one(func(s *model.Step) { s.Method, s.URL, s.BodyType, s.Form = "POST", srv.URL+"/form", model.BodyForm, []model.KV{{Key: "ten", Value: "Lan & Hà"}} })
+	r = one(func(s *model.Step) {
+		s.Method, s.URL, s.BodyType, s.Form = "POST", srv.URL+"/form", model.BodyForm, []model.KV{{Key: "ten", Value: "Lan & Hà"}}
+	})
 	if r.Status != model.StatusSuccess || r.Output["body"] != "Lan & Hà" {
 		t.Errorf("form: %+v", r)
 	}

@@ -1,11 +1,6 @@
 import { model } from '../wailsjs/go/models';
+import type { AdvancedFields } from './stepAdvanced';
 import type { ReadFrom, ScrollMode } from './flow/web';
-import type { ShotArea } from './flow/shot';
-import type { ClipOp } from './flow/clipboard';
-import type { BodyType, HttpMethod } from './flow/http';
-import type { FileOp } from './flow/file';
-import type { SysOp } from './flow/system';
-import type { IfPassed } from './flow/waitUntil';
 
 // Neo của một trục (anchor.ts, khớp internal/script/anchor.go): bỏ trống = start (cách cạnh trái / trên).
 export type Anchor = 'start' | 'center' | 'end' | 'ratio';
@@ -85,7 +80,7 @@ export type KeyMode = 'chord' | 'sequence';
 export type HumanLevel = 'off' | 'low' | 'medium' | 'high';
 
 // Node của flow (bước 20) – khớp Step trong model.go.
-export interface Step {
+export interface Step extends AdvancedFields {
   id: string;
   type: StepType;
   ref: string; // mã ngắn n1, n2… (duy nhất) – biến {{n2.output.x}}
@@ -143,37 +138,6 @@ export interface Step {
   retry?: Retry; // thất bại thì thử lại; hết lượt → cổng fail (internal/engine/flowrun.go execNode)
   numVars?: NumVar[]; // trường số lấy từ biến (F5c) – giá trị lúc chạy thay cho trường đó
   human?: HumanLevel; // mức giống người riêng của node – trống = theo kịch bản (bước 34)
-  // chụp màn hình (bước 35 N1, internal/engine/shot.go)
-  shotArea?: ShotArea; // bỏ trống = vùng của kịch bản
-  display?: number; // shotArea screen: 0 = màn chứa vùng kịch bản, n = màn thứ n
-  shotRect?: Rect; // shotArea rect: toạ độ màn hình
-  saveDir?: string; // trống = Pictures/autoclicker; nhận {{biến}}
-  fileName?: string; // trống = autoclicker-<ngày>-<giờ>; nhận {{biến}}
-  toClipboard?: boolean;
-  // clipboard (bước 35 N2, internal/engine/clip.go)
-  clipOp?: ClipOp; // bỏ trống = đọc chữ
-  filePath?: string; // clipOp image: file PNG; nhận {{biến}}
-  // HTTP (bước 35 N3, internal/engine/http.go) – mọi ô chữ nhận {{biến}}
-  method?: HttpMethod; // bỏ trống = GET
-  url?: string; // biến chèn nguyên văn – giá trị cần mã hoá đặt trong query
-  query?: KV[];
-  headers?: KV[];
-  bodyType?: BodyType; // bỏ trống = không body
-  body?: string; // json / text
-  form?: KV[]; // bodyType form
-  // tệp / thư mục (bước 35 N4, internal/engine/file.go) – filePath + text dùng chung
-  fileOp?: FileOp; // bỏ trống = ghi chữ
-  fileAppend?: boolean; // ghi chữ: thêm vào cuối
-  cells?: string[]; // row: ô của dòng mới; nhận {{biến}}
-  sheet?: string; // row xlsx: tên sheet, trống = sheet đầu
-  filePattern?: string; // trash: mẫu tên file, vd *.png
-  // hệ thống (bước 35 N5, internal/engine/system.go)
-  sysOp?: SysOp;
-  volume?: number; // volume: mức 0–100; volumeUp / volumeDown: mỗi lần (0 = 10)
-  // chờ đến giờ (bước 35 N6, internal/engine/waituntil.go)
-  at?: string; // HH:mm[:ss[.mmm]] (kèm ngày nếu cần); nhận {{biến}}
-  ifPassed?: IfPassed;
-  useNtp?: boolean;
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
   // node điều khiển (bước 20 F3)

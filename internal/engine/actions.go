@@ -181,37 +181,6 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 	return nil
 }
 
-// typeText gõ từng ký tự để dừng / tạm dừng được giữa chừng với chuỗi dài; giống người thì theo nhịp humanize.Typing
-// (nhịp không đều, ngừng, gõ nhầm rồi xoá).
-func (e *Engine) typeText(ctx context.Context, text string) error {
-	var keys []humanize.Key
-	if e.human != nil {
-		keys = humanize.Typing(e.rng, *e.human, text)
-	} else {
-		for _, r := range text {
-			keys = append(keys, humanize.Key{Text: string(r)})
-		}
-	}
-	for _, k := range keys {
-		if err := Sleep(ctx, k.WaitMs); err != nil {
-			return err
-		}
-		if err := e.gate.wait(ctx); err != nil {
-			return err
-		}
-		if k.Text == humanize.Backspace {
-			if err := e.pressKeys(ctx, model.Step{Keys: []string{"backspace"}}); err != nil {
-				return err
-			}
-			continue
-		}
-		if err := e.in.TypeStr(k.Text); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // wheel lăn n nấc theo dir ở chỗ chuột đang đứng.
 func (e *Engine) wheel(ctx context.Context, dir string, n int) error {
 	return e.wheelEach(ctx, n, func() error { return e.in.Scroll(dir) })

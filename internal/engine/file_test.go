@@ -39,9 +39,13 @@ func TestFileWriteMkdirRows(t *testing.T) {
 		fileStep(func(s *model.Step) { s.FilePath, s.Text = txt, "dòng 1\n" }),
 		fileStep(func(s *model.Step) { s.FilePath, s.Text, s.FileAppend = txt, "dòng 2\n", true }),
 		fileStep(func(s *model.Step) { s.FileOp, s.FilePath, s.Cells = model.FileRow, csvP, []string{"Tên", "Ghi chú"} }),
-		fileStep(func(s *model.Step) { s.FileOp, s.FilePath, s.Cells = model.FileRow, csvP, []string{"Lan", `có "nháy", phẩy`} }),
+		fileStep(func(s *model.Step) {
+			s.FileOp, s.FilePath, s.Cells = model.FileRow, csvP, []string{"Lan", `có "nháy", phẩy`}
+		}),
 		fileStep(func(s *model.Step) { s.FileOp, s.FilePath, s.Cells = model.FileRow, xlsx, []string{"Lan", "42"} }),
-		fileStep(func(s *model.Step) { s.FileOp, s.FilePath, s.Cells, s.Sheet = model.FileRow, xlsx, []string{"Hà", "3.5"}, "Đơn" }),
+		fileStep(func(s *model.Step) {
+			s.FileOp, s.FilePath, s.Cells, s.Sheet = model.FileRow, xlsx, []string{"Hà", "3.5"}, "Đơn"
+		}),
 	)
 	for ref, r := range res {
 		if r.Status != model.StatusSuccess {

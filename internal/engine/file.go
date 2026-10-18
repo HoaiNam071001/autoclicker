@@ -218,7 +218,9 @@ func guardPath(p string) error {
 	if tmp := realPath(os.TempDir()); within(abs, tmp) {
 		return nil
 	}
-	bad := func() error { return &invalidErr{fmt.Sprintf("không thao tác trong %s – thư mục hệ thống / thư mục người dùng được bảo vệ", p)} }
+	bad := func() error {
+		return &invalidErr{fmt.Sprintf("không thao tác trong %s – thư mục hệ thống / thư mục người dùng được bảo vệ", p)}
+	}
 	if abs == filepath.VolumeName(abs)+string(filepath.Separator) || abs == home || within(abs, filepath.Join(home, "Library")) {
 		return bad()
 	}
