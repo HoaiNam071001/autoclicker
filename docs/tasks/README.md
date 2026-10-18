@@ -80,7 +80,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 |---|---|---|---|
 | ✅ | Mô tả loại node + hướng dẫn flow cho AI | `StepTypes`, `FlowGuide`, kịch bản mẫu – nền cho MCP | [20 F1](phase3/20-flow.md) |
 | ⬜ | AI tạo / sửa kịch bản qua MCP | Claude / ChatGPT / Cursor… ra lệnh bằng lời | [31a](phase3/31-mcp-ai.md) |
-| ⬜ | AI nhìn màn hình, AI tự thử và chạy | Chụp màn hình, khoanh ảnh mẫu; chạy có hỏi quyền | [31b, 31c](phase3/31-mcp-ai.md) |
+| ⬜ | AI nhìn màn hình, AI tự thử và chạy | Đọc chữ / phần tử trên màn trước, chụp ảnh khi cần; chạy có hỏi quyền, công tắc AI, chạy một phần flow / chạy tiếp từ node lỗi, chạy thử khô | [31b, 31c](phase3/31-mcp-ai.md) |
+| ⬜ | AI bên trong flow | Node Hỏi AI (nhiều nhà cung cấp, cả AI chạy trên máy), Gọi tool MCP khác – làm sau cùng của 31 | [31d](phase3/31-mcp-ai.md) |
 
 ### Giao diện & nền tảng
 
@@ -95,7 +96,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 > Bảng tự sinh – sau khi tick chạy `python3 scripts/tasks-index.py`. Bấm tên bước để mở file chi tiết.
 
 <!-- index:start -->
-**30 / 45 bước xong code** · 🧪 **[31 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
+**30 / 46 bước xong code** · 🧪 **[31 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
 
 ### Phase 3 – Design v2 & tự động hoá (theo thứ tự làm)
 
@@ -118,10 +119,11 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | ⬜ chưa làm | [34. Thao tác giống người – di chuột, gõ, click, cuộn tự nhiên](phase3/34-giong-nguoi.md) | 0 / 5 |  |
 | ⬜ chưa làm | [35. Node nâng cao](phase3/35-node-nang-cao.md) | 0 / 8 |  |
 | ⬜ chưa làm | [26. Focus cửa sổ theo tên](phase3/26-focus-cua-so.md) | 0 / 3 |  |
-| ⬜ chưa làm | [22. Hẹn giờ + thông báo + CLI / API local](phase3/22-hen-gio-cli-api.md) | 0 / 5 |  |
+| ⬜ chưa làm | [22. Hẹn giờ + thông báo + CLI / API local](phase3/22-hen-gio-cli-api.md) | 0 / 6 |  |
 | ⬜ chưa làm | [31a. Kết nối AI qua MCP – tạo / sửa kịch bản](phase3/31-mcp-ai.md) | 0 / 7 |  |
-| ⬜ chưa làm | [31b. MCP – AI nhìn màn hình](phase3/31-mcp-ai.md) | 0 / 3 |  |
-| ⬜ chưa làm | [31c. MCP – AI tự thử và chạy kịch bản](phase3/31-mcp-ai.md) | 0 / 4 |  |
+| ⬜ chưa làm | [31b. MCP – AI nhìn màn hình](phase3/31-mcp-ai.md) | 0 / 4 |  |
+| ⬜ chưa làm | [31c. MCP – AI tự thử và chạy kịch bản](phase3/31-mcp-ai.md) | 0 / 8 |  |
+| ⬜ chưa làm | [31d. AI bên trong flow](phase3/31-mcp-ai.md) | 0 / 4 |  |
 | ⬜ chưa làm | [24. Ghi macro](phase3/24-ghi-macro.md) | – |  |
 | ⬜ chưa làm | [28. Mở rộng](phase3/28-mo-rong.md) | 0 / 5 |  |
 
@@ -192,6 +194,6 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 11e | [35. Node nâng cao](phase3/35-node-nang-cao.md) | Người dùng yêu cầu (2026-10-18): sau 34, trước 26 – ít node nền (chụp màn hình, clipboard, HTTP trước) + kịch bản mẫu; node mới dùng output chuẩn F5c |
 | 12 | [26. Focus cửa sổ](phase3/26-focus-cua-so.md) | Xong 26 là chạy được ví dụ Facebook |
 | 14 | [22. Hẹn giờ / CLI / API local](phase3/22-hen-gio-cli-api.md) | Chạy không cần ngồi canh; dựng server HTTP + token mà MCP dùng lại |
-| 15–17 | [31a → 31b → 31c. MCP cho AI](phase3/31-mcp-ai.md) | Người dùng chọn làm sau (2026-10-17); các bước trước đã có mục *Chuẩn bị cho MCP* nên lúc này chủ yếu là bọc hàm Go sẵn có thành tool |
+| 15–17 | [31a → 31b → 31c → 31d. MCP cho AI](phase3/31-mcp-ai.md) | Người dùng chọn làm sau (2026-10-17); các bước trước đã có mục *Chuẩn bị cho MCP* nên lúc này chủ yếu là bọc hàm Go sẵn có thành tool. 31d (AI trong flow) chỉ làm khi 31a–c dùng ổn (2026-10-18) |
 | 18–19 | [24](phase3/24-ghi-macro.md) → [28](phase3/28-mo-rong.md) | Ghi macro, mở rộng |
 | – | [17 (Windows), 18](phase1-mvp.md) | Khi có máy Windows; riêng *Kiểm tra tay macOS* của 17 làm lúc nào cũng được |
