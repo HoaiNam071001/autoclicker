@@ -47,6 +47,12 @@ func (e *Engine) runStep(ctx context.Context, s model.Step) (map[string]any, err
 		return e.webWait(ctx, s)
 	case model.StepWebClick:
 		return e.webClick(ctx, s)
+	case model.StepWebType:
+		return e.webType(ctx, s)
+	case model.StepWebRead:
+		return e.webRead(ctx, s)
+	case model.StepWebScroll:
+		return e.webScroll(ctx, s)
 	case model.StepWaitPixel:
 		c, err := e.waitPixel(ctx, s)
 		if err != nil {
@@ -118,15 +124,7 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 	case model.StepWait:
 		// chỉ chờ DelayAfter
 	case model.StepText:
-		// Gõ từng ký tự để dừng / tạm dừng được giữa chừng với chuỗi dài.
-		for _, r := range s.Text {
-			if err := e.gate.wait(ctx); err != nil {
-				return err
-			}
-			if err := in.TypeStr(string(r)); err != nil {
-				return err
-			}
-		}
+		return e.typeText(ctx, s.Text)
 	case model.StepKey:
 		return pressKeys(ctx, in, s)
 	case model.StepScroll:
@@ -136,22 +134,41 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 				return err
 			}
 		}
-		for i := 0; i < s.Amount; i++ {
-			if err := e.gate.wait(ctx); err != nil {
-				return err
-			}
-			if err := in.Scroll(s.Direction); err != nil {
-				return err
-			}
-			if err := Sleep(ctx, scrollGapMs); err != nil {
-				return err
-			}
-		}
+		return e.wheel(ctx, s.Direction, s.Amount)
 	case model.StepOpen:
 		if s.WebBrowser {
 			return e.openInBrowser(ctx, launch.BrowserURL(s.Target))
 		}
 		return e.open(s.Target, s.App)
+	}
+	return nil
+}
+
+// typeText gõ từng ký tự để dừng / tạm dừng được giữa chừng với chuỗi dài.
+func (e *Engine) typeText(ctx context.Context, text string) error {
+	for _, r := range text {
+		if err := e.gate.wait(ctx); err != nil {
+			return err
+		}
+		if err := e.in.TypeStr(string(r)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// wheel lăn n nấc theo dir ở chỗ chuột đang đứng.
+func (e *Engine) wheel(ctx context.Context, dir string, n int) error {
+	for i := 0; i < n; i++ {
+		if err := e.gate.wait(ctx); err != nil {
+			return err
+		}
+		if err := e.in.Scroll(dir); err != nil {
+			return err
+		}
+		if err := Sleep(ctx, scrollGapMs); err != nil {
+			return err
+		}
 	}
 	return nil
 }

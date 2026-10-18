@@ -7,7 +7,7 @@ import { boundsOf, endpoints, setAnchor, setScrollAt, toScreen, updateStep, useS
 import { pinnedInput, setPinnedValue } from '../../scriptInputs';
 import { insideBounds } from '../../anchor';
 import { SCROLL_NOTCH_PX, ScrollDirection, Step } from '../../types';
-import { Field, hint, NumField, PickButton, SetPoint } from './shared';
+import { DIRECTION_OPTIONS, Field, hint, NumField, PickButton, SetPoint } from './shared';
 
 export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetPoint }) {
   const script = useScript();
@@ -17,7 +17,7 @@ export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetP
           <>
         <Field label="Hướng" wide group>
           <Segmented value={s.direction ?? 'down'} onChange={(direction: ScrollDirection) => set({ direction })} full label="Hướng cuộn"
-            options={[{ id: 'up', label: '↑ Lên' }, { id: 'down', label: '↓ Xuống' }, { id: 'left', label: '← Trái' }, { id: 'right', label: '→ Phải' }]} />
+            options={DIRECTION_OPTIONS} />
         </Field>
         <NumField label="Số nấc" step={s} field="amount" unit="nấc" min={1} />
         <Field label="Quãng cuộn ≈">

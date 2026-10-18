@@ -138,6 +138,10 @@ export function outputsOf(s: Step): OutputField[] {
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
     case 'webWait': return s.webGone ? [] : WEB_FOUND;
     case 'webClick': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...WEB_FOUND];
+    case 'webType': return [{ key: 'text', desc: 'chữ đã gõ (sau khi thay biến)' }, { key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' },
+      ...WEB_FOUND.filter((f) => f.key !== 'text')];
+    case 'webRead': return [{ key: 'text', desc: 'giá trị đọc được' }, { key: 'count', desc: 'số phần tử khớp' }, { key: 'selector', desc: 'cách tìm đã khớp' }];
+    case 'webScroll': return [...WEB_FOUND, ...(s.scrollMode === 'until' ? [{ key: 'scrolls', desc: 'số lần đã lăn' }] : [])];
     case 'if': return [{ key: 'result', desc: 'true / false' }, ...FOUND.map((f) => ({ ...f, desc: `${f.desc} (điều kiện ảnh / chữ đúng)` }))];
     case 'switch': return [{ key: 'case', desc: 'case khớp (default nếu không)' }, { key: 'value', desc: 'giá trị đã xét' }];
     case 'switchScreen': return [{ key: 'case', desc: 'case hiện trước (none nếu không)' }, ...FOUND];

@@ -201,7 +201,7 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges'>, reg
             patch({ bubble: `Click theo ${s.imageSource === 'search' && s.findBy === 'text' ? `chữ “${s.findText}”` : 'ảnh'}${s.imageSource === 'search' ? ' (tự tìm)' : ''} – vị trí biết khi chạy thật` });
             await wait(KEY_SHOW_MS);
             break;
-          case 'webWait': case 'webClick':
+          case 'webWait': case 'webClick': case 'webType': case 'webRead': case 'webScroll':
             patch({ bubble: `${stepLabel(s)}: ${fmtSelectors(s.selectors)} – vị trí biết khi chạy thật` });
             await wait(KEY_SHOW_MS);
             break;

@@ -19,6 +19,9 @@ type Browser interface {
 	// không (D0: số đo cũ, Dock / thanh menu / cửa sổ khác che mà elementFromPoint không thấy). onTarget = điểm nằm
 	// trong khung phần tử → phần tử dưới chuột phải là nó.
 	Hover(ctx context.Context, x, y int, onTarget bool) (Hover, error)
+	// Focused – sau khi click vào phần tử của lần Find (Scroll) gần nhất: ô nhập đang focus có phải nó (con / cha / ô của
+	// label) không; không phải thì at mô tả phần tử đang focus.
+	Focused(ctx context.Context) (ok bool, at string, err error)
 	Close()
 }
 
@@ -27,7 +30,10 @@ type Query struct {
 	Selectors []model.Selector
 	Tab       string // URL / tiêu đề tab chứa chuỗi này ("" = tab đang hiện)
 	Scroll    bool   // sắp bấm (webClick): ngoài viewport thì cuộn vào giữa, bị che thì chưa tính là thấy, tab lên trước
-	CheckOnly bool   // chỉ xem có hay không (webWait chờ mất) – không đo toạ độ, không di chuột
+	CheckOnly bool   // chỉ xem có hay không (webWait chờ mất, webRead) – không đo toạ độ, không di chuột
+	Read      string // webRead: đọc vào Found.Value – "text" (chữ hiển thị) | "value" (giá trị ô) | "attr" (thuộc tính Attr)
+	Attr      string
+	Viewport  bool // tìm chính khung nhìn của trang (bỏ qua Selectors) – lăn chuột giữa trang (webScroll)
 }
 
 // Found – kết quả một lần tìm.
@@ -43,6 +49,8 @@ type Found struct {
 	Loading  bool       // trang đang tải – không thấy chưa có nghĩa là đã mất
 	Moving   bool       // sắp bấm nhưng khung còn đổi giữa 2 lần đọc (hiệu ứng, trang đang dàn lại) – OK = false
 	OffView  bool       // thấy nhưng tâm nằm ngoài vùng nhìn thấy của trang (chưa cuộn tới)
+	Count    int        // số phần tử đang hiện khớp selector đã dùng
+	Value    string     // Query.Read: giá trị đọc được
 }
 
 // Hover – kết quả thử hover trước khi bấm. OK = false → chưa bấm, tìm lại (Miss nói vì sao, để báo khi hết giờ).

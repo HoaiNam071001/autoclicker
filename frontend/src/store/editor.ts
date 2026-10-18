@@ -3,7 +3,8 @@
 // (nodes, points, multi) và chỉ đổi state qua `setEditor` / `updateScript` ở đây. Lưu / mở file: scriptFile.ts.
 import { useSyncExternalStore } from 'react';
 import { ScreenBounds } from '../../wailsjs/go/main/App';
-import { Point, Rect, sampleSteps, Script } from '../types';
+import { Point, Rect, Script } from '../types';
+import { browserSteps } from '../demo/browserSteps';
 import { chain } from '../flow/edit';
 import { inWails, setEditingBounds } from '../windowMode';
 
@@ -26,7 +27,7 @@ export type EditorState = {
 // Trình duyệt (không có Go): dữ liệu mẫu nối thành chuỗi để xem canvas / overlay.
 const browserScript = (): Script => ({
   version: 4, name: 'Kịch bản 1', region: null, loops: 10, maxMinutes: 0,
-  steps: sampleSteps, start: sampleSteps[0].id, edges: chain(sampleSteps.map((s) => s.id)),
+  steps: browserSteps, start: browserSteps[0].id, edges: chain(browserSteps.map((s) => s.id)),
 });
 export const emptyScript = (): Script => ({ version: 4, name: 'Kịch bản 1', region: null, loops: 1, maxMinutes: 0, steps: [], start: '', edges: [] });
 

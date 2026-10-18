@@ -15,11 +15,12 @@ import (
 // errNoBrowserOpt – engine không có trình duyệt (Options.Browser nil).
 var errNoBrowserOpt = &web.BrowserError{Msg: "lần chạy này không điều khiển trình duyệt"}
 
-// webQuery – selector đã thay biến (dòng trống bỏ qua; đã kiểm tra ở ValidateScript), kèm dòng gốc để báo lại.
-func webQuery(s model.Step, click bool) (web.Query, []string, error) {
-	q := web.Query{Tab: s.Tab, Scroll: click, CheckOnly: s.Type == model.StepWebWait && s.WebGone}
+// webQuery – query tìm theo các dòng selector đã thay biến (dòng trống bỏ qua; đã kiểm tra ở ValidateScript), kèm dòng
+// gốc để báo lại. click: sắp bấm / lăn chuột vào phần tử (cuộn tới, chưa tính khi bị che, tab lên trước).
+func webQuery(s model.Step, sels []string, click bool) (web.Query, []string, error) {
+	q := web.Query{Tab: s.Tab, Scroll: click}
 	var lines []string
-	for _, line := range s.Selectors {
+	for _, line := range sels {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
@@ -36,44 +37,61 @@ func webQuery(s model.Step, click bool) (web.Query, []string, error) {
 // webTry – kết quả lần tìm cuối của webFind: phần tử + (webClick) điểm bấm đầu đã thử hover, lý do hover chưa ổn.
 type webTry struct {
 	web.Found
+	ok    bool
 	at    model.Point
 	hover string
 }
 
-// webFind chờ tới khi phần tử hiện (gone: mất) hoặc hết TimeoutMs. click: thấy rồi còn phải thử hover điểm bấm đầu
-// (tâm + Dx / Dy + lệch ngẫu nhiên) – trang chưa nhận đúng thì tìm lại (D2).
+// webFind chờ phần tử theo s.Selectors (click: như webQuery) – webWait chờ mất thì chờ tới khi mất.
 func (e *Engine) webFind(ctx context.Context, s model.Step, click bool) (webTry, []string, error) {
-	if e.browser == nil {
-		return webTry{}, nil, errNoBrowserOpt
-	}
-	q, lines, err := webQuery(s, click)
+	q, lines, err := webQuery(s, s.Selectors, click)
 	if err != nil {
 		return webTry{}, nil, err
 	}
-	gone := q.CheckOnly
+	q.CheckOnly = s.Type == model.StepWebWait && s.WebGone
+	return e.webFindQ(ctx, s, q, lines, click)
+}
+
+// webFindQ chờ tới khi phần tử của q hiện (CheckOnly + WebGone: mất) hoặc hết TimeoutMs. aim (q.Scroll): thấy rồi còn
+// phải thử hover điểm bấm đầu (tâm + Dx / Dy + lệch ngẫu nhiên) – trang chưa nhận đúng thì tìm lại (D2).
+func (e *Engine) webFindQ(ctx context.Context, s model.Step, q web.Query, lines []string, aim bool) (webTry, []string, error) {
+	if e.browser == nil {
+		return webTry{}, nil, errNoBrowserOpt
+	}
 	var last webTry
-	_, err = e.waitLoop(ctx, s, "web", func() (bool, int, error) {
-		f, err := e.browser.Find(ctx, q)
-		if err != nil {
-			return false, 0, err
-		}
-		last = webTry{Found: f}
-		if gone {
-			return !f.OK && !f.Loading && !f.NoTab, 0, nil
-		}
-		if !f.OK || !click {
-			return f.OK, 0, nil
-		}
-		c := hit{Box: f.Rect}.center()
-		last.at = model.Point{X: e.jitter(c.X+s.Dx, s.JitterPx), Y: e.jitter(c.Y+s.Dy, s.JitterPx)}
-		h, err := e.browser.Hover(ctx, last.at.X, last.at.Y, inRect(last.at, f.Rect))
-		last.hover = h.Miss
-		return h.OK, 0, err
+	_, err := e.waitLoop(ctx, s, "web", func() (bool, int, error) {
+		var err error
+		last, err = e.webTryOnce(ctx, s, q, aim)
+		return last.ok, 0, err
 	})
 	if errors.Is(err, errTimeout) {
-		return last, lines, &notFoundErr{webMissMsg(s, last, lines, gone)}
+		return last, lines, &notFoundErr{webMissMsg(s, last, lines, q.CheckOnly && s.WebGone)}
 	}
 	return last, lines, err
+}
+
+// webTryOnce – một lần tìm (+ thử hover khi aim); ok = đủ điều kiện dừng chờ.
+func (e *Engine) webTryOnce(ctx context.Context, s model.Step, q web.Query, aim bool) (webTry, error) {
+	f, err := e.browser.Find(ctx, q)
+	if err != nil {
+		return webTry{}, err
+	}
+	t := webTry{Found: f}
+	switch {
+	case q.CheckOnly && s.WebGone:
+		t.ok = !f.OK && !f.Loading && !f.NoTab
+	case !f.OK || !aim:
+		t.ok = f.OK
+	default:
+		c := hit{Box: f.Rect}.center()
+		t.at = model.Point{X: e.jitter(c.X+s.Dx, s.JitterPx), Y: e.jitter(c.Y+s.Dy, s.JitterPx)}
+		h, err := e.browser.Hover(ctx, t.at.X, t.at.Y, !q.Viewport && inRect(t.at, f.Rect))
+		t.ok, t.hover = h.OK, h.Miss
+		if err != nil {
+			return t, err
+		}
+	}
+	return t, nil
 }
 
 func inRect(p model.Point, r model.Rect) bool {

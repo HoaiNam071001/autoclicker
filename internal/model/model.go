@@ -19,8 +19,11 @@ const (
 	StepWaitPixel  = "waitPixel"  // chờ tới khi điểm Points[0] có màu Color (± Tolerance)
 
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
-	StepWebWait  = "webWait"  // chờ tới khi phần tử hiện (WebGone: mất)
-	StepWebClick = "webClick" // chờ phần tử hiện rồi click vào tâm (+ Dx / Dy)
+	StepWebWait   = "webWait"   // chờ tới khi phần tử hiện (WebGone: mất)
+	StepWebClick  = "webClick"  // chờ phần tử hiện rồi click vào tâm (+ Dx / Dy)
+	StepWebType   = "webType"   // click vào ô, kiểm tra ô nhận focus rồi gõ Text bằng phím thật (WebClear: xoá chữ cũ trước)
+	StepWebRead   = "webRead"   // chờ phần tử hiện rồi đọc chữ / value / thuộc tính (ReadFrom) vào output
+	StepWebScroll = "webScroll" // cuộn tới phần tử / trong phần tử / tới khi thấy phần tử (ScrollMode)
 
 	// Node điều khiển (bước 20 F3, nodes.go) – không làm gì trên màn hình ngoài nhìn, chọn cổng ra theo kết quả.
 	StepIf           = "if"           // Cond đúng → cổng true, sai → false; TimeoutMs > 0 = chờ tới khi đúng
@@ -33,7 +36,8 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepWebWait, StepWebClick, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
+	StepWaitImage, StepClickImage, StepWaitPixel, StepWebWait, StepWebClick,
+	StepWebType, StepWebRead, StepWebScroll, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
 func IsControl(t string) bool {
@@ -91,7 +95,7 @@ type Step struct {
 	DragMs        int      `json:"dragMs"`
 	DragFromPrev  bool     `json:"dragFromPrev"` // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
 	DragRelative  bool     `json:"dragRelative"` // drag: points[1] là độ lệch (dx, dy) so với điểm bắt đầu
-	Text          string   `json:"text"`         // type: chuỗi cần gõ
+	Text          string   `json:"text"`         // type / webType: chuỗi cần gõ
 	Keys          []string `json:"keys"`         // key: phím chính theo tên robotgo (enter, tab, a, f5…)
 	KeyMode       string   `json:"keyMode"`      // key: chord | sequence (chỉ khác nhau khi có ≥ 2 phím chính)
 	Modifiers     []string `json:"modifiers"`    // key: cmd | ctrl | alt | shift
@@ -105,9 +109,17 @@ type Step struct {
 	App           string   `json:"app,omitempty"`        // open: mở bằng app này ("" = mặc định của máy), vd Google Chrome
 	WebBrowser    bool     `json:"webBrowser,omitempty"` // open: mở URL bằng Chrome của app (profile riêng, node web điều khiển được) – bỏ qua App
 	// Web qua DOM (bước 25d)
-	Selectors []string `json:"selectors,omitempty"` // webWait / webClick: cách tìm phần tử theo thứ tự ưu tiên (ParseSelector); nhận {{biến}}
-	Tab       string   `json:"tab,omitempty"`       // webWait / webClick: tab có URL / tiêu đề chứa chuỗi này ("" = tab đang hiện); nhận {{biến}}
+	Selectors []string `json:"selectors,omitempty"` // node web: cách tìm phần tử theo thứ tự ưu tiên (ParseSelector); nhận {{biến}}
+	Tab       string   `json:"tab,omitempty"`       // node web: tab có URL / tiêu đề chứa chuỗi này ("" = tab đang hiện); nhận {{biến}}
 	WebGone   bool     `json:"webGone,omitempty"`   // webWait: chờ phần tử mất (không còn / bị ẩn)
+	WebClear  bool     `json:"webClear,omitempty"`  // webType: xoá chữ cũ trong ô (Cmd/Ctrl+A, Backspace) trước khi gõ
+	WebEnter  bool     `json:"webEnter,omitempty"`  // webType: bấm Enter sau khi gõ
+	ReadFrom  string   `json:"readFrom,omitempty"`  // webRead: "" = chữ hiển thị | value (giá trị ô) | attr (thuộc tính Attr)
+	Attr      string   `json:"attr,omitempty"`      // webRead ReadFrom attr: tên thuộc tính, vd href
+	// webScroll: "" = tới phần tử (vào giữa khung nhìn) | in = lăn Amount nấc Direction trong phần tử | until = lăn tới khi
+	// phần tử nằm trong khung nhìn (lăn trong khung ScrollIn, trống = giữa trang)
+	ScrollMode string   `json:"scrollMode,omitempty"`
+	ScrollIn   []string `json:"scrollIn,omitempty"` // webScroll until: cách tìm khung cuộn (như Selectors); nhận {{biến}}
 	// Chờ ảnh / click theo ảnh / chờ pixel (bước 25)
 	Template      string  `json:"template,omitempty"`      // ảnh mẫu PNG (base64)
 	TemplateScale float64 `json:"templateScale,omitempty"` // px ảnh mẫu trên 1 đơn vị toạ độ lúc chụp (Retina = 2) – tìm trên màn tỷ lệ khác thì co giãn
@@ -174,6 +186,18 @@ type Cond struct {
 
 // Step.FindBy
 const FindByText = "text"
+
+// Step.ReadFrom (webRead)
+const (
+	ReadValue = "value"
+	ReadAttr  = "attr"
+)
+
+// Step.ScrollMode (webScroll)
+const (
+	ScrollModeIn    = "in"
+	ScrollModeUntil = "until"
+)
 
 // Retry – node thất bại (không thấy ảnh / chữ / màu, lỗi) thì thử lại thêm Count lần, nghỉ DelayMs giữa các lần.
 // Thử hết vẫn lỗi → StepResult fail, đi ra cổng fail (không nối thì dừng kịch bản).

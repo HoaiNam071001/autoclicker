@@ -27,11 +27,19 @@ func VarFields(s *model.Step) []VarField {
 		if s.FindBy == model.FindByText {
 			add("findText", &s.FindText, false)
 		}
-	case model.StepWebWait, model.StepWebClick:
+	case model.StepWebWait, model.StepWebClick, model.StepWebType, model.StepWebRead, model.StepWebScroll:
 		for i := range s.Selectors {
 			add(fmt.Sprintf("selectors[%d]", i), &s.Selectors[i], false)
 		}
 		add("tab", &s.Tab, false)
+		if s.Type == model.StepWebType {
+			add("text", &s.Text, false)
+		}
+		if s.Type == model.StepWebScroll && s.ScrollMode == model.ScrollModeUntil {
+			for i := range s.ScrollIn {
+				add(fmt.Sprintf("scrollIn[%d]", i), &s.ScrollIn[i], false)
+			}
+		}
 	case model.StepOpen:
 		add("target", &s.Target, launch.TargetKind(s.Target) == launch.TargetURL)
 	case model.StepIf:
@@ -75,6 +83,7 @@ func condFields(c *model.Cond, name string, add func(string, *string, bool)) {
 func CloneStep(s model.Step) model.Step {
 	s.Points = slices.Clone(s.Points)
 	s.Selectors = slices.Clone(s.Selectors)
+	s.ScrollIn = slices.Clone(s.ScrollIn)
 	s.Cond = cloneCond(s.Cond)
 	if s.Cases != nil {
 		cs := make([]model.Case, len(s.Cases))

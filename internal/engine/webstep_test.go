@@ -23,7 +23,20 @@ type fakeBrowser struct {
 	hovers  []web.Hover
 	hovered []string
 	opened  []string
+	focus   []bool // Focused lần lượt (cuối lặp lại; trống = luôn đúng)
+	nFocus  int
 	err     error
+}
+
+func (b *fakeBrowser) Focused(context.Context) (bool, string, error) {
+	b.nFocus++
+	if len(b.focus) == 0 {
+		return true, "", nil
+	}
+	if ok := b.focus[min(b.nFocus-1, len(b.focus)-1)]; !ok {
+		return false, "button “Gửi”", nil
+	}
+	return true, "", nil
 }
 
 func (b *fakeBrowser) Hover(_ context.Context, x, y int, onTarget bool) (web.Hover, error) {

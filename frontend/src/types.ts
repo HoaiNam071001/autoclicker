@@ -1,6 +1,6 @@
 import { model } from '../wailsjs/go/models';
 import { fmtAxis, fmtPoint } from './anchor';
-import { fmtSelectors } from './flow/web';
+import { fmtWebStep, isWebStep, type ReadFrom, type ScrollMode } from './flow/web';
 
 // Neo của một trục (anchor.ts, khớp internal/script/anchor.go): bỏ trống = start (cách cạnh trái / trên).
 export type Anchor = 'start' | 'center' | 'end' | 'ratio';
@@ -12,7 +12,7 @@ export type Rect = { x: number; y: number; w: number; h: number };
 // Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
 export type Retry = { count?: number; delayMs?: number };
 // Node hay "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại (thử lại)
-export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'webWait', 'webClick', 'open'];
+export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'open'];
 
 // ---- Flow (bước 20, flow.go) ----
 // Cạnh: node from đi ra cổng port thì chạy node to. Mỗi cổng tối đa một cạnh. Khớp Edge trong model.go.
@@ -39,7 +39,7 @@ const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = 
 void edgeMatchesGo, resultMatchesGo;
 
 export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel'
-  | 'webWait' | 'webClick';
+  | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'end' | 'setVar';
 export type StepType = ActionType | ControlType;
@@ -89,7 +89,7 @@ export interface Step {
   dragMs: number;
   dragFromPrev: boolean; // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
   dragRelative: boolean; // drag: points[1] là độ lệch (dx, dy) so với điểm bắt đầu
-  text: string; // type: chuỗi cần gõ
+  text: string; // type / webType: chuỗi cần gõ
   keys: string[]; // key: phím chính theo tên robotgo (enter, tab, a, f5…)
   keyMode: KeyMode; // key: chỉ khác nhau khi có ≥ 2 phím chính
   modifiers: Modifier[]; // key: tổ hợp, vd ['cmd'] + 'v'
@@ -103,9 +103,15 @@ export interface Step {
   app?: string; // open: mở bằng app này, '' = mặc định của máy
   webBrowser?: boolean; // open: mở bằng Chrome của app (profile riêng) – node web điều khiển được; bỏ qua app
   // web qua DOM (bước 25d, internal/engine/webstep.go) – cách tìm ở flow/web.ts
-  selectors?: string[]; // webWait / webClick: mỗi dòng một cách tìm (text= / aria= / role= / css= / xpath=), dòng đầu ưu tiên; nhận {{biến}}
+  selectors?: string[]; // node web: mỗi dòng một cách tìm (text= / aria= / role= / css= / xpath=), dòng đầu ưu tiên; nhận {{biến}}
   tab?: string; // tab có URL / tiêu đề chứa chuỗi này, bỏ trống = tab đang hiện; nhận {{biến}}
   webGone?: boolean; // webWait: chờ phần tử mất
+  webClear?: boolean; // webType: xoá chữ cũ trước khi gõ
+  webEnter?: boolean; // webType: Enter sau khi gõ
+  readFrom?: ReadFrom; // webRead: bỏ trống = chữ hiển thị
+  attr?: string; // webRead readFrom attr: tên thuộc tính
+  scrollMode?: ScrollMode; // webScroll: bỏ trống = tới phần tử
+  scrollIn?: string[]; // webScroll until: khung cuộn (như selectors), trống = giữa trang; nhận {{biến}}
   // chờ ảnh / click theo ảnh / chờ pixel (bước 25, internal/engine/imagestep.go)
   template?: string; // ảnh mẫu PNG base64
   templateScale?: number; // px ảnh mẫu / 1 đơn vị toạ độ lúc chụp (Retina 2)
@@ -213,6 +219,9 @@ export const STEP_LABEL: Record<StepType, string> = {
   waitPixel: 'Chờ màu pixel',
   webWait: 'Chờ phần tử web',
   webClick: 'Click phần tử web',
+  webType: 'Gõ vào ô web',
+  webRead: 'Đọc phần tử web',
+  webScroll: 'Cuộn trang web',
   if: 'Nếu',
   switch: 'Switch theo giá trị',
   switchScreen: 'Switch theo màn hình',
@@ -261,17 +270,6 @@ export const fmtKey = (s: Step) => {
   return [...s.modifiers.map(cap), keys].filter(Boolean).join(' + ') || '—';
 };
 
-export const sampleSteps: Step[] = [
-  { id: '1', ref: 'n1', type: 'click', points: [{ x: 412, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '2', ref: 'n2', type: 'double', points: [{ x: 640, y: 220 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '3', ref: 'n3', type: 'click', points: [{ x: 812, y: 436 }], button: 'left', clicks: 5, clickInterval: 120, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 800, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '4', ref: 'n4', type: 'drag', points: [{ x: 300, y: 600 }, { x: 900, y: 600 }], button: 'left', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 400, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 1000, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '5', ref: 'n5', type: 'wait', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 2000, jitterMs: 0, jitterPx: 0, enabled: false },
-  { id: '6', ref: 'n6', type: 'click', points: [{ x: 1100, y: 520 }], button: 'right', clicks: 1, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '7', ref: 'n7', type: 'type', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: 'xin chao 123', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true },
-  { id: '8', ref: 'n8', type: 'key', points: [], button: 'left', clicks: 0, clickInterval: 0, holdMs: 0, dragMs: 0, dragFromPrev: false, dragRelative: false, text: '', keys: ['enter'], keyMode: 'chord', modifiers: [], delayAfter: 500, jitterMs: 0, jitterPx: 0, enabled: true },
-];
-
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);
 const fmtSigned = (v: number) => (v > 0 ? `+${v}` : `${v}`);
 const fmtPair = (p: StepPoint) => `${fmtAxis(p.x, p.ax)}, ${fmtAxis(p.y, p.ay)}`;
@@ -284,8 +282,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'key' ? fmtKey(s)
     : s.type === 'scroll' ? `${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount ?? 0} nấc ≈ ${(s.amount ?? 0) * SCROLL_NOTCH_PX} px ${s.points[0] ? `tại ${fmtPoint(s.points[0])}` : 'tại chuột'}`
     : s.type === 'open' ? `${s.target || '—'}${s.webBrowser ? ' · Chrome của app' : s.app ? ` · ${s.app}` : ''}`
-    : s.type === 'webWait' || s.type === 'webClick'
-      ? `${fmtSelectors(s.selectors)}${s.webGone ? ' · chờ mất' : ''}${s.tab ? ` · tab “${s.tab}”` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`
+    : isWebStep(s.type) ? fmtWebStep(s)
     : s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search')
       ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.findBy === 'text'
         ? (s.findText?.trim() ? `chữ “${s.findText}”${(s.occurrence ?? 0) > 1 ? ` (chỗ thứ ${s.occurrence})` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa nhập chữ cần tìm')

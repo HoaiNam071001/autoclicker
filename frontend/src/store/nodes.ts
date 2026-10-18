@@ -5,6 +5,7 @@ import {
   Clip, connect, copyNodes, disconnect, InsertAt, insertNode as insertInto, nextRef, pasteNodes, pruneEdges, removeEdge as dropEdge, removeNode,
 } from '../flow/edit';
 import { findsImage, flowOrder, portsOf } from '../flow/model';
+import { isWebStep, type WebType } from '../flow/web';
 import { placeNode, Positions } from '../flow/layout';
 import { makeStep, Point, Script, Step, StepType } from '../types';
 import { getEditor, patchScriptSilently, setEditor, setNotice, updateScript } from './editor';
@@ -45,7 +46,7 @@ export function insertNode(step: Step, notice: (ref: string) => string) {
 
 // Thêm node không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở, chờ ảnh…) – giá trị mặc định giống NewStep (model.go).
 // patch: sửa thêm sau mặc định (vd node Mở bằng Chrome của app).
-export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'webWait' | 'webClick'>, patch: Partial<Step> = {}) {
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | WebType>, patch: Partial<Step> = {}) {
   const defaults: Record<typeof type, Partial<Step>> = {
     wait: { clicks: 0, delayAfter: 1000 },
     type: { clicks: 0, delayAfter: 500 },
@@ -57,6 +58,9 @@ export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scrol
     waitPixel: { clicks: 0, points: [centerPoint(script().region)], color: '#000000', tolerance: 10, timeoutMs: 5000, intervalMs: 100, delayAfter: 300 },
     webWait: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
     webClick: { selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 500 },
+    webType: { clicks: 0, selectors: ['text='], webClear: true, timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
+    webRead: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 0 },
+    webScroll: { clicks: 0, selectors: ['text='], direction: 'down', amount: 3, timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
   };
   insertNode(makeStep({ id: newId(), type, ...defaults[type], ...patch }), (ref) => `Đã thêm ${ref}`);
   clearInsertAt();
@@ -162,8 +166,9 @@ export function changeStepType(id: string, type: StepType) {
     target: type === 'open' && !s.target ? 'https://' : s.target,
     threshold: s.threshold ?? 90,
     timeoutMs: s.timeoutMs ?? (type === 'waitPixel' ? 5000 : 10000),
-    intervalMs: s.intervalMs ?? (type === 'waitPixel' ? 100 : type === 'webWait' || type === 'webClick' ? 200 : 250),
-    selectors: (type === 'webWait' || type === 'webClick') && !s.selectors?.length ? ['text='] : s.selectors,
+    intervalMs: s.intervalMs ?? (type === 'waitPixel' ? 100 : isWebStep(type) ? 200 : 250),
+    selectors: isWebStep(type) && !s.selectors?.length ? ['text='] : s.selectors,
+    webClear: type === 'webType' ? s.webClear ?? true : s.webClear,
     imageSource: type === 'clickImage' ? s.imageSource ?? 'node' : s.imageSource,
     color: type === 'waitPixel' ? s.color ?? '#000000' : s.color,
     tolerance: type === 'waitPixel' ? s.tolerance ?? 10 : s.tolerance,

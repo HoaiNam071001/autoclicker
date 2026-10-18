@@ -1,0 +1,65 @@
+{
+ "meta": {
+  "name": "Web: cuộn feed tới bài đặc biệt",
+  "description": "Lăn chuột thật giữa trang (feed tải thêm khi cuộn) tới khi BÀI ĐẶC BIỆT (bài 12–25, ngẫu nhiên) vào khung nhìn, thả tim, rồi cuộn thẳng về bài 1. Đúng: nút đổi thành ĐÃ THẢ TIM, ô Tim bài đặc biệt = 1, trang về đầu.",
+  "app": "Web (DOM)",
+  "level": 2,
+  "page": "feed.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/feed.html",
+    "webBrowser": true,
+    "delayAfter": 500
+   },
+   {
+    "type": "webScroll",
+    "scrollMode": "until",
+    "selectors": [
+     "text=\"⭐ BÀI ĐẶC BIỆT\"",
+     "css=.post.special"
+    ],
+    "direction": "down",
+    "amount": 5,
+    "timeoutMs": 40000,
+    "intervalMs": 400,
+    "delayAfter": 300
+   },
+   {
+    "type": "webClick",
+    "selectors": [
+     "text=\"THẢ TIM BÀI NÀY\""
+    ],
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 300
+   },
+   {
+    "type": "webWait",
+    "selectors": [
+     "text=ĐÃ THẢ TIM"
+    ],
+    "timeoutMs": 3000,
+    "intervalMs": 200,
+    "delayAfter": 500
+   },
+   {
+    "type": "webScroll",
+    "selectors": [
+     "text=\"Nội dung bài viết số 1.\""
+    ],
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 300
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Lăn {{n2.output.scrolls}} lần thì thấy bài đặc biệt"
+   }
+  ]
+ }
+}

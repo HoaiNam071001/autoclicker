@@ -44,6 +44,9 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'open', label: 'Mở trang (Chrome của app)', keywords: 'web url trinh duyet chrome dieu khien dom html', run: () => addStep('open', { webBrowser: true }) },
       { icon: 'webWait', label: 'Chờ phần tử web', keywords: 'web dom html selector css xpath aria role cho xuat hien mat', run: () => addStep('webWait') },
       { icon: 'webClick', label: 'Click phần tử web', keywords: 'web dom html selector css xpath aria role nut bam click', run: () => addStep('webClick') },
+      { icon: 'webType', label: 'Gõ vào ô web', keywords: 'web dom html o nhap input go chu dien form dang nhap', run: () => addStep('webType') },
+      { icon: 'webRead', label: 'Đọc phần tử web', keywords: 'web dom html doc chu gia tri thuoc tinh href bien lay du lieu', run: () => addStep('webRead') },
+      { icon: 'webScroll', label: 'Cuộn trang web', keywords: 'web dom html cuon lan scroll feed toi khi thay', run: () => addStep('webScroll') },
     ],
   },
   {

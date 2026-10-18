@@ -1,0 +1,136 @@
+{
+ "meta": {
+  "name": "Web: đăng nhập, đọc kết quả",
+  "description": "Gõ vào ô bằng Chrome của app (tìm ô theo nhãn, không chụp màn hình): gõ tài khoản, gõ mật khẩu sai + Enter, đọc dòng lỗi; gõ lại mật khẩu đúng (xoá chữ cũ) + Enter, đọc tên trên màn XIN CHÀO rồi rẽ nhánh theo chữ đọc được. Đúng: kết thúc thành công, nhật ký có “SAI THÔNG TIN (1)” và “DEMO”.",
+  "app": "Web (DOM)",
+  "level": 2,
+  "page": "login.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/login.html",
+    "webBrowser": true,
+    "delayAfter": 500
+   },
+   {
+    "type": "webType",
+    "selectors": [
+     "role=textbox[name=\"TÊN TÀI KHOẢN\"]",
+     "css=#u"
+    ],
+    "text": "demo",
+    "webClear": true,
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 200
+   },
+   {
+    "type": "webType",
+    "selectors": [
+     "css=input[type=password]"
+    ],
+    "text": "000",
+    "webClear": true,
+    "webEnter": true,
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 300
+   },
+   {
+    "type": "webRead",
+    "selectors": [
+     "css=#err"
+    ],
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 0
+   },
+   {
+    "type": "webType",
+    "selectors": [
+     "role=textbox[name=\"MẬT KHẨU\"]",
+     "css=#p"
+    ],
+    "text": "123456",
+    "webClear": true,
+    "webEnter": true,
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 300
+   },
+   {
+    "type": "webRead",
+    "selectors": [
+     "css=#who"
+    ],
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 0
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "value",
+     "left": "{{n6.output.text}}",
+     "op": "eq",
+     "right": "DEMO"
+    }
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Lần 1: {{n4.output.text}} · lần 2: XIN CHÀO {{n6.output.text}}"
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Đọc được “{{n6.output.text}}”, cần DEMO"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "success",
+    "to": "s7"
+   },
+   {
+    "from": "s7",
+    "port": "true",
+    "to": "s8"
+   },
+   {
+    "from": "s7",
+    "port": "false",
+    "to": "s9"
+   }
+  ]
+ }
+}

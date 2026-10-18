@@ -56,7 +56,7 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 					return err
 				}
 			}
-		case model.StepWebWait, model.StepWebClick:
+		case model.StepWebWait, model.StepWebClick, model.StepWebType, model.StepWebRead, model.StepWebScroll:
 			if err := checkWebStep(i, s); err != nil {
 				return err
 			}
@@ -142,15 +142,9 @@ func checkImageStep(i int, s model.Step) error {
 
 // checkWebStep: node web có ít nhất một selector, mọi dòng đọc được (dòng trống bỏ qua) và thời gian chờ hợp lệ.
 func checkWebStep(i int, s model.Step) error {
-	n := 0
-	for j, line := range s.Selectors {
-		if strings.TrimSpace(line) == "" {
-			continue
-		}
-		if _, err := model.ParseSelector(line); err != nil {
-			return stepErr(i, s, fmt.Sprintf("selectors[%d]", j), "%v", err)
-		}
-		n++
+	n, err := checkSelectors(i, s, "selectors", s.Selectors)
+	if err != nil {
+		return err
 	}
 	if n == 0 {
 		return stepErr(i, s, "selectors", "chưa nhập cách tìm phần tử (vd text=Xem lịch sử)")
@@ -158,5 +152,44 @@ func checkWebStep(i int, s model.Step) error {
 	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
 		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
 	}
+	switch s.Type {
+	case model.StepWebType:
+		if s.Text == "" && !s.WebClear && !s.WebEnter {
+			return stepErr(i, s, "text", "chưa nhập nội dung gõ")
+		}
+	case model.StepWebRead:
+		if s.ReadFrom == model.ReadAttr && strings.TrimSpace(s.Attr) == "" {
+			return stepErr(i, s, "attr", "chưa nhập tên thuộc tính cần đọc (vd href)")
+		}
+	case model.StepWebScroll:
+		if s.ScrollMode != "" {
+			if !slices.Contains(model.ScrollDirections, s.Direction) {
+				return stepErr(i, s, "direction", "hướng cuộn không hợp lệ %q", s.Direction)
+			}
+			if s.Amount < 1 {
+				return stepErr(i, s, "amount", "số nấc cuộn phải ≥ 1")
+			}
+		}
+		if s.ScrollMode == model.ScrollModeUntil {
+			if _, err := checkSelectors(i, s, "scrollIn", s.ScrollIn); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
+}
+
+// checkSelectors – mỗi dòng không trống phải đúng dạng; trả số dòng có giá trị.
+func checkSelectors(i int, s model.Step, field string, lines []string) (int, error) {
+	n := 0
+	for j, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		if _, err := model.ParseSelector(line); err != nil {
+			return 0, stepErr(i, s, fmt.Sprintf("%s[%d]", field, j), "%v", err)
+		}
+		n++
+	}
+	return n, nil
 }

@@ -1,9 +1,10 @@
 // Chạy trong trang (CDP Runtime.evaluate, find.go, sau common.js): tìm phần tử theo danh sách selector
 // {by, value, exact, name}, cái đầu thấy phần tử hiện thì dùng – cả trong iframe cùng nguồn. scroll = phần tử ngoài
-// viewport thì cuộn vào giữa. Trả khung theo toạ độ client của trang chính (CSS px), phần tử che tâm (elementFromPoint
+// viewport thì cuộn vào giữa; read = đọc chữ / value / thuộc tính attr của phần tử (webRead); viewport = trả chính
+// khung nhìn của trang (lăn chuột giữa trang – webScroll). Trả khung theo toạ độ client của trang chính (CSS px), phần tử che tâm (elementFromPoint
 // từng tầng frame) và hình học cửa sổ để Go biết khi nào phải đo lại toạ độ. Phần tử thấy được ghi vào
 // window.__acTarget để probe.js kiểm khi thử hover.
-(sels, scroll) => {
+(sels, { scroll, read, attr, viewport }) => {
   const norm = s => clean(s).toLowerCase();
   const matches = (got, value, exact) => {
     const a = norm(got), b = norm(value);
@@ -56,12 +57,24 @@
     const r = el.getBoundingClientRect();
     return r.width >= 1 && r.height >= 1 && el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
   };
+  // Tâm (x, y – toạ độ client của frame chứa el) bị khung cuộn tổ tiên (overflow khác visible) cắt mất – vd cột trong
+  // dải cuộn ngang: elementFromPoint ra chính khung nên không bắt được là bị che.
+  const clipped = (el, x, y) => {
+    const win = el.ownerDocument.defaultView;
+    for (let p = el.parentElement; p && p !== el.ownerDocument.body && p !== el.ownerDocument.documentElement; p = p.parentElement) {
+      const cs = win.getComputedStyle(p);
+      if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
+      const r = p.getBoundingClientRect();
+      if (x < r.left || y < r.top || x >= r.right || y >= r.bottom) return true;
+    }
+    return false;
+  };
   // Khung theo toạ độ trang chính + có nằm trong vùng nhìn thấy (viewport chính và vùng nội dung mọi frame chứa nó).
   const place = el => {
     const r = el.getBoundingClientRect(), off = frameOffset(el.ownerDocument.defaultView);
     const box = { x: r.left + off.x, y: r.top + off.y, w: r.width, h: r.height };
     const cx = box.x + box.w / 2, cy = box.y + box.h / 2;
-    let inView = cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight;
+    let inView = cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight && !clipped(el, cx - off.x, cy - off.y);
     for (let f = el.ownerDocument.defaultView.frameElement; f && inView; f = f.ownerDocument.defaultView.frameElement) {
       const c = frameContent(f), o = frameOffset(f.ownerDocument.defaultView);
       inView = cx >= c.x + o.x && cy >= c.y + o.y && cx < c.x + o.x + c.w && cy < c.y + o.y + c.h;
@@ -84,9 +97,19 @@
   const loading = document.readyState === 'loading' || location.href === 'about:blank' || !document.body;
   const out = { sel: -1, hidden: 0, geom, loading, focus: document.hasFocus(), visible: document.visibilityState === 'visible' };
   window.__acTarget = null;
+  if (viewport) return Object.assign(out, { sel: 0, x: 0, y: 0, w: innerWidth, h: innerHeight, text: '', inView: true, count: 1 });
+  // href / src: URL đầy đủ (thuộc tính có thể là đường dẫn tương đối)
+  const readOf = el => {
+    if (read === 'value') return el.value == null ? '' : String(el.value);
+    if (read === 'attr') {
+      const v = el.getAttribute(attr);
+      return v != null && (attr === 'href' || attr === 'src') && typeof el[attr] === 'string' ? el[attr] : v ?? '';
+    }
+    return clean(el.innerText ?? el.textContent);
+  };
   for (let i = 0; i < sels.length; i++) {
     const found = docs.flatMap(doc => findIn(sels[i], doc));
-    const el = found.find(shown);
+    const visible = found.filter(shown), el = visible[0];
     if (!el) { out.hidden = Math.max(out.hidden, found.length); continue; }
     let p = place(el);
     if (scroll && !p.inView) {
@@ -94,7 +117,8 @@
       p = place(el);
     }
     window.__acTarget = el;
-    Object.assign(out, { sel: i, x: p.box.x, y: p.box.y, w: p.box.w, h: p.box.h, text: clean(ownText(el)).slice(0, 200), inView: p.inView });
+    Object.assign(out, { sel: i, x: p.box.x, y: p.box.y, w: p.box.w, h: p.box.h, text: clean(ownText(el)).slice(0, 200), inView: p.inView, count: visible.length });
+    if (read) out.value = readOf(el).slice(0, 10000);
     // tâm ngoài vùng nhìn thấy (chưa cuộn) → chưa bấm được, nhưng webWait vẫn tính là thấy
     if (p.inView) out.covered = coverOf(el, p.cx, p.cy);
     return out;

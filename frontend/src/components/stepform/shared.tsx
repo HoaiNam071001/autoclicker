@@ -5,12 +5,14 @@ import { Target } from '../icons';
 import PinButton, { KeyChip, PinMenu } from '../inputs/PinButton';
 import { pickPointFor, updateStep, useScript } from '../../store';
 import { compatibleInputs, pinField, pinnedInput, pinToInput, setPinnedValue, unpinField } from '../../scriptInputs';
-import { MouseButton, PinField, Step, StepPoint } from '../../types';
+import { MouseButton, PinField, ScrollDirection, Step, StepPoint } from '../../types';
 import Segmented from '../Segmented';
 import { nodeVarOptions } from '../../flow/view';
 
 export const selectBox = `${fieldBox} w-full text-ink`;
 export const hint = 'text-xs text-muted';
+// Ô chọn hướng cuộn (node Cuộn, Cuộn trang web).
+export const DIRECTION_OPTIONS: { id: ScrollDirection; label: string }[] = [{ id: 'up', label: '↑ Lên' }, { id: 'down', label: '↓ Xuống' }, { id: 'left', label: '← Trái' }, { id: 'right', label: '→ Phải' }];
 export const fmtSec = (ms?: number) => `${((ms ?? 0) / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} s`;
 // Biến kết quả các node khác ({{n2.output.x}}) cho ô chữ của node id
 export function useNodeVars(id: string) {

@@ -143,6 +143,8 @@ export namespace engine {
 	    hidden: number;
 	    tab: string;
 	    noTab: boolean;
+	    count: number;
+	    value: string;
 	    ms: number;
 	
 	    static createFrom(source: any = {}) {
@@ -163,6 +165,8 @@ export namespace engine {
 	        this.hidden = source["hidden"];
 	        this.tab = source["tab"];
 	        this.noTab = source["noTab"];
+	        this.count = source["count"];
+	        this.value = source["value"];
 	        this.ms = source["ms"];
 	    }
 	}
@@ -758,6 +762,12 @@ export namespace model {
 	    selectors?: string[];
 	    tab?: string;
 	    webGone?: boolean;
+	    webClear?: boolean;
+	    webEnter?: boolean;
+	    readFrom?: string;
+	    attr?: string;
+	    scrollMode?: string;
+	    scrollIn?: string[];
 	    template?: string;
 	    templateScale?: number;
 	    threshold?: number;
@@ -821,6 +831,12 @@ export namespace model {
 	        this.selectors = source["selectors"];
 	        this.tab = source["tab"];
 	        this.webGone = source["webGone"];
+	        this.webClear = source["webClear"];
+	        this.webEnter = source["webEnter"];
+	        this.readFrom = source["readFrom"];
+	        this.attr = source["attr"];
+	        this.scrollMode = source["scrollMode"];
+	        this.scrollIn = source["scrollIn"];
 	        this.template = source["template"];
 	        this.templateScale = source["templateScale"];
 	        this.threshold = source["threshold"];

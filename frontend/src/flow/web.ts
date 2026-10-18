@@ -1,4 +1,11 @@
-// Selector của node web (bước 25d) – cùng công thức ParseSelector (internal/model/web.go), test chung testdata/selectors.json.
+import { fmtMs, SCROLL_ARROW, type Step, type StepType } from '../types';
+
+// Node web (bước 25d) – tìm phần tử bằng HTML qua Chrome của app.
+export const WEB_TYPES = ['webWait', 'webClick', 'webType', 'webRead', 'webScroll'] as const;
+export type WebType = typeof WEB_TYPES[number];
+export const isWebStep = (t: StepType): t is WebType => (WEB_TYPES as readonly StepType[]).includes(t);
+
+// Selector của node web – cùng công thức ParseSelector (internal/model/web.go), test chung testdata/selectors.json.
 // Một dòng Step.selectors = "<cách>=<giá trị>", không tiền tố = text; text / aria trong nháy kép = đúng cả chuỗi.
 export type SelectorKind = 'text' | 'aria' | 'role' | 'css' | 'xpath';
 export const SELECTOR_KINDS: SelectorKind[] = ['text', 'aria', 'role', 'css', 'xpath'];
@@ -43,15 +50,39 @@ export function fmtSelectors(selectors: string[] | undefined): string {
   return `${SELECTOR_LABEL[first.by]} ${what}${lines.length > 1 ? ` (+${lines.length - 1} dự phòng)` : ''}`;
 }
 
+// webRead: đọc gì (Step.readFrom, khớp ReadFrom trong model.go).
+export const READ_LABEL = { '': 'chữ hiển thị', value: 'giá trị ô', attr: 'thuộc tính' } as const;
+export type ReadFrom = Exclude<keyof typeof READ_LABEL, ''>;
+// webScroll: cách cuộn (Step.scrollMode, khớp ScrollMode trong model.go).
+export const SCROLL_MODE_LABEL = { '': 'Tới phần tử', in: 'Trong phần tử', until: 'Tới khi thấy' } as const;
+export type ScrollMode = Exclude<keyof typeof SCROLL_MODE_LABEL, ''>;
+
+// Dòng chi tiết trên thẻ node web.
+export function fmtWebStep(s: Step): string {
+  const sel = fmtSelectors(s.selectors);
+  const tail = `${s.tab ? ` · tab “${s.tab}”` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
+  const roll = `${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount ?? 0} nấc`;
+  switch (s.type) {
+    case 'webType': return `“${s.text}”${s.webEnter ? ' + Enter' : ''} vào ${sel}${tail}`;
+    case 'webRead': return `đọc ${s.readFrom === 'attr' ? `thuộc tính ${s.attr || '?'}` : READ_LABEL[s.readFrom ?? '']} · ${sel}${tail}`;
+    case 'webScroll':
+      return s.scrollMode === 'in' ? `lăn ${roll} trong ${sel}${tail}`
+        : s.scrollMode === 'until' ? `lăn ${roll} tới khi thấy ${sel}${tail}`
+        : `tới ${sel}${tail}`;
+  }
+  return `${sel}${s.webGone ? ' · chờ mất' : ''}${tail}`;
+}
+
 // Kết quả "Thử tìm" node web (engine.WebFindResult – Go internal/engine/webfind.go).
 export interface WebFind {
   found: boolean; x: number; y: number; w: number; h: number; text: string; selector: string;
-  covered: string; offView: boolean; hidden: number; tab: string; noTab: boolean; ms: number;
+  covered: string; offView: boolean; hidden: number; tab: string; noTab: boolean; count: number; value: string; ms: number;
 }
 
-// Dòng kết quả Thử tìm: ok = thấy và click được ngay; warn = thấy nhưng còn vướng / không thấy.
-export function webFindText(r: WebFind, tab?: string): { ok: boolean; text: string } {
-  const ms = ` · ${r.ms} ms`;
+// Dòng kết quả Thử tìm: ok = thấy và click được ngay; warn = thấy nhưng còn vướng / không thấy. read: node Đọc –
+// cho xem giá trị sẽ đọc được.
+export function webFindText(r: WebFind, tab?: string, read?: boolean): { ok: boolean; text: string } {
+  const ms = `${read && r.found ? ` · đọc được “${r.value}”` : ''}${r.count > 1 ? ` · ${r.count} phần tử khớp, dùng cái đầu` : ''} · ${r.ms} ms`;
   if (r.noTab) return { ok: false, text: `Không có tab nào có URL / tiêu đề chứa “${tab ?? ''}”` };
   if (!r.found) {
     return { ok: false, text: (r.hidden > 0 ? `Có ${r.hidden} phần tử khớp nhưng đang ẩn` : 'Không thấy trên tab hiện tại') + ms };

@@ -35,7 +35,7 @@
 
 | Loại | Cổng ra |
 |---|---|
-| hành động (click, double, hold, drag, wait, type, key, scroll, open, waitImage, clickImage, waitPixel, webWait, webClick) | `success`, `fail` |
+| hành động (click, double, hold, drag, wait, type, key, scroll, open, waitImage, clickImage, waitPixel, webWait, webClick, webType, webRead, webScroll) | `success`, `fail` |
 | `if` | `true`, `false` |
 | `switch` / `switchScreen` | `case:<key>`… + `default` / `none` |
 | `counter` | `next`, `done` |
@@ -44,7 +44,7 @@
 
 - `Point{x, y, ax, ay}` – toạ độ **trong vùng**, mỗi trục neo `start|end|center|ratio` (`script/anchor.go` ↔ `anchor.ts`). Đổi ra toạ độ màn hình lúc chạy bằng `script.ResolvePoint`.
 - `StepResult{nodeId, ref, status, port, output, error{code,message}, logs, attempts, loop, shot}` – kết quả mỗi lần chạy node. Mã lỗi: `not_found`, `timeout`, `permission`, `invalid_input`, `cancelled`, `end`, `browser` (Chrome của app chưa mở / mất kết nối), `internal`.
-- Output theo loại (đầy đủ ở `internal/model/steptypes.go`): chờ / click ảnh·chữ → `x, y, w, h, score(, text)`; waitPixel → `color`; webWait / webClick → `x, y, w, h, text, selector` (+ `clickX, clickY`); if → `result` + chỗ thấy; end thành công → `message`.
+- Output theo loại (đầy đủ ở `internal/model/steptypes.go`): chờ / click ảnh·chữ → `x, y, w, h, score(, text)`; waitPixel → `color`; webWait / webClick / webScroll → `x, y, w, h, text, selector` (+ `clickX, clickY`; webScroll tới khi thấy + `scrolls`); webType → `text` (đã gõ) + chỗ click; webRead → `text` (giá trị đọc), `count`, `selector`; if → `result` + chỗ thấy; end thành công → `message`.
 
 ## 3. Luồng soạn kịch bản
 
@@ -91,7 +91,7 @@ Bấm Chạy / F8 (hotkey:f8start)
 2. `engine.New(device.TrackingInput{RobotgoInput}, sc, engine.Options{…, Browser: web.NewChrome(store.BrowserProfile, in.Move)})` (nối Chrome lười – kịch bản không có node web thì không đụng); đếm ngược (`engine:countdown`); bật `device.WatchCorners` (chuột chạm góc → dừng, `engine:stopped "corner"`).
 3. `Engine.Run` (`internal/engine/flowrun.go`) → mỗi vòng `runLoop`: từ `start`, lặp:
    - `breakBefore` (debug: breakpoint / chạy từng node → chờ Tiếp / F10)
-   - `execNode`: node tắt → `skipped` đi `success`; `resolveNodeVars` (biến `{{n2.output.x}}`, `{{last.…}}`, `{{vars.x}}` – thiếu biến → `invalid_input`); node điều khiển → `runControl` (`nodes.go`, `cond.go` xét điều kiện, chụp một lần mỗi lần xét); node hành động → `runStep` (`actions.go` `doStep`, ảnh / pixel / chữ ở `imagestep.go` + `internal/vision`, web ở `webstep.go` + `internal/web`); lỗi thì thử lại theo `Retry` (node hành động).
+   - `execNode`: node tắt → `skipped` đi `success`; `resolveNodeVars` (biến `{{n2.output.x}}`, `{{last.…}}`, `{{vars.x}}` – thiếu biến → `invalid_input`); node điều khiển → `runControl` (`nodes.go`, `cond.go` xét điều kiện, chụp một lần mỗi lần xét); node hành động → `runStep` (`actions.go` `doStep`, ảnh / pixel / chữ ở `imagestep.go` + `internal/vision`, web ở `webstep.go` / `webactions.go` + `internal/web`); lỗi thì thử lại theo `Retry` (node hành động).
    - Thất bại → chụp màn (`shoot`, `shots.go`). Gửi `engine:node` (StepResult). Đi theo `edgeOut(port)`; `fail` không nối → dừng báo lỗi (`engine:failed`); cổng khác không nối → xong vòng. Thành công → chờ `delayAfter ± jitter`.
    - Quá 10 000 node / vòng → lỗi lặp vô hạn. Kết quả + biến đặt lại mỗi vòng.
 4. `finishRun` → `store.SaveRun`: `runs/…/<id>.json` + ảnh lỗi (giữ 50 lần) → `engine:done` (RunSummary). Cuối cùng `engine:state false`.
@@ -150,7 +150,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | Hiển thị khi chạy | `flow/run.ts` (thuần), `runStore.ts`, `components/flow/RunLog.tsx` |
 | Định dạng file | `model.ScriptVersion`, `script` (`codec.go`, `check.go`), `store/scriptfile.go` |
 | UI chưa có logic | `components/steps/`, `AppChrome.tsx`, dữ liệu giả `src/demo/` (màn `#demo*`) |
-| Node web (DOM) | Tìm trong trang: `internal/web/find.js`; mở / nối / chọn tab: `web/chrome.go`, `launch.go`; đo toạ độ: `calibrate.go`; trước khi bấm (chờ đứng yên, thử hover): `aim.go` + `probe.js`; chạy: `engine/webstep.go`; selector: `model/web.go` ↔ `flow/web.ts` (test chung `testdata/selectors.json`); Chọn phần tử: `web/pick.go` + `pick.js`; Thử tìm: `engine/webfind.go`; UI `stepform/WebFields` + `WebTools`, `webSteps.ts` |
+| Node web (DOM) | Tìm trong trang: `internal/web/find.js`; mở / nối / chọn tab: `web/chrome.go`, `launch.go`; đo toạ độ: `calibrate.go`; trước khi bấm (chờ đứng yên, thử hover): `aim.go` + `probe.js`; chạy: `engine/webstep.go` (chờ / click), `webactions.go` (gõ / đọc / cuộn); ô focus: `web/focus.go`; selector: `model/web.go` ↔ `flow/web.ts` (test chung `testdata/selectors.json`); Chọn phần tử: `web/pick.go` + `pick.js`; Thử tìm: `engine/webfind.go`; UI `stepform/WebFields` (chung) + `WebActionFields` (riêng từng loại) + `WebTools`, `webSteps.ts` |
 | Mô tả cho AI / MCP | `internal/model/steptypes.go` (có test bắt đủ loại node) |
 | Kịch bản mẫu / trang sân thử | `internal/samples/scripts/*.json` (JSON gọn `{meta, script}`), `pages/*.html`; test bắt mỗi loại node ≥ 1 mẫu; UI `components/samples/`, lọc `samples/filter.ts` |
 
@@ -177,7 +177,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 `internal/samples` – kịch bản mẫu để test (bước 33): `samples.go` (`List`, `Open` – điền mặc định `NewStep`, nối cạnh theo thứ tự, thay `{{sandbox}}` / ảnh mẫu `@file`), `sandbox.go` (`WriteSandbox`, `FileURL`), `scripts/*.json`, `pages/` (trang sân thử HTML offline + `logo.png`). `samples_real_test.go` – chạy mẫu bằng engine trên máy thật (`AUTOCLICKER_REAL=1`).
 
-`internal/web` – node web (bước 25d), chỉ phụ thuộc `model`: `web.go` (`Browser` interface, `Query`, `Found`, `Hover`, `BrowserError` / `QueryError`), `chrome.go` (`Chrome` – nối lười tới Chrome của app qua CDP, chọn tab, đưa lên trước, đo lại khi cửa sổ dời / zoom), `find.go` + `find.js` (tìm phần tử trong trang + iframe cùng nguồn: text / aria / role / css / xpath, cuộn vào giữa, bị che; helper chung `common.js`), `pick.go` + `pick.js` (Chọn phần tử trên trang: tô viền, sinh selector, kiểm lại bằng find.js), `status.go` (`Status` – đang mở, các tab), `aim.go` + `probe.js` (trên tab thật: đo toạ độ, chờ khung đứng yên, `Hover` thử điểm bấm – trang nhận đúng chỗ, đúng phần tử), `calibrate.go` (đo toạ độ trang → màn hình bằng chuột, công thức thuần có test), `launch.go` (tìm Chrome / Edge / Brave, bật với profile riêng + `--remote-debugging-port=0`, `DevToolsActivePort`, `/json/list`), `detach_unix.go` / `detach_windows.go` (trình duyệt sống tiếp khi app tắt).
+`internal/web` – node web (bước 25d), chỉ phụ thuộc `model`: `web.go` (`Browser` interface, `Query`, `Found`, `Hover`, `BrowserError` / `QueryError`), `chrome.go` (`Chrome` – nối lười tới Chrome của app qua CDP, chọn tab, đưa lên trước, đo lại khi cửa sổ dời / zoom), `find.go` + `find.js` (tìm phần tử trong trang + iframe cùng nguồn: text / aria / role / css / xpath, cuộn vào giữa, bị che; helper chung `common.js`), `pick.go` + `pick.js` (Chọn phần tử trên trang: tô viền, sinh selector, kiểm lại bằng find.js), `status.go` (`Status` – đang mở, các tab), `focus.go` (`Focused` – webType: ô nhận focus sau click), `aim.go` + `probe.js` (trên tab thật: đo toạ độ, chờ khung đứng yên, `Hover` thử điểm bấm – trang nhận đúng chỗ, đúng phần tử), `calibrate.go` (đo toạ độ trang → màn hình bằng chuột, công thức thuần có test), `launch.go` (tìm Chrome / Edge / Brave, bật với profile riêng + `--remote-debugging-port=0`, `DevToolsActivePort`, `/json/list`), `detach_unix.go` / `detach_windows.go` (trình duyệt sống tiếp khi app tắt).
 
 `internal/winfloat` – `winfloat_darwin.go`: thanh mini / overlay nổi trên mọi Space, kể cả app toàn màn hình (`PrepareLaunch` đầu `main()`, `Set` trong `SetWindowMode`); `winfloat_other.go` rỗng.
 
@@ -187,7 +187,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 `internal/store` – dữ liệu app trên máy (`ConfigDir`, `WriteFileAtomic`): `scriptfile.go` (đọc / ghi file kịch bản), `draft.go` (nháp tự lưu), `settings.go` (theme, `BrowserProfile` – profile Chrome của app), `recent.go` (mở gần đây), `inputmemory.go` (`inputs.json` – giá trị input lần trước / preset), `runs.go` (lịch sử chạy: `SaveRun`, `RunsOf`, `GetRun`, `RunShot`, `safeName`).
 
-`internal/engine` – chạy kịch bản: `engineapi.go` (`New` + `Options`, `Failed`, `Shots`, `FindOnce`, `FindResult`), `engine.go` (`Engine`, `Progress`), `flowrun.go` (`Run`, `runLoop`, `execNode`, thử lại), `actions.go` (`runStep` / `doStep` – chuột, phím, cuộn, mở), `imagestep.go` (chờ ảnh / chữ / pixel, click theo ảnh), `webstep.go` (chờ / click phần tử web qua `web.Browser`), `webfind.go` (`FindElement` – Thử tìm node web), `nodes.go` (`runControl`), `cond.go` (`evalCond`, `snapshot` chụp một lần mỗi lần xét), `vars.go` (`resolveNodeVars`), `gate.go` (tạm dừng / debug, `Sleep`), `nodetest.go` (`TestNode`, `NodeTest`), `shots.go` (ảnh lúc node lỗi).
+`internal/engine` – chạy kịch bản: `engineapi.go` (`New` + `Options`, `Failed`, `Shots`, `FindOnce`, `FindResult`), `engine.go` (`Engine`, `Progress`), `flowrun.go` (`Run`, `runLoop`, `execNode`, thử lại), `actions.go` (`runStep` / `doStep` – chuột, phím, cuộn, mở), `imagestep.go` (chờ ảnh / chữ / pixel, click theo ảnh), `webstep.go` (chờ / click phần tử web qua `web.Browser`, `webFindQ` vòng chờ chung), `webactions.go` (gõ vào ô, đọc, cuộn tới / trong / tới khi thấy), `webfind.go` (`FindElement` – Thử tìm node web), `nodes.go` (`runControl`), `cond.go` (`evalCond`, `snapshot` chụp một lần mỗi lần xét), `vars.go` (`resolveNodeVars`), `gate.go` (tạm dừng / debug, `Sleep`), `nodetest.go` (`TestNode`, `NodeTest`), `shots.go` (ảnh lúc node lỗi).
 
 `internal/winexclude/` – Windows: loại cửa sổ app khỏi ảnh chụp.
 
@@ -209,7 +209,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 - `components/flow/` (chỉ props, app + màn mẫu dùng chung): `FlowCanvas` (`@xyflow/react`), `NodeCard`, `FlowEdge`, `PortField`, `RunLog`, `model.ts` (cỡ thẻ), `nodes/ControlFields` + `CondEditor` + `NodeTestPanel`; `FlowEditor` = bản nối store.
 - `components/samples/` – hộp thoại Mẫu thử: `SamplesDialog` + `SampleCard` (chỉ props), `Samples` (nối Go + `scriptFile.openSample`).
 - `components/inputs/` – ghim, ô chữ `{{biến}}` (`VarTextInput`), tab Input, form Chạy (`RunDialog`).
-- UI dựng sẵn chưa có logic (bước 27b, *Sắp có*): `components/steps/` (kiểu tạm `steps/model.ts`), `ScheduleDialog`, `AppChrome` (`Toolbar`, `StatusBar`). Dữ liệu giả: `demo/` (màn `#demo*`, `?sel=<id>`, `?mode=running|failed`).
+- UI dựng sẵn chưa có logic (bước 27b, *Sắp có*): `components/steps/` (kiểu tạm `steps/model.ts`), `ScheduleDialog`, `AppChrome` (`Toolbar`, `StatusBar`). Dữ liệu giả: `demo/` (màn `#demo*`, `?sel=<id>`, `?mode=running|failed`; `browserSteps.ts` – kịch bản mẫu khi mở trên trình duyệt không có Go).
 - `style.css` – Tailwind v4 + token (`@theme`, chép từ `design/theme.css`).
 
 **Khác:** `design/` (`DESIGN.md` token / thành phần / icon, `theme.css`, `newdarkmode.md` bảng Slate), `docs/tasks/` (plan), `examples/` (kịch bản mẫu), `testdata/`, `scripts/` (`tasks-index.py`, `check-docs.py`, `session-status.sh`), `build/` (icon, plist, manifest cho `wails build` – `build/bin` là bản build, bỏ qua).

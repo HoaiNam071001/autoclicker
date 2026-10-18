@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
-	"strconv"
 	"strings"
 	"time"
 
@@ -40,11 +39,14 @@ type findResult struct {
 	Text    string  `json:"text"`
 	InView  bool    `json:"inView"`
 	Covered string  `json:"covered"`
+	Count   int     `json:"count"`
+	Value   string  `json:"value"`
 }
 
 // found – Found chưa có khung màn hình. Bị che / tâm ngoài viewport khi phải bấm → chưa coi là thấy.
 func (r findResult) found(tab string, q Query) Found {
-	f := Found{Selector: r.Sel, Hidden: r.Hidden, Tab: tab, Text: r.Text, Covered: r.Covered, Loading: r.Loading, OffView: r.Sel >= 0 && !r.InView}
+	f := Found{Selector: r.Sel, Hidden: r.Hidden, Tab: tab, Text: r.Text, Covered: r.Covered, Loading: r.Loading, OffView: r.Sel >= 0 && !r.InView,
+		Count: r.Count, Value: r.Value}
 	f.OK = r.Sel >= 0 && (q.CheckOnly || r.Covered == "" && (r.InView || !q.Scroll))
 	return f
 }
@@ -70,6 +72,10 @@ func runFind(ctx, tctx context.Context, q Query) (findResult, error) {
 	if err != nil {
 		return findResult{}, err
 	}
-	js := pageJS(findJS, string(sels), strconv.FormatBool(q.Scroll))
+	opts, err := json.Marshal(map[string]any{"scroll": q.Scroll, "read": q.Read, "attr": q.Attr, "viewport": q.Viewport})
+	if err != nil {
+		return findResult{}, err
+	}
+	js := pageJS(findJS, string(sels), string(opts))
 	return run(ctx, tctx, "tìm phần tử", chromedp.Evaluate[findResult](js))
 }
