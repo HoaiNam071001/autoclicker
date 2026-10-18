@@ -18,6 +18,7 @@
 └──────────────────────────────────────────────────────┘        │ store   cấu hình, file, nháp, lịch sử chạy   │
                                                                 │ device  chuột / phím, chụp, OCR (interface)  │
                                                                 │ vision  tìm ảnh / chữ   launch  mở URL / app │
+                                                                │ web     Chrome của app qua CDP (node web)     │
                                                                 │ model   kiểu dữ liệu (mọi package dùng)      │
                                                                 └──────────────────────────────────────────────┘
 ```
@@ -34,7 +35,7 @@
 
 | Loại | Cổng ra |
 |---|---|
-| hành động (click, double, hold, drag, wait, type, key, scroll, open, waitImage, clickImage, waitPixel) | `success`, `fail` |
+| hành động (click, double, hold, drag, wait, type, key, scroll, open, waitImage, clickImage, waitPixel, webWait, webClick) | `success`, `fail` |
 | `if` | `true`, `false` |
 | `switch` / `switchScreen` | `case:<key>`… + `default` / `none` |
 | `counter` | `next`, `done` |
@@ -42,8 +43,8 @@
 | `end` | (không có) |
 
 - `Point{x, y, ax, ay}` – toạ độ **trong vùng**, mỗi trục neo `start|end|center|ratio` (`script/anchor.go` ↔ `anchor.ts`). Đổi ra toạ độ màn hình lúc chạy bằng `script.ResolvePoint`.
-- `StepResult{nodeId, ref, status, port, output, error{code,message}, logs, attempts, loop, shot}` – kết quả mỗi lần chạy node. Mã lỗi: `not_found`, `timeout`, `permission`, `invalid_input`, `cancelled`, `end`, `internal`.
-- Output theo loại (đầy đủ ở `internal/model/steptypes.go`): chờ / click ảnh·chữ → `x, y, w, h, score(, text)`; waitPixel → `color`; if → `result` + chỗ thấy; end thành công → `message`.
+- `StepResult{nodeId, ref, status, port, output, error{code,message}, logs, attempts, loop, shot}` – kết quả mỗi lần chạy node. Mã lỗi: `not_found`, `timeout`, `permission`, `invalid_input`, `cancelled`, `end`, `browser` (Chrome của app chưa mở / mất kết nối), `internal`.
+- Output theo loại (đầy đủ ở `internal/model/steptypes.go`): chờ / click ảnh·chữ → `x, y, w, h, score(, text)`; waitPixel → `color`; webWait / webClick → `x, y, w, h, text, selector` (+ `clickX, clickY`); if → `result` + chỗ thấy; end thành công → `message`.
 
 ## 3. Luồng soạn kịch bản
 
@@ -87,10 +88,10 @@ Bấm Chạy / F8 (hotkey:f8start)
 
 **Bên Go – `RunScript` (runner.go):**
 1. `script.ResolveInputs` – thay `{{key}}` input vào **bản sao** kịch bản; `script.ValidateScript` (flow: `validateFlow`, rồi từng node).
-2. `engine.New(device.TrackingInput{RobotgoInput}, sc, engine.Options{…})`; đếm ngược (`engine:countdown`); bật `device.WatchCorners` (chuột chạm góc → dừng, `engine:stopped "corner"`).
+2. `engine.New(device.TrackingInput{RobotgoInput}, sc, engine.Options{…, Browser: web.NewChrome(store.BrowserProfile, in.Move)})` (nối Chrome lười – kịch bản không có node web thì không đụng); đếm ngược (`engine:countdown`); bật `device.WatchCorners` (chuột chạm góc → dừng, `engine:stopped "corner"`).
 3. `Engine.Run` (`internal/engine/flowrun.go`) → mỗi vòng `runLoop`: từ `start`, lặp:
    - `breakBefore` (debug: breakpoint / chạy từng node → chờ Tiếp / F10)
-   - `execNode`: node tắt → `skipped` đi `success`; `resolveNodeVars` (biến `{{n2.output.x}}`, `{{last.…}}`, `{{vars.x}}` – thiếu biến → `invalid_input`); node điều khiển → `runControl` (`nodes.go`, `cond.go` xét điều kiện, chụp một lần mỗi lần xét); node hành động → `runStep` (`actions.go` `doStep`, ảnh / pixel / chữ ở `imagestep.go` + `internal/vision`); lỗi thì thử lại theo `Retry` (node hành động).
+   - `execNode`: node tắt → `skipped` đi `success`; `resolveNodeVars` (biến `{{n2.output.x}}`, `{{last.…}}`, `{{vars.x}}` – thiếu biến → `invalid_input`); node điều khiển → `runControl` (`nodes.go`, `cond.go` xét điều kiện, chụp một lần mỗi lần xét); node hành động → `runStep` (`actions.go` `doStep`, ảnh / pixel / chữ ở `imagestep.go` + `internal/vision`, web ở `webstep.go` + `internal/web`); lỗi thì thử lại theo `Retry` (node hành động).
    - Thất bại → chụp màn (`shoot`, `shots.go`). Gửi `engine:node` (StepResult). Đi theo `edgeOut(port)`; `fail` không nối → dừng báo lỗi (`engine:failed`); cổng khác không nối → xong vòng. Thành công → chờ `delayAfter ± jitter`.
    - Quá 10 000 node / vòng → lỗi lặp vô hạn. Kết quả + biến đặt lại mỗi vòng.
 4. `finishRun` → `store.SaveRun`: `runs/…/<id>.json` + ảnh lỗi (giữ 50 lần) → `engine:done` (RunSummary). Cuối cùng `engine:state false`.
@@ -147,6 +148,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | Hiển thị khi chạy | `flow/run.ts` (thuần), `runStore.ts`, `components/flow/RunLog.tsx` |
 | Định dạng file | `model.ScriptVersion`, `script` (`codec.go`, `check.go`), `store/scriptfile.go` |
 | UI chưa có logic | `components/steps/`, `AppChrome.tsx`, dữ liệu giả `src/demo/` (màn `#demo*`) |
+| Node web (DOM) | Tìm trong trang: `internal/web/find.js`; mở / nối / chọn tab: `web/chrome.go`, `launch.go`; đo toạ độ: `calibrate.go`; chạy: `engine/webstep.go`; selector: `model/web.go` ↔ `flow/web.ts` (test chung `testdata/selectors.json`); UI `stepform/WebFields` |
 | Mô tả cho AI / MCP | `internal/model/steptypes.go` (có test bắt đủ loại node) |
 | Kịch bản mẫu / trang sân thử | `internal/samples/scripts/*.json` (JSON gọn `{meta, script}`), `pages/*.html`; test bắt mỗi loại node ≥ 1 mẫu; UI `components/samples/`, lọc `samples/filter.ts` |
 
@@ -161,7 +163,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 **Go** – package theo miền trong `internal/` (bước 32), phụ thuộc một chiều: `model` ← `vision` ← `device`; `model`, `vision`, `launch` ← `script` ← `store`; `model`, `vision`, `device`, `launch`, `script` ← `engine`; tất cả ← `main`. Package con không import `main` hay import ngược.
 
 `internal/model` – kiểu dữ liệu thuần, không thiết bị / Wails:
-- `model.go` – `Step` = node, `Script` có `start` + `edges`, `Retry`, `ScriptVersion`, `NewStep` / `NewScript` (mặc định). `flow.go` – `StepResult`, `StepError` + mã lỗi, cổng `PortsOf`, `FlowOrder`, `EdgeOut` (test chung `testdata/flow_order.json` với `flow/model.ts`). `nodes.go` – cổng node điều khiển, `EndStatus` / `VarOp`. `cond.go` – `Cond.Kind`, `Probe`. `inputs.go` – `ScriptInput`, `ScriptError`. `steptypes.go` – mô tả + ví dụ JSON từng loại node cho AI / MCP (`StepTypeDocs`, `Guide`). `run.go` – `RunRecord` / `RunSummary` (một lần chạy, `Add` giữ tối đa `MaxRunResults`).
+- `model.go` – `Step` = node, `Script` có `start` + `edges`, `Retry`, `ScriptVersion`. `newstep.go` – `NewStep` / `NewScript` (mặc định theo loại). `web.go` – `ParseSelector` (selector node web, test chung `testdata/selectors.json` với `flow/web.ts`). `flow.go` – `StepResult`, `StepError` + mã lỗi, cổng `PortsOf`, `FlowOrder`, `EdgeOut` (test chung `testdata/flow_order.json` với `flow/model.ts`). `nodes.go` – cổng node điều khiển, `EndStatus` / `VarOp`. `cond.go` – `Cond.Kind`, `Probe`. `inputs.go` – `ScriptInput`, `ScriptError`. `steptypes.go` – mô tả + ví dụ JSON từng loại node cho AI / MCP (`StepTypeDocs`, `Guide`). `run.go` – `RunRecord` / `RunSummary` (một lần chạy, `Add` giữ tối đa `MaxRunResults`).
 
 `internal/model/modeltest` – dựng node / cạnh / điều kiện cho test (`Node`, `Edge`, `Step`, `TextCond`). `internal/script/scripttest` – `Linear` (kịch bản danh sách → flow), `TextScript`.
 
@@ -173,15 +175,17 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 `internal/samples` – kịch bản mẫu để test (bước 33): `samples.go` (`List`, `Open` – điền mặc định `NewStep`, nối cạnh theo thứ tự, thay `{{sandbox}}` / ảnh mẫu `@file`), `sandbox.go` (`WriteSandbox`, `FileURL`), `scripts/*.json`, `pages/` (trang sân thử HTML offline + `logo.png`). `samples_real_test.go` – chạy mẫu bằng engine trên máy thật (`AUTOCLICKER_REAL=1`).
 
+`internal/web` – node web (bước 25d), chỉ phụ thuộc `model`: `web.go` (`Browser` interface, `Query`, `Found`, `BrowserError` / `QueryError`), `chrome.go` (`Chrome` – nối lười tới Chrome của app qua CDP, chọn tab, đưa lên trước, đo lại khi cửa sổ dời / zoom), `find.go` + `find.js` (tìm phần tử trong trang: text / aria / css / xpath, cuộn vào giữa, bị che), `calibrate.go` (đo toạ độ trang → màn hình bằng chuột, công thức thuần có test), `launch.go` (tìm Chrome / Edge / Brave, bật với profile riêng + `--remote-debugging-port=0`, `DevToolsActivePort`, `/json/list`), `detach_unix.go` / `detach_windows.go` (trình duyệt sống tiếp khi app tắt).
+
 `internal/winfloat` – `winfloat_darwin.go`: thanh mini / overlay nổi trên mọi Space, kể cả app toàn màn hình (`PrepareLaunch` đầu `main()`, `Set` trong `SetWindowMode`); `winfloat_other.go` rỗng.
 
 `internal/launch` – `open.go`: mở URL / file / app (`OpenTarget`, `openCommand` theo hệ điều hành).
 
 `internal/script` – kịch bản như dữ liệu (không thiết bị, không đĩa): `codec.go` (`EncodeScript` / `DecodeScript`, `SafeFileName`), `check.go` (kiểm tra lúc mở: `checkScript`, `checkStep`, `FixRefs`), `validate.go` (`ValidateScript` – đủ dữ liệu để chạy), `flowcheck.go` (`validateFlow`, `UnreachableNodes`), `control.go` (kiểm tra node điều khiển + điều kiện), `inputs.go` / `inputvalue.go` (`ResolveInputs`, ép kiểu, ghim trường), `varfields.go` (`VarFields` – mọi ô chữ nhận `{{biến}}`), `anchor.go` (`ResolvePoint`, `Bounds`), `errors.go` (`stepErr` → `model.ScriptError`).
 
-`internal/store` – dữ liệu app trên máy (`ConfigDir`, `WriteFileAtomic`): `scriptfile.go` (đọc / ghi file kịch bản), `draft.go` (nháp tự lưu), `settings.go` (theme), `recent.go` (mở gần đây), `inputmemory.go` (`inputs.json` – giá trị input lần trước / preset), `runs.go` (lịch sử chạy: `SaveRun`, `RunsOf`, `GetRun`, `RunShot`, `safeName`).
+`internal/store` – dữ liệu app trên máy (`ConfigDir`, `WriteFileAtomic`): `scriptfile.go` (đọc / ghi file kịch bản), `draft.go` (nháp tự lưu), `settings.go` (theme, `BrowserProfile` – profile Chrome của app), `recent.go` (mở gần đây), `inputmemory.go` (`inputs.json` – giá trị input lần trước / preset), `runs.go` (lịch sử chạy: `SaveRun`, `RunsOf`, `GetRun`, `RunShot`, `safeName`).
 
-`internal/engine` – chạy kịch bản: `engineapi.go` (`New` + `Options`, `Failed`, `Shots`, `FindOnce`, `FindResult`), `engine.go` (`Engine`, `Progress`), `flowrun.go` (`Run`, `runLoop`, `execNode`, thử lại), `actions.go` (`runStep` / `doStep` – chuột, phím, cuộn, mở), `imagestep.go` (chờ ảnh / chữ / pixel, click theo ảnh), `nodes.go` (`runControl`), `cond.go` (`evalCond`, `snapshot` chụp một lần mỗi lần xét), `vars.go` (`resolveNodeVars`), `gate.go` (tạm dừng / debug, `Sleep`), `nodetest.go` (`TestNode`, `NodeTest`), `shots.go` (ảnh lúc node lỗi).
+`internal/engine` – chạy kịch bản: `engineapi.go` (`New` + `Options`, `Failed`, `Shots`, `FindOnce`, `FindResult`), `engine.go` (`Engine`, `Progress`), `flowrun.go` (`Run`, `runLoop`, `execNode`, thử lại), `actions.go` (`runStep` / `doStep` – chuột, phím, cuộn, mở), `imagestep.go` (chờ ảnh / chữ / pixel, click theo ảnh), `webstep.go` (chờ / click phần tử web qua `web.Browser`), `nodes.go` (`runControl`), `cond.go` (`evalCond`, `snapshot` chụp một lần mỗi lần xét), `vars.go` (`resolveNodeVars`), `gate.go` (tạm dừng / debug, `Sleep`), `nodetest.go` (`TestNode`, `NodeTest`), `shots.go` (ảnh lúc node lỗi).
 
 `internal/winexclude/` – Windows: loại cửa sổ app khỏi ảnh chụp.
 
@@ -196,10 +200,10 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 - `App.tsx` chọn màn theo hash; `screens/` – `MainScreen`, `OverlayScreen` (state + chuột / phím; vẽ ở `components/overlay/`), `MiniBar`, `PreviewScreen`, màn mẫu `Demo*`.
 - Overlay: `overlay/` (thuần, có test) – `geometry` (marker, đường neo, mũi tên cuộn, chỗ đặt nút khoanh ảnh), `hint` (chữ gợi ý theo công cụ); `components/overlay/` (chỉ props) – `OverlayToolbar`, `Hud` (gợi ý, crosshair, ô toạ độ), `MarkerLayer` (đường nối, ô ngẫu nhiên, marker), `Shapes` (vùng, khung Thử tìm, khung khoanh ảnh), `hooks` (`useRefState`, thanh tự ẩn, chọn màn hình, `useCapture` khoanh ảnh).
 - `types.ts` – model TS (khớp `internal/model/model.go`, tsc kiểm), nhãn loại node `STEP_LABEL`.
-- Logic thuần (có test): `flow/` – `model` (cổng, `flowOrder`, `orderedSteps`), `edit` (nối / cắt cạnh, chèn / xoá node, `nextRef`, `pruneEdges`), `layout` (elkjs, `placeNode`), `view` (thẻ node, nhãn cổng, `outputsOf`), `cond` (điều kiện lồng nhau `CondAt`), `run` (kết quả chạy → trạng thái thẻ, nhật ký); `anchor.ts`; `transform.ts` (biến đổi nhiều điểm); `overlay/` (hình học + gợi ý overlay); `scriptInputs.ts` (ghim trường, input, `mapVarText`); `samples/filter.ts` (lọc Mẫu thử); `fold.ts` (so khớp không dấu).
+- Logic thuần (có test): `flow/` – `model` (cổng, `flowOrder`, `orderedSteps`), `edit` (nối / cắt cạnh, chèn / xoá node, `nextRef`, `pruneEdges`), `layout` (elkjs, `placeNode`), `view` (thẻ node, nhãn cổng, `outputsOf`), `cond` (điều kiện lồng nhau `CondAt`), `web` (`parseSelector`, chữ chi tiết node web), `run` (kết quả chạy → trạng thái thẻ, nhật ký); `anchor.ts`; `transform.ts` (biến đổi nhiều điểm); `overlay/` (hình học + gợi ý overlay); `scriptInputs.ts` (ghim trường, input, `mapVarText`); `samples/filter.ts` (lọc Mẫu thử); `fold.ts` (so khớp không dấu).
 - `store/` (import qua `store/index.ts`): `editor` (state, hoàn tác, `updateScript`, `replaceScript`), `geometry` (khung, neo ↔ màn hình), `nodes` (thêm / sửa / xoá / nhân bản, nối cạnh, `insertAt`), `control` (node điều khiển, điều kiện), `points` (điểm trên overlay, F6, kéo thả), `multi` (chọn nhiều + biến đổi, phím công cụ Chọn nhiều `selectToolKey`, đổi vùng).
 - Store khác: `engineStore.ts` (trạng thái engine, `runScript`), `runStore.ts` (nhật ký lần chạy + lịch sử), `runForm.ts` (Chạy / F8 → form Chạy, preset), `scriptFile.ts` (lưu / mở / nháp / cờ chưa lưu), `imageSteps.ts` (khoanh ảnh mẫu, thử tìm, lấy màu, quyền chụp), `coordMap.ts` (overlay ↔ robotgo), `windowMode.ts` (`setWindowMode`, `openOverlay`), `theme.ts`.
-- `components/`: `TitleBar`, `Library` (thư viện + lịch sử), `AddStepPalette` (Ctrl/Cmd+K, `PaletteView`), `StepForm` (inspector) + `stepform/` (`shared`, `MouseFields`, `ScrollFields`, `KeyFields`, `TextFields`, `ImageFields`, `FlowSections`, `ControlSection`, `InputsTab`), `RunSettings` (lặp / đếm ngược, `Switch`), `Simulation` (xem trước con trỏ giả), `MockPage`, `TransformTool`, `SaveChangesDialog`, `NumInput`, `Segmented`, `icons` (`StepIcon`), `StepCard`.
+- `components/`: `TitleBar`, `Library` (thư viện + lịch sử), `AddStepPalette` (Ctrl/Cmd+K, `PaletteView`), `StepForm` (inspector) + `stepform/` (`shared`, `MouseFields`, `ScrollFields`, `KeyFields`, `TextFields`, `ImageFields`, `WebFields`, `FlowSections`, `ControlSection`, `InputsTab`), `RunSettings` (lặp / đếm ngược, `Switch`), `Simulation` (xem trước con trỏ giả; lớp cuộn `simulation/ScrollProgress`), `MockPage`, `TransformTool`, `SaveChangesDialog`, `NumInput`, `Segmented`, `icons` (`StepIcon`), `StepCard`.
 - `components/flow/` (chỉ props, app + màn mẫu dùng chung): `FlowCanvas` (`@xyflow/react`), `NodeCard`, `FlowEdge`, `PortField`, `RunLog`, `model.ts` (cỡ thẻ), `nodes/ControlFields` + `CondEditor` + `NodeTestPanel`; `FlowEditor` = bản nối store.
 - `components/samples/` – hộp thoại Mẫu thử: `SamplesDialog` + `SampleCard` (chỉ props), `Samples` (nối Go + `scriptFile.openSample`).
 - `components/inputs/` – ghim, ô chữ `{{biến}}` (`VarTextInput`), tab Input, form Chạy (`RunDialog`).

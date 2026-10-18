@@ -1,5 +1,6 @@
 import { model } from '../wailsjs/go/models';
 import { fmtAxis, fmtPoint } from './anchor';
+import { fmtSelectors } from './flow/web';
 
 // Neo của một trục (anchor.ts, khớp internal/script/anchor.go): bỏ trống = start (cách cạnh trái / trên).
 export type Anchor = 'start' | 'center' | 'end' | 'ratio';
@@ -11,13 +12,13 @@ export type Rect = { x: number; y: number; w: number; h: number };
 // Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
 export type Retry = { count?: number; delayMs?: number };
 // Node hay "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại (thử lại)
-export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'open'];
+export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'webWait', 'webClick', 'open'];
 
 // ---- Flow (bước 20, flow.go) ----
 // Cạnh: node from đi ra cổng port thì chạy node to. Mỗi cổng tối đa một cạnh. Khớp Edge trong model.go.
 export interface Edge { id: string; from: string; port: string; to: string }
 export type StepStatus = 'success' | 'fail' | 'skipped' | 'cancelled';
-export type ErrorCode = 'not_found' | 'timeout' | 'permission' | 'invalid_input' | 'cancelled' | 'end' | 'internal';
+export type ErrorCode = 'not_found' | 'timeout' | 'permission' | 'invalid_input' | 'cancelled' | 'end' | 'browser' | 'internal';
 // Kết quả một lần chạy node (event engine:node) – khớp StepResult trong flow.go.
 export interface StepResult {
   nodeId: string;
@@ -37,7 +38,8 @@ const edgeMatchesGo: Same<keyof Edge, keyof Fields<model.Edge>> = true;
 const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = true;
 void edgeMatchesGo, resultMatchesGo;
 
-export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel';
+export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel'
+  | 'webWait' | 'webClick';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'end' | 'setVar';
 export type StepType = ActionType | ControlType;
@@ -99,6 +101,11 @@ export interface Step {
   amount?: number; // scroll: số nấc
   target?: string; // open: URL / đường dẫn / tên app, nhận {{biến}}
   app?: string; // open: mở bằng app này, '' = mặc định của máy
+  webBrowser?: boolean; // open: mở bằng Chrome của app (profile riêng) – node web điều khiển được; bỏ qua app
+  // web qua DOM (bước 25d, internal/engine/webstep.go) – cách tìm ở flow/web.ts
+  selectors?: string[]; // webWait / webClick: mỗi dòng một cách tìm (text= / aria= / css= / xpath=), dòng đầu ưu tiên; nhận {{biến}}
+  tab?: string; // tab có URL / tiêu đề chứa chuỗi này, bỏ trống = tab đang hiện; nhận {{biến}}
+  webGone?: boolean; // webWait: chờ phần tử mất
   // chờ ảnh / click theo ảnh / chờ pixel (bước 25, internal/engine/imagestep.go)
   template?: string; // ảnh mẫu PNG base64
   templateScale?: number; // px ảnh mẫu / 1 đơn vị toạ độ lúc chụp (Retina 2)
@@ -108,7 +115,7 @@ export interface Step {
   searchArea?: 'screen'; // bỏ trống = vùng của kịch bản
   imageSource?: 'node' | 'search'; // clickImage: chỗ node imageFrom thấy / tự tìm
   imageFrom?: string; // clickImage imageSource node: id node lấy chỗ thấy
-  dx?: number; // clickImage: lệch so với tâm ảnh
+  dx?: number; // clickImage / webClick: lệch so với tâm ảnh / phần tử
   dy?: number;
   findBy?: 'text'; // waitImage / clickImage tự tìm: bỏ trống = ảnh mẫu, text = tìm chữ (ocr.go)
   findText?: string; // chữ cần tìm, nhận {{biến}}
@@ -204,6 +211,8 @@ export const STEP_LABEL: Record<StepType, string> = {
   waitImage: 'Chờ ảnh',
   clickImage: 'Click theo ảnh',
   waitPixel: 'Chờ màu pixel',
+  webWait: 'Chờ phần tử web',
+  webClick: 'Click phần tử web',
   if: 'Nếu',
   switch: 'Switch theo giá trị',
   switchScreen: 'Switch theo màn hình',
@@ -274,7 +283,9 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'type' ? `"${s.text}"`
     : s.type === 'key' ? fmtKey(s)
     : s.type === 'scroll' ? `${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount ?? 0} nấc ≈ ${(s.amount ?? 0) * SCROLL_NOTCH_PX} px ${s.points[0] ? `tại ${fmtPoint(s.points[0])}` : 'tại chuột'}`
-    : s.type === 'open' ? `${s.target || '—'}${s.app ? ` · ${s.app}` : ''}`
+    : s.type === 'open' ? `${s.target || '—'}${s.webBrowser ? ' · Chrome của app' : s.app ? ` · ${s.app}` : ''}`
+    : s.type === 'webWait' || s.type === 'webClick'
+      ? `${fmtSelectors(s.selectors)}${s.webGone ? ' · chờ mất' : ''}${s.tab ? ` · tab “${s.tab}”` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`
     : s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search')
       ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.findBy === 'text'
         ? (s.findText?.trim() ? `chữ “${s.findText}”${(s.occurrence ?? 0) > 1 ? ` (chỗ thứ ${s.occurrence})` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa nhập chữ cần tìm')

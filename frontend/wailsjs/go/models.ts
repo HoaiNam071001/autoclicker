@@ -718,6 +718,10 @@ export namespace model {
 	    amount?: number;
 	    target?: string;
 	    app?: string;
+	    webBrowser?: boolean;
+	    selectors?: string[];
+	    tab?: string;
+	    webGone?: boolean;
 	    template?: string;
 	    templateScale?: number;
 	    threshold?: number;
@@ -777,6 +781,10 @@ export namespace model {
 	        this.amount = source["amount"];
 	        this.target = source["target"];
 	        this.app = source["app"];
+	        this.webBrowser = source["webBrowser"];
+	        this.selectors = source["selectors"];
+	        this.tab = source["tab"];
+	        this.webGone = source["webGone"];
 	        this.template = source["template"];
 	        this.templateScale = source["templateScale"];
 	        this.threshold = source["threshold"];

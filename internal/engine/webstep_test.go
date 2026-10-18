@@ -1,0 +1,164 @@
+package engine
+
+import (
+	"context"
+	"reflect"
+	"strings"
+	"testing"
+
+	"autoclicker/internal/device/devicetest"
+	"autoclicker/internal/model"
+	"autoclicker/internal/model/modeltest"
+	"autoclicker/internal/script/scripttest"
+	"autoclicker/internal/web"
+)
+
+// fakeBrowser trả lần lượt các kết quả tìm (cuối lặp lại), ghi lại query + URL đã mở.
+type fakeBrowser struct {
+	finds   []web.Found
+	n       int
+	queries []web.Query
+	opened  []string
+	err     error
+}
+
+func (b *fakeBrowser) Open(_ context.Context, url string) error {
+	b.opened = append(b.opened, url)
+	return b.err
+}
+
+func (b *fakeBrowser) Find(_ context.Context, q web.Query) (web.Found, error) {
+	b.n++
+	b.queries = append(b.queries, q)
+	if b.err != nil {
+		return web.Found{}, b.err
+	}
+	return b.finds[min(b.n-1, len(b.finds)-1)], nil
+}
+
+func (b *fakeBrowser) Close() {}
+
+var missing = web.Found{Selector: -1, Tab: "file:///a.html"}
+
+func found(sel int, r model.Rect) web.Found {
+	return web.Found{OK: true, Selector: sel, Rect: r, Text: "Xem lịch sử", Tab: "file:///a.html"}
+}
+
+func webNode(typ string, mod func(*model.Step)) model.Step {
+	return modeltest.Step(typ, func(s *model.Step) {
+		s.Selectors, s.TimeoutMs, s.IntervalMs = []string{"text=Xem lịch sử", "", "css=#history"}, 50, 1
+		if mod != nil {
+			mod(s)
+		}
+	})
+}
+
+func runWeb(t *testing.T, b *fakeBrowser, steps ...model.Step) (*devicetest.FakeInput, []model.StepResult, error) {
+	t.Helper()
+	in := &devicetest.FakeInput{}
+	var res []model.StepResult
+	e := New(in, scripttest.Linear(model.Script{Loops: 1, Steps: steps}), Options{Browser: b, OnNode: func(r model.StepResult) { res = append(res, r) }})
+	e.intN = func(int) int { return 0 }
+	return in, res, e.Run(context.Background())
+}
+
+func TestWebClickWaitsThenClicks(t *testing.T) {
+	b := &fakeBrowser{finds: []web.Found{missing, found(1, model.Rect{X: 100, Y: 200, W: 40, H: 20})}}
+	in, res, err := runWeb(t, b, webNode(model.StepWebClick, func(s *model.Step) { s.Dx, s.Clicks = 3, 2 }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"move 123,210", "click left false", "move 123,210", "click left false"}; !reflect.DeepEqual(in.Lines(), want) {
+		t.Errorf("có %q, muốn %q", in.Lines(), want)
+	}
+	q := b.queries[0]
+	if !q.Scroll || q.CheckOnly || len(q.Selectors) != 2 || q.Selectors[1] != (model.Selector{By: model.SelCSS, Value: "#history"}) {
+		t.Errorf("query: %+v", q)
+	}
+	out := res[0].Output
+	if out["selector"] != "css=#history" || out["x"] != 120 || out["clickX"] != 123 || out["text"] != "Xem lịch sử" {
+		t.Errorf("output: %v", out)
+	}
+}
+
+func TestWebWaitGone(t *testing.T) {
+	loading := web.Found{Selector: -1, Loading: true} // tab mới mở chưa tải xong – chưa tính là mất
+	b := &fakeBrowser{finds: []web.Found{loading, found(0, model.Rect{}), missing}}
+	in, res, err := runWeb(t, b, webNode(model.StepWebWait, func(s *model.Step) { s.WebGone = true }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if b.n != 3 || !b.queries[0].CheckOnly || b.queries[0].Scroll || len(in.Lines()) != 0 {
+		t.Errorf("tìm %d lần, query %+v, chuột %q", b.n, b.queries[0], in.Lines())
+	}
+	if res[0].Output != nil {
+		t.Errorf("chờ mất không có output: %v", res[0].Output)
+	}
+}
+
+func TestWebTimeoutMessages(t *testing.T) {
+	cases := []struct {
+		f    web.Found
+		tab  string
+		want string
+	}{
+		{missing, "", "không thấy phần tử “text=Xem lịch sử”, “css=#history”"},
+		{web.Found{Selector: -1, NoTab: true}, "shop.vn", "không thấy tab nào có URL / tiêu đề chứa “shop.vn”"},
+		{web.Found{Selector: 0, Covered: "div#popup “Đồng ý cookie”"}, "", "bị div#popup “Đồng ý cookie” che"},
+		{web.Found{Selector: -1, Hidden: 2}, "", "có 2 phần tử khớp"},
+	}
+	for _, c := range cases {
+		b := &fakeBrowser{finds: []web.Found{c.f}}
+		_, res, err := runWeb(t, b, webNode(model.StepWebClick, func(s *model.Step) { s.Tab = c.tab }))
+		if err == nil || !strings.Contains(err.Error(), c.want) || res[0].Error.Code != model.ErrNotFound {
+			t.Errorf("%+v: lỗi %v, code %v – cần chứa %q", c.f, err, res[0].Error, c.want)
+		}
+	}
+}
+
+func TestWebErrorCodes(t *testing.T) {
+	cases := map[error]string{
+		web.ErrNoBrowser:                    model.ErrBrowser,
+		&web.QueryError{Msg: "SyntaxError"}: model.ErrInvalidInput,
+	}
+	for e, code := range cases {
+		_, res, _ := runWeb(t, &fakeBrowser{err: e}, webNode(model.StepWebWait, nil))
+		if res[0].Error == nil || res[0].Error.Code != code {
+			t.Errorf("%v: %+v, cần %s", e, res[0].Error, code)
+		}
+	}
+	// không có trình duyệt (Thử node) → code browser, không panic
+	in := &devicetest.FakeInput{}
+	var res []model.StepResult
+	e := New(in, scripttest.Linear(model.Script{Loops: 1, Steps: []model.Step{webNode(model.StepWebClick, nil)}}), Options{OnNode: func(r model.StepResult) { res = append(res, r) }})
+	_ = e.Run(context.Background())
+	if res[0].Error == nil || res[0].Error.Code != model.ErrBrowser {
+		t.Errorf("không có trình duyệt: %+v", res[0].Error)
+	}
+}
+
+// Biến trong selector được thay trước khi tìm; thay ra trống → invalid_input.
+func TestWebSelectorVars(t *testing.T) {
+	b := &fakeBrowser{finds: []web.Found{found(0, model.Rect{W: 10, H: 10})}}
+	set := modeltest.Node("s1", "n1", model.StepSetVar, func(s *model.Step) { s.VarName, s.Value = "nut", "Gửi" })
+	click := modeltest.Node("s2", "n2", model.StepWebClick, func(s *model.Step) {
+		s.Selectors, s.TimeoutMs, s.IntervalMs = []string{"text={{vars.nut}}"}, 50, 1
+	})
+	if _, _, err := runWeb(t, b, set, click); err != nil {
+		t.Fatal(err)
+	}
+	if got := b.queries[0].Selectors[0].Value; got != "Gửi" {
+		t.Errorf("selector sau khi thay biến: %q", got)
+	}
+}
+
+func TestOpenInWebBrowser(t *testing.T) {
+	b := &fakeBrowser{}
+	in, _, err := runWeb(t, b, modeltest.Step(model.StepOpen, func(s *model.Step) { s.Target, s.WebBrowser, s.App = "shop.vn/don", true, "Safari" }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(b.opened, []string{"https://shop.vn/don"}) || len(in.Lines()) != 0 {
+		t.Errorf("mở %q", b.opened)
+	}
+}

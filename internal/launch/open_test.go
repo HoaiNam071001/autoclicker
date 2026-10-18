@@ -40,3 +40,18 @@ func TestTargetKind(t *testing.T) {
 		}
 	}
 }
+
+func TestBrowserURL(t *testing.T) {
+	cases := map[string]string{
+		"youtube.com/watch?v=1":        "https://youtube.com/watch?v=1",
+		"file:///tmp/a%20b/x.html":     "file:///tmp/a%20b/x.html",
+		"/Users/a/sân thử/index.html":  "file:///Users/a/s%C3%A2n%20th%E1%BB%AD/index.html",
+		"Spotify":                      "",
+		"https://shop.vn/?q=a&b=2#đơn": "https://shop.vn/?q=a&b=2#đơn",
+	}
+	for in, want := range cases {
+		if got := BrowserURL(in); got != want {
+			t.Errorf("BrowserURL(%q) = %q, cần %q", in, got, want)
+		}
+	}
+}

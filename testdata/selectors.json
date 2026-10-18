@@ -1,0 +1,13 @@
+[
+  {"in": "text=Xem lịch sử", "want": {"by": "text", "value": "Xem lịch sử"}},
+  {"in": "Xem lịch sử", "want": {"by": "text", "value": "Xem lịch sử"}},
+  {"in": " text = \"Gửi\" ", "want": {"by": "text", "value": "Gửi", "exact": true}},
+  {"in": "ARIA=Đóng", "want": {"by": "aria", "value": "Đóng"}},
+  {"in": "css=button[data-id=x]", "want": {"by": "css", "value": "button[data-id=x]"}},
+  {"in": "css=\"a\"", "want": {"by": "css", "value": "\"a\""}},
+  {"in": "xpath=//a[@href='x']", "want": {"by": "xpath", "value": "//a[@href='x']"}},
+  {"in": "a=b", "want": {"by": "text", "value": "a=b"}},
+  {"in": "text=", "bad": true},
+  {"in": "text=\"\"", "bad": true},
+  {"in": "  ", "bad": true}
+]

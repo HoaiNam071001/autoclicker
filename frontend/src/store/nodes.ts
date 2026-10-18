@@ -44,7 +44,8 @@ export function insertNode(step: Step, notice: (ref: string) => string) {
 }
 
 // Thêm node không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở, chờ ảnh…) – giá trị mặc định giống NewStep (model.go).
-export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel'>) {
+// patch: sửa thêm sau mặc định (vd node Mở bằng Chrome của app).
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'webWait' | 'webClick'>, patch: Partial<Step> = {}) {
   const defaults: Record<typeof type, Partial<Step>> = {
     wait: { clicks: 0, delayAfter: 1000 },
     type: { clicks: 0, delayAfter: 500 },
@@ -54,8 +55,10 @@ export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scrol
     waitImage: { clicks: 0, threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 300 },
     clickImage: { imageSource: 'node', imageFrom: nearestFinder(), threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 500 },
     waitPixel: { clicks: 0, points: [centerPoint(script().region)], color: '#000000', tolerance: 10, timeoutMs: 5000, intervalMs: 100, delayAfter: 300 },
+    webWait: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
+    webClick: { selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 500 },
   };
-  insertNode(makeStep({ id: newId(), type, ...defaults[type] }), (ref) => `Đã thêm ${ref}`);
+  insertNode(makeStep({ id: newId(), type, ...defaults[type], ...patch }), (ref) => `Đã thêm ${ref}`);
   clearInsertAt();
 }
 
@@ -159,7 +162,8 @@ export function changeStepType(id: string, type: StepType) {
     target: type === 'open' && !s.target ? 'https://' : s.target,
     threshold: s.threshold ?? 90,
     timeoutMs: s.timeoutMs ?? (type === 'waitPixel' ? 5000 : 10000),
-    intervalMs: s.intervalMs ?? (type === 'waitPixel' ? 100 : 250),
+    intervalMs: s.intervalMs ?? (type === 'waitPixel' ? 100 : type === 'webWait' || type === 'webClick' ? 200 : 250),
+    selectors: (type === 'webWait' || type === 'webClick') && !s.selectors?.length ? ['text='] : s.selectors,
     imageSource: type === 'clickImage' ? s.imageSource ?? 'node' : s.imageSource,
     color: type === 'waitPixel' ? s.color ?? '#000000' : s.color,
     tolerance: type === 'waitPixel' ? s.tolerance ?? 10 : s.tolerance,

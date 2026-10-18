@@ -6,6 +6,7 @@ import { Step } from '../../types';
 import { Field, hint, selectBox, useNodeVars } from './shared';
 
 // Trình duyệt gợi ý cho bước Mở (Windows: open.go đổi sang tên lệnh chrome / msedge / firefox)
+const APP_BROWSER = '__app'; // giá trị ô chọn cho Step.webBrowser (bước 25d) – không phải tên app
 const BROWSERS = ['Google Chrome', 'Microsoft Edge', 'Firefox', ...(navigator.platform.startsWith('Mac') ? ['Safari'] : [])];
 
 export function OpenFields({ step: s }: { step: Step }) {
@@ -26,11 +27,17 @@ export function OpenFields({ step: s }: { step: Step }) {
           </span>
         </div>
         <Field label="Mở bằng" wide>
-          <select value={s.app ?? ''} onChange={(e) => set({ app: e.target.value })} className={selectBox}>
+          <select value={s.webBrowser ? APP_BROWSER : s.app ?? ''} className={selectBox}
+            onChange={(e) => set(e.target.value === APP_BROWSER ? { webBrowser: true } : { webBrowser: undefined, app: e.target.value })}>
             <option value="">Mặc định của máy</option>
+            <option value={APP_BROWSER}>Chrome của app – node web điều khiển được</option>
             {[...BROWSERS, ...(s.app && !BROWSERS.includes(s.app) ? [s.app] : [])].map((b) => <option key={b}>{b}</option>)}
           </select>
-          <span className={hint}>Không chờ trang tải xong – đặt “Chờ sau bước” đủ lâu (mặc định 2 s).</span>
+          <span className={hint}>
+            {s.webBrowser
+              ? 'Chrome / Edge / Brave với profile riêng của app (lần đầu phải đăng nhập lại trang, sau đó tự nhớ); đang mở thì mở tab mới. Chỉ mở URL / file.'
+              : 'Không chờ trang tải xong – đặt “Chờ sau bước” đủ lâu (mặc định 2 s).'}
+          </span>
         </Field>
       </>
   );

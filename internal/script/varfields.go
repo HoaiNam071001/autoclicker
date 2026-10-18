@@ -27,6 +27,11 @@ func VarFields(s *model.Step) []VarField {
 		if s.FindBy == model.FindByText {
 			add("findText", &s.FindText, false)
 		}
+	case model.StepWebWait, model.StepWebClick:
+		for i := range s.Selectors {
+			add(fmt.Sprintf("selectors[%d]", i), &s.Selectors[i], false)
+		}
+		add("tab", &s.Tab, false)
 	case model.StepOpen:
 		add("target", &s.Target, launch.TargetKind(s.Target) == launch.TargetURL)
 	case model.StepIf:
@@ -69,6 +74,7 @@ func condFields(c *model.Cond, name string, add func(string, *string, bool)) {
 // CloneStep chép sâu phần lồng nhau sửa được (điểm, điều kiện, case) – thay biến trên bản sao không đụng kịch bản gốc.
 func CloneStep(s model.Step) model.Step {
 	s.Points = slices.Clone(s.Points)
+	s.Selectors = slices.Clone(s.Selectors)
 	s.Cond = cloneCond(s.Cond)
 	if s.Cases != nil {
 		cs := make([]model.Case, len(s.Cases))

@@ -10,6 +10,7 @@ import (
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 	"autoclicker/internal/script"
+	"autoclicker/internal/web"
 )
 
 // Engine chạy flow (bước 20): từ node start, chạy node → StepResult → đi theo cạnh của cổng ra → node kế.
@@ -195,13 +196,17 @@ func errCode(err error) string {
 	var nf *notFoundErr
 	var end *endErr
 	var bad *invalidErr
+	var noBrowser *web.BrowserError
+	var badQuery *web.QueryError
 	switch {
 	case errors.As(err, &nf):
 		return model.ErrNotFound
 	case errors.As(err, &end):
 		return model.ErrEnd
-	case errors.As(err, &bad):
+	case errors.As(err, &bad), errors.As(err, &badQuery):
 		return model.ErrInvalidInput
+	case errors.As(err, &noBrowser):
+		return model.ErrBrowser
 	case errors.Is(err, device.ErrNoPermission):
 		return model.ErrPermission
 	}

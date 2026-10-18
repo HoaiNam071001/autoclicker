@@ -13,6 +13,7 @@ import (
 	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
+	"autoclicker/internal/web"
 )
 
 // Progress – tiến độ gửi sang frontend (event "engine:progress").
@@ -47,6 +48,7 @@ type Engine struct {
 	open       func(target, app string) error // bước Mở – test thay bằng hàm ghi lại
 	scr        device.Screen                  // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
 	ocr        device.TextReader              // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
+	browser    web.Browser                    // node web (webstep.go) – nil = không điều khiển trình duyệt
 
 	onNode  func(model.StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
 	shots   map[string]image.Image       // ảnh màn hình lúc node thất bại theo tên file (nil = không chụp – runlog.go)

@@ -98,13 +98,37 @@ func openCommand(goos, target, app string) (string, []string) {
 // psQuote: chuỗi PowerShell trong nháy đơn (' viết thành ”).
 func psQuote(s string) string { return "'" + strings.ReplaceAll(s, "'", "''") + "'" }
 
-// OpenTarget mở target thật (không chờ app mở xong – bước sau nên có thời gian chờ).
-func OpenTarget(target, app string) error {
+// BrowserURL – target của node Mở bằng Chrome của app (Step.WebBrowser) thành URL cho trình duyệt: tên miền thêm
+// https://, đường dẫn file thành file://. Tên app không mở được bằng trình duyệt → "".
+func BrowserURL(target string) string {
+	switch TargetKind(target) {
+	case TargetURL:
+		return normalizeURL(target)
+	case TargetPath:
+		p := expandHome(target)
+		if abs, err := filepath.Abs(p); err == nil {
+			p = abs
+		}
+		p = filepath.ToSlash(p)
+		if !strings.HasPrefix(p, "/") {
+			p = "/" + p // C:/… → /C:/…
+		}
+		return (&url.URL{Scheme: "file", Path: p}).String()
+	}
+	return ""
+}
+
+func expandHome(target string) string {
 	if strings.HasPrefix(target, "~/") || strings.HasPrefix(target, `~\`) {
 		if home, err := os.UserHomeDir(); err == nil {
-			target = filepath.Join(home, target[2:])
+			return filepath.Join(home, target[2:])
 		}
 	}
-	name, args := openCommand(goruntime.GOOS, target, app)
+	return target
+}
+
+// OpenTarget mở target thật (không chờ app mở xong – bước sau nên có thời gian chờ).
+func OpenTarget(target, app string) error {
+	name, args := openCommand(goruntime.GOOS, expandHome(target), app)
 	return exec.Command(name, args...).Start()
 }

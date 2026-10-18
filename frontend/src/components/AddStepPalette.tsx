@@ -39,6 +39,14 @@ const GROUPS: PaletteGroup[] = [
     ],
   },
   {
+    // bước 25d: tìm phần tử bằng HTML qua Chrome của app, bấm bằng chuột thật
+    name: 'Web (trình duyệt)', items: [
+      { icon: 'open', label: 'Mở trang (Chrome của app)', keywords: 'web url trinh duyet chrome dieu khien dom html', run: () => addStep('open', { webBrowser: true }) },
+      { icon: 'webWait', label: 'Chờ phần tử web', keywords: 'web dom html selector css xpath aria cho xuat hien mat', run: () => addStep('webWait') },
+      { icon: 'webClick', label: 'Click phần tử web', keywords: 'web dom html selector css xpath aria nut bam click', run: () => addStep('webClick') },
+    ],
+  },
+  {
     name: 'Ứng dụng & cấu trúc', items: [
       { icon: 'open', label: 'Mở URL / app', keywords: 'url web link trinh duyet ung dung open youtube', run: () => addStep('open') },
       { icon: 'focusWindow', label: 'Focus cửa sổ', keywords: 'window cua so ung dung', soon: 'bước 26' },

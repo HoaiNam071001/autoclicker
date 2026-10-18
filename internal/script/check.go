@@ -98,7 +98,8 @@ func checkStep(s *model.Step) error {
 		need = 1
 	case model.StepDrag:
 		need = 2
-	case model.StepWait, model.StepText, model.StepKey, model.StepOpen, model.StepScroll, model.StepWaitImage, model.StepClickImage:
+	case model.StepWait, model.StepText, model.StepKey, model.StepOpen, model.StepScroll, model.StepWaitImage, model.StepClickImage,
+		model.StepWebWait, model.StepWebClick:
 	case model.StepIf, model.StepSwitch, model.StepSwitchScreen, model.StepCounter, model.StepEnd, model.StepSetVar:
 		if err := checkControl(s); err != nil {
 			return err

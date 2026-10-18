@@ -4,8 +4,8 @@ import NumInput from '../NumInput';
 import Segmented from '../Segmented';
 import AnchorField, { AnchorMap } from '../steps/AnchorField';
 import { boundsOf, endpoints, refOf, setAnchor, setDragFromPrev, setDragRelative, updateStep, useScript } from '../../store';
-import { MouseButton, Step } from '../../types';
-import { Field, hint, NumField, PickButton, PinSoon, SetPoint } from './shared';
+import { Step } from '../../types';
+import { ButtonField, Field, hint, NumField, PickButton, PinSoon, SetPoint } from './shared';
 
 export const isMouse = (s: Step) => s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'drag';
 
@@ -16,10 +16,7 @@ export function MouseFields({ step: s, setPoint }: { step: Step; setPoint: SetPo
   return (
     <>
       {mouse && (
-        <Field label="Nút chuột" wide group>
-          <Segmented value={s.button} onChange={(button: MouseButton) => set({ button })} full label="Nút chuột"
-            options={[{ id: 'left', label: 'Trái' }, { id: 'right', label: 'Phải' }, { id: 'center', label: 'Giữa' }]} />
-        </Field>
+        <ButtonField step={s} />
       )}
 
       {mouse && s.type !== 'drag' && s.points[0] && (

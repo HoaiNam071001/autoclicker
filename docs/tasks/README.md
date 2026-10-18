@@ -6,9 +6,9 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3, F5 xong code – tạm dừng trước F5b – 32 (tách Go) xong code. **33** (kịch bản mẫu để test) xong code – 31 mẫu chạy thật qua 31/31; tiếp **25d** (web qua DOM): D0 đo toạ độ đạt 0–2 px trên Retina (chưa đo màn ngoài), tiếp D1. Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 25d D1 (CDP + `webWait` / `webClick` + engine `Browser`) → D2 → D3 → D4 → 20: F5b → F6 → F7 → 26 … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
-- **Cập nhật lần cuối:** 2026-10-18 (33 kịch bản mẫu xong code)
+- **Đang làm:** 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3, F5 xong code – tạm dừng trước F5b – 32 (tách Go) xong code. **33** (kịch bản mẫu để test) xong code – 31 mẫu chạy thật qua 31/31; **25d** (web qua DOM): D0 đo toạ độ 0–2 px trên Retina, **D1 xong code** (node Chờ / Click phần tử web, Chrome của app qua CDP – 2 mẫu chạy thật qua), tiếp D2. Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 25d D2 (cuộn bằng chuột thật, chờ rect ổn định, thử hover, vùng bị Dock che, iframe) → D3 → D3 → D4 → 20: F5b → F6 → F7 → 26 … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
+- **Cập nhật lần cuối:** 2026-10-18 (25d D1 node web xong code)
 
 ## Tính năng của hệ thống
 
@@ -42,7 +42,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 🧪 | Chờ chữ / click theo chữ (OCR) | Đọc chữ trên màn hình, bỏ dấu, chỗ thứ N – **chỉ macOS**, Windows chưa có | [25e](phase3/25e-ocr.md) |
 | ✅ | Thử lại khi thất bại | Thử lại N lần, nghỉ giữa các lần, hết lượt đi cổng Thất bại | [25b](phase3/25b-khi-that-bai.md), [20](phase3/20-flow.md) |
 | ⬜ | Focus cửa sổ theo tên | Đưa app lên trước | [26](phase3/26-focus-cua-so.md) |
-| ⬜ | Web qua DOM | Tìm phần tử trang bằng chữ / selector (Chrome), bấm bằng chuột thật | [25d](phase3/25d-web-dom.md) |
+| 🧪 | Web qua DOM | Tìm phần tử trang bằng chữ / selector (Chrome), bấm bằng chuột thật – D1: Chờ / Click phần tử web, node Mở bằng Chrome của app | [25d](phase3/25d-web-dom.md) |
 | 🧪 | Kịch bản mẫu để test | Nút *Mẫu thử* ở Thư viện: mẫu đơn giản cho từng loại bước + nhiều kiểu web app, chạy trên sân thử cục bộ / vài web thật | [33](phase3/33-mau-thu.md) |
 
 ### Rẽ nhánh & luồng
@@ -91,7 +91,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 > Bảng tự sinh – sau khi tick chạy `python3 scripts/tasks-index.py`. Bấm tên bước để mở file chi tiết.
 
 <!-- index:start -->
-**30 / 43 bước xong code** · 🧪 **[26 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
+**30 / 43 bước xong code** · 🧪 **[31 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
 
 ### Phase 3 – Design v2 & tự động hoá (theo thứ tự làm)
 
@@ -110,7 +110,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 🟡 đang làm | [20. Flow kiểu n8n – mỗi bước là một module, rẽ nhánh theo kết quả](phase3/20-flow.md) | 45 / 56 | [11 việc](checks.md) |
 | 🧪 chờ kiểm tra tay | [32. Tách `package main` ở root thành package trong `internal/`](phase3/32-go-packages.md) | 6 / 6 | [3 việc](checks.md) |
 | 🟡 đang làm | [33. Danh sách kịch bản mẫu để test](phase3/33-mau-thu.md) | 8 / 10 | [4 việc](checks.md) |
-| 🟡 đang làm | [25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật](phase3/25d-web-dom.md) | 1 / 11 | [2 việc](checks.md) |
+| 🟡 đang làm | [25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật](phase3/25d-web-dom.md) | 7 / 17 | [7 việc](checks.md) |
 | ⬜ chưa làm | [26. Focus cửa sổ theo tên](phase3/26-focus-cua-so.md) | 0 / 3 |  |
 | ⬜ chưa làm | [22. Hẹn giờ + thông báo + CLI / API local](phase3/22-hen-gio-cli-api.md) | 0 / 5 |  |
 | ⬜ chưa làm | [31a. Kết nối AI qua MCP – tạo / sửa kịch bản](phase3/31-mcp-ai.md) | 0 / 7 |  |

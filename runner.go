@@ -13,6 +13,7 @@ import (
 	"autoclicker/internal/model"
 	"autoclicker/internal/script"
 	"autoclicker/internal/store"
+	"autoclicker/internal/web"
 )
 
 // Lý do dừng gửi kèm event "engine:stopped".
@@ -52,6 +53,10 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 	if err := script.ValidateScript(sc, screen); err != nil {
 		return err
 	}
+	profile, err := store.BrowserProfile()
+	if err != nil {
+		return err
+	}
 	a.mu.Lock()
 	if a.run != nil {
 		a.mu.Unlock()
@@ -67,8 +72,10 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 	for _, s := range sc.Steps {
 		types[s.ID] = s.Type
 	}
+	br := web.NewChrome(profile, in.Move) // nối lười – kịch bản không có node web thì không đụng trình duyệt
+	defer br.Close()
 	eng := engine.New(in, sc, engine.Options{
-		Screen: screen, Displays: device.Displays(), Debug: opt.Source == SourceUser, StepMode: opt.Step, KeepShots: true,
+		Screen: screen, Displays: device.Displays(), Debug: opt.Source == SourceUser, StepMode: opt.Step, KeepShots: true, Browser: br,
 		OnProgress: func(p engine.Progress) { runtime.EventsEmit(a.ctx, "engine:progress", p) },
 		OnNode: func(r model.StepResult) {
 			rec.Add(r, types[r.NodeID])

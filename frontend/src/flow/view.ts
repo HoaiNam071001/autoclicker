@@ -123,6 +123,10 @@ const FOUND: OutputField[] = [
   { key: 'x', desc: 'tâm chỗ thấy – X' }, { key: 'y', desc: 'tâm chỗ thấy – Y' }, { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' },
   { key: 'score', desc: '% khớp' }, { key: 'text', desc: 'chữ tìm thấy (tìm theo chữ)' },
 ];
+const WEB_FOUND: OutputField[] = [
+  { key: 'x', desc: 'tâm phần tử – X' }, { key: 'y', desc: 'tâm phần tử – Y' }, { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' },
+  { key: 'text', desc: 'chữ của phần tử' }, { key: 'selector', desc: 'cách tìm đã khớp' },
+];
 export function outputsOf(s: Step): OutputField[] {
   switch (s.type) {
     case 'click': case 'double': case 'hold': case 'drag':
@@ -132,6 +136,8 @@ export function outputsOf(s: Step): OutputField[] {
     case 'waitImage': return FOUND;
     case 'clickImage': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...(s.imageSource === 'search' ? FOUND : [])];
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
+    case 'webWait': return s.webGone ? [] : WEB_FOUND;
+    case 'webClick': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...WEB_FOUND];
     case 'if': return [{ key: 'result', desc: 'true / false' }, ...FOUND.map((f) => ({ ...f, desc: `${f.desc} (điều kiện ảnh / chữ đúng)` }))];
     case 'switch': return [{ key: 'case', desc: 'case khớp (default nếu không)' }, { key: 'value', desc: 'giá trị đã xét' }];
     case 'switchScreen': return [{ key: 'case', desc: 'case hiện trước (none nếu không)' }, ...FOUND];

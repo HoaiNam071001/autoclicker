@@ -38,6 +38,7 @@ export function mapVarText(s: Step, f: (t: string) => string): Step {
     case 'type': return { ...s, text: f(s.text) };
     case 'open': return { ...s, target: f(s.target ?? '') };
     case 'waitImage': case 'clickImage': return s.findBy === 'text' ? { ...s, findText: f(s.findText ?? '') } : s;
+    case 'webWait': case 'webClick': return { ...s, selectors: s.selectors?.map(f), tab: s.tab && f(s.tab) };
     case 'if': return s.cond ? { ...s, cond: cond(s.cond) } : s;
     case 'switch': return { ...s, value: f(s.value ?? ''), cases: s.cases?.map((c) => ({ ...c, match: f(c.match ?? '') })) };
     case 'switchScreen': return { ...s, cases: s.cases?.map((c) => (c.cond ? { ...c, cond: cond(c.cond) } : c)) };

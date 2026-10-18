@@ -5,11 +5,12 @@ import (
 	"errors"
 
 	"autoclicker/internal/device"
+	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
 	"autoclicker/internal/script"
 )
 
-// Node hành động: click, kéo, gõ, phím, cuộn, mở, chờ ảnh / pixel (imagestep.go) – thao tác qua device.Input.
+// Node hành động: click, kéo, gõ, phím, cuộn, mở, chờ ảnh / pixel (imagestep.go), web (webstep.go) – thao tác qua device.Input.
 
 // dragStepMs – khoảng thời gian giữa các lần di chuột khi kéo thả.
 const dragStepMs = 10
@@ -42,6 +43,10 @@ func (e *Engine) runStep(ctx context.Context, s model.Step) (map[string]any, err
 		return h.output(), nil
 	case model.StepClickImage:
 		return e.clickImage(ctx, s)
+	case model.StepWebWait:
+		return e.webWait(ctx, s)
+	case model.StepWebClick:
+		return e.webClick(ctx, s)
 	case model.StepWaitPixel:
 		c, err := e.waitPixel(ctx, s)
 		if err != nil {
@@ -143,6 +148,9 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 			}
 		}
 	case model.StepOpen:
+		if s.WebBrowser {
+			return e.openInBrowser(ctx, launch.BrowserURL(s.Target))
+		}
 		return e.open(s.Target, s.App)
 	}
 	return nil

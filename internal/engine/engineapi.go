@@ -10,6 +10,7 @@ import (
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
+	"autoclicker/internal/web"
 )
 
 // API của engine cho app (RunScript, Thử node, Thử tìm) và sau này MCP – không cần biết trường nội bộ.
@@ -23,12 +24,13 @@ type Options struct {
 	Debug      bool                   // dừng ở node có Breakpoint (chạy từ app)
 	StepMode   bool                   // dừng trước mỗi node (chạy từng node)
 	KeepShots  bool                   // chụp màn hình lúc node thất bại (lịch sử chạy)
+	Browser    web.Browser            // node web + node Mở bằng Chrome của app; nil = không có (node web lỗi code browser)
 }
 
 // New – engine cho một lần chạy kịch bản sc. in = nil khi không thao tác chuột / phím (Thử node, Thử tìm).
 func New(in device.Input, sc model.Script, o Options) *Engine {
 	e := newEngine(in, sc, o.OnProgress)
-	e.screen, e.displays, e.onNode, e.debug = o.Screen, o.Displays, o.OnNode, o.Debug
+	e.screen, e.displays, e.onNode, e.debug, e.browser = o.Screen, o.Displays, o.OnNode, o.Debug, o.Browser
 	e.step.Store(o.StepMode)
 	if o.KeepShots {
 		e.shots = map[string]image.Image{}

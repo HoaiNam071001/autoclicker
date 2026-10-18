@@ -1,0 +1,64 @@
+{
+ "meta": {
+  "name": "Web: mở lịch sử đơn hàng",
+  "description": "Mở trang bằng Chrome của app, tìm phần tử bằng HTML (không chụp màn hình): chờ hết “Đang tải…”, bấm Đồng ý ở popup cookie, bấm Xem lịch sử (nằm dưới màn hình – tự cuộn tới). Đúng: hiện LỊCH SỬ ĐƠN HÀNG, ô Click thật tăng. Lần đầu app bật Chrome riêng (profile của app).",
+  "app": "Web (DOM)",
+  "level": 2,
+  "page": "web.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/web.html",
+    "webBrowser": true,
+    "delayAfter": 500
+   },
+   {
+    "type": "webWait",
+    "selectors": [
+     "text=Đang tải"
+    ],
+    "webGone": true,
+    "timeoutMs": 10000,
+    "intervalMs": 200,
+    "delayAfter": 0
+   },
+   {
+    "type": "webClick",
+    "selectors": [
+     "text=\"Đồng ý\"",
+     "css=#agree"
+    ],
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 300
+   },
+   {
+    "type": "webClick",
+    "selectors": [
+     "text=Xem lịch sử",
+     "aria=Lịch sử đơn hàng"
+    ],
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 300
+   },
+   {
+    "type": "webWait",
+    "selectors": [
+     "text=LỊCH SỬ ĐƠN HÀNG"
+    ],
+    "timeoutMs": 3000,
+    "intervalMs": 200,
+    "delayAfter": 0
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã mở lịch sử – nút ở {{n4.output.x}}, {{n4.output.y}} (tìm bằng {{n4.output.selector}})"
+   }
+  ]
+ }
+}

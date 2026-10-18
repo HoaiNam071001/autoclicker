@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  main { padding: 0 20px 20px; }
+  #loading { font-size: 28px; color: var(--muted); padding: 40px 0; }
+  .order { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; margin-bottom: 10px; }
+  .order b { font-size: 20px; }
+  #spacer { height: 1400px; display: grid; place-items: center; color: var(--muted); font-size: 22px; border: 3px dashed var(--line); border-radius: 16px; margin: 16px 0; }
+  #history { display: none; margin-top: 16px; }
+  #history.open { display: block; }
+  #cookie { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: rgba(15, 23, 42, .55); }
+  #cookie .card { max-width: 460px; text-align: center; }
+  #cookie p { font-size: 18px; }
+</style></head>
+<body>
+<div class="stats"></div>
+<main>
+  <div id="loading">Đang tải đơn hàng…</div>
+  <div id="orders"></div>
+  <div id="spacer">↓ cuộn xuống ↓</div>
+  <button id="show" class="btn" type="button" aria-label="Lịch sử đơn hàng" hidden>Xem lịch sử</button>
+  <div id="history" class="card"><div class="big">LỊCH SỬ ĐƠN HÀNG</div><p>Đã mở bằng click thật.</p></div>
+</main>
+<div id="cookie"><div class="card"><p>Trang dùng cookie để nhớ giỏ hàng.</p>
+  <button id="agree" class="btn ok" type="button">Đồng ý</button></div></div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Thử node web (bước 25d): popup cookie che cả trang tới khi bấm Đồng ý; "Đang tải…" 1–3 s rồi mới có đơn hàng;
+  // nút Xem lịch sử nằm dưới một khoảng trống cao (phải cuộn mới thấy). Đếm click thật (isTrusted) / giả.
+  sb.header('Web (DOM)');
+  const setReal = sb.stat('Click thật'), setFake = sb.stat('Click giả (script)');
+  let real = 0, fake = 0;
+  addEventListener('click', (e) => { if (e.isTrusted) setReal(++real); else setFake(++fake); }, true);
+  document.getElementById('agree').onclick = () => { document.getElementById('cookie').remove(); sb.log('đồng ý cookie'); };
+  setTimeout(() => {
+    document.getElementById('loading').remove();
+    document.getElementById('orders').innerHTML = ['#1024 · Áo thun', '#1025 · Tai nghe', '#1026 · Sạc dự phòng']
+      .map((t) => `<div class="order card"><b>${t}</b><span>Đã giao</span></div>`).join('');
+    document.getElementById('show').hidden = false;
+    sb.log('tải xong đơn hàng');
+  }, sb.rand(1000, 3000));
+  document.getElementById('show').onclick = (e) => {
+    document.getElementById('history').classList.add('open');
+    sb.log(`mở lịch sử (${e.isTrusted ? 'click thật' : 'click giả'})`);
+  };
+</script>
+</body></html>

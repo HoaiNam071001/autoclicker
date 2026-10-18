@@ -1,9 +1,11 @@
 package script
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
+	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
 )
@@ -44,12 +46,19 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if strings.TrimSpace(s.Target) == "" || s.Target == "https://" {
 				return stepErr(i, s, "target", "chưa nhập URL / app cần mở")
 			}
+			if s.WebBrowser && launch.TargetKind(s.Target) == launch.TargetApp {
+				return stepErr(i, s, "target", "Chrome của app chỉ mở được URL / file, không mở được app “%s”", s.Target)
+			}
 		case model.StepWaitImage, model.StepClickImage:
 			// click theo chỗ node khác thấy: nguồn đã kiểm tra ở validateFlow
 			if s.Type == model.StepWaitImage || s.ImageSource == model.ImageFromSearch {
 				if err := checkImageStep(i, s); err != nil {
 					return err
 				}
+			}
+		case model.StepWebWait, model.StepWebClick:
+			if err := checkWebStep(i, s); err != nil {
+				return err
 			}
 		case model.StepWaitPixel:
 			need = 1
@@ -124,6 +133,27 @@ func checkImageStep(i int, s model.Step) error {
 	}
 	if s.Threshold < 1 || s.Threshold > 100 {
 		return stepErr(i, s, "threshold", "độ khớp tối thiểu phải trong 1–100%%")
+	}
+	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
+		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
+	}
+	return nil
+}
+
+// checkWebStep: node web có ít nhất một selector, mọi dòng đọc được (dòng trống bỏ qua) và thời gian chờ hợp lệ.
+func checkWebStep(i int, s model.Step) error {
+	n := 0
+	for j, line := range s.Selectors {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		if _, err := model.ParseSelector(line); err != nil {
+			return stepErr(i, s, fmt.Sprintf("selectors[%d]", j), "%v", err)
+		}
+		n++
+	}
+	if n == 0 {
+		return stepErr(i, s, "selectors", "chưa nhập cách tìm phần tử (vd text=Xem lịch sử)")
 	}
 	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
 		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")

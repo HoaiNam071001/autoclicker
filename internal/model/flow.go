@@ -29,7 +29,8 @@ const (
 	ErrPermission   = "permission"    // thiếu quyền (Screen Recording, Accessibility)
 	ErrInvalidInput = "invalid_input" // dữ liệu node sai lúc chạy (biến trống, điểm ngoài màn…)
 	ErrCancelled    = "cancelled"
-	ErrEnd          = "end" // node Kết thúc báo thất bại (lời nhắn của người soạn)
+	ErrEnd          = "end"     // node Kết thúc báo thất bại (lời nhắn của người soạn)
+	ErrBrowser      = "browser" // không nối được trình duyệt (Chrome của app chưa mở / mất kết nối) – bước 25d
 	ErrInternal     = "internal"
 )
 

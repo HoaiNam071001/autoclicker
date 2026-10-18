@@ -2,12 +2,6 @@
 // thiết bị / Wails; mọi package khác dùng chung.
 package model
 
-import (
-	"fmt"
-	"sync/atomic"
-	"time"
-)
-
 // Loại bước (Step.Type).
 const (
 	StepClick  = "click"  // click Clicks lần, cách nhau ClickInterval
@@ -24,6 +18,10 @@ const (
 	StepClickImage = "clickImage" // click vào chỗ thấy ảnh: output của node ImageFrom (ImageSource node) hoặc tự tìm
 	StepWaitPixel  = "waitPixel"  // chờ tới khi điểm Points[0] có màu Color (± Tolerance)
 
+	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
+	StepWebWait  = "webWait"  // chờ tới khi phần tử hiện (WebGone: mất)
+	StepWebClick = "webClick" // chờ phần tử hiện rồi click vào tâm (+ Dx / Dy)
+
 	// Node điều khiển (bước 20 F3, nodes.go) – không làm gì trên màn hình ngoài nhìn, chọn cổng ra theo kết quả.
 	StepIf           = "if"           // Cond đúng → cổng true, sai → false; TimeoutMs > 0 = chờ tới khi đúng
 	StepSwitch       = "switch"       // so Value với từng case (Op / Match) → case:<key>, không case nào khớp → default
@@ -35,7 +33,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
+	StepWaitImage, StepClickImage, StepWaitPixel, StepWebWait, StepWebClick, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
 func IsControl(t string) bool {
@@ -101,10 +99,15 @@ type Step struct {
 	JitterMs      int      `json:"jitterMs"`     // ngẫu nhiên ± ms cho DelayAfter và ClickInterval
 	JitterPx      int      `json:"jitterPx"`     // ngẫu nhiên ± px cho mỗi lần di chuột tới điểm
 	Enabled       bool     `json:"enabled"`
-	Direction     string   `json:"direction,omitempty"` // scroll: up | down | left | right
-	Amount        int      `json:"amount,omitempty"`    // scroll: số nấc
-	Target        string   `json:"target,omitempty"`    // open: URL, đường dẫn file / app hoặc tên app; nhận {{biến}}
-	App           string   `json:"app,omitempty"`       // open: mở bằng app này ("" = mặc định của máy), vd Google Chrome
+	Direction     string   `json:"direction,omitempty"`  // scroll: up | down | left | right
+	Amount        int      `json:"amount,omitempty"`     // scroll: số nấc
+	Target        string   `json:"target,omitempty"`     // open: URL, đường dẫn file / app hoặc tên app; nhận {{biến}}
+	App           string   `json:"app,omitempty"`        // open: mở bằng app này ("" = mặc định của máy), vd Google Chrome
+	WebBrowser    bool     `json:"webBrowser,omitempty"` // open: mở URL bằng Chrome của app (profile riêng, node web điều khiển được) – bỏ qua App
+	// Web qua DOM (bước 25d)
+	Selectors []string `json:"selectors,omitempty"` // webWait / webClick: cách tìm phần tử theo thứ tự ưu tiên (ParseSelector); nhận {{biến}}
+	Tab       string   `json:"tab,omitempty"`       // webWait / webClick: tab có URL / tiêu đề chứa chuỗi này ("" = tab đang hiện); nhận {{biến}}
+	WebGone   bool     `json:"webGone,omitempty"`   // webWait: chờ phần tử mất (không còn / bị ẩn)
 	// Chờ ảnh / click theo ảnh / chờ pixel (bước 25)
 	Template      string  `json:"template,omitempty"`      // ảnh mẫu PNG (base64)
 	TemplateScale float64 `json:"templateScale,omitempty"` // px ảnh mẫu trên 1 đơn vị toạ độ lúc chụp (Retina = 2) – tìm trên màn tỷ lệ khác thì co giãn
@@ -114,7 +117,7 @@ type Step struct {
 	SearchArea    string  `json:"searchArea,omitempty"`    // "" = vùng của kịch bản | screen = cả màn chứa vùng (không có vùng: màn chính)
 	ImageSource   string  `json:"imageSource,omitempty"`   // clickImage: node | search
 	ImageFrom     string  `json:"imageFrom,omitempty"`     // clickImage ImageSource node: id node lấy chỗ thấy
-	Dx            int     `json:"dx,omitempty"`            // clickImage: lệch so với tâm ảnh
+	Dx            int     `json:"dx,omitempty"`            // clickImage / webClick: lệch so với tâm ảnh / phần tử
 	Dy            int     `json:"dy,omitempty"`
 	FindBy        string  `json:"findBy,omitempty"`       // waitImage / clickImage tự tìm: "" = ảnh mẫu | text = chữ
 	FindText      string  `json:"findText,omitempty"`     // FindBy text: chữ cần tìm; nhận {{biến}}
@@ -217,76 +220,4 @@ type Script struct {
 	Edges      []Edge        `json:"edges"`
 	AnchorMode string        `json:"anchorMode,omitempty"` // "" = góc gần nhất | start = luôn trên trái
 	Inputs     []ScriptInput `json:"inputs,omitempty"`     // giá trị hỏi khi bấm Chạy (script/inputs.go)
-}
-
-// stepSeq – thêm vào id bước mới: gọi NewStep liên tiếp có thể cùng UnixNano (đồng hồ thô) → id trùng.
-var stepSeq atomic.Int64
-
-// NewStep trả bước mới với giá trị mặc định theo loại – dùng cho nút "+ Thêm bước".
-func NewStep(stepType string) (Step, error) {
-	s := Step{
-		ID:         fmt.Sprintf("%d-%d", time.Now().UnixNano(), stepSeq.Add(1)),
-		Type:       stepType,
-		Points:     []Point{},
-		Button:     "left",
-		Keys:       []string{},
-		KeyMode:    KeyChord,
-		Modifiers:  []string{},
-		DelayAfter: 500,
-		Enabled:    true,
-	}
-	switch stepType {
-	case StepClick:
-		s.Clicks = 1
-		s.Points = []Point{{}}
-	case StepDouble:
-		s.Points = []Point{{}}
-	case StepHold:
-		s.HoldMs = 1000
-		s.Points = []Point{{}}
-	case StepDrag:
-		s.DragMs = 400
-		s.Points = []Point{{}, {}}
-	case StepWait:
-		s.DelayAfter = 1000
-	case StepText:
-	case StepKey:
-		s.Keys = []string{"enter"}
-	case StepScroll:
-		s.Direction, s.Amount = "down", 3
-	case StepOpen:
-		s.Target = "https://"
-		s.DelayAfter = 2000 // chờ trang / app mở
-	case StepWaitImage:
-		s.Threshold, s.TimeoutMs, s.IntervalMs, s.DelayAfter = 90, 10000, 250, 300
-	case StepClickImage:
-		s.ImageSource, s.Threshold, s.TimeoutMs, s.IntervalMs = ImageFromNode, 90, 10000, 250
-	case StepWaitPixel:
-		s.Points = []Point{{}}
-		s.Color, s.Tolerance, s.TimeoutMs, s.IntervalMs, s.DelayAfter = "#000000", 10, 5000, 100, 300
-	case StepIf:
-		s.Cond, s.IntervalMs = &Cond{Kind: CondText}, 250
-	case StepSwitch:
-		s.Cases = []Case{{Key: "c1", Label: "Case 1", Op: "eq"}, {Key: "c2", Label: "Case 2", Op: "eq"}}
-	case StepSwitchScreen:
-		s.Cases = []Case{{Key: "c1", Label: "Case 1", Cond: &Cond{Kind: CondText}}, {Key: "c2", Label: "Case 2", Cond: &Cond{Kind: CondText}}}
-		s.TimeoutMs, s.IntervalMs = 3000, 250
-	case StepCounter:
-		s.Max = 10
-	case StepEnd:
-		s.EndStatus = EndSuccess
-	case StepSetVar:
-		s.VarName, s.VarOp = "ten", VarSet
-	default:
-		return Step{}, fmt.Errorf("loại bước không hợp lệ: %q", stepType)
-	}
-	if IsControl(stepType) {
-		s.DelayAfter = 0
-	}
-	return s, nil
-}
-
-// NewScript trả kịch bản rỗng mặc định.
-func NewScript() Script {
-	return Script{Version: ScriptVersion, Name: "Kịch bản 1", Loops: 1, Steps: []Step{}, Edges: []Edge{}}
 }

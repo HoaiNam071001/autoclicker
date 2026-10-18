@@ -5,7 +5,8 @@ import { Target } from '../icons';
 import PinButton, { KeyChip, PinMenu } from '../inputs/PinButton';
 import { pickPointFor, updateStep, useScript } from '../../store';
 import { compatibleInputs, pinField, pinnedInput, pinToInput, setPinnedValue, unpinField } from '../../scriptInputs';
-import { PinField, Step, StepPoint } from '../../types';
+import { MouseButton, PinField, Step, StepPoint } from '../../types';
+import Segmented from '../Segmented';
 import { nodeVarOptions } from '../../flow/view';
 
 export const selectBox = `${fieldBox} w-full text-ink`;
@@ -66,5 +67,15 @@ export function TabBtn({ active, onClick, title, children }: { active: boolean; 
       {children}
       {active && <span className="absolute inset-x-[15%] -bottom-px h-[3px] rounded-sm bg-accent" />}
     </button>
+  );
+}
+
+// Nút chuột của node bấm (click, click theo ảnh, click phần tử web).
+export function ButtonField({ step: s }: { step: Step }) {
+  return (
+    <Field label="Nút chuột" wide group>
+      <Segmented value={s.button} onChange={(button: MouseButton) => updateStep(s.id, { button })} full label="Nút chuột"
+        options={[{ id: 'left', label: 'Trái' }, { id: 'right', label: 'Phải' }, { id: 'center', label: 'Giữa' }]} />
+    </Field>
   );
 }

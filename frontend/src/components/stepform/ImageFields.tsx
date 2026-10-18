@@ -11,8 +11,8 @@ import { addInput } from '../../scriptInputs';
 import { checkCapture, pickColor, requestCapture, startCapture, templateUrl, testFind, useImageState } from '../../imageSteps';
 import { openOverlay } from '../../windowMode';
 import { nodeTitle } from '../../flow/view';
-import { MouseButton, Step } from '../../types';
-import { Field, fmtSec, hint, NumField, PickButton, selectBox, SetPoint, useNodeVars } from './shared';
+import { Step } from '../../types';
+import { ButtonField, Field, fmtSec, hint, NumField, PickButton, selectBox, SetPoint, useNodeVars } from './shared';
 
 export const isImageStep = (s: Step) => s.type === 'waitImage' || s.type === 'clickImage' || s.type === 'waitPixel';
 
@@ -206,10 +206,7 @@ export function ClickImageFields({ step: s }: { step: Step }) {
         </div>
         <span className={hint}>Vd tìm nhãn “Họ tên”, ô nhập nằm bên phải 150 px → ΔX 150.</span>
       </Field>
-      <Field label="Nút chuột" wide group>
-        <Segmented value={s.button} onChange={(button: MouseButton) => set({ button })} full label="Nút chuột"
-          options={[{ id: 'left', label: 'Trái' }, { id: 'right', label: 'Phải' }, { id: 'center', label: 'Giữa' }]} />
-      </Field>
+      <ButtonField step={s} />
     </>
   );
 }

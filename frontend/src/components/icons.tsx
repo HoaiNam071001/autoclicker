@@ -83,6 +83,8 @@ export const STEP_ICON = {
   waitImage: 'M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0',
   clickImage: 'M4 8V5h3M17 5h3v3M7 19H4v-3M10 9l9 5-4 1-2 4z',
   waitPixel: 'M4 4h7v7H4zM13 13h7v7h-7zM13 4h7v7h-7z',
+  webWait: 'M3 5h18v14H3zM3 9h18M10 12.5l-2 2 2 2M14 12.5l2 2-2 2', // cửa sổ trình duyệt + </>
+  webClick: 'M3 5h18v14H3zM3 9h18M9 11.5l8 4.2-3.4.9-1.6 3.1z', // cửa sổ trình duyệt + con trỏ
   open: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18',
   focusWindow: 'M4 5h16v14H4zM4 9h16',
   group: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',

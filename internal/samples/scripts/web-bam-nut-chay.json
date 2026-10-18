@@ -1,0 +1,61 @@
+{
+ "meta": {
+  "name": "Web: bấm nút chạy chỗ",
+  "description": "Như mẫu Click theo chữ nhưng tìm nút BẤM VÀO TÔI bằng HTML qua Chrome của app – nhanh hơn đọc chữ trên ảnh chụp, không phụ thuộc theme / zoom. Đúng: Trúng nút = 5.",
+  "app": "Web (DOM)",
+  "level": 1,
+  "page": "image.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/image.html",
+    "webBrowser": true,
+    "delayAfter": 800
+   },
+   {
+    "type": "webClick",
+    "selectors": [
+     "text=BẤM VÀO TÔI",
+     "css=#go"
+    ],
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 300
+   },
+   {
+    "type": "counter",
+    "max": 4
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã bấm nút 5 lần"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "next",
+    "to": "s2"
+   },
+   {
+    "from": "s3",
+    "port": "done",
+    "to": "s4"
+   }
+  ]
+ }
+}

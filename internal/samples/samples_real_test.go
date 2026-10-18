@@ -3,6 +3,7 @@ package samples_test
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -12,7 +13,11 @@ import (
 	"autoclicker/internal/model"
 	"autoclicker/internal/samples"
 	"autoclicker/internal/script"
+	"autoclicker/internal/web"
 )
+
+// testProfile – profile Chrome riêng cho test (không đụng profile của app); giữ giữa các lần chạy để không bật lại.
+func testProfile() string { return filepath.Join(os.TempDir(), "autoclicker-test-browser") }
 
 // Chạy mẫu thật bằng engine (chuột thật, chụp + OCR thật, mở trình duyệt mặc định) – chỉ khi AUTOCLICKER_REAL=1.
 // AUTOCLICKER_SAMPLES=id1,id2 chọn mẫu (trống = tất cả mẫu sân thử; mẫu web thật chỉ chạy khi ghi tên). Cần quyền Accessibility + Screen Recording.
@@ -52,8 +57,11 @@ func runSample(t *testing.T, id, sandbox string) {
 		t.Fatal(err)
 	}
 	var last model.StepResult
-	eng := engine.New(device.RobotgoInput{}, sc, engine.Options{
-		Screen: device.MainScreen(), Displays: device.Displays(),
+	in := device.RobotgoInput{}
+	br := web.NewChrome(testProfile(), in.Move)
+	defer br.Close()
+	eng := engine.New(in, sc, engine.Options{
+		Screen: device.MainScreen(), Displays: device.Displays(), Browser: br,
 		OnNode: func(r model.StepResult) {
 			last = r
 			msg := ""

@@ -28,6 +28,12 @@ func defaultSettings() Settings { return Settings{Theme: ThemeSystem} }
 const settingsFile = "settings.json"
 
 // ConfigDir: thư mục cấu hình của app, tạo nếu chưa có.
+// BrowserProfile – profile riêng của Chrome của app (node web, bước 25d): người dùng đăng nhập trang một lần, profile nhớ.
+func BrowserProfile() (string, error) {
+	base, err := ConfigDir()
+	return filepath.Join(base, "browser-profile"), err
+}
+
 func ConfigDir() (string, error) {
 	base, err := os.UserConfigDir()
 	if err != nil {
