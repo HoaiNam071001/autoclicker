@@ -15,6 +15,10 @@ type Browser interface {
 	Open(ctx context.Context, url string) error
 	// Find tìm phần tử một lần (không chờ). Không thấy → Found.OK = false, không lỗi.
 	Find(ctx context.Context, q Query) (Found, error)
+	// Hover đưa chuột thật tới (x, y) – điểm sắp bấm của lần Find (Scroll) gần nhất – và xem trang có nhận đúng chỗ
+	// không (D0: số đo cũ, Dock / thanh menu / cửa sổ khác che mà elementFromPoint không thấy). onTarget = điểm nằm
+	// trong khung phần tử → phần tử dưới chuột phải là nó.
+	Hover(ctx context.Context, x, y int, onTarget bool) (Hover, error)
 	Close()
 }
 
@@ -37,6 +41,13 @@ type Found struct {
 	Tab      string     // URL tab đã tìm
 	NoTab    bool       // không có tab nào khớp Query.Tab
 	Loading  bool       // trang đang tải – không thấy chưa có nghĩa là đã mất
+	Moving   bool       // sắp bấm nhưng khung còn đổi giữa 2 lần đọc (hiệu ứng, trang đang dàn lại) – OK = false
+}
+
+// Hover – kết quả thử hover trước khi bấm. OK = false → chưa bấm, tìm lại (Miss nói vì sao, để báo khi hết giờ).
+type Hover struct {
+	OK   bool
+	Miss string
 }
 
 // ErrNoBrowser – Chrome của app chưa mở / không còn tab phù hợp (StepError code browser).

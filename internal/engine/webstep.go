@@ -33,27 +33,42 @@ func webQuery(s model.Step, click bool) (web.Query, []string, error) {
 	return q, lines, nil
 }
 
-// webFind chờ tới khi phần tử hiện (gone: mất) hoặc hết TimeoutMs.
-func (e *Engine) webFind(ctx context.Context, s model.Step, click bool) (web.Found, []string, error) {
+// webTry – kết quả lần tìm cuối của webFind: phần tử + (webClick) điểm bấm đầu đã thử hover, lý do hover chưa ổn.
+type webTry struct {
+	web.Found
+	at    model.Point
+	hover string
+}
+
+// webFind chờ tới khi phần tử hiện (gone: mất) hoặc hết TimeoutMs. click: thấy rồi còn phải thử hover điểm bấm đầu
+// (tâm + Dx / Dy + lệch ngẫu nhiên) – trang chưa nhận đúng thì tìm lại (D2).
+func (e *Engine) webFind(ctx context.Context, s model.Step, click bool) (webTry, []string, error) {
 	if e.browser == nil {
-		return web.Found{}, nil, errNoBrowserOpt
+		return webTry{}, nil, errNoBrowserOpt
 	}
 	q, lines, err := webQuery(s, click)
 	if err != nil {
-		return web.Found{}, nil, err
+		return webTry{}, nil, err
 	}
 	gone := q.CheckOnly
-	var last web.Found
+	var last webTry
 	_, err = e.waitLoop(ctx, s, "web", func() (bool, int, error) {
 		f, err := e.browser.Find(ctx, q)
 		if err != nil {
 			return false, 0, err
 		}
-		last = f
+		last = webTry{Found: f}
 		if gone {
 			return !f.OK && !f.Loading && !f.NoTab, 0, nil
 		}
-		return f.OK, 0, nil
+		if !f.OK || !click {
+			return f.OK, 0, nil
+		}
+		c := hit{Box: f.Rect}.center()
+		last.at = model.Point{X: e.jitter(c.X+s.Dx, s.JitterPx), Y: e.jitter(c.Y+s.Dy, s.JitterPx)}
+		h, err := e.browser.Hover(ctx, last.at.X, last.at.Y, inRect(last.at, f.Rect))
+		last.hover = h.Miss
+		return h.OK, 0, err
 	})
 	if errors.Is(err, errTimeout) {
 		return last, lines, &notFoundErr{webMissMsg(s, last, lines, gone)}
@@ -61,8 +76,12 @@ func (e *Engine) webFind(ctx context.Context, s model.Step, click bool) (web.Fou
 	return last, lines, err
 }
 
-// webMissMsg – vì sao hết giờ: không có tab, bị che, đang ẩn, hay không có.
-func webMissMsg(s model.Step, f web.Found, lines []string, gone bool) string {
+func inRect(p model.Point, r model.Rect) bool {
+	return p.X >= r.X && p.Y >= r.Y && p.X < r.X+r.W && p.Y < r.Y+r.H
+}
+
+// webMissMsg – vì sao hết giờ: không có tab, bị che, đang ẩn, đang chạy hiệu ứng, chuột chưa vào đúng chỗ, hay không có.
+func webMissMsg(s model.Step, f webTry, lines []string, gone bool) string {
 	after := "sau " + fmtSeconds(s.TimeoutMs)
 	if gone {
 		return fmt.Sprintf("phần tử “%s” vẫn còn %s", lines[max(f.Selector, 0)], after)
@@ -70,8 +89,12 @@ func webMissMsg(s model.Step, f web.Found, lines []string, gone bool) string {
 	switch {
 	case f.NoTab:
 		return fmt.Sprintf("không thấy tab nào có URL / tiêu đề chứa “%s” %s", s.Tab, after)
+	case f.OK && f.hover != "":
+		return fmt.Sprintf("thấy phần tử “%s” nhưng chưa bấm được: %s %s", lines[f.Selector], f.hover, after)
 	case f.Covered != "":
 		return fmt.Sprintf("thấy phần tử “%s” nhưng bị %s che %s", lines[f.Selector], f.Covered, after)
+	case f.Moving:
+		return fmt.Sprintf("thấy phần tử “%s” nhưng nó vẫn đang di chuyển (hiệu ứng / trang đang dàn lại) %s", lines[f.Selector], after)
 	case f.Selector >= 0:
 		return fmt.Sprintf("thấy phần tử “%s” nhưng chưa bấm được (nằm ngoài khung trang) %s", lines[f.Selector], after)
 	case f.Hidden > 0:
@@ -90,23 +113,26 @@ func (e *Engine) webWait(ctx context.Context, s model.Step) (map[string]any, err
 	if err != nil || s.WebGone {
 		return nil, err
 	}
-	return webOutput(f, lines), nil
+	return webOutput(f.Found, lines), nil
 }
 
-// webClick click Clicks lần vào tâm phần tử (+ Dx / Dy).
+// webClick click Clicks lần vào tâm phần tử (+ Dx / Dy); lần đầu đúng điểm đã thử hover.
 func (e *Engine) webClick(ctx context.Context, s model.Step) (map[string]any, error) {
 	f, lines, err := e.webFind(ctx, s, true)
 	if err != nil {
 		return nil, err
 	}
-	out := webOutput(f, lines)
+	out := webOutput(f.Found, lines)
 	c := hit{Box: f.Rect}.center()
 	n := max(s.Clicks, 1)
 	for i := 0; i < n; i++ {
 		if err := e.gate.wait(ctx); err != nil {
 			return nil, err
 		}
-		x, y := e.jitter(c.X+s.Dx, s.JitterPx), e.jitter(c.Y+s.Dy, s.JitterPx)
+		x, y := f.at.X, f.at.Y
+		if i > 0 {
+			x, y = e.jitter(c.X+s.Dx, s.JitterPx), e.jitter(c.Y+s.Dy, s.JitterPx)
+		}
 		if err := e.move(x, y); err != nil {
 			return nil, err
 		}

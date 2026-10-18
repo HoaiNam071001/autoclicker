@@ -14,6 +14,8 @@ describe('fmtSelectors', () => {
   it('cách đầu + số dự phòng, bỏ dòng trống', () => {
     expect(fmtSelectors(['text=Xem lịch sử', '', 'css=#h'])).toBe('chữ “Xem lịch sử” (+1 dự phòng)');
     expect(fmtSelectors(['css=#go'])).toBe('CSS #go');
+    expect(fmtSelectors(['role=button[name="Gửi"]'])).toBe('vai trò button “Gửi”');
+    expect(fmtSelectors(['role=link'])).toBe('vai trò link');
   });
   it('chưa nhập', () => {
     expect(fmtSelectors(undefined)).toBe('chưa nhập cách tìm phần tử');

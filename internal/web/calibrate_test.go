@@ -23,7 +23,7 @@ func (p *fakePage) move(x, y int) error {
 	return nil
 }
 
-func (p *fakePage) probe(context.Context) (int, fpoint, error) { return p.n, p.at, nil }
+func (p *fakePage) probe(context.Context) (probeRead, error) { return probeRead{n: p.n, at: p.at}, nil }
 
 func TestMeasure(t *testing.T) {
 	win := model.Rect{X: 100, Y: 80, W: 1200, H: 850}
@@ -57,5 +57,12 @@ func TestFitCalibrationRejects(t *testing.T) {
 	}
 	if _, err := fitCalibration(s1, c1, s2, c1, s1, c1); err == nil {
 		t.Error("hai điểm trùng phải báo lỗi")
+	}
+}
+
+func TestToClientInverse(t *testing.T) {
+	cal := calibration{scale: fpoint{1.25, 2}, off: fpoint{100, 166}}
+	if got := cal.toClient(cal.toScreen(fpoint{40, 30})); got != (fpoint{40, 30}) {
+		t.Errorf("toClient(toScreen) = %+v", got)
 	}
 }

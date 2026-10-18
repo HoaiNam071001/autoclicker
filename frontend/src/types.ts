@@ -103,7 +103,7 @@ export interface Step {
   app?: string; // open: mở bằng app này, '' = mặc định của máy
   webBrowser?: boolean; // open: mở bằng Chrome của app (profile riêng) – node web điều khiển được; bỏ qua app
   // web qua DOM (bước 25d, internal/engine/webstep.go) – cách tìm ở flow/web.ts
-  selectors?: string[]; // webWait / webClick: mỗi dòng một cách tìm (text= / aria= / css= / xpath=), dòng đầu ưu tiên; nhận {{biến}}
+  selectors?: string[]; // webWait / webClick: mỗi dòng một cách tìm (text= / aria= / role= / css= / xpath=), dòng đầu ưu tiên; nhận {{biến}}
   tab?: string; // tab có URL / tiêu đề chứa chuỗi này, bỏ trống = tab đang hiện; nhận {{biến}}
   webGone?: boolean; // webWait: chờ phần tử mất
   // chờ ảnh / click theo ảnh / chờ pixel (bước 25, internal/engine/imagestep.go)

@@ -148,7 +148,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | Hiển thị khi chạy | `flow/run.ts` (thuần), `runStore.ts`, `components/flow/RunLog.tsx` |
 | Định dạng file | `model.ScriptVersion`, `script` (`codec.go`, `check.go`), `store/scriptfile.go` |
 | UI chưa có logic | `components/steps/`, `AppChrome.tsx`, dữ liệu giả `src/demo/` (màn `#demo*`) |
-| Node web (DOM) | Tìm trong trang: `internal/web/find.js`; mở / nối / chọn tab: `web/chrome.go`, `launch.go`; đo toạ độ: `calibrate.go`; chạy: `engine/webstep.go`; selector: `model/web.go` ↔ `flow/web.ts` (test chung `testdata/selectors.json`); UI `stepform/WebFields` |
+| Node web (DOM) | Tìm trong trang: `internal/web/find.js`; mở / nối / chọn tab: `web/chrome.go`, `launch.go`; đo toạ độ: `calibrate.go`; trước khi bấm (chờ đứng yên, thử hover): `aim.go` + `probe.js`; chạy: `engine/webstep.go`; selector: `model/web.go` ↔ `flow/web.ts` (test chung `testdata/selectors.json`); UI `stepform/WebFields` |
 | Mô tả cho AI / MCP | `internal/model/steptypes.go` (có test bắt đủ loại node) |
 | Kịch bản mẫu / trang sân thử | `internal/samples/scripts/*.json` (JSON gọn `{meta, script}`), `pages/*.html`; test bắt mỗi loại node ≥ 1 mẫu; UI `components/samples/`, lọc `samples/filter.ts` |
 
@@ -175,7 +175,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 `internal/samples` – kịch bản mẫu để test (bước 33): `samples.go` (`List`, `Open` – điền mặc định `NewStep`, nối cạnh theo thứ tự, thay `{{sandbox}}` / ảnh mẫu `@file`), `sandbox.go` (`WriteSandbox`, `FileURL`), `scripts/*.json`, `pages/` (trang sân thử HTML offline + `logo.png`). `samples_real_test.go` – chạy mẫu bằng engine trên máy thật (`AUTOCLICKER_REAL=1`).
 
-`internal/web` – node web (bước 25d), chỉ phụ thuộc `model`: `web.go` (`Browser` interface, `Query`, `Found`, `BrowserError` / `QueryError`), `chrome.go` (`Chrome` – nối lười tới Chrome của app qua CDP, chọn tab, đưa lên trước, đo lại khi cửa sổ dời / zoom), `find.go` + `find.js` (tìm phần tử trong trang: text / aria / css / xpath, cuộn vào giữa, bị che), `calibrate.go` (đo toạ độ trang → màn hình bằng chuột, công thức thuần có test), `launch.go` (tìm Chrome / Edge / Brave, bật với profile riêng + `--remote-debugging-port=0`, `DevToolsActivePort`, `/json/list`), `detach_unix.go` / `detach_windows.go` (trình duyệt sống tiếp khi app tắt).
+`internal/web` – node web (bước 25d), chỉ phụ thuộc `model`: `web.go` (`Browser` interface, `Query`, `Found`, `Hover`, `BrowserError` / `QueryError`), `chrome.go` (`Chrome` – nối lười tới Chrome của app qua CDP, chọn tab, đưa lên trước, đo lại khi cửa sổ dời / zoom), `find.go` + `find.js` (tìm phần tử trong trang + iframe cùng nguồn: text / aria / role / css / xpath, cuộn vào giữa, bị che; helper chung `common.js`), `aim.go` + `probe.js` (trên tab thật: đo toạ độ, chờ khung đứng yên, `Hover` thử điểm bấm – trang nhận đúng chỗ, đúng phần tử), `calibrate.go` (đo toạ độ trang → màn hình bằng chuột, công thức thuần có test), `launch.go` (tìm Chrome / Edge / Brave, bật với profile riêng + `--remote-debugging-port=0`, `DevToolsActivePort`, `/json/list`), `detach_unix.go` / `detach_windows.go` (trình duyệt sống tiếp khi app tắt).
 
 `internal/winfloat` – `winfloat_darwin.go`: thanh mini / overlay nổi trên mọi Space, kể cả app toàn màn hình (`PrepareLaunch` đầu `main()`, `Set` trong `SetWindowMode`); `winfloat_other.go` rỗng.
 

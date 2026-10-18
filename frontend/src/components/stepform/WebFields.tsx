@@ -33,13 +33,14 @@ export function WebFields({ step: s }: { step: Step }) {
           inputs={script.inputs ?? []} nodeVars={nodeVars} onCreateInput={add} rows={3} placeholder={'text=Xem lịch sử\naria=Lịch sử\ncss=#history'} />
         <span className={`text-xs ${lines.length === 0 || bad >= 0 ? 'text-danger-text' : 'text-muted'}`}>
           {lines.length === 0 ? 'Chưa nhập cách tìm – chạy sẽ báo lỗi'
-            : bad >= 0 ? `Dòng “${lines[bad].trim()}” chưa có giá trị`
+            : bad >= 0 ? `Dòng “${lines[bad].trim()}” chưa có giá trị / sai dạng`
             : `${parsed.map((p) => SELECTOR_LABEL[p!.by] + (p!.exact ? ' (đúng cả chuỗi)' : '')).join(' → ')} · cách đầu thấy thì dùng`}
         </span>
         <span className={hint}>
           <span className="font-mono">text=</span> chữ trên trang (chứa, không phân biệt hoa thường; <span className="font-mono">text="Gửi"</span> = đúng cả chuỗi),{' '}
-          <span className="font-mono">aria=</span> nhãn aria-label, <span className="font-mono">css=</span>, <span className="font-mono">xpath=</span>.
-          Ưu tiên chữ / aria – tránh class tự sinh kiểu <span className="font-mono">x1n2onr6</span>.
+          <span className="font-mono">aria=</span> nhãn aria-label,{' '}
+          <span className="font-mono">role=button[name="Gửi"]</span> vai trò + tên, <span className="font-mono">css=</span>, <span className="font-mono">xpath=</span>.
+          Ưu tiên chữ / aria / role – tránh class tự sinh kiểu <span className="font-mono">x1n2onr6</span>.
         </span>
       </div>
       <div className="col-span-2 flex flex-col gap-1.5 text-muted">Tab (tuỳ chọn)

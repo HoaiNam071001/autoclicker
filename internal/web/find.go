@@ -4,14 +4,26 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/chromedp/chromedp"
 )
 
-//go:embed find.js
-var findJS string
+var (
+	//go:embed common.js
+	commonJS string
+	//go:embed find.js
+	findJS string
+	//go:embed probe.js
+	probeJS string
+)
+
+// pageJS – biểu thức gọi hàm fn (find.js / probe.js) với args JSON, có helper common.js đi trước.
+func pageJS(fn string, args ...string) string {
+	return "(() => {\n" + commonJS + "\nreturn (" + strings.TrimSpace(fn) + ")(" + strings.Join(args, ", ") + ");\n})()"
+}
 
 // findResult – kết quả find.js (toạ độ client, CSS px).
 type findResult struct {
@@ -58,6 +70,6 @@ func runFind(ctx, tctx context.Context, q Query) (findResult, error) {
 	if err != nil {
 		return findResult{}, err
 	}
-	js := "(" + strings.TrimSpace(findJS) + ")(" + string(sels) + ", " + map[bool]string{true: "true", false: "false"}[q.Scroll] + ")"
+	js := pageJS(findJS, string(sels), strconv.FormatBool(q.Scroll))
 	return run(ctx, tctx, "tìm phần tử", chromedp.Evaluate[findResult](js))
 }

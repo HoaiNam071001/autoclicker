@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -13,13 +14,24 @@ import (
 	"autoclicker/internal/web"
 )
 
-// fakeBrowser trả lần lượt các kết quả tìm (cuối lặp lại), ghi lại query + URL đã mở.
+// fakeBrowser trả lần lượt các kết quả tìm / thử hover (cuối lặp lại; không có hover = luôn ổn), ghi lại query,
+// điểm hover + URL đã mở.
 type fakeBrowser struct {
 	finds   []web.Found
 	n       int
 	queries []web.Query
+	hovers  []web.Hover
+	hovered []string
 	opened  []string
 	err     error
+}
+
+func (b *fakeBrowser) Hover(_ context.Context, x, y int, onTarget bool) (web.Hover, error) {
+	b.hovered = append(b.hovered, fmt.Sprintf("%d,%d %v", x, y, onTarget))
+	if len(b.hovers) == 0 {
+		return web.Hover{OK: true}, nil
+	}
+	return b.hovers[min(len(b.hovered)-1, len(b.hovers)-1)], nil
 }
 
 func (b *fakeBrowser) Open(_ context.Context, url string) error {
@@ -81,6 +93,30 @@ func TestWebClickWaitsThenClicks(t *testing.T) {
 	}
 }
 
+// Hover chưa ổn (Dock che, số đo cũ…) → tìm lại rồi mới bấm; điểm bấm lệch ra ngoài phần tử thì không đòi đúng phần tử.
+func TestWebClickRetriesUntilHoverOK(t *testing.T) {
+	b := &fakeBrowser{finds: []web.Found{found(0, model.Rect{X: 100, Y: 200, W: 40, H: 20})},
+		hovers: []web.Hover{{Miss: "Dock che"}, {OK: true}}}
+	in, _, err := runWeb(t, b, webNode(model.StepWebClick, func(s *model.Step) { s.Dy = 30 }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if b.n != 2 || !reflect.DeepEqual(b.hovered, []string{"120,240 false", "120,240 false"}) {
+		t.Errorf("tìm %d lần, hover %q", b.n, b.hovered)
+	}
+	if want := []string{"move 120,240", "click left false"}; !reflect.DeepEqual(in.Lines(), want) {
+		t.Errorf("có %q, muốn %q", in.Lines(), want)
+	}
+	// hover mãi không ổn → hết giờ báo lý do của hover
+	b = &fakeBrowser{finds: []web.Found{found(0, model.Rect{W: 10, H: 10})}, hovers: []web.Hover{{Miss: "bị Dock che"}}}
+	if _, _, err := runWeb(t, b, webNode(model.StepWebClick, nil)); err == nil || !strings.Contains(err.Error(), "chưa bấm được: bị Dock che") {
+		t.Errorf("lỗi %v", err)
+	}
+	if b.hovered[0] != "5,5 true" {
+		t.Errorf("điểm trong phần tử phải đòi đúng phần tử: %q", b.hovered[0])
+	}
+}
+
 func TestWebWaitGone(t *testing.T) {
 	loading := web.Found{Selector: -1, Loading: true} // tab mới mở chưa tải xong – chưa tính là mất
 	b := &fakeBrowser{finds: []web.Found{loading, found(0, model.Rect{}), missing}}
@@ -106,6 +142,7 @@ func TestWebTimeoutMessages(t *testing.T) {
 		{web.Found{Selector: -1, NoTab: true}, "shop.vn", "không thấy tab nào có URL / tiêu đề chứa “shop.vn”"},
 		{web.Found{Selector: 0, Covered: "div#popup “Đồng ý cookie”"}, "", "bị div#popup “Đồng ý cookie” che"},
 		{web.Found{Selector: -1, Hidden: 2}, "", "có 2 phần tử khớp"},
+		{web.Found{Selector: 1, Moving: true}, "", "“css=#history” nhưng nó vẫn đang di chuyển"},
 	}
 	for _, c := range cases {
 		b := &fakeBrowser{finds: []web.Found{c.f}}

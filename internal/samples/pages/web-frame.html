@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  main { padding: 0 20px 20px; }
+  #spacer { height: 900px; display: grid; place-items: center; color: var(--muted); font-size: 22px; border: 3px dashed var(--line); border-radius: 16px; margin: 16px 0; }
+  iframe { width: 560px; height: 300px; border: 6px solid var(--line); padding: 10px; border-radius: 14px; background: var(--surface); }
+</style></head>
+<body>
+<div class="stats"></div>
+<main>
+  <div id="spacer">↓ khung thanh toán (iframe) ở dưới ↓</div>
+  <iframe id="pay" title="Thanh toán" srcdoc='<!doctype html><html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+    <style>
+      body { padding: 16px; } .agree { display: inline-flex; gap: 10px; align-items: center; font-size: 20px; cursor: pointer; user-select: none; }
+      .box { width: 26px; height: 26px; border: 3px solid var(--muted); border-radius: 6px; display: grid; place-items: center; }
+      [aria-checked=true] .box::after { content: "✓"; font-weight: 800; color: var(--ok); }
+      #payBtn { margin-top: 24px; transform: translateX(-640px); transition: transform 1.5s ease-in-out; }
+      #payBtn.in { transform: none; } #done { display: none; margin-top: 12px; font-size: 32px; } #done.open { display: block; }
+    </style></head><body>
+    <div class="agree" role="checkbox" aria-checked="false" tabindex="0"><span class="box"></span><span>Tôi đồng ý điều khoản</span></div><br>
+    <button id="payBtn" class="btn ok" type="button">Thanh toán</button>
+    <div id="done" class="big">ĐÃ THANH TOÁN</div>
+    </body></html>'></iframe>
+</main>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Thử node web trong iframe (bước 25d D2): khung thanh toán là iframe cùng nguồn nằm dưới màn hình; ô đồng ý là
+  // div role=checkbox (tìm bằng role=…); tick xong nút Thanh toán mới trượt vào trong 1,5 s – bấm lúc đang trượt là
+  // trượt (node web phải chờ khung đứng yên). Đếm click thật (isTrusted) / giả trong iframe.
+  sb.header('Web (iframe)');
+  const setReal = sb.stat('Click thật'), setFake = sb.stat('Click giả (script)');
+  let real = 0, fake = 0;
+  document.getElementById('pay').addEventListener('load', (ev) => {
+    const d = ev.target.contentDocument, agree = d.querySelector('.agree'), btn = d.getElementById('payBtn');
+    d.addEventListener('click', (e) => { if (e.isTrusted) setReal(++real); else setFake(++fake); }, true);
+    agree.onclick = () => {
+      const on = agree.getAttribute('aria-checked') !== 'true';
+      agree.setAttribute('aria-checked', String(on));
+      btn.classList.toggle('in', on);
+      sb.log(on ? 'đã tick đồng ý – nút Thanh toán đang trượt vào' : 'bỏ tick');
+    };
+    btn.onclick = (e) => {
+      if (!btn.classList.contains('in')) return sb.log('bấm Thanh toán khi chưa tick');
+      d.getElementById('done').classList.add('open');
+      sb.log(`đã thanh toán (${e.isTrusted ? 'click thật' : 'click giả'})`);
+    };
+  });
+</script>
+</body></html>

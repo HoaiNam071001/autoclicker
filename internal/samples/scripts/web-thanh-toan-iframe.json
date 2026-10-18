@@ -1,0 +1,53 @@
+{
+ "meta": {
+  "name": "Web: thanh toán trong iframe",
+  "description": "Tìm phần tử trong iframe bằng vai trò (role=): tick ô “Tôi đồng ý điều khoản” (div role=checkbox), chờ nút Thanh toán trượt vào xong mới bấm (node web chờ khung đứng yên), rồi chờ ĐÃ THANH TOÁN. Khung nằm dưới màn hình – tự cuộn tới. Đúng: hiện ĐÃ THANH TOÁN, Click thật = 2.",
+  "app": "Web (iframe)",
+  "level": 2,
+  "page": "web-frame.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/web-frame.html",
+    "webBrowser": true,
+    "delayAfter": 500
+   },
+   {
+    "type": "webClick",
+    "selectors": [
+     "role=checkbox[name=\"đồng ý\"]",
+     "text=Tôi đồng ý điều khoản"
+    ],
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 0
+   },
+   {
+    "type": "webClick",
+    "selectors": [
+     "role=button[name=\"Thanh toán\"]"
+    ],
+    "timeoutMs": 5000,
+    "intervalMs": 100,
+    "delayAfter": 300
+   },
+   {
+    "type": "webWait",
+    "selectors": [
+     "text=\"ĐÃ THANH TOÁN\""
+    ],
+    "timeoutMs": 3000,
+    "intervalMs": 200,
+    "delayAfter": 0
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã thanh toán – nút ở {{n3.output.x}}, {{n3.output.y}}"
+   }
+  ]
+ }
+}

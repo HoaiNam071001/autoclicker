@@ -67,8 +67,19 @@ var probeFractions = [3]fpoint{{0.15, 0.30}, {0.45, 0.55}, {0.30, 0.42}}
 // mover – di chuột thật (device.Input.Move).
 type mover func(x, y int) error
 
-// pageProbe – đọc pointermove cuối trang nhận: số lần + clientX/Y.
-type pageProbe func(ctx context.Context) (n int, at fpoint, err error)
+// probeRead – pointermove cuối trang nhận: số lần, clientX/Y (trang chính), phần tử dưới chuột có thuộc đích không.
+type probeRead struct {
+	n     int
+	at    fpoint
+	hit   bool
+	cover string // mô tả phần tử dưới chuột khi không phải đích
+}
+
+type pageProbe func(ctx context.Context) (probeRead, error)
+
+func (c calibration) toClient(p fpoint) fpoint {
+	return fpoint{(p.X - c.off.X) / c.scale.X, (p.Y - c.off.Y) / c.scale.Y}
+}
 
 // measure – đưa chuột tới 3 điểm trong khung cửa sổ win (toạ độ màn hình), ghép công thức.
 func measure(ctx context.Context, win model.Rect, move mover, probe pageProbe) (calibration, error) {
@@ -76,48 +87,56 @@ func measure(ctx context.Context, win model.Rect, move mover, probe pageProbe) (
 	for i, f := range probeFractions {
 		x := int(math.Round(float64(win.X) + float64(win.W)*f.X))
 		y := int(math.Round(float64(win.Y) + float64(win.H)*f.Y))
-		// lệch nhẹ trước để chắc có sự kiện mới kể cả khi chuột đang đứng đúng chỗ; mốc đếm đọc sau bước lệch
-		if err := move(x+4, y+4); err != nil {
-			return calibration{}, err
-		}
-		n0, _, err := probe(ctx)
+		r, ok, err := moveAndRead(ctx, move, probe, x, y)
 		if err != nil {
 			return calibration{}, err
 		}
-		if err := move(x, y); err != nil {
-			return calibration{}, err
-		}
-		n, at, err := waitProbe(ctx, probe, n0)
-		if err != nil {
-			return calibration{}, err
-		}
-		if n == n0 {
+		if !ok {
 			return calibration{}, &BrowserError{fmt.Sprintf("trang không nhận chuột tại (%d, %d) – cửa sổ trình duyệt bị che?", x, y)}
 		}
-		s[i], c[i] = fpoint{float64(x), float64(y)}, at
+		s[i], c[i] = fpoint{float64(x), float64(y)}, r.at
 	}
 	return fitCalibration(s[0], c[0], s[1], c[1], s[2], c[2])
 }
 
+// nudge – lệch nhẹ trước khi tới điểm đích để chắc có sự kiện mới kể cả khi chuột đang đứng đúng chỗ.
+const nudge = 2
+
+// moveAndRead đưa chuột tới (x, y) rồi chờ trang báo pointermove mới; ok = false → trang không nhận (bị che /
+// ngoài trang). Mốc đếm đọc sau bước lệch.
+func moveAndRead(ctx context.Context, move mover, probe pageProbe, x, y int) (probeRead, bool, error) {
+	if err := move(x+nudge, y+nudge); err != nil {
+		return probeRead{}, false, err
+	}
+	r0, err := probe(ctx)
+	if err != nil {
+		return r0, false, err
+	}
+	if err := move(x, y); err != nil {
+		return r0, false, err
+	}
+	r, err := waitProbe(ctx, probe, r0.n)
+	return r, err == nil && r.n != r0.n, err
+}
+
 // waitProbe chờ tới khi trang báo pointermove mới (tối đa ~300 ms), rồi thêm một nhịp và đọc lại: sự kiện của bước
 // lệch tới muộn thì vẫn lấy được sự kiện cuối (đúng chỗ chuột đứng).
-func waitProbe(ctx context.Context, probe pageProbe, n0 int) (int, fpoint, error) {
-	var at fpoint
-	n := n0
-	for i := 0; i < 10 && n == n0; i++ {
+func waitProbe(ctx context.Context, probe pageProbe, n0 int) (probeRead, error) {
+	r := probeRead{n: n0}
+	for i := 0; i < 10 && r.n == n0; i++ {
 		if err := sleepCtx(ctx, 30*time.Millisecond); err != nil {
-			return n, at, err
+			return r, err
 		}
 		var err error
-		if n, at, err = probe(ctx); err != nil {
-			return n, at, err
+		if r, err = probe(ctx); err != nil {
+			return r, err
 		}
 	}
-	if n == n0 {
-		return n, at, nil
+	if r.n == n0 {
+		return r, nil
 	}
 	if err := sleepCtx(ctx, 40*time.Millisecond); err != nil {
-		return n, at, err
+		return r, err
 	}
 	return probe(ctx)
 }

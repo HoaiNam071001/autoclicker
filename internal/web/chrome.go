@@ -11,14 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chromedp/cdproto/browser"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/remote"
-
-	"autoclicker/internal/model"
 )
 
 // Chrome – Browser thật: Chrome / Edge / Brave của app (profile riêng) qua CDP. Nối lười ở lần dùng đầu; một bản cho
@@ -32,7 +29,8 @@ type Chrome struct {
 	alloc  context.Context
 	cancel context.CancelFunc
 	tabs   map[string]*tabConn
-	prefer string // tab vừa mở bằng Open – mặc định của node web không lọc tab
+	prefer string   // tab vừa mở bằng Open – mặc định của node web không lọc tab
+	last   *tabConn // tab của lần Find (Scroll) thấy gần nhất – Hover dùng
 }
 
 type tabConn struct {
@@ -213,51 +211,15 @@ func (c *Chrome) Find(ctx context.Context, q Query) (Found, error) {
 			return f, nil
 		}
 	}
+	if q.Scroll { // sắp bấm: khung phải đứng yên (đọc lại sau một nhịp – cũng là đo lại ngay trước khi di chuột)
+		if r, f, err = steady(ctx, t.ctx, q, r, ti.URL); err != nil || !f.OK {
+			return f, err
+		}
+		c.last = t
+	}
 	f.Rect = t.cal.rectToScreen(r.X, r.Y, r.W, r.H)
 	return f, nil
 }
-
-// calibrate đưa tab lên trước rồi đo toạ độ trang → màn hình (calibrate.go).
-func (c *Chrome) calibrate(ctx, tctx context.Context) (*calibration, error) {
-	if err := bringToFront(ctx, tctx); err != nil {
-		return nil, err
-	}
-	w, err := run(ctx, tctx, "đọc khung cửa sổ", func(ctx context.Context, t *chromedp.Target) (browser.GetWindowForTargetResult, error) {
-		return cdp.Call(ctx, t, browser.GetWindowForTarget, browser.GetWindowForTargetParams{})
-	})
-	if err != nil {
-		return nil, err
-	}
-	b := w.Bounds
-	if b == nil || b.Left == nil || b.Top == nil {
-		return nil, &BrowserError{"trình duyệt không báo vị trí cửa sổ (đang thu nhỏ?)"}
-	}
-	win := model.Rect{X: int(*b.Left), Y: int(*b.Top), W: int(b.Width), H: int(b.Height)}
-	probe := func(ctx context.Context) (int, fpoint, error) {
-		mv, err := run(ctx, tctx, "đọc chuột trong trang", chromedp.Evaluate[struct {
-			X, Y float64
-			N    int
-		}](probeJS))
-		return mv.N, fpoint{mv.X, mv.Y}, err
-	}
-	cal, err := measure(ctx, win, c.move, probe)
-	if err != nil {
-		return nil, err
-	}
-	g, err := run(ctx, tctx, "đọc hình học trang", chromedp.Evaluate[geom](geomJS))
-	if err != nil {
-		return nil, err
-	}
-	cal.geom = g
-	return &cal, nil
-}
-
-// probeJS – gắn một lần bộ nghe pointermove (capture ở window, trước mọi handler của trang), trả lần cuối.
-const probeJS = `(() => { if (!window.__acMv) { window.__acMv = {X: 0, Y: 0, N: 0};
-	addEventListener('pointermove', e => { window.__acMv = {X: e.clientX, Y: e.clientY, N: window.__acMv.N + 1}; }, true); }
-	return window.__acMv; })()`
-
-const geomJS = `({ScreenX: screenX, ScreenY: screenY, OuterW: outerWidth, OuterH: outerHeight, InnerW: innerWidth, InnerH: innerHeight, DPR: devicePixelRatio})`
 
 func bringToFront(ctx, tctx context.Context) error {
 	_, err := run(ctx, tctx, "đưa tab lên trước", func(ctx context.Context, t *chromedp.Target) (cdp.Empty, error) {
