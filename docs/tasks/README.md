@@ -6,8 +6,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3, F5 xong code – sang F5b (toạ độ nhận biến). Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** 20: F5b → F6 → F7 → 26 → 25d (web qua DOM) … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
+- **Đang làm:** 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3, F5 xong code – tạm dừng trước F5b – làm 32 (tách Go) rồi 25d (web qua DOM, người dùng ưu tiên) trước. Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
+- **Tiếp theo:** 32 (tách Go thành package) → 25d (web qua DOM, D0 đo toạ độ trước) → 20: F5b → F6 → F7 → 26 … (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
 - **Cập nhật lần cuối:** 2026-10-17 (20 F5 xong code)
 
 ## Tính năng của hệ thống
@@ -90,7 +90,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 > Bảng tự sinh – sau khi tick chạy `python3 scripts/tasks-index.py`. Bấm tên bước để mở file chi tiết.
 
 <!-- index:start -->
-**29 / 41 bước xong code** · 🧪 **[13 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
+**29 / 42 bước xong code** · 🧪 **[13 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
 
 ### Phase 3 – Design v2 & tự động hoá (theo thứ tự làm)
 
@@ -107,8 +107,9 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 🧪 chờ kiểm tra tay | [25e. Tìm theo chữ (OCR)](phase3/25e-ocr.md) | 5 / 5 | [1 việc](checks.md) |
 | ✅ xong | [25b. Khi thất bại](phase3/25b-khi-that-bai.md) | 4 / 4 |  |
 | 🟡 đang làm | [20. Flow kiểu n8n – mỗi bước là một module, rẽ nhánh theo kết quả](phase3/20-flow.md) | 44 / 55 | [8 việc](checks.md) |
+| ⬜ chưa làm | [32. Tách `package main` ở root thành package trong `internal/`](phase3/32-go-packages.md) | 0 / 6 |  |
+| ⬜ chưa làm | [25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật](phase3/25d-web-dom.md) | 0 / 10 |  |
 | ⬜ chưa làm | [26. Focus cửa sổ theo tên](phase3/26-focus-cua-so.md) | 0 / 3 |  |
-| ⬜ chưa làm | [25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật](phase3/25d-web-dom.md) | 0 / 9 |  |
 | ⬜ chưa làm | [22. Hẹn giờ + thông báo + CLI / API local](phase3/22-hen-gio-cli-api.md) | 0 / 5 |  |
 | ⬜ chưa làm | [31a. Kết nối AI qua MCP – tạo / sửa kịch bản](phase3/31-mcp-ai.md) | 0 / 7 |  |
 | ⬜ chưa làm | [31b. MCP – AI nhìn màn hình](phase3/31-mcp-ai.md) | 0 / 3 |  |
@@ -175,9 +176,10 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 7–8 | [23](phase3/23-cuon-mo-url.md) → [25](phase3/25-cho-anh.md) | Cuộn / mở URL đơn giản, rồi chờ ảnh – cốt lõi tương tác web / app |
 | 9 | [25e. Tìm theo chữ (OCR)](phase3/25e-ocr.md) | Xong 2026-10-17 – tìm ảnh chưa đủ chính xác |
 | 10 | [25b. Khi thất bại](phase3/25b-khi-that-bai.md) | Xong 2026-10-17; 20 thay *bỏ qua / nhảy tới* bằng cạnh `fail`, giữ phần thử lại |
-| 11 | [20. Flow kiểu n8n (F0–F7)](phase3/20-flow.md) | Người dùng cần luồng thành công / thất bại, if / else, switch (2026-10-17); đổi model lớn nên làm trước các loại bước mới (26, 25d); gồm luôn debug + lịch sử chạy (thay 25c) |
+| 11 | [20. Flow kiểu n8n (F0–F5, rồi F5b–F7 sau 25d)](phase3/20-flow.md) | Người dùng cần luồng thành công / thất bại, if / else, switch (2026-10-17); đổi model lớn nên làm trước các loại bước mới (26, 25d); gồm luôn debug + lịch sử chạy (thay 25c) |
+| 11b | [32. Tách Go thành package](phase3/32-go-packages.md) | Người dùng chọn (2026-10-18): làm đầu tuần sau, trước F5b – 49 file `package main` ở root không có ranh giới; MCP / API (22, 31) cần dùng lại engine không qua Wails |
+| 11c | [25d. Web qua DOM](phase3/25d-web-dom.md) | Người dùng ưu tiên (2026-10-18): web phải chạy chính xác – làm ngay sau 32, chia D0–D4 (đo toạ độ trước); focus bằng CDP `Page.bringToFront` nên không chờ 26. Người dùng yêu cầu (2026-10-17): web bền hơn ảnh mẫu; cần cổng `fail` (20); làm trước MCP vì AI dùng DOM tốt hơn ảnh chụp |
 | 12 | [26. Focus cửa sổ](phase3/26-focus-cua-so.md) | Xong 26 là chạy được ví dụ Facebook |
-| 13 | [25d. Web qua DOM](phase3/25d-web-dom.md) | Người dùng yêu cầu (2026-10-17): web bền hơn ảnh mẫu; cần focus (26), cổng `fail` (20); làm trước MCP vì AI dùng DOM tốt hơn ảnh chụp |
 | 14 | [22. Hẹn giờ / CLI / API local](phase3/22-hen-gio-cli-api.md) | Chạy không cần ngồi canh; dựng server HTTP + token mà MCP dùng lại |
 | 15–17 | [31a → 31b → 31c. MCP cho AI](phase3/31-mcp-ai.md) | Người dùng chọn làm sau (2026-10-17); các bước trước đã có mục *Chuẩn bị cho MCP* nên lúc này chủ yếu là bọc hàm Go sẵn có thành tool |
 | 18–19 | [24](phase3/24-ghi-macro.md) → [28](phase3/28-mo-rong.md) | Ghi macro, mở rộng |
