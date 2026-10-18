@@ -18,6 +18,12 @@
     - [ ] Inspector: mỗi điểm có công tắc *Số* / *Biến*; chế độ Biến dùng `VarTextInput` (gợi ý `{{n2.output.x}}`), nút chọn nhanh "chỗ thấy của node…" điền sẵn x / y (tâm khung) – thay được *Click theo ảnh* khi cần click lệch
     - [ ] Overlay / Xem trước / thẻ node: điểm dùng biến không có marker cố định – thẻ ghi `x = {{n2.output.x}}`, Xem trước đặt con trỏ giả ở chỗ thấy của lần chạy gần nhất (nếu có) hoặc bỏ qua; chọn nhiều điểm (bước 30) bỏ qua điểm dùng biến
     - [ ] Test Go + TS: click theo output chờ chữ, cộng lệch px, biến không ra số, kéo thả A từ biến
+  - [ ] **F5c. Mọi node đều có output + ô số nhận biến** *(người dùng yêu cầu 2026-10-18 – "mỗi loại node đều có input và output để flow chạy mượt")* – hiện Gõ chữ / Phím tắt / Cuộn / Chờ / Mở output rỗng
+    - [ ] Output chung mọi node: `startedAt`, `durationMs` (engine điền ở một chỗ trong `flowrun.go`, không từng loại)
+    - [ ] Output riêng: Gõ chữ `text` (đã thay biến); Phím tắt `keys`; Cuộn `x, y, direction, amount`; Chờ `ms` (đã cộng jitter); Mở `target, app`; Giữ chuột `x, y, ms`. Cập nhật cột Outputs trong `steptypes.go` + `flow/view.ts`
+    - [ ] Ô số nhận `{{biến}}`: số lần click, nghỉ giữa click, số nấc cuộn, thời gian chờ / giữ / kéo, timeout – model thêm trường chuỗi đi kèm (như `xVar` của F5b) hoặc một kiểu `NumOrVar` dùng chung; `vars.go` tính lúc chạy, lỗi `invalid_input` khi không ra số. Chốt cách khi làm (đi cùng F5b cho đồng bộ)
+    - [ ] Inspector: `NumField` có công tắc *Số* / *Biến* dùng lại từ F5b; gợi ý biến hiện output của mọi node trước
+    - [ ] Test Go + TS: output từng loại, thời gian chờ từ biến, biến không ra số
   - [ ] **F6. Xem trước, thanh mini**
     - [ ] Xem trước (`Simulation.tsx`) đi theo đồ thị: mặc định `success` / `true` / case đầu; node rẽ nhánh có công tắc "giả sử thất bại" / chọn case; Đếm chạy 1 vòng rồi `done`; đường đang mô phỏng tô trên canvas
     - [ ] Thanh mini: "n2 · Tìm nút Nhắn tin · thất bại → n5 Đếm (3 / 10)"

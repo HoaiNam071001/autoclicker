@@ -1,0 +1,26 @@
+# 35. Node nâng cao – hệ thống, tệp, API
+
+- [ ] **35. Node nâng cao** *(người dùng yêu cầu, 2026-10-18 – làm sau 34, trước 26)* – Thêm node cho việc lớn của hệ thống / app / trình duyệt.
+  - **Chốt 2026-10-18: ít node nền + kịch bản mẫu**, không mỗi việc một node. Việc ghép được từ node có sẵn làm thành **kịch bản mẫu** (bước 33), sau đóng gói bằng subflow (28) để dùng như một node. Node mới dùng output chuẩn của 20 F5c ngay từ đầu. Thêm node theo skill `add-node-type` (mỗi node có mẫu thử).
+  - Danh sách người dùng đưa → cách làm:
+    - Mở app nhất định / mở trình duyệt nhất định / bật Spotify: **đã có** (node Mở, `app`, `webBrowser`) → mẫu
+    - Vào trang cá nhân FB: Mở URL + Click phần tử web (25d) → mẫu
+    - Search app trên máy: Phím tắt Cmd+Space (Windows: Win) + Gõ chữ + Enter → mẫu
+    - Copy / paste: Phím tắt đã bấm được; đọc / ghi clipboard → node **Clipboard** (thay mục "đọc clipboard vào biến" của 28)
+    - Chụp màn hình, chụp vùng → node **Chụp màn hình**
+    - Gọi API CRUD → node **HTTP**
+    - Tạo thư mục, tạo file (txt / csv / xlsx; Word sau), clear files thư mục, dọn thùng rác → node **Tệp / thư mục**
+    - Chỉnh âm thanh máy → node **Hệ thống**; vẽ hình → node **Vẽ đường**; săn sale Shopee → node **Chờ đến giờ** + mẫu (web DOM + 34)
+    - Kết nối Bluetooth: **hoãn** – macOS cần tool ngoài (`blueutil`), Windows API riêng
+  - **Đợt 1 (người dùng ưu tiên 2026-10-18):**
+  - [ ] N1. **Chụp màn hình** (`screenshot`): toàn màn (màn nào) / vùng của kịch bản / vùng cố định / khung output node trước (`{{n2.output.x}}`…); lưu PNG vào thư mục (mặc định `Pictures/autoclicker`, tên có giờ, nhận biến); tuỳ chọn chép vào clipboard. Output `path, w, h`. Dùng lại hàm chụp của `internal/vision`
+  - [ ] N2. **Clipboard** (`clipboard`): đọc → output `text`; ghi `text` (nhận biến); ghi ảnh từ file. Copy / paste trọn gói = Phím tắt + node này
+  - [ ] N3. **HTTP** (`http`): method GET / POST / PUT / PATCH / DELETE, URL, header, query, body (JSON / form / text) – mọi ô nhận biến; timeout; mã 2xx → `success`, khác / lỗi mạng → `fail` (`error.code` `http_status` / `network`). Output `status, body, headers, json` (biến đọc sâu `{{n2.output.json.data.id}}` – `vars.go` cần đọc đường dẫn lồng). Token / mật khẩu: không ghi log, che trong nhật ký chạy
+  - **Đợt 2:**
+  - [ ] N4. **Tệp / thư mục** (`file`): tạo thư mục, ghi file txt / csv (thêm dòng), xlsx (`excelize`), xoá file trong thư mục theo mẫu tên (**vào Thùng rác**, không xoá hẳn), dọn Thùng rác. An toàn: chặn thư mục hệ thống / thư mục gốc người dùng, lúc Chạy hỏi xác nhận lần đầu với thao tác xoá (MCP đi qua cùng chỗ hỏi quyền), nhật ký ghi số file. Word (.docx) làm sau
+  - [ ] N5. **Hệ thống** (`system`): âm lượng đặt / tăng / giảm, tắt tiếng (macOS `osascript`, Windows Core Audio) – qua interface `device` để test bằng bản giả
+  - [ ] N6. **Chờ đến giờ** (`waitUntil`): HH:mm:ss.mmm hôm nay / ngày giờ, nhận biến; canh giờ chuẩn (NTP) tuỳ chọn; nghỉ dài rồi chờ sát giờ bằng vòng ngắn
+  - [ ] N7. **Vẽ đường** (`path`): kéo chuột qua nhiều điểm (polyline), hình có sẵn tròn / chữ nhật / sao theo tâm + cỡ; đi theo nhịp của 34
+  - [ ] N8. Kịch bản mẫu: mở Spotify + phát, mở trang cá nhân FB, search app, săn sale (sân thử *đếm ngược flash sale*), chụp vùng rồi gửi HTTP
+  - Chuẩn bị cho MCP (31): mỗi node có mô tả + ví dụ JSON trong `steptypes.go`; lỗi có mã; thao tác xoá / HTTP ra ngoài đi qua chỗ hỏi quyền
+  - Kiểm tra tay: [checks.md](../checks.md) – từng node chạy trên máy thật (ảnh lưu đúng chỗ, clipboard, gọi API thử, file vào Thùng rác)
