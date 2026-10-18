@@ -38,10 +38,6 @@ export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }
 
-export function Greet(arg1) {
-  return window['go']['main']['App']['Greet'](arg1);
-}
-
 export function ListRuns(arg1, arg2) {
   return window['go']['main']['App']['ListRuns'](arg1, arg2);
 }

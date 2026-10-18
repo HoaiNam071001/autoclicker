@@ -1,6 +1,6 @@
 # Kiến trúc & luồng chính
 
-> Đọc file này đầu session để nắm hệ thống mà không phải mở code. Danh sách file chi tiết: `CLAUDE.md` › *Cấu trúc*.
+> Đọc file này để nắm hệ thống mà không phải mở code. Tìm file theo việc: §6; danh sách file đầy đủ: §8.
 > Tính năng đang có / chưa có: bảng *Tính năng của hệ thống* trong `docs/tasks/README.md` (không chép sang đây).
 > Đổi luồng / thêm API / thêm event → sửa file này cùng commit.
 
@@ -147,3 +147,30 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 - Go: `go test ./...` – engine chạy bằng `Input` / `Screen` / `TextReader` giả; kịch bản danh sách bọc `linear(sc)` (`flowtest_test.go`); `testdata/flow_order.json` dùng chung Go + TS.
 - TS: `cd frontend && npm test` (vitest, logic thuần `flow/`, `anchor`, `transform`, `scriptInputs`); `npm run build` để type-check.
 - Ví dụ kịch bản thật: `examples/*.json`.
+
+## 8. Bản đồ file
+
+**Go (thư mục gốc, package main)**
+
+- `main.go`, `app.go` – Wails app; method public của `App` bind sang frontend (`frontend/wailsjs/` tự sinh – không sửa tay, không cần đọc).
+- `model.go` – model (`Step` = node, `Script` có `start` + `edges`, `Retry`, `NewStep` mặc định). `flow.go` – `StepResult`, cổng `portsOf`, `flowOrder` (test chung `testdata/flow_order.json` với `flow/model.ts`); test kịch bản dạng danh sách bọc `linear(sc)` (`flowtest_test.go`). `flowcheck.go` – `validateFlow`. `flowrun.go` – engine theo cạnh (`runLoop`, `execNode`, thử lại).
+- `vars.go` – biến `{{n2.output.x}}`, `varFields` (mọi ô chữ nhận biến). `nodes.go` – node điều khiển (`runControl`, cổng, kiểm tra). `cond.go` – điều kiện (`evalCond`, `snapshot` chụp một lần mỗi lần xét). `nodetest.go` – `TestNode`.
+- `engine.go` – `validateScript`, `engine`, `runStep` / `doStep`, tạm dừng / debug; thiết bị qua `Input` (`input.go` = robotgo). `runner.go` – `RunScript` / Stop / Pause / Resume / Step. `runlog.go` – lịch sử chạy. `failsafe.go` – dừng khi chuột chạm góc.
+- `imagestep.go` – chờ ảnh / click theo ảnh / chờ pixel. `match.go` – tìm ảnh mẫu (NCC). `capture.go` / `capture_darwin.go` / `capture_other.go` – chụp màn hình (`Screen`), quyền Screen Recording. `ocr.go` / `ocr_darwin.go` – đọc chữ (Vision; Windows chưa có), `findText`. `imageapi.go` – API ảnh cho UI (ẩn cửa sổ lúc chụp). `internal/winexclude` – Windows: loại cửa sổ app khỏi ảnh chụp.
+- `open.go` – mở URL / app (`openCommand` theo hệ điều hành). `anchor.go` – neo điểm (`resolvePoint`, cùng công thức `anchor.ts`). `inputs.go` – input kịch bản (`resolveInputs`, `ScriptError`, `stepErr`, `inputs.json`). `steptypes.go` – mô tả + ví dụ JSON từng loại node cho AI / MCP.
+- `window.go` – chế độ cửa sổ, màn hình. `hotkey.go` – F6 / F8 / F10 (gohook). `settings.go` – `settings.json`, `configDir`. `storage.go` – file kịch bản, nháp, hỏi lưu khi đóng.
+
+**Frontend (`frontend/src/`)**
+
+- `App.tsx` chọn màn theo hash; `screens/` – `MainScreen`, `OverlayScreen`, `MiniBar`, `PreviewScreen`, màn mẫu `Demo*`.
+- `types.ts` – model TS (khớp `model.go`, tsc kiểm), nhãn loại node `STEP_LABEL`.
+- Logic thuần (có test): `flow/` – `model` (cổng, `flowOrder`, `orderedSteps`), `edit` (nối / cắt cạnh, chèn / xoá node, `nextRef`, `pruneEdges`), `layout` (elkjs, `placeNode`), `view` (thẻ node, nhãn cổng, `outputsOf`), `cond` (điều kiện lồng nhau `CondAt`), `run` (kết quả chạy → trạng thái thẻ, nhật ký); `anchor.ts`; `transform.ts` (biến đổi nhiều điểm); `scriptInputs.ts` (ghim trường, input, `mapVarText`).
+- `store/` (import qua `store/index.ts`): `editor` (state, hoàn tác, `updateScript`, `replaceScript`), `geometry` (khung, neo ↔ màn hình), `nodes` (thêm / sửa / xoá / nhân bản, nối cạnh, `insertAt`), `control` (node điều khiển, điều kiện), `points` (điểm trên overlay, F6, kéo thả), `multi` (chọn nhiều + biến đổi, đổi vùng).
+- Store khác: `engineStore.ts` (trạng thái engine, `runScript`), `runStore.ts` (nhật ký lần chạy + lịch sử), `runForm.ts` (Chạy / F8 → form Chạy, preset), `scriptFile.ts` (lưu / mở / nháp / cờ chưa lưu), `imageSteps.ts` (khoanh ảnh mẫu, thử tìm, lấy màu, quyền chụp), `coordMap.ts` (overlay ↔ robotgo), `windowMode.ts` (`setWindowMode`, `openOverlay`), `theme.ts`.
+- `components/`: `TitleBar`, `Library` (thư viện + lịch sử), `AddStepPalette` (Ctrl/Cmd+K, `PaletteView`), `StepForm` (inspector) + `stepform/` (`shared`, `MouseFields`, `ScrollFields`, `KeyFields`, `TextFields`, `ImageFields`, `FlowSections`, `ControlSection`, `InputsTab`), `RunSettings` (lặp / đếm ngược, `Switch`), `Simulation` (xem trước con trỏ giả), `MockPage`, `TransformTool`, `SaveChangesDialog`, `NumInput`, `Segmented`, `icons` (`StepIcon`), `StepCard`.
+- `components/flow/` (chỉ props, app + màn mẫu dùng chung): `FlowCanvas` (`@xyflow/react`), `NodeCard`, `FlowEdge`, `PortField`, `RunLog`, `model.ts` (cỡ thẻ), `nodes/ControlFields` + `CondEditor` + `NodeTestPanel`; `FlowEditor` = bản nối store.
+- `components/inputs/` – ghim, ô chữ `{{biến}}` (`VarTextInput`), tab Input, form Chạy (`RunDialog`).
+- UI dựng sẵn chưa có logic (bước 27b, *Sắp có*): `components/steps/` (kiểu tạm `steps/model.ts`), `ScheduleDialog`, `AppChrome` (`Toolbar`, `StatusBar`). Dữ liệu giả: `demo/` (màn `#demo*`, `?sel=<id>`, `?mode=running|failed`).
+- `style.css` – Tailwind v4 + token (`@theme`, chép từ `design/theme.css`).
+
+**Khác:** `design/` (`DESIGN.md` token / thành phần / icon, `theme.css`, `newdarkmode.md` bảng Slate), `docs/tasks/` (plan), `examples/` (kịch bản mẫu), `testdata/`, `scripts/` (`tasks-index.py`, `check-docs.py`, `session-status.sh`), `build/` (icon, plist, manifest cho `wails build` – `build/bin` là bản build, bỏ qua).

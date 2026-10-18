@@ -20,8 +20,6 @@ export function GetRun(arg1:string,arg2:string,arg3:string):Promise<main.RunReco
 
 export function GetSettings():Promise<main.Settings>;
 
-export function Greet(arg1:string):Promise<string>;
-
 export function ListRuns(arg1:string,arg2:string):Promise<Array<main.RunSummary>>;
 
 export function LoadDraft():Promise<main.Draft>;

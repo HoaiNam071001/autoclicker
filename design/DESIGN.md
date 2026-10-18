@@ -166,4 +166,4 @@ Soạn kịch bản dạng node + cạnh kiểu n8n (`@xyflow/react`). Xem mẫu
 | `accent-light`, `drag`, `drag-light`, `drag-marker` | bỏ; kéo thả dùng chung icon/màu trung tính, marker overlay dùng `accent` |
 | `dark-*` | bỏ; dùng token chung + `data-theme="dark"` (MiniBar, PreviewScreen) |
 
-`design/canvas/` chứa mã nguồn các artboard (`.dc.html`) để tham khảo; chúng cần runtime của canvas, không chạy riêng được.
+Mã nguồn artboard (`design/canvas/*.dc.html`) đã xoá khỏi repo ngày 2026-10-18 (UI v2 đã dựng xong); xem lại: `git show f5d2dce:design/canvas/<tên>.dc.html` hoặc mở canvas.

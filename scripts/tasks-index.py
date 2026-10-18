@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Cập nhật bảng tổng quan trong docs/tasks/README.md (giữa <!-- index:start --> và <!-- index:end -->):
 mỗi bước một dòng – trạng thái, tiến độ mục con, số việc chờ kiểm tra tay, link file bước.
-Chạy lại sau khi tick: python3 scripts/tasks-index.py"""
+Chạy lại sau khi tick: python3 scripts/tasks-index.py
+Bước dài: mục con đã xong có thể nằm ở phase3/<tên>-xong.md – vẫn được đếm vào bước."""
 import glob
 import os
 import re
@@ -22,6 +23,14 @@ def steps(rel):
         if m and cur:
             cur['n'] += 1
             cur['x'] += m.group(1) == 'x'
+    # Phần đã xong của bước dài tách sang <tên>-xong.md: mục con trong đó cộng vào bước của file chính.
+    done = os.path.join(ROOT, rel[:-3] + '-xong.md')
+    if out and os.path.exists(done):
+        for line in open(done, encoding='utf-8'):
+            m = re.match(r'\s+- \[(.)\]', line)
+            if m:
+                out[-1]['n'] += 1
+                out[-1]['x'] += m.group(1) == 'x'
     return out
 
 
@@ -52,7 +61,7 @@ def main():
     text = open(README, encoding='utf-8').read()
     checks = pending_checks()
     all_steps = {}
-    for f in ['phase0.md', 'phase1-mvp.md', 'phase2.md'] + sorted(os.path.relpath(p, ROOT) for p in glob.glob(os.path.join(ROOT, 'phase3', '*.md'))):
+    for f in ['phase0.md', 'phase1-mvp.md', 'phase2.md'] + sorted(os.path.relpath(p, ROOT) for p in glob.glob(os.path.join(ROOT, 'phase3', '*.md')) if not p.endswith('-xong.md')):
         for s in steps(f):
             all_steps[s['num']] = s
     # Phase 3 theo thứ tự làm: thứ tự các link phase3/… trong bảng "Thứ tự làm"

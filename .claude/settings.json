@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/session-status.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "Read(./frontend/wailsjs/**)",
+      "Read(./frontend/package-lock.json)",
+      "Read(./frontend/dist/**)",
+      "Read(./build/bin/**)"
+    ]
+  }
+}
