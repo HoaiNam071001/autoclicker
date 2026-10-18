@@ -1,9 +1,8 @@
 import { model } from '../wailsjs/go/models';
-import { fmtAxis, fmtPoint, usesVar } from './anchor';
-import { fmtWebStep, isWebStep, type ReadFrom, type ScrollMode } from './flow/web';
-import { fmtShot, type ShotArea } from './flow/shot';
-import { fmtClip, type ClipOp } from './flow/clipboard';
-import { fmtKey } from './keys';
+import type { ReadFrom, ScrollMode } from './flow/web';
+import type { ShotArea } from './flow/shot';
+import type { ClipOp } from './flow/clipboard';
+import type { BodyType, HttpMethod } from './flow/http';
 
 // Neo của một trục (anchor.ts, khớp internal/script/anchor.go): bỏ trống = start (cách cạnh trái / trên).
 export type Anchor = 'start' | 'center' | 'end' | 'ratio';
@@ -13,16 +12,18 @@ export type Point = { x: number; y: number };
 // ("{{n2.output.x}} + 20") – có thì bỏ qua x / y + neo (anchor.ts usesVar).
 export type StepPoint = Point & { ax?: Anchor; ay?: Anchor; xVar?: string; yVar?: string };
 export type Rect = { x: number; y: number; w: number; h: number };
+// Một dòng bảng query / header / form của node HTTP (khớp KV trong internal/model/http.go).
+export type KV = { key: string; value: string };
 // Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
 export type Retry = { count?: number; delayMs?: number };
 // Node hay "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại (thử lại)
-export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'screenshot', 'clipboard', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'open'];
+export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'screenshot', 'clipboard', 'http', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'open'];
 
 // ---- Flow (bước 20, flow.go) ----
 // Cạnh: node from đi ra cổng port thì chạy node to. Mỗi cổng tối đa một cạnh. Khớp Edge trong model.go.
 export interface Edge { id: string; from: string; port: string; to: string }
 export type StepStatus = 'success' | 'fail' | 'skipped' | 'cancelled';
-export type ErrorCode = 'not_found' | 'timeout' | 'permission' | 'invalid_input' | 'cancelled' | 'end' | 'browser' | 'internal';
+export type ErrorCode = 'not_found' | 'timeout' | 'permission' | 'invalid_input' | 'cancelled' | 'end' | 'browser' | 'http_status' | 'network' | 'internal';
 // Kết quả một lần chạy node (event engine:node) – khớp StepResult trong flow.go.
 export interface StepResult {
   nodeId: string;
@@ -42,7 +43,7 @@ const edgeMatchesGo: Same<keyof Edge, keyof Fields<model.Edge>> = true;
 const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = true;
 void edgeMatchesGo, resultMatchesGo;
 
-export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard'
+export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http'
   | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'end' | 'setVar';
@@ -149,6 +150,14 @@ export interface Step {
   // clipboard (bước 35 N2, internal/engine/clip.go)
   clipOp?: ClipOp; // bỏ trống = đọc chữ
   filePath?: string; // clipOp image: file PNG; nhận {{biến}}
+  // HTTP (bước 35 N3, internal/engine/http.go) – mọi ô chữ nhận {{biến}}
+  method?: HttpMethod; // bỏ trống = GET
+  url?: string; // biến chèn nguyên văn – giá trị cần mã hoá đặt trong query
+  query?: KV[];
+  headers?: KV[];
+  bodyType?: BodyType; // bỏ trống = không body
+  body?: string; // json / text
+  form?: KV[]; // bodyType form
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
   // node điều khiển (bước 20 F3)
@@ -245,6 +254,7 @@ export const STEP_LABEL: Record<StepType, string> = {
   waitPixel: 'Chờ màu pixel',
   screenshot: 'Chụp màn hình',
   clipboard: 'Clipboard',
+  http: 'HTTP',
   webWait: 'Chờ phần tử web',
   webClick: 'Click phần tử web',
   webType: 'Gõ vào ô web',
@@ -271,25 +281,3 @@ export const scrollDelta = (s: Pick<Step, 'direction' | 'amount'>): Point => {
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);
 // Biểu thức biến của trường số (F5c) – undefined = trường dùng số cố định.
 export const numVarOf = (s: Pick<Step, 'numVars'>, field: NumVarField) => s.numVars?.find((v) => v.field === field)?.expr;
-const fmtSigned = (v: number) => (v > 0 ? `+${v}` : `${v}`);
-const fmtPair = (p: StepPoint) => (usesVar(p) ? `${p.xVar}, ${p.yVar}` : `${fmtAxis(p.x, p.ax)}, ${fmtAxis(p.y, p.ay)}`);
-// refOf: id node → mã (n2) để ghi nguồn chỗ thấy của click theo ảnh.
-export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
-  s.type === 'drag'
-    ? `${s.dragFromPrev ? 'Từ điểm trước' : `A ${fmtPair(s.points[0])}`} → ${
-      s.dragRelative ? `Δ ${usesVar(s.points[1]) ? fmtPair(s.points[1]) : `${fmtSigned(s.points[1].x)},${fmtSigned(s.points[1].y)}`}` : `B ${fmtPair(s.points[1])}`}`
-    : s.type === 'type' ? `"${s.text}"`
-    : s.type === 'key' ? fmtKey(s)
-    : s.type === 'scroll' ? `${SCROLL_ARROW[s.direction ?? 'down']} ${numVarOf(s, 'amount') !== undefined ? `${numVarOf(s, 'amount')} nấc` // nấc từ biến: chỉ biết lúc chạy
-      : `${s.amount ?? 0} nấc ≈ ${(s.amount ?? 0) * SCROLL_NOTCH_PX} px`} ${s.points[0] ? `tại ${fmtPoint(s.points[0])}` : 'tại chuột'}`
-    : s.type === 'open' ? `${s.target || '—'}${s.webBrowser ? ' · Chrome của app' : s.app ? ` · ${s.app}` : ''}`
-    : isWebStep(s.type) ? fmtWebStep(s)
-    : s.type === 'screenshot' ? fmtShot(s, refOf)
-    : s.type === 'clipboard' ? fmtClip(s)
-    : s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search')
-      ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.findBy === 'text'
-        ? (s.findText?.trim() ? `chữ “${s.findText}”${(s.occurrence ?? 0) > 1 ? ` (chỗ thứ ${s.occurrence})` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa nhập chữ cần tìm')
-        : s.template ? `khớp ≥ ${s.threshold}% · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa có ảnh mẫu'}`
-    : s.type === 'clickImage' ? `chỗ ${s.imageFrom ? refOf(s.imageFrom) : '(chưa chọn node)'} thấy${s.dx || s.dy ? ` ${fmtSigned(s.dx ?? 0)},${fmtSigned(s.dy ?? 0)}` : ''}`
-    : s.type === 'waitPixel' && s.points[0] ? `${fmtPoint(s.points[0])} = ${s.color} ±${s.tolerance} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`
-    : s.points[0] ? fmtPoint(s.points[0]) : '—';

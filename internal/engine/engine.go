@@ -5,6 +5,7 @@ package engine
 import (
 	"image"
 	"math/rand/v2"
+	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -50,6 +51,7 @@ type Engine struct {
 	scr        device.Screen                  // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
 	ocr        device.TextReader              // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
 	clip       device.Clipboard               // clipboard (chụp màn hình chép ảnh – shot.go) – test thay bằng bản giả
+	httpc      *http.Client                   // node HTTP (http.go) – thời gian chờ theo TimeoutMs của node
 	browser    web.Browser                    // node web (webstep.go) – nil = không điều khiển trình duyệt
 
 	onNode  func(model.StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
@@ -78,7 +80,7 @@ type Engine struct {
 }
 
 func newEngine(in device.Input, sc model.Script, onProgress func(Progress)) *Engine {
-	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, clip: device.SystemClipboard{},
+	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, clip: device.SystemClipboard{}, httpc: &http.Client{},
 		rng: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))}
 }
 

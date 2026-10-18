@@ -171,7 +171,8 @@ func coordVar(m, path string, src model.Step) error {
 	if !ok {
 		return fmt.Errorf("biến %s không phải số – ô số dùng output của node, vd {{%s.output.x}}", m, src.Ref)
 	}
-	if !slices.Contains(outs, key) {
+	root, _, _ := strings.Cut(key, ".") // json.data.count – đọc sâu output json của node HTTP
+	if !slices.Contains(outs, key) && !(root == "json" && slices.Contains(outs, "json")) {
 		if len(outs) == 0 {
 			return fmt.Errorf("biến %s: node %s không có output nào", m, src.Ref)
 		}

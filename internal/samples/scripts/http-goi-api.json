@@ -1,0 +1,34 @@
+{
+ "meta": {
+  "name": "HTTP – gọi API, đọc JSON trả về",
+  "description": "POST lên httpbin.org (API thử, trả lại đúng những gì nhận được): tham số tìm kiếm tiếng Việt, header khoá API, thân JSON có tên lấy từ input. Đúng: lời kết thúc ghi lại tên + từ khoá server nhận được và HTTP 200 – đọc sâu {{n1.output.json.json.ten}}.",
+  "app": "API",
+  "level": 2,
+  "page": "https://httpbin.org",
+  "real": true,
+  "prep": "Cần mạng. Không đụng chuột / bàn phím."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "http",
+    "method": "POST",
+    "url": "https://httpbin.org/post",
+    "query": [{ "key": "tim", "value": "{{tu_khoa}}" }],
+    "headers": [{ "key": "X-Api-Key", "value": "demo-123" }],
+    "bodyType": "json",
+    "body": "{\n  \"ten\": \"{{ten}}\",\n  \"so_luong\": 2\n}",
+    "timeoutMs": 15000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "HTTP {{n1.output.status}} – server nhận tên “{{n1.output.json.json.ten}}”, số lượng {{n1.output.json.json.so_luong}}, từ khoá “{{n1.output.json.args.tim}}”"
+   }
+  ],
+  "inputs": [
+   { "key": "ten", "label": "Tên", "type": "text", "default": "Lan \"Hà\"" },
+   { "key": "tu_khoa", "label": "Từ khoá", "type": "text", "default": "cà phê & trà" }
+  ]
+ }
+}

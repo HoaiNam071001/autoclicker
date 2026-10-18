@@ -25,6 +25,8 @@ const (
 // StepError.Code – loại lỗi, để UI / AI xử lý theo loại thay vì đọc chữ.
 const (
 	ErrNotFound     = "not_found"     // chờ ảnh / chữ / màu hết giờ không thấy
+	ErrHTTPStatus   = "http_status"   // HTTP trả mã ngoài 2xx (output status / body vẫn có)
+	ErrNetwork      = "network"       // HTTP không gửi được: sai địa chỉ, mất mạng, hết giờ chờ
 	ErrTimeout      = "timeout"       // quá thời gian khác
 	ErrPermission   = "permission"    // thiếu quyền (Screen Recording, Accessibility)
 	ErrInvalidInput = "invalid_input" // dữ liệu node sai lúc chạy (biến trống, điểm ngoài màn…)

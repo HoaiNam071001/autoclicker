@@ -50,6 +50,10 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if s.WebBrowser && launch.TargetKind(s.Target) == launch.TargetApp {
 				return stepErr(i, s, "target", "Chrome của app chỉ mở được URL / file, không mở được app “%s”", s.Target)
 			}
+		case model.StepHTTP:
+			if err := checkHTTPStep(i, s); err != nil {
+				return err
+			}
 		case model.StepClipboard:
 			if s.ClipOp == model.ClipImage && strings.TrimSpace(s.FilePath) == "" {
 				return stepErr(i, s, "filePath", "chưa nhập file ảnh cần chép")

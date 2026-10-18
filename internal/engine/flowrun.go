@@ -147,6 +147,7 @@ func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) (res mode
 		delay = s.Retry.DelayMs
 	}
 	var err error
+	var failOut map[string]any // output của lần thử cuối khi thất bại (HTTP: status / body cho nhánh Thất bại)
 	for t := 1; t <= tries; t++ {
 		if t > 1 {
 			if err = Sleep(ctx, delay); err != nil {
@@ -185,6 +186,7 @@ func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) (res mode
 			}
 			return res, wait
 		}
+		failOut = out
 		if ctx.Err() != nil {
 			break
 		}
@@ -200,7 +202,7 @@ func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) (res mode
 		res.Error = &model.StepError{Code: model.ErrCancelled, Message: "đã dừng"}
 		return res, 0
 	}
-	res.Status, res.Port = model.StatusFail, model.PortFail
+	res.Status, res.Port, res.Output = model.StatusFail, model.PortFail, failOut
 	res.Error = &model.StepError{Code: errCode(err), Message: err.Error()}
 	logf("error", "%v", err)
 	return res, 0
@@ -212,6 +214,8 @@ func errCode(err error) string {
 	var bad *invalidErr
 	var noBrowser *web.BrowserError
 	var badQuery *web.QueryError
+	var status *httpStatusErr
+	var network *networkErr
 	switch {
 	case errors.As(err, &nf):
 		return model.ErrNotFound
@@ -221,6 +225,10 @@ func errCode(err error) string {
 		return model.ErrInvalidInput
 	case errors.As(err, &noBrowser):
 		return model.ErrBrowser
+	case errors.As(err, &status):
+		return model.ErrHTTPStatus
+	case errors.As(err, &network):
+		return model.ErrNetwork
 	case errors.Is(err, device.ErrNoPermission):
 		return model.ErrPermission
 	}

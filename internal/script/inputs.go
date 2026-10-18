@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"slices"
 
-	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
 )
 
@@ -142,10 +141,8 @@ func ResolveInputs(sc model.Script, values map[string]any) (model.Script, error)
 					return "", false
 				}
 				used[key] = true
-				if f.URL { // URL: mã hoá giá trị (dấu cách, tiếng Việt, &) để không làm hỏng URL
-					return launch.EscapeURLValue(ValueString(vals[key])), true
-				}
-				return ValueString(vals[key]), true
+				// URL: mã hoá (dấu cách, tiếng Việt, &); thân JSON: thoát dấu nháy – không làm hỏng ô
+				return EscapeValue(f, ValueString(vals[key])), true
 			})
 			if err != nil {
 				return model.Script{}, stepErr(i, *s, f.Name, "%v", err)

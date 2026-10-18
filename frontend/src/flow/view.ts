@@ -2,7 +2,8 @@
 // trạng thái chạy. Hàm thuần – FlowEditor (app) gọi với dữ liệu thật; test ở view.test.ts.
 import type { FlowNodeView, PortView, RunState } from '../components/flow/model';
 import { humanLabel, usesHuman } from './human';
-import { Cond, fmtMs, fmtPos, isControl, numVarOf, Script, Step, stepLabel } from '../types';
+import { Cond, fmtMs, isControl, numVarOf, Script, Step, stepLabel } from '../types';
+import { fmtPos } from './detail';
 import { reachable } from './edit';
 import { CASE_PREFIX, flowOrder, PORT_FAIL, PORT_SUCCESS, PortShape, portsOf } from './model';
 
@@ -145,6 +146,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'waitImage': return FOUND;
     case 'clickImage': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...(s.imageSource === 'search' ? FOUND : [])];
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
+    case 'http': return [{ key: 'status', desc: 'mã HTTP, vd 200' }, { key: 'json', desc: 'JSON trả về – đọc sâu json.data.id' }, { key: 'body', desc: 'phản hồi dạng chữ' }, { key: 'headers', desc: 'header trả về (tên chữ thường)' }];
     case 'clipboard': return s.clipOp === 'image' ? [{ key: 'path', desc: 'file ảnh đã chép' }] : [{ key: 'text', desc: s.clipOp === 'write' ? 'chữ đã ghi' : 'chữ đọc được' }];
     case 'screenshot': return [{ key: 'path', desc: 'đường dẫn file ảnh' }, { key: 'x', desc: 'vùng đã chụp – X trái' }, { key: 'y', desc: 'vùng đã chụp – Y trên' },
       { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' }];

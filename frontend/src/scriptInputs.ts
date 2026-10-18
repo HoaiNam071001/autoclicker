@@ -4,7 +4,7 @@
 import { usesVar } from './anchor';
 import { flowOrder } from './flow/model';
 import { getEditor, updateScript } from './store';
-import { Cond, InputType, InputValue, PinField, Script, ScriptInput, Step, stepLabel } from './types';
+import { Cond, InputType, InputValue, KV, PinField, Script, ScriptInput, Step, stepLabel } from './types';
 import { InputView, isValidKey, splitVars, varsIn } from './components/inputs/model';
 import type { RunSection } from './components/inputs/RunDialog';
 
@@ -49,6 +49,11 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
   switch (s.type) {
     case 'type': return { ...s, text: f(s.text) };
     case 'open': return { ...s, target: f(s.target ?? '') };
+    case 'http': {
+      const kv = (rows?: KV[]) => rows?.map((r) => ({ ...r, value: f(r.value) }));
+      return { ...s, url: f(s.url ?? ''), query: kv(s.query), headers: kv(s.headers), form: s.bodyType === 'form' ? kv(s.form) : s.form,
+        body: s.bodyType === 'json' || s.bodyType === 'text' ? f(s.body ?? '') : s.body };
+    }
     case 'clipboard': return s.clipOp === 'write' ? { ...s, text: f(s.text) } : s.clipOp === 'image' ? { ...s, filePath: f(s.filePath ?? '') } : s;
     case 'screenshot': return { ...s, saveDir: s.saveDir && f(s.saveDir), fileName: s.fileName && f(s.fileName) };
     case 'waitImage': case 'clickImage': return s.findBy === 'text' ? { ...s, findText: f(s.findText ?? '') } : s;

@@ -5,6 +5,7 @@ import { orderedSteps } from '../flow/model';
 import { fmtSelectors } from '../flow/web';
 import { fmtShot } from '../flow/shot';
 import { fmtClip } from '../flow/clipboard';
+import { fmtHTTP } from '../flow/http';
 import { fmtKey } from '../keys';
 import { effectiveHuman } from '../flow/human';
 import { curveAt, HUMAN_PROFILES, humanLegs } from '../overlay/humanPath';
@@ -233,6 +234,10 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges' | 'hu
             if (e?.start) await travel(e.start, s);
             patch({ bubble: `Chờ màu ${s.color} ±${s.tolerance}` });
             await wait(Math.min(s.timeoutMs ?? 0, 800));
+            break;
+          case 'http':
+            patch({ bubble: `🌐 ${fmtHTTP(s)} – kết quả biết khi chạy thật` });
+            await wait(KEY_SHOW_MS);
             break;
           case 'clipboard':
             patch({ bubble: `📋 Clipboard: ${fmtClip(s)}` });

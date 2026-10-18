@@ -1,6 +1,7 @@
 package script
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 
@@ -13,6 +14,7 @@ type VarField struct {
 	Name string // tên trường (json) cho lời báo lỗi, vd "cond.conds[1].left"
 	Ptr  *string
 	URL  bool // ô URL: giá trị biến được mã hoá (launch.EscapeURLValue)
+	JSON bool // thân JSON của node HTTP: giá trị biến thoát theo chuỗi JSON (đặt biến trong "…")
 	// Num: ô số – toạ độ (Point.XVar / YVar, F5b) hoặc trường số (NumVars, F5c): biến phải ra số (output của node),
 	// cả ô là số + / − (EvalCoord)
 	Num bool
@@ -54,6 +56,23 @@ func VarFields(s *model.Step) []VarField {
 				add(fmt.Sprintf("scrollIn[%d]", i), &s.ScrollIn[i], false)
 			}
 		}
+	case model.StepHTTP:
+		add("url", &s.URL, false)
+		kv := func(name string, rows []model.KV) {
+			for i := range rows {
+				add(fmt.Sprintf("%s[%d].value", name, i), &rows[i].Value, false)
+			}
+		}
+		kv("query", s.Query)
+		kv("headers", s.Headers)
+		switch s.BodyType {
+		case model.BodyJSON:
+			out = append(out, VarField{Name: "body", Ptr: &s.Body, JSON: true})
+		case model.BodyText:
+			add("body", &s.Body, false)
+		case model.BodyForm:
+			kv("form", s.Form)
+		}
 	case model.StepClipboard:
 		switch s.ClipOp {
 		case model.ClipWrite:
@@ -89,6 +108,18 @@ func VarFields(s *model.Step) []VarField {
 	return out
 }
 
+// EscapeValue – giá trị biến chèn vào ô f: ô URL mã hoá kiểu URL, thân JSON thoát theo chuỗi JSON (", \, xuống dòng…).
+func EscapeValue(f VarField, v string) string {
+	switch {
+	case f.URL:
+		return launch.EscapeURLValue(v)
+	case f.JSON:
+		b, _ := json.Marshal(v)
+		return string(b[1 : len(b)-1])
+	}
+	return v
+}
+
 // hasPoints – loại node có điểm trên màn hình nhận toạ độ từ biến (điểm trong điều kiện pixel chưa nhận).
 func hasPoints(t string) bool {
 	switch t {
@@ -118,6 +149,7 @@ func CloneStep(s model.Step) model.Step {
 	s.Selectors = slices.Clone(s.Selectors)
 	s.ScrollIn = slices.Clone(s.ScrollIn)
 	s.NumVars = slices.Clone(s.NumVars)
+	s.Query, s.Headers, s.Form = slices.Clone(s.Query), slices.Clone(s.Headers), slices.Clone(s.Form)
 	s.Cond = cloneCond(s.Cond)
 	if s.Cases != nil {
 		cs := make([]model.Case, len(s.Cases))

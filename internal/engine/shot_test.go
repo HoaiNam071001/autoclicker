@@ -81,7 +81,9 @@ func TestScreenshotAreas(t *testing.T) {
 	}{
 		{"màn chứa vùng", func(s *model.Step) { s.ShotArea = model.ShotScreen }, ds[0]},
 		{"màn thứ 2", func(s *model.Step) { s.ShotArea, s.Display = model.ShotScreen, 2 }, ds[1]},
-		{"vùng cố định", func(s *model.Step) { s.ShotArea, s.ShotRect = model.ShotRect, &model.Rect{X: 1500, Y: 40, W: 300, H: 200} }, model.Rect{X: 1500, Y: 40, W: 300, H: 200}},
+		{"vùng cố định", func(s *model.Step) {
+			s.ShotArea, s.ShotRect = model.ShotRect, &model.Rect{X: 1500, Y: 40, W: 300, H: 200}
+		}, model.Rect{X: 1500, Y: 40, W: 300, H: 200}},
 	} {
 		scr := &fakeScreen{frames: []image.Image{frame}}
 		sc := model.Script{Loops: 1, Region: &model.Rect{X: 100, Y: 100, W: 400, H: 300},

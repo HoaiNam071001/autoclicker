@@ -1,11 +1,11 @@
 package engine
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
 	"autoclicker/internal/script"
 )
@@ -37,10 +37,7 @@ func resolveNodeVars(s model.Step, rv runVars) (model.Step, error) {
 				}
 				return m
 			}
-			if f.URL {
-				return launch.EscapeURLValue(v)
-			}
-			return v
+			return script.EscapeValue(f, v)
 		})
 	}
 	return s, firstErr
@@ -78,14 +75,43 @@ func (rv runVars) lookup(name, path string) (string, error) {
 		}
 		return r.Error.Message, nil
 	case strings.HasPrefix(path, "output."):
-		key := strings.TrimPrefix(path, "output.")
+		key, rest, _ := strings.Cut(strings.TrimPrefix(path, "output."), ".")
 		v, ok := r.Output[key]
 		if !ok {
 			return "", fmt.Errorf("node %s không có output %q (lần chạy gần nhất: %s)", r.Ref, key, r.Status)
 		}
+		if rest != "" { // đọc sâu: {{n2.output.json.data.items.0.id}} (node HTTP)
+			var err error
+			if v, err = dig(v, rest); err != nil {
+				return "", fmt.Errorf("node %s output %s: %w", r.Ref, key, err)
+			}
+		}
 		return fmtValue(v), nil
 	}
 	return "", fmt.Errorf("không hiểu %q – dùng status, port, error.message, output.<tên>", path)
+}
+
+// dig đi theo đường "a.b.0.c" trong object / mảng (JSON đã giải mã).
+func dig(v any, path string) (any, error) {
+	for _, k := range strings.Split(path, ".") {
+		switch x := v.(type) {
+		case map[string]any:
+			next, ok := x[k]
+			if !ok {
+				return nil, fmt.Errorf("không có khoá %q", k)
+			}
+			v = next
+		case []any:
+			i, err := strconv.Atoi(k)
+			if err != nil || i < 0 || i >= len(x) {
+				return nil, fmt.Errorf("mảng có %d phần tử, không có phần tử %q (đếm từ 0)", len(x), k)
+			}
+			v = x[i]
+		default:
+			return nil, fmt.Errorf("không đọc sâu được vào %q – giá trị không phải object / mảng", k)
+		}
+	}
+	return v, nil
 }
 
 func fmtValue(v any) string {
@@ -100,6 +126,9 @@ func fmtValue(v any) string {
 		return strconv.FormatBool(x)
 	case nil:
 		return ""
+	case map[string]any, []any: // object / mảng (output json của node HTTP) – in ra JSON để dùng tiếp
+		b, _ := json.Marshal(x)
+		return string(b)
 	}
 	return fmt.Sprint(v)
 }

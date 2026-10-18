@@ -120,6 +120,13 @@ func checkStep(s *model.Step) error {
 		if s.Display < 0 {
 			return errors.New("số thứ tự màn hình không được âm")
 		}
+	case model.StepHTTP:
+		if s.Method != "" && !slices.Contains(model.HTTPMethods, s.Method) {
+			return fmt.Errorf("method HTTP không hợp lệ: %q (GET | POST | PUT | PATCH | DELETE)", s.Method)
+		}
+		if !slices.Contains(model.BodyTypes, s.BodyType) {
+			return fmt.Errorf("kiểu body không hợp lệ: %q (trống | json | form | text)", s.BodyType)
+		}
 	case model.StepClipboard:
 		if !slices.Contains(model.ClipOps, s.ClipOp) {
 			return fmt.Errorf("phép clipboard không hợp lệ: %q (trống = đọc | write | image)", s.ClipOp)

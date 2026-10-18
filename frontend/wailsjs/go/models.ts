@@ -457,6 +457,20 @@ export namespace model {
 	        this.field = source["field"];
 	    }
 	}
+	export class KV {
+	    key: string;
+	    value: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new KV(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.key = source["key"];
+	        this.value = source["value"];
+	    }
+	}
 	export class LogLine {
 	    atMs: number;
 	    level: string;
@@ -813,6 +827,13 @@ export namespace model {
 	    toClipboard?: boolean;
 	    clipOp?: string;
 	    filePath?: string;
+	    method?: string;
+	    url?: string;
+	    query?: KV[];
+	    headers?: KV[];
+	    bodyType?: string;
+	    body?: string;
+	    form?: KV[];
 	    color?: string;
 	    tolerance?: number;
 	    cond?: Cond;
@@ -893,6 +914,13 @@ export namespace model {
 	        this.toClipboard = source["toClipboard"];
 	        this.clipOp = source["clipOp"];
 	        this.filePath = source["filePath"];
+	        this.method = source["method"];
+	        this.url = source["url"];
+	        this.query = this.convertValues(source["query"], KV);
+	        this.headers = this.convertValues(source["headers"], KV);
+	        this.bodyType = source["bodyType"];
+	        this.body = source["body"];
+	        this.form = this.convertValues(source["form"], KV);
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	        this.cond = this.convertValues(source["cond"], Cond);
