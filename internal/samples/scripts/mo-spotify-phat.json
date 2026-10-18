@@ -1,0 +1,20 @@
+{
+ "meta": {
+  "name": "Mở Spotify và phát nhạc",
+  "description": "Đặt âm lượng vừa nghe, mở app Spotify, chờ app lên rồi bấm Space để phát / tạm dừng bài đang chọn. Đúng: Spotify mở và phát nhạc ở mức âm lượng đã đặt.",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Cần cài Spotify và đăng nhập sẵn. Mở app thật + phát nhạc trên máy."
+ },
+ "script": {
+  "steps": [
+   { "type": "system", "sysOp": "volume", "volume": 30 },
+   { "type": "open", "target": "Spotify", "delayAfter": 5000 },
+   { "type": "key", "keys": ["space"], "delayAfter": 500 },
+   { "type": "end", "endStatus": "success", "message": "Đang phát Spotify, âm lượng {{n1.output.volume}} %" }
+  ],
+  "inputs": []
+ }
+}

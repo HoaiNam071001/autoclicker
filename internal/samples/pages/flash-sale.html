@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  main { flex: 1; display: grid; place-items: center; text-align: center; }
+  .top, .bottom { height: 190px; display: flex; flex-direction: column; } /* cao bằng nhau – nút nằm đúng giữa */
+  .top { justify-content: flex-end; }
+  #title { font-size: 26px; font-weight: 700; color: var(--muted); }
+  #count { font: 800 76px/1.1 ui-monospace, Menlo, monospace; margin: 10px 0 0; }
+  #buy { margin: 0 auto; display: block; width: 440px; height: 150px; border: 0; border-radius: 16px; font-size: 32px; font-weight: 800;
+    background: #9ca3af; color: #fff; cursor: not-allowed; }
+  #buy.open { background: #ee4d2d; cursor: pointer; }
+  #msg { margin-top: 18px; min-height: 56px; font-size: 40px; font-weight: 900; }
+  #msg.ok { color: #16a34a; } #msg.bad { color: #dc2626; }
+  #sub { font: 600 20px ui-monospace, Menlo, monospace; color: var(--muted); }
+</style></head>
+<body>
+<main><div>
+  <div class="top"><div id="title">FLASH SALE – Tai nghe giảm 90%</div><div id="count">--:--</div></div>
+  <button id="buy">MUA NGAY</button>
+  <div class="bottom"><div id="msg"></div><div id="sub"></div></div>
+</div></main>
+<script src="sandbox.js"></script>
+<script>
+  // Nút luôn ghi MUA NGAY (xám khi chưa mở) – kịch bản tìm sẵn nút trước giờ rồi click ngay vào chỗ đã thấy.
+  // Mở bán đúng giờ ?at=HH:MM:SS[.mmm] (hôm nay; trống / đã qua = mở luôn). Bấm trước giờ → "CHƯA MỞ BÁN"; bấm sau giờ →
+  // "THÀNH CÔNG" + trễ bao nhiêu ms so với giờ mở bán (càng sát càng giỏi). Không ghi giờ mở bán dạng chữ to (OCR không ăn gian).
+  sb.header('Flash sale');
+  const at = new URLSearchParams(location.search).get('at') || '';
+  const m = /^(\d{1,2}):(\d{2})(?::(\d{2})(?:[.,](\d{1,3}))?)?$/.exec(at.trim());
+  const now0 = new Date();
+  const open = m ? new Date(now0.getFullYear(), now0.getMonth(), now0.getDate(), +m[1], +m[2], +(m[3] || 0), +((m[4] || '0') + '00').slice(0, 3)) : now0;
+  const buy = document.getElementById('buy'), count = document.getElementById('count'), msg = document.getElementById('msg'), sub = document.getElementById('sub');
+  let done = false;
+  const tick = () => {
+    const left = open - new Date();
+    if (left <= 0) {
+      buy.classList.add('open'); count.textContent = 'ĐANG MỞ BÁN';
+    } else {
+      const s = left / 1000;
+      count.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+    }
+  };
+  tick();
+  setInterval(tick, 50);
+  buy.addEventListener('mousedown', () => {
+    if (done) return;
+    const late = new Date() - open;
+    if (late < 0) {
+      msg.className = 'bad'; msg.textContent = 'CHƯA MỞ BÁN'; sub.textContent = `bấm sớm ${-late} ms`;
+      return;
+    }
+    done = true;
+    msg.className = 'ok'; msg.textContent = 'THÀNH CÔNG'; sub.textContent = `đặt được sau giờ mở bán ${late} ms`;
+  });
+</script>
+</body></html>

@@ -1,0 +1,22 @@
+{
+ "meta": {
+  "name": "Tìm và mở app trên máy",
+  "description": "Mở ô tìm của máy (macOS: Cmd+Space – Spotlight), gõ tên app (input, mặc định Calculator), Enter. Đúng: app Máy tính mở lên. Windows: đổi node Phím tắt thành phím Win (cmd) rồi chạy như cũ.",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Mở app thật trên máy. Tắt bộ gõ tiếng Việt khi chạy."
+ },
+ "script": {
+  "steps": [
+   { "type": "key", "keys": ["space"], "modifiers": ["cmd"], "delayAfter": 800 },
+   { "type": "type", "text": "{{app}}", "delayAfter": 900 },
+   { "type": "key", "keys": ["enter"], "delayAfter": 1500 },
+   { "type": "end", "endStatus": "success", "message": "Đã mở {{app}}" }
+  ],
+  "inputs": [
+   { "key": "app", "label": "Tên app", "type": "text", "default": "Calculator" }
+  ]
+ }
+}

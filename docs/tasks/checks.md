@@ -5,6 +5,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 35 – Node nâng cao · [phase3/35-node-nang-cao.md](phase3/35-node-nang-cao.md)
 
+- [ ] N8 mẫu: **Tìm và mở app trên máy** (Calculator mở lên; tắt bộ gõ tiếng Việt), **Mở Spotify và phát nhạc** (cần Spotify đăng nhập sẵn), **Săn sale – chờ đúng giờ mở bán** (nhập giờ ~1 phút sau: trang ghi đặt được sau giờ mở bán vài chục ms), **Chụp vùng rồi báo qua HTTP** (HTTP 200)
 - [ ] N7 Vẽ đường: Mẫu thử → **Vẽ đường – sao, tròn, chữ nhật, đường gấp khúc** → Chạy: Bảng vẽ có 4 vệt đúng hình, *Số lần kéo* = 4. Overlay (👁): nét viền hiện trước đúng hình; đường gấp khúc có marker n·1, n·2… kéo được, nét đổi theo. Xem trước: con trỏ giả đi đúng nét, giữ chuột. Inspector: thêm / xoá điểm, Khép kín, đổi sang Sao giữ tâm ở giữa. Xem cả theme sáng + tối
 - [ ] N6 Chờ đến giờ: Mẫu thử → **Chờ đến giờ – bấm MUA NGAY đúng giờ** → Chạy, nhập giờ ~1 phút sau (vd 20:15:00.000): thanh mini *chờ đến giờ – còn …* đếm ngược, đúng giờ trang ghi *bấm lúc 20:15:00.0xx*; lời kết thúc ghi trễ vài chục ms. Bấm Dừng / tạm dừng giữa lúc chờ ăn ngay. Inspector: xem trước *Còn … / Đã qua …* đổi theo 3 lựa chọn; giờ sai dạng báo đỏ. Xem cả theme sáng + tối
 - [ ] N5 Âm lượng: Mẫu thử → **Hệ thống – giảm rồi tăng âm lượng** → Chạy: thanh âm lượng giảm rồi về mức cũ, lời kết thúc ghi 2 mức. Inspector: kéo thanh trượt = ô %; Tắt tiếng / Bật tiếng chạy được. Xem cả theme sáng + tối. Windows (khi có máy): đặt / tăng / giảm / tắt tiếng qua Core Audio

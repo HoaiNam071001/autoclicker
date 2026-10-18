@@ -1,0 +1,25 @@
+{
+ "meta": {
+  "name": "Săn sale – chờ đúng giờ mở bán rồi bấm MUA",
+  "description": "Trang Flash sale mở bán đúng giờ bạn nhập (form Chạy hỏi). Kịch bản mở trang, tìm sẵn nút MUA NGAY (trước giờ), chờ đến giờ, click ngay vào chỗ đã thấy – không phải tìm lại sau giờ, chờ chữ THÀNH CÔNG rồi chụp đúng khung chữ làm bằng chứng. Đúng: trang ghi “đặt được sau giờ mở bán … ms” (vài chục ms), ảnh lưu trong Pictures/autoclicker. Giờ trống / đã qua: trang mở bán ngay.",
+  "app": "Shop",
+  "level": 2,
+  "page": "flash-sale.html",
+  "real": false,
+  "prep": "Trang sân thử chấm theo đồng hồ máy nên mẫu tắt canh giờ chuẩn; săn sale trang thật (giờ server) thì bật Canh giờ chuẩn ở node Chờ đến giờ. Mở bằng Chrome của app (trình duyệt mặc định trên macOS bỏ mất ?at= của file trong máy). Nhập giờ khoảng 1 phút sau lúc bấm Chạy, vd 20:15:00. Cần quyền ghi màn hình."
+ },
+ "script": {
+  "steps": [
+   { "type": "open", "target": "{{sandbox}}/flash-sale.html?at={{gio}}", "webBrowser": true, "delayAfter": 2500 },
+   { "type": "waitImage", "findBy": "text", "findText": "MUA NGAY", "searchArea": "screen", "timeoutMs": 10000 },
+   { "type": "waitUntil", "at": "{{gio}}" },
+   { "type": "clickImage", "imageSource": "node", "imageFrom": "s2", "human": "off", "delayAfter": 200 },
+   { "type": "waitImage", "findBy": "text", "findText": "THANH CONG", "textNoAccent": true, "searchArea": "screen", "timeoutMs": 5000 },
+   { "type": "screenshot", "shotArea": "node", "imageFrom": "s5", "fileName": "san-sale-{{gio}}" },
+   { "type": "end", "endStatus": "success", "message": "Đặt được – chạy tiếp lúc {{n3.output.firedAt}} (trễ {{n3.output.lateMs}} ms so với giờ hẹn), bằng chứng {{n6.output.path}}" }
+  ],
+  "inputs": [
+   { "key": "gio", "label": "Giờ mở bán (HH:mm:ss)", "type": "text", "default": "00:00:00" }
+  ]
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "meta": {
+  "name": "Chụp vùng rồi báo qua HTTP",
+  "description": "Chờ trang Tín hiệu hiện ĐÃ XONG, chụp đúng khung chữ, rồi POST thông tin ảnh (đường dẫn, cỡ, giờ) lên httpbin.org như gửi về webhook / Telegram. Đúng: lời kết thúc ghi HTTP 200 và đường dẫn file server nhận được. (Gửi kèm chính file ảnh – upload multipart – chưa có.)",
+  "app": "API",
+  "level": 2,
+  "page": "signal.html",
+  "real": false,
+  "prep": "Cần mạng + quyền ghi màn hình."
+ },
+ "script": {
+  "steps": [
+   { "type": "open", "target": "{{sandbox}}/signal.html", "delayAfter": 500 },
+   { "type": "waitImage", "findBy": "text", "findText": "DA XONG", "textNoAccent": true, "searchArea": "screen", "timeoutMs": 15000 },
+   { "type": "screenshot", "shotArea": "node", "imageFrom": "s2", "fileName": "bao-cao-tin-hieu" },
+   { "type": "http", "method": "POST", "url": "https://httpbin.org/post", "bodyType": "json",
+     "body": "{\n  \"su_kien\": \"tín hiệu đã xong\",\n  \"anh\": \"{{n3.output.path}}\",\n  \"rong\": {{n3.output.w}},\n  \"cao\": {{n3.output.h}},\n  \"luc\": \"{{n3.output.startedAt}}\"\n}",
+     "timeoutMs": 15000 },
+   { "type": "end", "endStatus": "success", "message": "HTTP {{n4.output.status}} – server nhận ảnh {{n4.output.json.json.anh}} ({{n4.output.json.json.rong}} × {{n4.output.json.json.cao}})" }
+  ]
+ }
+}
