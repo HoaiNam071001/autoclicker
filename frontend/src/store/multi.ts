@@ -1,6 +1,6 @@
 // Chọn nhiều điểm + biến đổi hàng loạt (bước 30) và đổi vùng kèm cách xử lý các điểm.
 import { anchorPoint, insideBounds } from '../anchor';
-import { apply, IDENTITY, Mat, rectToRect } from '../transform';
+import { apply, IDENTITY, Mat, rectToRect, translate } from '../transform';
 import { Point, Rect, Script, Step } from '../types';
 import { getEditor, setEditor, setNotice, updateScript } from './editor';
 import { boundsOf, endpoints, pointKey, selectableIndexes, toScreen } from './geometry';
@@ -8,6 +8,37 @@ import { boundsOf, endpoints, pointKey, selectableIndexes, toScreen } from './ge
 const script = () => getEditor().script;
 
 export const setMulti = (multi: string[]) => setEditor({ multi });
+
+// Toạ độ màn hình của các điểm đang chọn (khoá → điểm) theo kịch bản đã lưu; A "từ điểm trước" không chọn được.
+export function selectedScreenPoints(): Map<string, Point> {
+  const { script: sc, multi } = getEditor();
+  const ends = endpoints(sc, sc.region);
+  const out = new Map<string, Point>();
+  sc.steps.forEach((s) => {
+    const e = ends.get(s.id);
+    if (!e) return;
+    selectableIndexes(s).forEach((j) => {
+      const p = s.type === 'drag' && j === 1 ? e.end : e.start;
+      const k = pointKey(s.id, j);
+      if (p && multi.includes(k)) out.set(k, p);
+    });
+  });
+  return out;
+}
+
+// Phím của công cụ Chọn nhiều trên overlay: mod+A chọn mọi điểm của node đang bật, mũi tên dời 1 px (Shift 10 px).
+// Trả true nếu đã xử lý (người gọi chặn mặc định của phím).
+export function selectToolKey(key: string, mod: boolean, shift: boolean): boolean {
+  if (key.toLowerCase() === 'a' && mod) {
+    setMulti(script().steps.filter((s) => s.enabled).flatMap((s) => selectableIndexes(s).map((j) => pointKey(s.id, j))));
+    return true;
+  }
+  const d = ({ ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] } as Record<string, number[]>)[key];
+  if (!d || !getEditor().multi.length) return false;
+  const k = shift ? 10 : 1;
+  transformSelected(translate(d[0] * k, d[1] * k), 'di chuyển');
+  return true;
+}
 
 const keysOf = (ids: string[]) => script().steps.filter((s) => ids.includes(s.id)).flatMap((s) => selectableIndexes(s).map((j) => pointKey(s.id, j)));
 
