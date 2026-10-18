@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"context"
@@ -20,7 +20,7 @@ func TestShootOnFail(t *testing.T) {
 	e.shots = map[string]image.Image{}
 	var got []model.StepResult
 	e.onNode = func(r model.StepResult) { got = append(got, r) }
-	if err := e.run(context.Background()); err == nil {
+	if err := e.Run(context.Background()); err == nil {
 		t.Fatal("phải lỗi")
 	}
 	if len(got) != 1 || got[0].Shot != "1.png" || e.shots["1.png"] == nil || got[0].Loop != 1 {
@@ -40,7 +40,7 @@ func TestDebugBreakpointAndStep(t *testing.T) {
 	}, Edges: []model.Edge{modeltest.Edge("a", model.PortSuccess, "b"), modeltest.Edge("b", model.PortSuccess, "c")}}
 
 	// không debug: chạy thẳng
-	if err := newEngine(&devicetest.FakeInput{}, sc, nil).run(context.Background()); err != nil {
+	if err := newEngine(&devicetest.FakeInput{}, sc, nil).Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -56,7 +56,7 @@ func TestDebugBreakpointAndStep(t *testing.T) {
 	})
 	e.debug = true
 	done := make(chan error)
-	go func() { done <- e.run(context.Background()) }()
+	go func() { done <- e.Run(context.Background()) }()
 	waitFor := func(n int) {
 		t.Helper()
 		for i := 0; i < 100; i++ {

@@ -1,5 +1,5 @@
 // Bấm Chạy / F8 (bước 21b): kịch bản có input → mở form Chạy (RunDialog) điền giá trị, trừ khi đã bật
-// "Lần sau chạy luôn". Giá trị lần trước + bộ giá trị (preset) lưu trên máy theo từng kịch bản (inputs.go).
+// "Lần sau chạy luôn". Giá trị lần trước + bộ giá trị (preset) lưu trên máy theo từng kịch bản (internal/store/inputmemory.go).
 import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { GetInputMemory, SaveInputMemory, ValidateScript } from '../wailsjs/go/main/App';

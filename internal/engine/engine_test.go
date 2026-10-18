@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
 	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script"
+	"autoclicker/internal/script/scripttest"
 )
 
 func TestRunClickLoopsAndRegion(t *testing.T) {
@@ -27,7 +27,7 @@ func TestRunClickLoopsAndRegion(t *testing.T) {
 			modeltest.Step(model.StepClick, func(s *model.Step) { s.Enabled = false }),
 		},
 	}
-	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
+	if err := newEngine(in, scripttest.Linear(sc), nil).Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	one := []string{"move 110,70", "click left false", "move 110,70", "click left false", "move 101,52", "click right true"}
@@ -42,7 +42,7 @@ func TestRunDrag(t *testing.T) {
 	sc := model.Script{Loops: 1, Steps: []model.Step{
 		modeltest.Step(model.StepDrag, func(s *model.Step) { s.Points = []model.Point{{X: 0, Y: 0}, {X: 100, Y: 40}}; s.DragMs = 40 }),
 	}}
-	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
+	if err := newEngine(in, scripttest.Linear(sc), nil).Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	got := in.Lines()
@@ -58,7 +58,7 @@ func TestRunTypeAndKey(t *testing.T) {
 		modeltest.Step(model.StepText, func(s *model.Step) { s.Text = "Gõ" }),
 		modeltest.Step(model.StepKey, func(s *model.Step) { s.Keys = []string{"v"}; s.Modifiers = []string{"cmd", "shift"} }),
 	}}
-	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
+	if err := newEngine(in, scripttest.Linear(sc), nil).Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	want := []string{"type G", "type õ",
@@ -75,7 +75,7 @@ func TestStopInfiniteLoopReleasesButton(t *testing.T) {
 	}}
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error)
-	go func() { done <- newEngine(in, linear(sc), nil).run(ctx) }()
+	go func() { done <- newEngine(in, scripttest.Linear(sc), nil).Run(ctx) }()
 	time.Sleep(30 * time.Millisecond)
 	cancel()
 
@@ -93,22 +93,6 @@ func TestStopInfiniteLoopReleasesButton(t *testing.T) {
 	}
 }
 
-func TestValidateScript(t *testing.T) {
-	cases := map[string]model.Script{
-		"không có node nào được bật": {Steps: []model.Step{modeltest.Step(model.StepWait, func(s *model.Step) { s.Enabled = false })}},
-		"cần 2 điểm":                 {Steps: []model.Step{modeltest.Step(model.StepDrag, func(s *model.Step) { s.Points = s.Points[:1] })}},
-		"chưa nhập nội dung gõ":      {Steps: []model.Step{modeltest.Step(model.StepText, nil)}},
-		"chưa chọn phím":             {Steps: []model.Step{modeltest.Step(model.StepKey, func(s *model.Step) { s.Keys = nil })}},
-		"không hợp lệ":               {Steps: []model.Step{{Type: "scroll", Enabled: true}}},
-	}
-	for want, sc := range cases {
-		err := script.ValidateScript(linear(sc), model.Rect{})
-		if err == nil || !strings.Contains(err.Error(), want) {
-			t.Errorf("muốn lỗi chứa %q, nhận %v", want, err)
-		}
-	}
-}
-
 func TestPauseResumeAndProgress(t *testing.T) {
 	in := &devicetest.FakeInput{}
 	sc := model.Script{Loops: 2, Steps: []model.Step{
@@ -117,10 +101,10 @@ func TestPauseResumeAndProgress(t *testing.T) {
 	}}
 	var mu sync.Mutex
 	var progs []Progress
-	eng := newEngine(in, linear(sc), func(p Progress) { mu.Lock(); progs = append(progs, p); mu.Unlock() })
+	eng := newEngine(in, scripttest.Linear(sc), func(p Progress) { mu.Lock(); progs = append(progs, p); mu.Unlock() })
 
 	done := make(chan error)
-	go func() { done <- eng.run(context.Background()) }()
+	go func() { done <- eng.Run(context.Background()) }()
 	time.Sleep(30 * time.Millisecond) // đang giữa các click của vòng 1
 	if !eng.Pause() || eng.Pause() {
 		t.Fatal("Pause lần 1 phải true, lần 2 false")
@@ -168,7 +152,7 @@ func TestKeyChordAndSequence(t *testing.T) {
 			s.Modifiers = []string{"ctrl"}
 			s.KeyMode = mode
 		})}}
-		if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
+		if err := newEngine(in, scripttest.Linear(sc), nil).Run(context.Background()); err != nil {
 			t.Fatal(err)
 		}
 		if got := in.Lines(); !reflect.DeepEqual(got, want) {
@@ -192,7 +176,7 @@ func TestKeyCancelReleasesAll(t *testing.T) {
 }
 
 func TestJitter(t *testing.T) {
-	e := newEngine(&devicetest.FakeInput{}, linear(model.Script{}), nil)
+	e := newEngine(&devicetest.FakeInput{}, scripttest.Linear(model.Script{}), nil)
 	e.intN = func(n int) int { return 0 } // lệch nhỏ nhất
 	if got := e.jitter(100, 5); got != 95 {
 		t.Errorf("jitter min = %d, muốn 95", got)
@@ -217,7 +201,7 @@ func TestRunJitterPositionsInBounds(t *testing.T) {
 	sc := model.Script{Loops: 1, Steps: []model.Step{
 		modeltest.Step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{{X: 500, Y: 300}}; s.Clicks = 200; s.JitterPx = 4 }),
 	}}
-	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
+	if err := newEngine(in, scripttest.Linear(sc), nil).Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	seen := map[string]bool{}
@@ -251,7 +235,7 @@ func TestDragFromPrevAndRelative(t *testing.T) {
 			s.DragFromPrev, s.DragMs = true, 10
 		}),
 	}}
-	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
+	if err := newEngine(in, scripttest.Linear(sc), nil).Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	want := []string{
@@ -269,7 +253,7 @@ func TestDragFromPrevNeedsPrevPoint(t *testing.T) {
 		modeltest.Step(model.StepKey, nil),
 		modeltest.Step(model.StepDrag, func(s *model.Step) { s.DragFromPrev = true }),
 	}}
-	err := newEngine(&devicetest.FakeInput{}, linear(sc), nil).run(context.Background())
+	err := newEngine(&devicetest.FakeInput{}, scripttest.Linear(sc), nil).Run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "n2: kéo từ điểm trước đó") {
 		t.Errorf("muốn lỗi thiếu điểm trước, nhận %v", err)
 	}

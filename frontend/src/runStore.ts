@@ -1,5 +1,5 @@
 // Nhật ký lần chạy đang xem (bước 20 F5): kết quả từng node của lần đang chạy / vừa chạy (event engine:node) hoặc
-// một lần trong lịch sử (runlog.go). Canvas tô đường đã đi, bảng Nhật ký, mục "Lần chạy gần nhất" đều đọc từ đây.
+// một lần trong lịch sử (internal/store/runs.go). Canvas tô đường đã đi, bảng Nhật ký, mục "Lần chạy gần nhất" đều đọc từ đây.
 import { useSyncExternalStore } from 'react';
 import { GetRun, ListRuns, RunShot } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
@@ -7,13 +7,13 @@ import { getEditor, subscribe } from './store';
 import { inWails } from './windowMode';
 import type { StepResult } from './types';
 
-// Khớp RunSummary trong runlog.go.
+// Khớp RunSummary trong internal/model/run.go.
 export type RunSummary = {
   id: string; script: string; source: string; startedAt: string; durationMs: number;
   status: 'success' | 'fail' | 'stopped'; error?: string; message?: string; nodes: number;
 };
 
-const MAX_RESULTS = 2000; // khớp maxRunResults (runlog.go)
+const MAX_RESULTS = 2000; // khớp MaxRunResults (internal/model/run.go)
 
 type RunLogState = {
   results: StepResult[];

@@ -1,4 +1,4 @@
-export namespace main {
+export namespace engine {
 	
 	export class CondPart {
 	    path: number[];
@@ -26,42 +26,6 @@ export namespace main {
 	        this.hit = this.convertValues(source["hit"], model.Rect);
 	        this.score = source["score"];
 	        this.text = source["text"];
-	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
-	}
-	export class DisplayInfo {
-	    index: number;
-	    rect: model.Rect;
-	    main: boolean;
-	    current: boolean;
-	
-	    static createFrom(source: any = {}) {
-	        return new DisplayInfo(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.index = source["index"];
-	        this.rect = this.convertValues(source["rect"], model.Rect);
-	        this.main = source["main"];
-	        this.current = source["current"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -146,6 +110,47 @@ export namespace main {
 	        this.parts = this.convertValues(source["parts"], CondPart);
 	        this.value = source["value"];
 	        this.ms = source["ms"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
+export namespace main {
+	
+	export class DisplayInfo {
+	    index: number;
+	    rect: model.Rect;
+	    main: boolean;
+	    current: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new DisplayInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.index = source["index"];
+	        this.rect = this.convertValues(source["rect"], model.Rect);
+	        this.main = source["main"];
+	        this.current = source["current"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

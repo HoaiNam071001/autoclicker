@@ -3,15 +3,16 @@ package main
 import (
 	"context"
 	"errors"
-	"image"
 	"time"
 
+	"github.com/go-vgo/robotgo"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
+
 	"autoclicker/internal/device"
+	"autoclicker/internal/engine"
 	"autoclicker/internal/model"
 	"autoclicker/internal/script"
 	"autoclicker/internal/store"
-	"github.com/go-vgo/robotgo"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // Lý do dừng gửi kèm event "engine:stopped".
@@ -22,7 +23,7 @@ const (
 
 type runHandle struct {
 	cancel context.CancelFunc
-	eng    *engine
+	eng    *engine.Engine
 }
 
 // ValidateScript áp giá trị input rồi kiểm tra như lúc chạy (frontend gọi trước khi thu cửa sổ thành mini bar).
@@ -58,22 +59,22 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	in := &device.TrackingInput{Input: device.RobotgoInput{}}
-	eng := newEngine(in, sc, func(p Progress) {
-		runtime.EventsEmit(a.ctx, "engine:progress", p)
-	})
 	if opt.Source == "" {
 		opt.Source = SourceUser
 	}
 	rec := model.RunRecord{RunSummary: model.RunSummary{Script: sc.Name, Source: opt.Source}, Inputs: values, Results: []model.StepResult{}}
-	eng.shots = map[string]image.Image{}
-	eng.debug = opt.Source == SourceUser
-	eng.step.Store(opt.Step)
-	eng.onNode = func(r model.StepResult) {
-		rec.Add(r, eng.byID[r.NodeID].Type)
-		runtime.EventsEmit(a.ctx, "engine:node", r)
+	types := map[string]string{}
+	for _, s := range sc.Steps {
+		types[s.ID] = s.Type
 	}
-	eng.screen = screen
-	eng.displays = device.Displays()
+	eng := engine.New(in, sc, engine.Options{
+		Screen: screen, Displays: device.Displays(), Debug: opt.Source == SourceUser, StepMode: opt.Step, KeepShots: true,
+		OnProgress: func(p engine.Progress) { runtime.EventsEmit(a.ctx, "engine:progress", p) },
+		OnNode: func(r model.StepResult) {
+			rec.Add(r, types[r.NodeID])
+			runtime.EventsEmit(a.ctx, "engine:node", r)
+		},
+	})
 	h := &runHandle{cancel: cancel, eng: eng}
 	a.run = h
 	a.mu.Unlock()
@@ -91,7 +92,7 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 
 	for n := opt.Countdown; n > 0; n-- {
 		runtime.EventsEmit(a.ctx, "engine:countdown", n)
-		if sleep(ctx, 1000) != nil {
+		if engine.Sleep(ctx, 1000) != nil {
 			return nil // dừng khi đang đếm ngược
 		}
 	}
@@ -101,20 +102,20 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 
 	rec.StartedAt = time.Now()
 	rec.ID = store.NewRunID(rec.StartedAt)
-	err = eng.run(ctx)
+	err = eng.Run(ctx)
 	a.finishRun(&rec, eng, opt, err)
 	if errors.Is(err, context.Canceled) {
 		return nil
 	}
-	if err != nil && eng.failed != "" {
+	if id, miss := eng.Failed(); err != nil && id != "" {
 		// frontend chọn bước lỗi; chờ ảnh hết giờ thì kèm chỗ giống nhất để xem lại
-		runtime.EventsEmit(a.ctx, "engine:failed", FailedStep{StepID: eng.failed, Miss: eng.miss})
+		runtime.EventsEmit(a.ctx, "engine:failed", FailedStep{StepID: id, Miss: miss})
 	}
 	return err
 }
 
 // finishRun ghi kết quả cuối vào lịch sử chạy rồi emit "engine:done". Lưu lỗi thì vẫn báo xong (lịch sử chỉ là phụ).
-func (a *App) finishRun(rec *model.RunRecord, eng *engine, opt RunOptions, err error) {
+func (a *App) finishRun(rec *model.RunRecord, eng *engine.Engine, opt RunOptions, err error) {
 	rec.DurationMs = time.Since(rec.StartedAt).Milliseconds()
 	switch {
 	case errors.Is(err, context.Canceled):
@@ -125,7 +126,7 @@ func (a *App) finishRun(rec *model.RunRecord, eng *engine, opt RunOptions, err e
 		rec.Status = model.RunSuccess
 	}
 	if base, e := store.ConfigDir(); e == nil {
-		if e = store.SaveRun(store.RunsDir(base, rec.Script, opt.Path), *rec, eng.shots); e != nil {
+		if e = store.SaveRun(store.RunsDir(base, rec.Script, opt.Path), *rec, eng.Shots()); e != nil {
 			runtime.LogErrorf(a.ctx, "lưu lịch sử chạy: %v", e)
 		}
 	}
@@ -134,8 +135,8 @@ func (a *App) finishRun(rec *model.RunRecord, eng *engine, opt RunOptions, err e
 
 // FailedStep – bước làm lần chạy dừng vì lỗi (event engine:failed).
 type FailedStep struct {
-	StepID string      `json:"stepId"`
-	Miss   *FindResult `json:"miss,omitempty"` // chờ ảnh hết giờ: chỗ giống nhất
+	StepID string             `json:"stepId"`
+	Miss   *engine.FindResult `json:"miss,omitempty"` // chờ ảnh hết giờ: chỗ giống nhất
 }
 
 // stopWith dừng kịch bản đang chạy và emit "engine:stopped" kèm lý do (F8, góc màn hình).
@@ -185,4 +186,37 @@ func (a *App) current() *runHandle {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return a.run
+}
+
+// Lịch sử chạy (bước 20 F5): mỗi lần chạy ghi một model.RunRecord + ảnh lúc node thất bại (engine.Shots) qua
+// store.SaveRun; ListRuns / GetRun / RunShot đọc lại cho màn Lịch sử.
+
+// Nguồn của lần chạy (RunOptions.Source).
+const (
+	SourceUser     = "user"
+	SourceSchedule = "schedule"
+	SourceCLI      = "cli"
+	SourceAI       = "ai"
+)
+
+// RunOptions – cách chạy kịch bản (RunScript).
+type RunOptions struct {
+	Countdown int    `json:"countdown"`        // giây đếm ngược trước khi chạy
+	Path      string `json:"path,omitempty"`   // file kịch bản – gom lịch sử theo kịch bản (chưa lưu: theo tên)
+	Source    string `json:"source,omitempty"` // user (mặc định) | schedule | cli | ai
+	From      string `json:"from,omitempty"`   // debug: chạy một vòng bắt đầu từ node này thay cho start
+	Step      bool   `json:"step,omitempty"`   // debug: dừng trước mỗi node, Tiếp / F10 chạy node kế
+}
+
+// ListRuns – lịch sử chạy của kịch bản (tên + đường dẫn file như lúc chạy), mới nhất trước.
+func (a *App) ListRuns(name, path string) []model.RunSummary { return store.RunsOf(name, path) }
+
+// GetRun – toàn bộ một lần chạy (nhật ký từng node).
+func (a *App) GetRun(name, path, id string) (model.RunRecord, error) {
+	return store.GetRun(name, path, id)
+}
+
+// RunShot – ảnh màn hình lúc node thất bại (StepResult.Shot) dạng data URL.
+func (a *App) RunShot(name, path, id, shot string) (string, error) {
+	return store.RunShot(name, path, id, shot)
 }

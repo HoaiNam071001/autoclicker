@@ -1,15 +1,15 @@
-package main
+package engine
 
 import (
 	"context"
 	"reflect"
-	"strings"
 	"testing"
 
 	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
 	"autoclicker/internal/model/modeltest"
 	"autoclicker/internal/script"
+	"autoclicker/internal/script/scripttest"
 )
 
 // Biến trong URL được mã hoá, trong tên app / văn bản thì giữ nguyên.
@@ -40,13 +40,13 @@ func TestRunScrollAndOpen(t *testing.T) {
 		modeltest.Step(model.StepScroll, func(s *model.Step) { s.Amount = 2 }),
 		modeltest.Step(model.StepScroll, func(s *model.Step) { s.Direction, s.Amount, s.Points = "up", 1, []model.Point{{X: 10, Y: 20}} }),
 	}}
-	e := newEngine(in, linear(sc), nil)
+	e := newEngine(in, scripttest.Linear(sc), nil)
 	var opened []string
 	e.open = func(target, app string) error {
 		opened = append(opened, target+" | "+app)
 		return nil
 	}
-	if err := e.run(context.Background()); err != nil {
+	if err := e.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	if want := []string{"scroll down", "scroll down", "move 10,20", "scroll up"}; !reflect.DeepEqual(in.Lines(), want) {
@@ -54,20 +54,5 @@ func TestRunScrollAndOpen(t *testing.T) {
 	}
 	if !reflect.DeepEqual(opened, []string{"a.vn | Firefox"}) {
 		t.Errorf("mở: %q", opened)
-	}
-}
-
-func TestValidateScrollOpen(t *testing.T) {
-	cases := map[string]model.Step{
-		"hướng lạ":        modeltest.Step(model.StepScroll, func(s *model.Step) { s.Direction = "xeo" }),
-		"0 nấc":           modeltest.Step(model.StepScroll, func(s *model.Step) { s.Amount = 0 }),
-		"chưa nhập URL":   modeltest.Step(model.StepOpen, nil),
-		"điểm ngoài vùng": modeltest.Step(model.StepScroll, func(s *model.Step) { s.Points = []model.Point{{X: 5000, Y: 5000}} }),
-	}
-	for name, s := range cases {
-		sc := model.Script{Region: &model.Rect{W: 100, H: 100}, Steps: []model.Step{s}}
-		if err := script.ValidateScript(linear(sc), model.Rect{}); err == nil || !strings.HasPrefix(err.Error(), "n1:") {
-			t.Errorf("%s: muốn lỗi ở n1, có %v", name, err)
-		}
 	}
 }

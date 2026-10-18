@@ -5,8 +5,9 @@ package device
 import (
 	goruntime "runtime"
 
-	"autoclicker/internal/model"
 	"github.com/go-vgo/robotgo"
+
+	"autoclicker/internal/model"
 )
 
 // Input – thao tác chuột / bàn phím mà engine dùng. Tách interface để test engine bằng input giả.

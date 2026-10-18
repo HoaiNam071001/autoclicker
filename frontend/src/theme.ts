@@ -1,5 +1,5 @@
 // Theme sáng / tối (design v2): đặt data-theme trên <html>; 'system' = bỏ thuộc tính, CSS tự theo hệ điều hành.
-// Lưu trong cấu hình app bên Go (settings.go). Trên trình duyệt: ?theme=light|dark để xem thử.
+// Lưu trong cấu hình app bên Go (internal/store/settings.go). Trên trình duyệt: ?theme=light|dark để xem thử.
 import { useSyncExternalStore } from 'react';
 import { GetSettings, SetTheme } from '../wailsjs/go/main/App';
 import { inWails } from './windowMode';

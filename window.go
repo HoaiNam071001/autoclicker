@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
 	"github.com/go-vgo/robotgo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+
+	"autoclicker/internal/device"
+	"autoclicker/internal/model"
 )
 
 // Chế độ cửa sổ. Wails v2 chỉ có một cửa sổ nên overlay / mini bar là cách đổi kích thước,
@@ -229,3 +230,6 @@ func (a *App) MousePos() model.Point {
 	x, y := robotgo.Location()
 	return model.Point{X: x, Y: y}
 }
+
+// ScreenBounds trả khung màn hình chính – frontend dùng để tính điểm neo khi chọn toàn màn hình.
+func (a *App) ScreenBounds() model.Rect { return device.MainScreen() }

@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"context"
@@ -26,7 +26,7 @@ func (e *notFoundErr) Error() string { return e.msg }
 // run chạy tới khi đủ số vòng, hết MaxMinutes hoặc ctx bị huỷ.
 // Hết thời gian là kết thúc bình thường (nil); bị huỷ trả ctx.Err().
 // MaxMinutes tính theo đồng hồ thật, kể cả lúc tạm dừng.
-func (e *engine) run(ctx context.Context) error {
+func (e *Engine) Run(ctx context.Context) error {
 	sc := e.sc
 	if err := script.ValidateScript(sc, e.screen); err != nil {
 		return err
@@ -74,7 +74,7 @@ func (e *engine) run(ctx context.Context) error {
 }
 
 // runLoop chạy một vòng flow. Kết quả / biến đặt lại mỗi vòng (Đếm cũng đếm lại từ 0).
-func (e *engine) runLoop(ctx context.Context, loop int) error {
+func (e *Engine) runLoop(ctx context.Context, loop int) error {
 	e.rv = runVars{byRef: map[string]*model.StepResult{}, vars: map[string]any{}}
 	e.results = map[string]*model.StepResult{}
 	e.counts = map[string]int{}
@@ -108,7 +108,7 @@ func (e *engine) runLoop(ctx context.Context, loop int) error {
 			return fmt.Errorf("vòng %d, %s: %s", loop, s.Ref, res.Error.Message)
 		}
 		if res.Status == model.StatusSuccess {
-			if err := sleep(ctx, e.jitterMs(s.DelayAfter, s.JitterMs)); err != nil {
+			if err := Sleep(ctx, e.jitterMs(s.DelayAfter, s.JitterMs)); err != nil {
 				return err
 			}
 		}
@@ -118,7 +118,7 @@ func (e *engine) runLoop(ctx context.Context, loop int) error {
 }
 
 // execNode chạy một node, thử lại theo Retry; không bao giờ trả lỗi – mọi kết quả nằm trong StepResult.
-func (e *engine) execNode(ctx context.Context, s model.Step, loop int) model.StepResult {
+func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) model.StepResult {
 	res := model.StepResult{NodeID: s.ID, Ref: s.Ref, Loop: loop, StartedAt: time.Now()}
 	defer func() { res.DurationMs = time.Since(res.StartedAt).Milliseconds() }()
 	logf := func(level, format string, a ...any) {
@@ -139,7 +139,7 @@ func (e *engine) execNode(ctx context.Context, s model.Step, loop int) model.Ste
 	var err error
 	for t := 1; t <= tries; t++ {
 		if t > 1 {
-			if err = sleep(ctx, delay); err != nil {
+			if err = Sleep(ctx, delay); err != nil {
 				break
 			}
 		}

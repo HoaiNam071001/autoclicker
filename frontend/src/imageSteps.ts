@@ -1,5 +1,5 @@
 // Chờ ảnh / click theo ảnh / chờ pixel (bước 25) – phía giao diện: khoanh ảnh mẫu trên overlay, thử tìm trên màn hình,
-// lấy màu pixel, quyền chụp màn hình (macOS). Engine + so khớp ở Go (imagestep.go, match.go, imageapi.go).
+// lấy màu pixel, quyền chụp màn hình (macOS). Engine + so khớp ở Go (internal/engine, internal/vision, imageapi.go).
 import { useSyncExternalStore } from 'react';
 import { CaptureTemplate, FindImage, PixelColorAt, RequestScreenCapture, ScreenCaptureAllowed, TestNode } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
@@ -13,7 +13,7 @@ import { Rect } from './types';
 // fromRun: chỗ giống nhất của lần chạy hết giờ không thấy (engine:failed), không phải từ nút Thử tìm
 export type FindResult = { found: boolean; score: number; x: number; y: number; w: number; h: number; area: Rect; ms: number; read?: string[]; fromRun?: boolean };
 
-// Kết quả "Thử node" (nodetest.go) – node Nếu / Switch / Switch theo màn hình
+// Kết quả "Thử node" (internal/engine/nodetest.go) – node Nếu / Switch / Switch theo màn hình
 export type CondPart = { path: number[]; case?: string; kind: string; ok: boolean; known: boolean; detail: string; hit?: Rect };
 export type NodeTestResult = { port: string; known: boolean; parts: CondPart[]; value?: string; ms: number };
 

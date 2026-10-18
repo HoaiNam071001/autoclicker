@@ -5,7 +5,7 @@ import { EventsOn } from '../wailsjs/runtime/runtime';
 import { Script } from './types';
 import { inWails, setWindowMode } from './windowMode';
 
-// Khớp struct Progress trong engine.go (chỉ đi qua event nên Wails không sinh type).
+// Khớp struct Progress trong internal/engine/engine.go (chỉ đi qua event nên Wails không sinh type).
 export type Progress = {
   loop: number;
   loops: number; // 0 = vô hạn
@@ -18,7 +18,7 @@ export type Progress = {
   paused: boolean;
   retry?: number; // đang thử lại lần thứ mấy (0 / trống = lần đầu)
   retries?: number; // số lần thử lại tối đa của bước hiện tại
-  wait?: { kind: 'image' | 'text' | 'pixel'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (imagestep.go)
+  wait?: { kind: 'image' | 'text' | 'pixel'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (internal/engine/imagestep.go)
   break?: 'breakpoint' | 'step'; // debug: đang dừng trước node nodeId (Tiếp / F10)
 };
 

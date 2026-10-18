@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"context"
@@ -25,7 +25,7 @@ type WaitProgress struct {
 }
 
 // searchArea: vùng tìm ảnh theo toạ độ robotgo – vùng của kịch bản, hoặc cả màn chứa vùng đó (không có vùng: màn chính).
-func (e *engine) searchArea(s model.Step) model.Rect {
+func (e *Engine) searchArea(s model.Step) model.Rect {
 	b := script.Bounds(e.sc, e.screen)
 	if s.SearchArea != "screen" {
 		return b
@@ -43,7 +43,7 @@ func (e *engine) searchArea(s model.Step) model.Rect {
 }
 
 // template trả ảnh mẫu (xám) của bước, giải mã một lần mỗi lần chạy.
-func (e *engine) template(s model.Step) (vision.Gray, error) {
+func (e *Engine) template(s model.Step) (vision.Gray, error) {
 	if g, ok := e.tpls[s.ID]; ok {
 		return g, nil
 	}
@@ -61,7 +61,7 @@ func (e *engine) template(s model.Step) (vision.Gray, error) {
 
 // waitLoop gọi check mỗi IntervalMs tới khi check trả true, hết TimeoutMs (không tính lúc tạm dừng) hoặc bị huỷ.
 // check trả thêm độ khớp 0..100 để báo tiến độ.
-func (e *engine) waitLoop(ctx context.Context, s model.Step, kind string, check func() (bool, int, error)) (best int, err error) {
+func (e *Engine) waitLoop(ctx context.Context, s model.Step, kind string, check func() (bool, int, error)) (best int, err error) {
 	start, paused0, first := time.Now(), e.gate.pausedTotal(), true
 	defer e.update(true, func(p *Progress) { p.Wait = nil })
 	for {
@@ -85,7 +85,7 @@ func (e *engine) waitLoop(ctx context.Context, s model.Step, kind string, check 
 		if left <= 0 {
 			return best, errTimeout
 		}
-		if err := sleep(ctx, int(min(time.Duration(s.IntervalMs)*time.Millisecond, left).Milliseconds())); err != nil {
+		if err := Sleep(ctx, int(min(time.Duration(s.IntervalMs)*time.Millisecond, left).Milliseconds())); err != nil {
 			return best, err
 		}
 	}
@@ -112,7 +112,7 @@ func (h hit) output() map[string]any {
 }
 
 // findImage chờ tới khi thấy ảnh mẫu (hoặc chữ, FindBy text); trả chỗ thấy.
-func (e *engine) findImage(ctx context.Context, s model.Step) (hit, error) {
+func (e *Engine) findImage(ctx context.Context, s model.Step) (hit, error) {
 	area := e.searchArea(s)
 	if err := device.CaptureArea(area, e.displays); err != nil {
 		return hit{}, err
@@ -154,7 +154,7 @@ func (e *engine) findImage(ctx context.Context, s model.Step) (hit, error) {
 }
 
 // findTextStep chờ tới khi đọc được chữ s.FindText trong vùng; trả khung chữ (toạ độ robotgo).
-func (e *engine) findTextStep(ctx context.Context, s model.Step, area model.Rect) (hit, error) {
+func (e *Engine) findTextStep(ctx context.Context, s model.Step, area model.Rect) (hit, error) {
 	var at hit
 	var read []string
 	_, err := e.waitLoop(ctx, s, "text", func() (bool, int, error) {
@@ -210,7 +210,7 @@ func readHint(read []string) string {
 
 // clickImage click vào chỗ thấy (+ Dx / Dy): chỗ node ImageFrom thấy lần gần nhất trong vòng, hoặc tự tìm ảnh / chữ.
 // Output: chỗ đã click, kèm chỗ thấy khi tự tìm.
-func (e *engine) clickImage(ctx context.Context, s model.Step) (map[string]any, error) {
+func (e *Engine) clickImage(ctx context.Context, s model.Step) (map[string]any, error) {
 	var out map[string]any
 	var p model.Point
 	if s.ImageSource == model.ImageFromSearch {
@@ -244,7 +244,7 @@ func (e *engine) clickImage(ctx context.Context, s model.Step) (map[string]any, 
 }
 
 // waitPixel chờ tới khi điểm Points[0] có màu Color (mỗi kênh lệch ≤ Tolerance); trả màu đọc được.
-func (e *engine) waitPixel(ctx context.Context, s model.Step) (string, error) {
+func (e *Engine) waitPixel(ctx context.Context, s model.Step) (string, error) {
 	want, err := vision.ParseColor(s.Color)
 	if err != nil {
 		return "", err

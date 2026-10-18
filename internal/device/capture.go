@@ -7,9 +7,10 @@ import (
 	"image/color"
 	goruntime "runtime"
 
+	"github.com/go-vgo/robotgo"
+
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
-	"github.com/go-vgo/robotgo"
 )
 
 // Chụp màn hình / đọc màu pixel cho bước chờ ảnh, click theo ảnh, chờ pixel (bước 25). Tách interface để test engine

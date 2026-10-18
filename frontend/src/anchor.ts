@@ -1,4 +1,4 @@
-// Neo điểm theo cạnh vùng (bước 29) – phải khớp anchor.go.
+// Neo điểm theo cạnh vùng (bước 29) – phải khớp internal/script/anchor.go.
 // Mỗi trục neo riêng: start = cách cạnh trái / trên, end = cách cạnh phải / dưới (lưu số dương, hiện dấu −),
 // center = lệch so với giữa (có dấu), ratio = theo tỷ lệ cạnh, đơn vị 1/10000 (5000 = 50%).
 import type { Anchor, Point, Rect, StepPoint } from './types';

@@ -1,5 +1,5 @@
 // Input của kịch bản (bước 21b) – thao tác trên store: ghim trường, tạo / sửa / xoá input, tính bước nào dùng input.
-// Giá trị thật áp lúc chạy ở Go (resolveInputs, inputs.go). Trường đã ghim luôn giữ bằng giá trị mặc định của input,
+// Giá trị thật áp lúc chạy ở Go (script.ResolveInputs, internal/script/inputs.go). Trường đã ghim luôn giữ bằng giá trị mặc định của input,
 // nên Xem trước / overlay không cần resolve vẫn đúng với lần chạy dùng mặc định.
 import { flowOrder } from './flow/model';
 import { getEditor, updateScript } from './store';
@@ -21,13 +21,13 @@ const PIN: Record<PinField, { key: string; label: string; type: InputType; min?:
   enabled: { key: 'enabled', label: 'Bật bước', type: 'bool' },
 };
 
-// Kiểu input ghim được vào trường (khớp inputKind trong inputs.go).
+// Kiểu input ghim được vào trường (khớp inputKind trong internal/script/inputs.go).
 export const kindOf = (t: InputType) => (t === 'number' || t === 'ms' ? 'int' : t === 'bool' ? 'bool' : 'string');
 export const fieldKind = (f: PinField) => (f === 'enabled' ? 'bool' : 'int');
 
 const inputsOf = (sc: Script) => sc.inputs ?? [];
 
-// Ô chữ nhận {{biến}} của node – khớp varFields (vars.go): gõ chữ, mở, chữ cần tìm, điều kiện / case / giá trị của
+// Ô chữ nhận {{biến}} của node – khớp VarFields (internal/script/varfields.go): gõ chữ, mở, chữ cần tìm, điều kiện / case / giá trị của
 // node điều khiển. mapVarText trả node mới với từng ô qua f (không sửa node cũ).
 export function mapVarText(s: Step, f: (t: string) => string): Step {
   const cond = (c: Cond): Cond =>

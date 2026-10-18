@@ -1,11 +1,10 @@
-package main
+package engine
 
 import (
 	"errors"
 	"fmt"
 	"time"
 
-	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 	"autoclicker/internal/script"
 )
@@ -22,58 +21,15 @@ type NodeTest struct {
 	Ms    int        `json:"ms"`
 }
 
-// TestNode thử node stepID của kịch bản sc.
-func (a *App) TestNode(sc model.Script, stepID string) (NodeTest, error) {
-	var s *model.Step
-	for i := range sc.Steps {
-		if sc.Steps[i].ID == stepID {
-			s = &sc.Steps[i]
-		}
-	}
-	if s == nil {
-		return NodeTest{}, errors.New("không có node này")
-	}
-	n, err := withInputDefaults(sc, *s)
-	if err != nil {
-		return NodeTest{}, err
-	}
-	e := newEngine(nil, sc, nil)
-	e.screen, e.displays = device.MainScreen(), device.Displays()
-	var res NodeTest
-	run := func() error {
-		start := time.Now()
-		var err error
-		res, err = e.testNode(n)
-		res.Ms = int(time.Since(start).Milliseconds())
-		return err
-	}
-	if n.Type == model.StepSwitch { // không nhìn màn hình – khỏi ẩn cửa sổ
-		return res, run()
-	}
-	return res, a.withHidden(run)
+// TestNode xét node Nếu / Switch / Switch theo màn hình một lần trên màn hình lúc này.
+func (e *Engine) TestNode(s model.Step) (NodeTest, error) {
+	start := time.Now()
+	res, err := e.testNode(s)
+	res.Ms = int(time.Since(start).Milliseconds())
+	return res, err
 }
 
-// withInputDefaults – bản sao node với {{key}} của input thay bằng giá trị mặc định (Thử tìm / Thử node).
-func withInputDefaults(sc model.Script, s model.Step) (model.Step, error) {
-	s = script.CloneStep(s)
-	for _, f := range script.VarFields(&s) {
-		t, err := script.ExpandVars(*f.Ptr, func(key string) (string, bool) {
-			for _, in := range sc.Inputs {
-				if in.Key == key && !script.IsEmptyValue(in.Default) {
-					return script.ValueString(in.Default), true
-				}
-			}
-			return "", false
-		})
-		if err != nil {
-			return s, fmt.Errorf("thử dùng giá trị mặc định của input: %w", err)
-		}
-		*f.Ptr = t
-	}
-	return s, nil
-}
-
-func (e *engine) testNode(s model.Step) (NodeTest, error) {
+func (e *Engine) testNode(s model.Step) (NodeTest, error) {
 	res := NodeTest{Known: true, Parts: []CondPart{}}
 	switch s.Type {
 	case model.StepIf:

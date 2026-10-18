@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"errors"
@@ -80,7 +80,7 @@ func (s *snapshot) ReadText(img image.Image) ([]vision.TextLine, error) {
 
 // evalCond xét c một lần trên snap; ghi kết quả từng điều kiện lá vào parts. known = false khi kết quả phụ thuộc biến
 // node chưa biết (chỉ xảy ra ở Thử node – lúc chạy biến đã thay). Lỗi (thiếu quyền, ảnh hỏng…) là lỗi của node.
-func (e *engine) evalCond(c model.Cond, key string, path []int, snap *snapshot, parts *[]CondPart) (ok, known bool, err error) {
+func (e *Engine) evalCond(c model.Cond, key string, path []int, snap *snapshot, parts *[]CondPart) (ok, known bool, err error) {
 	if c.Kind == model.CondAll || c.Kind == model.CondAny {
 		all := c.Kind == model.CondAll
 		ok, known = all, true
@@ -113,7 +113,7 @@ func (e *engine) evalCond(c model.Cond, key string, path []int, snap *snapshot, 
 }
 
 // checkLeaf xét một điều kiện lá (ảnh / chữ / màu / so giá trị).
-func (e *engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, error) {
+func (e *Engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, error) {
 	part := CondPart{Kind: c.Kind, Known: true}
 	var ok bool
 	switch c.Kind {

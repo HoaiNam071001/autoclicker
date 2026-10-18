@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"context"
@@ -30,7 +30,7 @@ func (f ocrAfter) ReadText(image.Image) ([]vision.TextLine, error) {
 
 // Flow: chờ chữ "Gửi" (w) → click chỗ thấy (c) → gõ (t); không thấy → cuộn (s) → chờ lại.
 // Nút hiện sau `scrolls` lần cuộn (-1 = không bao giờ); ready (nếu có) thay điều kiện đó.
-func sendFlow(scrolls int, ready func() bool) (*engine, *devicetest.FakeInput) {
+func sendFlow(scrolls int, ready func() bool) (*Engine, *devicetest.FakeInput) {
 	sc := model.Script{Loops: 1, Region: &model.Rect{X: 100, Y: 50, W: 400, H: 300}, Start: "w",
 		Steps: []model.Step{
 			modeltest.Node("w", "n1", model.StepWaitImage, func(s *model.Step) { s.FindBy, s.FindText, s.TimeoutMs, s.IntervalMs = model.FindByText, "Gửi", 1, 1 }),
@@ -61,7 +61,7 @@ func TestFlowFailPortLoopsBack(t *testing.T) {
 	e, in := sendFlow(2, nil)
 	var got []string
 	e.onNode = func(r model.StepResult) { got = append(got, r.Ref+":"+r.Status+">"+r.Port) }
-	if err := e.run(context.Background()); err != nil {
+	if err := e.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	// chữ "Gửi" ở px (100, 100) 40×20 → tâm 100 + 120, 50 + 110
@@ -80,7 +80,7 @@ func TestFlowFailPortLoopsBack(t *testing.T) {
 func TestFlowFailUnconnectedStops(t *testing.T) {
 	e, in := sendFlow(-1, nil)
 	e.sc.Edges = e.sc.Edges[:1] // bỏ cạnh fail
-	err := e.run(context.Background())
+	err := e.Run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "n1: không thấy chữ") || e.failed != "w" || len(in.Lines()) != 0 {
 		t.Fatalf("lỗi %v, failed %q, lệnh %q", err, e.failed, in.Lines())
 	}
@@ -100,7 +100,7 @@ func TestFlowRetry(t *testing.T) {
 	e.sc.Edges = e.sc.Edges[:1]
 	e.sc.Steps[0].Retry = &model.Retry{Count: 2}
 	e.sc.Steps[1].Enabled = false // click tắt → bỏ qua, đi tiếp
-	if err := e.run(context.Background()); err != nil {
+	if err := e.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	r := e.results["w"]
@@ -118,7 +118,7 @@ func TestFlowVarFromNodeNotRun(t *testing.T) {
 		modeltest.Node("b", "n2", model.StepText, func(s *model.Step) { s.Text = "x" }),
 	}, Edges: []model.Edge{modeltest.Edge("a", model.PortSuccess, "b")}}
 	e := newEngine(&devicetest.FakeInput{}, sc, nil)
-	err := e.run(context.Background())
+	err := e.Run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "n2 chưa chạy") || e.results["a"].Error.Code != model.ErrInvalidInput {
 		t.Fatalf("lỗi %v", err)
 	}
@@ -128,7 +128,7 @@ func TestFlowClickFromFailedNode(t *testing.T) {
 	// chờ chữ thất bại → đi cổng fail sang click lấy chỗ thấy của chính node đó → không có chỗ thấy → dừng
 	e, in := sendFlow(-1, nil)
 	e.sc.Edges = []model.Edge{modeltest.Edge("w", model.PortFail, "c")}
-	err := e.run(context.Background())
+	err := e.Run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "n2: node n1 chưa tìm thấy") || len(in.Lines()) != 0 {
 		t.Fatalf("lỗi %v, lệnh %q", err, in.Lines())
 	}
@@ -139,7 +139,7 @@ func TestFlowInfiniteLoopLimit(t *testing.T) {
 		modeltest.Node("a", "n1", model.StepWait, nil), modeltest.Node("b", "n2", model.StepWait, nil),
 	}, Edges: []model.Edge{modeltest.Edge("a", model.PortSuccess, "b"), modeltest.Edge("b", model.PortSuccess, "a")}}
 	sc.Steps[0].DelayAfter, sc.Steps[1].DelayAfter = 0, 0
-	err := newEngine(&devicetest.FakeInput{}, sc, nil).run(context.Background())
+	err := newEngine(&devicetest.FakeInput{}, sc, nil).Run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "lặp vô hạn") || !strings.Contains(err.Error(), "n1 → n2") {
 		t.Fatalf("lỗi %v", err)
 	}

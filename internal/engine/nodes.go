@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type endErr struct{ msg string }
 func (e *endErr) Error() string { return e.msg }
 
 // runControl chạy node điều khiển; trả cổng ra + output. logf ghi chi tiết (từng điều kiện) vào nhật ký node.
-func (e *engine) runControl(ctx context.Context, s model.Step, logf func(level, format string, a ...any)) (string, map[string]any, error) {
+func (e *Engine) runControl(ctx context.Context, s model.Step, logf func(level, format string, a ...any)) (string, map[string]any, error) {
 	switch s.Type {
 	case model.StepIf:
 		var parts []CondPart
@@ -149,7 +149,7 @@ func numValue(f float64) any {
 
 // watch xét check trên một ảnh chụp mới mỗi IntervalMs tới khi đúng, tối đa TimeoutMs (0 = xem một lần).
 // Hết giờ không phải lỗi – trả false.
-func (e *engine) watch(ctx context.Context, s model.Step, check func(*snapshot) (bool, error)) (bool, error) {
+func (e *Engine) watch(ctx context.Context, s model.Step, check func(*snapshot) (bool, error)) (bool, error) {
 	if s.TimeoutMs <= 0 {
 		return check(newSnapshot(e.scr, e.ocr))
 	}

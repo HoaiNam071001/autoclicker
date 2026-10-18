@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"context"
@@ -39,7 +39,7 @@ func (o *ocrSeq) ReadText(image.Image) ([]vision.TextLine, error) {
 	return o.frames[min(o.reads-1, len(o.frames)-1)], nil
 }
 
-func ctlEngine(sc model.Script, ocr device.TextReader) (*engine, *devicetest.FakeInput) {
+func ctlEngine(sc model.Script, ocr device.TextReader) (*Engine, *devicetest.FakeInput) {
 	if sc.Loops == 0 {
 		sc.Loops = 1
 	}
@@ -52,7 +52,7 @@ func ctlEngine(sc model.Script, ocr device.TextReader) (*engine, *devicetest.Fak
 	return e, in
 }
 
-func trace(e *engine) *[]string {
+func trace(e *Engine) *[]string {
 	var got []string
 	e.onNode = func(r model.StepResult) { got = append(got, r.Ref+">"+r.Port) }
 	return &got
@@ -70,7 +70,7 @@ func TestCounterEndFail(t *testing.T) {
 	}, Edges: []model.Edge{modeltest.Edge("w", model.PortFail, "k"), modeltest.Edge("k", model.PortNext, "s"), modeltest.Edge("k", model.PortDone, "x"), modeltest.Edge("s", model.PortSuccess, "w")}}
 	e, in := ctlEngine(sc, &ocrSeq{frames: [][]vision.TextLine{noText}})
 	got := trace(e)
-	err := e.run(context.Background())
+	err := e.Run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "n4: không thấy sau 3 lần") || e.failed != "x" {
 		t.Fatalf("lỗi %v, failed %q", err, e.failed)
 	}
@@ -95,7 +95,7 @@ func TestEndSuccessNextLoop(t *testing.T) {
 		modeltest.Node("z", "n4", model.StepText, func(s *model.Step) { s.Text = "không tới" }),
 	}, Edges: []model.Edge{modeltest.Edge("k", model.PortNext, "t"), modeltest.Edge("t", model.PortSuccess, "x")}}
 	e, in := ctlEngine(sc, &ocrSeq{frames: [][]vision.TextLine{noText}})
-	if err := e.run(context.Background()); err != nil {
+	if err := e.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	if got := typed(in); got != "11" {
@@ -105,7 +105,7 @@ func TestEndSuccessNextLoop(t *testing.T) {
 
 // Nếu: thấy chữ → true, output chỗ thấy để Click theo ảnh dùng; không thấy (xem một lần) → false.
 func TestIfTextAndClickFromIf(t *testing.T) {
-	flow := func(lines []vision.TextLine) (*engine, *devicetest.FakeInput) {
+	flow := func(lines []vision.TextLine) (*Engine, *devicetest.FakeInput) {
 		sc := model.Script{Start: "i", Steps: []model.Step{
 			modeltest.Node("i", "n1", model.StepIf, func(s *model.Step) { s.Cond = modeltest.TextCond("Gửi") }),
 			modeltest.Node("c", "n2", model.StepClickImage, func(s *model.Step) { s.ImageFrom = "i" }),
@@ -114,7 +114,7 @@ func TestIfTextAndClickFromIf(t *testing.T) {
 		return ctlEngine(sc, &ocrSeq{frames: [][]vision.TextLine{lines}})
 	}
 	e, in := flow(sendBtn)
-	if err := e.run(context.Background()); err != nil {
+	if err := e.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	if want := []string{"move 220,160", "click left false"}; !reflect.DeepEqual(in.Lines(), want) {
@@ -124,7 +124,7 @@ func TestIfTextAndClickFromIf(t *testing.T) {
 		t.Errorf("output Nếu: %+v, log %v", r.Output, r.Logs)
 	}
 	e, in = flow(noText)
-	if err := e.run(context.Background()); err != nil {
+	if err := e.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	if typed(in) != "không" || e.results["i"].Port != model.PortFalse {
@@ -148,7 +148,7 @@ func TestIfWaitGroupsAndValues(t *testing.T) {
 		modeltest.Node("t", "n3", model.StepText, func(s *model.Step) { s.Text = "{{n2.output.result}}" }),
 	}, Edges: []model.Edge{modeltest.Edge("v", model.PortSuccess, "i"), modeltest.Edge("i", model.PortTrue, "t"), modeltest.Edge("i", model.PortFalse, "t")}}
 	e, in := ctlEngine(sc, ocr)
-	if err := e.run(context.Background()); err != nil {
+	if err := e.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	// điều kiện 3: tên biến "lan" = "LAN" (không phân biệt hoa thường) rồi đảo → sai → cả nhóm sai dù đã thấy chữ
@@ -173,7 +173,7 @@ func TestIfImageAndPixel(t *testing.T) {
 	}}
 	e, _ := ctlEngine(sc, nil)
 	e.scr = &fakeScreen{frames: []image.Image{with}, colors: []color.RGBA{{30, 115, 240, 255}}}
-	if err := e.run(context.Background()); err != nil {
+	if err := e.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	if r := e.results["i"]; r.Port != model.PortTrue || r.Output["x"] != 280 || r.Output["y"] != 130 {
@@ -192,7 +192,7 @@ func TestSwitchValue(t *testing.T) {
 			modeltest.Node("t", "n2", model.StepText, func(s *model.Step) { s.Text = "{{n1.output.case}}" }),
 		}, Edges: []model.Edge{modeltest.Edge("s", "case:ok", "t"), modeltest.Edge("s", "case:err", "t"), modeltest.Edge("s", model.PortDefault, "t")}}
 		e, in := ctlEngine(sc, nil)
-		if err := e.run(context.Background()); err != nil {
+		if err := e.Run(context.Background()); err != nil {
 			t.Fatal(err)
 		}
 		if r := e.results["s"]; r.Port != want || typed(in) != strings.TrimPrefix(want, "case:") {
@@ -211,7 +211,7 @@ func TestSwitchScreen(t *testing.T) {
 		modeltest.Node("c", "n2", model.StepClickImage, func(s *model.Step) { s.ImageFrom = "s" }),
 	}, Edges: []model.Edge{modeltest.Edge("s", "case:send", "c")}}
 	e, in := ctlEngine(sc, ocr)
-	if err := e.run(context.Background()); err != nil {
+	if err := e.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	scr := e.scr.(*fakeScreen)
@@ -225,7 +225,7 @@ func TestSwitchScreen(t *testing.T) {
 	e, _ = ctlEngine(model.Script{Start: "s", Steps: []model.Step{
 		modeltest.Node("s", "n1", model.StepSwitchScreen, func(s *model.Step) { s.Cases, s.TimeoutMs, s.IntervalMs = cases, 5, 1 }),
 	}}, &ocrSeq{frames: [][]vision.TextLine{noText}})
-	if err := e.run(context.Background()); err != nil || e.results["s"].Port != model.PortNone {
+	if err := e.Run(context.Background()); err != nil || e.results["s"].Port != model.PortNone {
 		t.Errorf("hết giờ: %v, cổng %q", err, e.results["s"].Port)
 	}
 }
@@ -238,7 +238,7 @@ func TestSetVarAdd(t *testing.T) {
 		modeltest.Node("t", "n3", model.StepText, func(s *model.Step) { s.Text = "{{vars.n}}" }),
 	}, Edges: []model.Edge{modeltest.Edge("v", model.PortSuccess, "k"), modeltest.Edge("k", model.PortNext, "v"), modeltest.Edge("k", model.PortDone, "t")}}
 	e, in := ctlEngine(sc, nil)
-	if err := e.run(context.Background()); err != nil {
+	if err := e.Run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	if typed(in) != "3" {
@@ -248,7 +248,7 @@ func TestSetVarAdd(t *testing.T) {
 		modeltest.Node("a", "n1", model.StepSetVar, func(s *model.Step) { s.VarName, s.VarOp, s.Value = "n", model.VarSet, "chữ" }),
 		modeltest.Node("b", "n2", model.StepSetVar, func(s *model.Step) { s.VarName, s.VarOp, s.Value = "n", model.VarAdd, "1" }),
 	}, Edges: []model.Edge{modeltest.Edge("a", model.PortSuccess, "b")}}, nil)
-	if err := e.run(context.Background()); err == nil || e.results["b"].Error.Code != model.ErrInvalidInput {
+	if err := e.Run(context.Background()); err == nil || e.results["b"].Error.Code != model.ErrInvalidInput {
 		t.Errorf("cộng vào chữ phải lỗi: %v", err)
 	}
 }

@@ -1,7 +1,7 @@
 import { model } from '../wailsjs/go/models';
 import { fmtAxis, fmtPoint } from './anchor';
 
-// Neo của một trục (anchor.ts, khớp anchor.go): bỏ trống = start (cách cạnh trái / trên).
+// Neo của một trục (anchor.ts, khớp internal/script/anchor.go): bỏ trống = start (cách cạnh trái / trên).
 export type Anchor = 'start' | 'center' | 'end' | 'ratio';
 // Toạ độ màn hình / cửa sổ.
 export type Point = { x: number; y: number };
@@ -38,13 +38,13 @@ const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = 
 void edgeMatchesGo, resultMatchesGo;
 
 export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel';
-// Node điều khiển (bước 20 F3, nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
+// Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'end' | 'setVar';
 export type StepType = ActionType | ControlType;
 export const CONTROL_TYPES: ControlType[] = ['if', 'switch', 'switchScreen', 'counter', 'end', 'setVar'];
 export const isControl = (t: StepType): t is ControlType => (CONTROL_TYPES as StepType[]).includes(t);
 
-// Điều kiện của node Nếu / case của Switch theo màn hình – khớp Cond trong model.go (cond.go).
+// Điều kiện của node Nếu / case của Switch theo màn hình – khớp Cond trong model.go (internal/engine/cond.go).
 export type CondKind = 'image' | 'text' | 'pixel' | 'value' | 'all' | 'any';
 export type CondOp = 'eq' | 'ne' | 'contains' | 'gt' | 'lt' | 'empty';
 export interface Cond {
@@ -99,7 +99,7 @@ export interface Step {
   amount?: number; // scroll: số nấc
   target?: string; // open: URL / đường dẫn / tên app, nhận {{biến}}
   app?: string; // open: mở bằng app này, '' = mặc định của máy
-  // chờ ảnh / click theo ảnh / chờ pixel (bước 25, imagestep.go)
+  // chờ ảnh / click theo ảnh / chờ pixel (bước 25, internal/engine/imagestep.go)
   template?: string; // ảnh mẫu PNG base64
   templateScale?: number; // px ảnh mẫu / 1 đơn vị toạ độ lúc chụp (Retina 2)
   threshold?: number; // % khớp tối thiểu
@@ -115,7 +115,7 @@ export interface Step {
   textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
   textNoAccent?: boolean; // bỏ qua dấu
   occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu
-  retry?: Retry; // thất bại thì thử lại; hết lượt → cổng fail (flowrun.go execNode)
+  retry?: Retry; // thất bại thì thử lại; hết lượt → cổng fail (internal/engine/flowrun.go execNode)
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
   // node điều khiển (bước 20 F3)
@@ -150,16 +150,16 @@ export interface Script {
   start: string; // id node bắt đầu
   edges: Edge[];
   anchorMode?: AnchorMode; // điểm mới đặt neo theo: bỏ trống = góc gần nhất, start = luôn trên trái
-  inputs?: ScriptInput[]; // giá trị hỏi khi bấm Chạy (bước 21b, inputs.go)
+  inputs?: ScriptInput[]; // giá trị hỏi khi bấm Chạy (bước 21b, internal/script/inputs.go)
 }
 export type AnchorMode = 'start';
 const scriptMatchesGo: Same<keyof Script, keyof Fields<model.Script>> = true;
 void scriptMatchesGo;
 
-// ---- Input của kịch bản (bước 21b) – khớp ScriptInput trong inputs.go ----
+// ---- Input của kịch bản (bước 21b) – khớp ScriptInput trong internal/model/inputs.go ----
 export type InputType = 'text' | 'multiline' | 'number' | 'ms' | 'bool' | 'select';
 export type InputValue = string | number | boolean;
-// Trường ghim được (pinFields trong inputs.go): số → input number / ms, enabled → bool.
+// Trường ghim được (pinFields trong internal/script/inputvalue.go): số → input number / ms, enabled → bool.
 export type PinField = 'clicks' | 'clickInterval' | 'holdMs' | 'dragMs' | 'delayAfter' | 'jitterMs' | 'jitterPx' | 'amount' | 'timeoutMs' | 'threshold' | 'enabled';
 export interface InputTarget { stepId: string; field: PinField }
 export interface ScriptInput {

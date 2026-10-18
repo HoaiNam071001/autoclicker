@@ -1,16 +1,18 @@
-package main
+// Package scripttest – helper test dùng chung (engine, script_test).
+package scripttest
 
 import (
 	"slices"
 
 	"autoclicker/internal/model"
+	"autoclicker/internal/model/modeltest"
 	"autoclicker/internal/script"
 )
 
 // Helper test: dựng flow từ danh sách bước theo thứ tự mảng (success → node kế), đặt ref n1, n2…, click theo ảnh chưa
 // chọn node nguồn thì lấy node chờ ảnh / chữ gần nhất phía trước. Kịch bản đã có start / cạnh giữ nguyên.
 // Test viết gọn theo kiểu danh sách; app thật luôn gửi flow đủ start + cạnh (canvas).
-func linear(sc model.Script) model.Script {
+func Linear(sc model.Script) model.Script {
 	linearToFlow(&sc)
 	return sc
 }
@@ -36,4 +38,12 @@ func linearToFlow(sc *model.Script) {
 			src = s.ID
 		}
 	}
+}
+
+// TextScript – kịch bản: chờ chữ text (trong vùng 400×300) rồi các node steps.
+func TextScript(text string, steps ...model.Step) model.Script {
+	wait := modeltest.Step(model.StepWaitImage, func(s *model.Step) {
+		s.FindBy, s.FindText, s.TimeoutMs, s.IntervalMs = model.FindByText, text, 2000, 1
+	})
+	return model.Script{Loops: 1, Region: &model.Rect{X: 100, Y: 50, W: 400, H: 300}, Steps: append([]model.Step{wait}, steps...)}
 }

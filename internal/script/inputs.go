@@ -177,3 +177,23 @@ func ExpandVars(text string, lookup func(key string) (string, bool)) (string, er
 	})
 	return out, err
 }
+
+// WithInputDefaults – bản sao node với {{key}} của input thay bằng giá trị mặc định (Thử tìm / Thử node).
+func WithInputDefaults(sc model.Script, s model.Step) (model.Step, error) {
+	s = CloneStep(s)
+	for _, f := range VarFields(&s) {
+		t, err := ExpandVars(*f.Ptr, func(key string) (string, bool) {
+			for _, in := range sc.Inputs {
+				if in.Key == key && !IsEmptyValue(in.Default) {
+					return ValueString(in.Default), true
+				}
+			}
+			return "", false
+		})
+		if err != nil {
+			return s, fmt.Errorf("thử dùng giá trị mặc định của input: %w", err)
+		}
+		*f.Ptr = t
+	}
+	return s, nil
+}

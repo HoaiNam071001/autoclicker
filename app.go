@@ -6,6 +6,7 @@ import (
 
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
+	"autoclicker/internal/store"
 )
 
 // App struct
@@ -54,3 +55,17 @@ func (a *App) StepTypes() []model.StepTypeDoc { return model.StepTypeDocs() }
 
 // FlowGuide trả hướng dẫn cấu trúc flow, trường chung và kịch bản mẫu (cho AI / MCP, bước 31).
 func (a *App) FlowGuide() model.FlowGuideDoc { return model.Guide() }
+
+// GetSettings trả cấu hình đã lưu (mặc định nếu chưa có / không đọc được thư mục cấu hình).
+func (a *App) GetSettings() store.Settings { return store.CurrentSettings() }
+
+// SetTheme lưu theme: light | dark | system.
+func (a *App) SetTheme(theme string) error { return store.SetTheme(theme) }
+
+// GetInputMemory trả giá trị lần trước / preset của kịch bản id (đường dẫn file, hoặc tên khi chưa lưu).
+func (a *App) GetInputMemory(id string) store.InputMemory { return store.InputMemoryFor(id) }
+
+// SaveInputMemory ghi giá trị lần trước / preset của kịch bản id.
+func (a *App) SaveInputMemory(id string, m store.InputMemory) error {
+	return store.SaveInputMemory(id, m)
+}

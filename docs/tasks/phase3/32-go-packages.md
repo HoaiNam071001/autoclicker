@@ -1,7 +1,7 @@
 # 32. Tổ chức lại Go thành package theo miền
 
-- [ ] **32. Tách `package main` ở root thành package trong `internal/`** *(người dùng yêu cầu, 2026-10-18)* – Hiện 49 file / ~8.2k dòng Go cùng `package main` ở root: không có ranh giới, file nào cũng gọi được nội bộ file khác (vd `engine` bị dùng thẳng ở `runner.go`, `nodetest.go`, `imageapi.go`, `runlog.go`). MCP / API local (22, 31) cần dùng lại engine + kiểm tra + lưu file mà không qua Wails `App` → tách trước 22. Hành vi app không đổi.
-  - Bố cục (phụ thuộc một chiều `model` ← `vision` ← `script` ← `engine` ← `main`; `device`, `store` chỉ phụ thuộc `model`):
+- [x] **32. Tách `package main` ở root thành package trong `internal/`** *(người dùng yêu cầu, 2026-10-18)* – Hiện 49 file / ~8.2k dòng Go cùng `package main` ở root: không có ranh giới, file nào cũng gọi được nội bộ file khác (vd `engine` bị dùng thẳng ở `runner.go`, `nodetest.go`, `imageapi.go`, `runlog.go`). MCP / API local (22, 31) cần dùng lại engine + kiểm tra + lưu file mà không qua Wails `App` → tách trước 22. Hành vi app không đổi.
+  - Bố cục dự kiến (thực tế: xem ARCHITECTURE §8 – `store` import `script` để đọc file / nháp; `device` import `vision` cho `TextLine`):
     - `main` (root): `main.go`, `app.go` + method bind cho Wails (mỗi method vài dòng gọi xuống), `hotkey.go`, `window.go`
     - `internal/model`: `model.go`, phần kiểu + thứ tự của `flow.go` (`portsOf`, `flowOrder`, `edgeOut`), lỗi có cấu trúc (`ScriptError`, `StepError`), `steptypes.go`
     - `internal/vision`: `match.go`, phần tìm chữ thuần của `ocr.go` (`findText`, `readingOrder`…)
@@ -28,9 +28,14 @@
     - Đọc / ghi file kịch bản + nháp (`Draft`) sang `store` (`scriptfile.go`, `draft.go`) → `store` import `script`, tránh vòng `script` ↔ `store`
     - `model/modeltest` (`Node`, `Edge`, `Step`, `TextCond`) dùng chung cho test
     - Test kiểm tra kịch bản dùng `linear()` (TestValidateScript, TestValidateImageSteps, TestValidateTextStep, TestValidateScrollOpen, TestAnchor*) còn ở root – đợt 4 chuyển cùng `linear` sang `script/scripttest` (test ngoài `script_test` để tránh vòng)
-  - [ ] Đợt 4: `engine` (export `New`, `TestNode`, `FindOnce`… cho `imageapi.go` / `nodetest`), làm mỏng `main`
-  - [ ] Frontend (làm theo từng đợt; đợt 1–3 xong `model.*`, `store.*`): `wails generate module` đổi namespace `main.Step` → `model.Step`, `engine.Progress`… – sửa import ở `types.ts`, `engineStore.ts`, `scriptFile.ts`, `runForm.ts`, `windowMode.ts` (tsc báo đủ chỗ)
-  - [ ] Tài liệu + công cụ (làm theo từng đợt; đợt 1 xong `check-docs.py` đọc `internal/`, ARCHITECTURE §2 §6 §8, CLAUDE.md, skill add-node-type / implement-step / senior-review): `scripts/check-docs.py` (đang đọc `*.go` ở root, `model.go`, `steptypes.go`), `ARCHITECTURE.md` (bản đồ file, ~29 chỗ nhắc `.go`), skill `add-node-type` / `fix-bug`, quy tắc Go trong `CLAUDE.md`, `testdata/` (đường dẫn trong test)
+  - [x] Đợt 4: `engine` (export `New`, `TestNode`, `FindOnce`… cho `imageapi.go` / `nodetest`), làm mỏng `main` *(2026-10-18)*
+    - API engine: `New(in, sc, Options{Screen, Displays, OnProgress, OnNode, Debug, StepMode, KeepShots})`, `Run`, `Failed()`, `Shots()`, `FindOnce` (logic Thử tìm chuyển từ `imageapi.go`), `TestNode`, `SearchArea`, `Sleep`; runner không còn gán trường nội bộ
+    - `engine.go` (481 dòng) tách `engine.go` / `actions.go` / `gate.go`; `withInputDefaults` → `script.WithInputDefaults`
+    - `linear` → `script/scripttest` (+ `TextScript`); 5 test kiểm tra kịch bản về `script/validate_test.go` (`package script_test`)
+    - Root còn 8 file / ~920 dòng, toàn Wails + method `App` (gộp các file wrapper 1–3 method vào `app.go`, `runner.go`, `imageapi.go`, `window.go`)
+  - [x] Frontend (làm theo từng đợt: `model.*`, `store.*`, `engine.*`): `wails generate module` đổi namespace `main.Step` → `model.Step`, `engine.Progress`… – sửa import ở `types.ts`, `engineStore.ts`, `scriptFile.ts`, `runForm.ts`, `windowMode.ts` (tsc báo đủ chỗ)
+  - [x] Tài liệu + công cụ (làm theo từng đợt: `check-docs.py` đọc `internal/`, ARCHITECTURE §1 sơ đồ, §2, §5, §6, §8, CLAUDE.md, skill add-node-type / implement-step / senior-review / fix-bug, comment frontend trỏ file Go): `scripts/check-docs.py` (đang đọc `*.go` ở root, `model.go`, `steptypes.go`), `ARCHITECTURE.md` (bản đồ file, ~29 chỗ nhắc `.go`), skill `add-node-type` / `fix-bug`, quy tắc Go trong `CLAUDE.md`, `testdata/` (đường dẫn trong test)
   - Nhân lúc chuyển: tách 3 file > 400 dòng mà `check-docs.py` đang cảnh báo – `engine.go` (600), `storage.go` (473 → đã tách ở đợt 2–3), `inputs.go` (441 → đã tách ở đợt 3)
   - Mỗi đợt một commit; sau mỗi đợt `go vet ./... && go test ./...` + `cd frontend && npm run build` xanh
   - Xong khi: root chỉ còn file Wails; `go test ./...` chạy test theo từng package; `check-docs.py` 0 lỗi; app chạy như trước (soạn, chạy, chờ ảnh / chữ, lịch sử chạy)
+  - Kiểm tra tay: [checks.md](../checks.md) › 32

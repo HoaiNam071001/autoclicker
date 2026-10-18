@@ -1,10 +1,11 @@
 package main
 
 import (
-	"autoclicker/internal/model"
 	"github.com/go-vgo/robotgo"
 	hook "github.com/robotn/gohook"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+
+	"autoclicker/internal/model"
 )
 
 // startHotkeys nghe phím toàn cục (kể cả khi app không được focus). Gọi trong startup.
