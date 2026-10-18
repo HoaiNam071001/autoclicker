@@ -3,6 +3,7 @@ package main
 import (
 	goruntime "runtime"
 
+	"autoclicker/internal/model"
 	"github.com/go-vgo/robotgo"
 )
 
@@ -62,29 +63,29 @@ func (robotgoInput) KeyToggle(key string, down bool, modifiers []string) error {
 }
 
 // rawDisplays trả khung các màn hình như robotgo báo (chưa nhân tỷ lệ) – cùng đơn vị với vị trí cửa sổ Wails.
-func rawDisplays() []Rect {
+func rawDisplays() []model.Rect {
 	n := robotgo.DisplaysNum()
-	out := make([]Rect, 0, n)
+	out := make([]model.Rect, 0, n)
 	for i := 0; i < n; i++ {
 		x, y, w, h := robotgo.GetDisplayBounds(i)
-		out = append(out, Rect{x, y, w, h})
+		out = append(out, model.Rect{X: x, Y: y, W: w, H: h})
 	}
 	return out
 }
 
 // displays trả khung các màn hình theo hệ toạ độ của robotgo.Location / Move.
 // Windows: robotgo nhân toạ độ chuột với tỷ lệ DPI màn chính (ScaleF) nên khung màn hình cũng phải nhân theo.
-func displays() []Rect {
+func displays() []model.Rect {
 	f := 1.0
 	if goruntime.GOOS == "windows" {
 		f = robotgo.ScaleF()
 	}
 	sc := func(v int) int { return int(float64(v) * f) }
 	n := robotgo.DisplaysNum()
-	out := make([]Rect, 0, n)
+	out := make([]model.Rect, 0, n)
 	for i := 0; i < n; i++ {
 		x, y, w, h := robotgo.GetDisplayBounds(i)
-		out = append(out, Rect{sc(x), sc(y), sc(w), sc(h)})
+		out = append(out, model.Rect{X: sc(x), Y: sc(y), W: sc(w), H: sc(h)})
 	}
 	return out
 }

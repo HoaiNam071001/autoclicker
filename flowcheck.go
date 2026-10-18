@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"regexp"
+
+	"autoclicker/internal/model"
 )
 
 // nodeVarRe – biến đọc kết quả node: {{n2.output.x}}, {{n2.status}}, {{n2.error.message}}, {{vars.ten}}, {{last.output.text}}.
@@ -12,15 +14,15 @@ var nodeVarRe = regexp.MustCompile(`\{\{\s*([A-Za-z][A-Za-z0-9_]*)\.([A-Za-z0-9_
 // validateFlow kiểm tra cấu trúc flow trước khi chạy: node bắt đầu, cạnh, mã node, nguồn chỗ thấy của click theo ảnh,
 // biến trỏ node. Dữ liệu từng node (điểm, ảnh mẫu, phím…) do validateScript kiểm tra.
 // Node không đi tới được từ start không phải lỗi (unreachableNodes – UI cảnh báo).
-func validateFlow(sc Script) error {
+func validateFlow(sc model.Script) error {
 	if len(sc.Steps) == 0 {
-		return &ScriptError{Msg: "kịch bản chưa có node nào"}
+		return &model.ScriptError{Msg: "kịch bản chưa có node nào"}
 	}
 	idx := make(map[string]int, len(sc.Steps))
 	refs := make(map[string]int, len(sc.Steps))
 	for i, s := range sc.Steps {
 		idx[s.ID] = i
-		if !validRef(s.Ref) {
+		if !model.ValidRef(s.Ref) {
 			return stepErr(i, s, "ref", "mã node %q không hợp lệ – chữ cái đầu, sau đó chữ / số / _ (không dùng vars, last)", s.Ref)
 		}
 		if _, dup := refs[s.Ref]; dup {
@@ -29,19 +31,19 @@ func validateFlow(sc Script) error {
 		refs[s.Ref] = i
 	}
 	if _, ok := idx[sc.Start]; !ok {
-		return &ScriptError{Field: "start", Msg: "chưa chọn node bắt đầu"}
+		return &model.ScriptError{Field: "start", Msg: "chưa chọn node bắt đầu"}
 	}
 
 	ports := map[[2]string]bool{}
 	for _, e := range sc.Edges {
 		i, ok := idx[e.From]
 		if !ok {
-			return &ScriptError{Field: "edges", Msg: fmt.Sprintf("cạnh %s đi ra từ node không còn trong kịch bản", e.ID)}
+			return &model.ScriptError{Field: "edges", Msg: fmt.Sprintf("cạnh %s đi ra từ node không còn trong kịch bản", e.ID)}
 		}
 		s := sc.Steps[i]
 		_, toOK := idx[e.To]
 		switch {
-		case !hasPort(s, e.Port):
+		case !model.HasPort(s, e.Port):
 			return stepErr(i, s, "edges", "node không có cổng %q", e.Port)
 		case !toOK:
 			return stepErr(i, s, "edges", "cổng %s nối tới node không còn trong kịch bản", e.Port)
@@ -57,7 +59,7 @@ func validateFlow(sc Script) error {
 		if !s.Enabled {
 			continue
 		}
-		if s.Type == StepClickImage && s.ImageSource != ImageFromSearch {
+		if s.Type == model.StepClickImage && s.ImageSource != model.ImageFromSearch {
 			j, ok := idx[s.ImageFrom]
 			switch {
 			case s.ImageFrom == "":
@@ -83,13 +85,13 @@ func validateFlow(sc Script) error {
 
 // findsImage: node có "chỗ thấy" để click theo – chờ ảnh / chữ, click theo ảnh tự tìm, Nếu / Switch theo màn hình
 // (chỗ thấy của điều kiện đúng đầu tiên).
-func findsImage(s Step) bool {
-	return s.Type == StepWaitImage || s.Type == StepClickImage && s.ImageSource == ImageFromSearch || s.Type == StepIf || s.Type == StepSwitchScreen
+func findsImage(s model.Step) bool {
+	return s.Type == model.StepWaitImage || s.Type == model.StepClickImage && s.ImageSource == model.ImageFromSearch || s.Type == model.StepIf || s.Type == model.StepSwitchScreen
 }
 
 // unreachableNodes – id các node không đi tới được từ start (sẽ không bao giờ chạy), theo thứ tự trong mảng.
-func unreachableNodes(sc Script) []string {
-	ok := reachableFrom(sc)
+func unreachableNodes(sc model.Script) []string {
+	ok := model.ReachableFrom(sc)
 	out := []string{}
 	for _, s := range sc.Steps {
 		if !ok[s.ID] {

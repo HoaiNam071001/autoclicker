@@ -5,23 +5,25 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"autoclicker/internal/model"
 )
 
 func TestHardCorners(t *testing.T) {
 	// A 1440×900 bên trái, B 1920×1080 bên phải, mép trên thẳng hàng.
-	ds := []Rect{{0, 0, 1440, 900}, {1440, 0, 1920, 1080}}
-	got := map[Point]bool{}
+	ds := []model.Rect{{X: 0, Y: 0, W: 1440, H: 900}, {X: 1440, Y: 0, W: 1920, H: 1080}}
+	got := map[model.Point]bool{}
 	for _, c := range hardCorners(ds) {
 		got[c] = true
 	}
-	want := []Point{{X: 0, Y: 0}, {X: 0, Y: 899}, {X: 3359, Y: 0}, {X: 3359, Y: 1079}, {X: 1440, Y: 1079}}
+	want := []model.Point{{X: 0, Y: 0}, {X: 0, Y: 899}, {X: 3359, Y: 0}, {X: 3359, Y: 1079}, {X: 1440, Y: 1079}}
 	for _, p := range want {
 		if !got[p] {
 			t.Errorf("thiếu góc %v", p)
 		}
 	}
 	// Góc tiếp giáp 2 màn: chuột đi xuyên qua được → không tính.
-	for _, p := range []Point{{X: 1439, Y: 0}, {X: 1440, Y: 0}, {X: 1439, Y: 899}} {
+	for _, p := range []model.Point{{X: 1439, Y: 0}, {X: 1440, Y: 0}, {X: 1439, Y: 899}} {
 		if got[p] {
 			t.Errorf("góc tiếp giáp %v không được tính", p)
 		}
@@ -32,7 +34,7 @@ func TestHardCorners(t *testing.T) {
 }
 
 func TestInCorner(t *testing.T) {
-	corners := hardCorners([]Rect{{0, 0, 1440, 900}})
+	corners := hardCorners([]model.Rect{{X: 0, Y: 0, W: 1440, H: 900}})
 	cases := []struct {
 		x, y int
 		want bool
@@ -66,7 +68,7 @@ func TestWatchCorners(t *testing.T) {
 	mouse := &fakeMouse{x: 500, y: 500}
 	tin := &trackingInput{Input: &fakeInput{}}
 	hit := make(chan struct{}, 1)
-	go watchCorners(ctx, mouse.loc, hardCorners([]Rect{{0, 0, 1440, 900}}), tin, func() { hit <- struct{}{} })
+	go watchCorners(ctx, mouse.loc, hardCorners([]model.Rect{{X: 0, Y: 0, W: 1440, H: 900}}), tin, func() { hit <- struct{}{} })
 
 	// Engine tự đưa chuột tới góc (điểm của kịch bản) → không dừng.
 	tin.Move(0, 0)

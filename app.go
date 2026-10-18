@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"sync"
+
+	"autoclicker/internal/model"
 )
 
 // App struct
@@ -39,3 +41,15 @@ func (a *App) shutdown(ctx context.Context) {
 	a.StopScript()
 	a.stopHotkeys()
 }
+
+// NewStep trả bước mới với giá trị mặc định theo loại – dùng cho nút "+ Thêm bước".
+func (a *App) NewStep(stepType string) (model.Step, error) { return model.NewStep(stepType) }
+
+// NewScript trả kịch bản rỗng mặc định.
+func (a *App) NewScript() model.Script { return model.NewScript() }
+
+// StepTypes trả mô tả các loại bước app đang hỗ trợ.
+func (a *App) StepTypes() []model.StepTypeDoc { return model.StepTypeDocs() }
+
+// FlowGuide trả hướng dẫn cấu trúc flow, trường chung và kịch bản mẫu (cho AI / MCP, bước 31).
+func (a *App) FlowGuide() model.FlowGuideDoc { return model.Guide() }

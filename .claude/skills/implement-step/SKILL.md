@@ -11,7 +11,7 @@ description: Làm một bước / mục con theo plan trong docs/tasks (vd "làm
 2. Chỉ mở file của bước đó `docs/tasks/phase3/<số>-<tên>.md`. Bước lớn (vd 20) thì chỉ đọc phần mục con đang làm + *Nguyên tắc* đầu file.
 3. `docs/ARCHITECTURE.md` – luồng + *muốn làm X → sửa ở đâu*. Chỉ mở code những file bảng đó chỉ tới.
 4. `docs/tasks/decisions.md` khi bước đụng tới quyết định đã chốt (không bàn lại điều đã chốt).
-5. Bước có mục *Chuẩn bị cho MCP* → làm luôn phần đó (mô tả trong `steptypes.go`, lỗi có cấu trúc, không phụ thuộc UI).
+5. Bước có mục *Chuẩn bị cho MCP* → làm luôn phần đó (mô tả trong `internal/model/steptypes.go`, lỗi có cấu trúc, không phụ thuộc UI).
 
 ## 2. Lập kế hoạch trước khi code
 
@@ -21,12 +21,12 @@ description: Làm một bước / mục con theo plan trong docs/tasks (vd "làm
 
 ## 3. Code theo thứ tự lớp
 
-1. **Go model** (`model.go`) → `~/go/bin/wails generate module` → `frontend/src/types.ts` (tsc báo lệch).
+1. **Go model** (`internal/model/model.go`) → `~/go/bin/wails generate module` → `frontend/src/types.ts` (tsc báo lệch).
 2. **Go logic** + test (`*_test.go`, thiết bị qua interface giả: `Input`, `Screen`, `TextReader`). Lỗi cho người dùng / AI: `ScriptError` / `StepError` + mã.
 3. **Logic thuần TS** (`src/flow/`, `anchor.ts`…) + `*.test.ts` cạnh file. Công thức có ở cả Go và TS → cùng tên hàm, test chung dữ liệu `testdata/`.
 4. **Store** (`src/store/`) – mọi sửa kịch bản qua `updateScript`.
 5. **Component** – phần chỉ hiển thị (props) tách khỏi phần nối store; dùng lại `NumInput`, `Segmented`, `Switch`, `Field`, `PortField`, `StepIcon`… UI theo `design/DESIGN.md` (token, không màu cứng, không `text-white`).
-6. Tính năng đang hiện *Sắp có* (bước 27b) → bỏ trạng thái tắt, chuyển kiểu từ `components/steps/model.ts` sang `types.ts` + `model.go`, xoá dữ liệu giả không còn dùng.
+6. Tính năng đang hiện *Sắp có* (bước 27b) → bỏ trạng thái tắt, chuyển kiểu từ `components/steps/model.ts` sang `types.ts` + `internal/model/model.go`, xoá dữ liệu giả không còn dùng.
 
 Trong lúc làm: mục con xong là tick `[x]` ngay; việc phát sinh thêm thành mục con.
 

@@ -73,9 +73,12 @@ import (
 	"image/draw"
 	"math"
 	"unsafe"
+
+	"autoclicker/internal/model"
+	"autoclicker/internal/vision"
 )
 
-func readText(src image.Image) ([]TextLine, error) {
+func readText(src image.Image) ([]vision.TextLine, error) {
 	b := src.Bounds()
 	img, ok := src.(*image.RGBA)
 	// Vision đọc kém ảnh quá dẹt (vùng 1 dòng kiểu thanh menu 1920×40) → chèn thêm nền (màu góc ảnh) ở phải / dưới
@@ -99,18 +102,18 @@ func readText(src image.Image) ([]TextLine, error) {
 		return nil, errors.New("không đọc được chữ trên màn hình (Vision)")
 	}
 	defer C.ocr_free(ls, nl, ws)
-	px := func(x, y, bw, bh C.double) Rect {
+	px := func(x, y, bw, bh C.double) model.Rect {
 		x0, y0 := int(math.Round(float64(x)*float64(w))), int(math.Round(float64(y)*float64(h)))
-		return Rect{X: x0, Y: y0, W: max(int(math.Round(float64(bw)*float64(w))), 1), H: max(int(math.Round(float64(bh)*float64(h))), 1)}
+		return model.Rect{X: x0, Y: y0, W: max(int(math.Round(float64(bw)*float64(w))), 1), H: max(int(math.Round(float64(bh)*float64(h))), 1)}
 	}
-	lines := make([]TextLine, int(nl))
+	lines := make([]vision.TextLine, int(nl))
 	for i, l := range unsafe.Slice(ls, int(nl)) {
-		lines[i] = TextLine{Text: C.GoString(l.text), Box: px(l.x, l.y, l.w, l.h)}
+		lines[i] = vision.TextLine{Text: C.GoString(l.text), Box: px(l.x, l.y, l.w, l.h)}
 	}
 	if nw > 0 {
 		for _, wd := range unsafe.Slice(ws, int(nw)) {
 			li := int(wd.line)
-			lines[li].Words = append(lines[li].Words, TextWord{Start: int(wd.start), Len: int(wd.len), Box: px(wd.x, wd.y, wd.w, wd.h)})
+			lines[li].Words = append(lines[li].Words, vision.TextWord{Start: int(wd.start), Len: int(wd.len), Box: px(wd.x, wd.y, wd.w, wd.h)})
 		}
 	}
 	return lines, nil

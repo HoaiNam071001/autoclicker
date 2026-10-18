@@ -5,6 +5,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"autoclicker/internal/model"
 )
 
 // Biến lúc chạy (bước 20): node đọc kết quả node đã chạy trước đó trong cùng vòng.
@@ -14,14 +16,14 @@ import (
 
 // runVars – bảng tra khi thay biến: kết quả theo mã node, node vừa chạy, biến người dùng đặt.
 type runVars struct {
-	byRef map[string]*StepResult
-	last  *StepResult
+	byRef map[string]*model.StepResult
+	last  *model.StepResult
 	vars  map[string]any
 }
 
 // resolveNodeVars trả bản sao node với biến node trong các ô chữ đã thay giá trị. Biến trỏ node chưa chạy / output
 // không có → lỗi invalid_input (node thất bại, đi cổng fail) – không lặng lẽ gõ chữ trống.
-func resolveNodeVars(s Step, rv runVars) (Step, error) {
+func resolveNodeVars(s model.Step, rv runVars) (model.Step, error) {
 	s = cloneStep(s)
 	var firstErr error
 	for _, f := range varFields(&s) {
@@ -52,49 +54,49 @@ type varField struct {
 
 // varFields – các ô chữ nhận biến của s (input {{key}} ở resolveInputs, biến node ở resolveNodeVars, kiểm tra ở
 // validateFlow). Con trỏ trỏ vào s – muốn sửa thì gọi trên bản sao (cloneStep).
-func varFields(s *Step) []varField {
+func varFields(s *model.Step) []varField {
 	var out []varField
 	add := func(name string, p *string, url bool) { out = append(out, varField{name, p, url}) }
 	switch s.Type {
-	case StepText:
+	case model.StepText:
 		add("text", &s.Text, false)
-	case StepWaitImage, StepClickImage:
-		if s.FindBy == FindByText {
+	case model.StepWaitImage, model.StepClickImage:
+		if s.FindBy == model.FindByText {
 			add("findText", &s.FindText, false)
 		}
-	case StepOpen:
+	case model.StepOpen:
 		add("target", &s.Target, targetKind(s.Target) == targetURL)
-	case StepIf:
+	case model.StepIf:
 		if s.Cond != nil {
 			condFields(s.Cond, "cond", add)
 		}
-	case StepSwitch:
+	case model.StepSwitch:
 		add("value", &s.Value, false)
 		for i := range s.Cases {
 			add(fmt.Sprintf("cases[%d].match", i), &s.Cases[i].Match, false)
 		}
-	case StepSwitchScreen:
+	case model.StepSwitchScreen:
 		for i := range s.Cases {
 			if c := s.Cases[i].Cond; c != nil {
 				condFields(c, fmt.Sprintf("cases[%d].cond", i), add)
 			}
 		}
-	case StepEnd:
+	case model.StepEnd:
 		add("message", &s.Message, false)
-	case StepSetVar:
+	case model.StepSetVar:
 		add("value", &s.Value, false)
 	}
 	return out
 }
 
-func condFields(c *Cond, name string, add func(string, *string, bool)) {
+func condFields(c *model.Cond, name string, add func(string, *string, bool)) {
 	switch c.Kind {
-	case CondText:
+	case model.CondText:
 		add(name+".findText", &c.FindText, false)
-	case CondValue:
+	case model.CondValue:
 		add(name+".left", &c.Left, false)
 		add(name+".right", &c.Right, false)
-	case CondAll, CondAny:
+	case model.CondAll, model.CondAny:
 		for i := range c.Conds {
 			condFields(&c.Conds[i], fmt.Sprintf("%s.conds[%d]", name, i), add)
 		}
@@ -102,11 +104,11 @@ func condFields(c *Cond, name string, add func(string, *string, bool)) {
 }
 
 // cloneStep chép sâu phần lồng nhau sửa được (điểm, điều kiện, case) – thay biến trên bản sao không đụng kịch bản gốc.
-func cloneStep(s Step) Step {
+func cloneStep(s model.Step) model.Step {
 	s.Points = slices.Clone(s.Points)
 	s.Cond = cloneCond(s.Cond)
 	if s.Cases != nil {
-		cs := make([]Case, len(s.Cases))
+		cs := make([]model.Case, len(s.Cases))
 		for i, c := range s.Cases {
 			c.Cond = cloneCond(c.Cond)
 			cs[i] = c

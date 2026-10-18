@@ -9,15 +9,15 @@ description: Thêm một loại node mới vào flow (vd focus cửa sổ, web D
 
 ## Go
 
-- [ ] `model.go`: hằng `StepXxx`, thêm vào `stepTypes`, `isControl` nếu là node điều khiển, trường mới của `Step` (json camelCase, `omitempty` cho trường riêng loại), mặc định trong `NewStep`.
+- [ ] `internal/model/model.go`: hằng `StepXxx`, thêm vào `StepTypes`, `IsControl` nếu là node điều khiển, trường mới của `Step` (json camelCase, `omitempty` cho trường riêng loại), mặc định trong `NewStep`.
 - [ ] `~/go/bin/wails generate module`.
 - [ ] `storage.go` `checkStep`: miền giá trị hợp lệ khi mở file.
 - [ ] `engine.go` `validateScript`: dữ liệu đủ để chạy (lỗi `stepErr(i, s, "<field>", …)` – trường lỗi để UI / AI chỉ đúng chỗ); `flowcheck.go` nếu node trỏ node khác.
 - [ ] Chạy: hành động → `runStep` / `doStep` (engine.go) hoặc file riêng nếu lớn (như `imagestep.go`); điều khiển → `runControl` (nodes.go). Trả `output` map. Lỗi không thấy → `notFoundErr`; dữ liệu sai lúc chạy → `invalidErr`. Tôn trọng `ctx` (dùng `sleep(ctx, …)`, không `time.Sleep`).
 - [ ] Thiết bị / hệ điều hành mới → interface + bản thật (`_darwin.go` / `_windows.go` / `_other.go`) + bản giả trong test.
-- [ ] `flow.go` `portsOf` nếu cổng khác `success` / `fail`.
+- [ ] `internal/model/flow.go` `PortsOf` nếu cổng khác `success` / `fail`.
 - [ ] `vars.go` `varFields`: ô chữ nhận `{{biến}}`.
-- [ ] `steptypes.go`: mô tả, output, ví dụ JSON (test kiểm đủ loại).
+- [ ] `internal/model/steptypes.go`: mô tả, output, ví dụ JSON (test kiểm đủ loại).
 - [ ] Test: `nodes_test.go` / `flowrun_test.go` / file test riêng – chạy đúng, cổng đúng, output đúng, lỗi đúng mã, dừng được giữa chừng.
 
 ## Frontend

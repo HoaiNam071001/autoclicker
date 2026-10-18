@@ -1,25 +1,28 @@
-package main
+// Package vision – tìm ảnh mẫu / chữ trên ảnh đã chụp (thuần, không chụp màn hình, không đọc chữ).
+package vision
 
 import (
 	"image"
 	"math"
 	"sort"
+
+	"autoclicker/internal/model"
 )
 
 // Tìm ảnh mẫu trong ảnh chụp màn hình (bước 25) – Go thuần, không cần OpenCV.
 // Độ khớp = tương quan chuẩn hoá (NCC) trên ảnh xám: 1 = giống hệt, không phụ thuộc độ sáng / tương phản chung.
 // Tìm thô trên ảnh thu nhỏ (giữ vài ứng viên tốt nhất) rồi tìm mịn ở độ phân giải gốc quanh từng ứng viên.
 
-type gray struct {
+type Gray struct {
 	w, h int
 	p    []float32
 }
 
-func (g gray) at(x, y int) float32 { return g.p[y*g.w+x] }
+func (g Gray) at(x, y int) float32 { return g.p[y*g.w+x] }
 
-func toGray(img image.Image) gray {
+func ToGray(img image.Image) Gray {
 	b := img.Bounds()
-	g := gray{w: b.Dx(), h: b.Dy(), p: make([]float32, b.Dx()*b.Dy())}
+	g := Gray{w: b.Dx(), h: b.Dy(), p: make([]float32, b.Dx()*b.Dy())}
 	if rgba, ok := img.(*image.RGBA); ok { // ảnh chụp màn hình: đọc thẳng mảng pixel, nhanh hơn At() nhiều lần
 		for y := 0; y < g.h; y++ {
 			row := rgba.Pix[(b.Min.Y+y-rgba.Rect.Min.Y)*rgba.Stride+(b.Min.X-rgba.Rect.Min.X)*4:]
@@ -39,12 +42,12 @@ func toGray(img image.Image) gray {
 }
 
 // resize đổi cỡ: thu nhỏ lấy trung bình theo ô (khử nhiễu), phóng to nội suy song tuyến.
-func (g gray) resize(nw, nh int) gray {
+func (g Gray) resize(nw, nh int) Gray {
 	nw, nh = max(nw, 1), max(nh, 1)
 	if nw == g.w && nh == g.h {
 		return g
 	}
-	out := gray{w: nw, h: nh, p: make([]float32, nw*nh)}
+	out := Gray{w: nw, h: nh, p: make([]float32, nw*nh)}
 	sx, sy := float64(g.w)/float64(nw), float64(g.h)/float64(nh)
 	if sx >= 1 && sy >= 1 {
 		for y := 0; y < nh; y++ {
@@ -87,7 +90,7 @@ type Match struct {
 // scorer tính độ khớp mẫu t tại (x, y) của s. Mẫu gần như một màu (không có chi tiết) không dùng được NCC
 // → so độ chênh trung bình.
 type scorer struct {
-	s, t    gray
+	s, t    Gray
 	tz      []float32 // mẫu trừ trung bình
 	tnorm   float64   // Σ tz²
 	n       float64
@@ -100,7 +103,7 @@ type scorer struct {
 
 const flatVar = 4.0 // phương sai mẫu dưới mức này (thang 0..255) = coi như một màu
 
-func newScorer(s, t gray) *scorer {
+func newScorer(s, t Gray) *scorer {
 	sc := &scorer{s: s, t: t, n: float64(t.w * t.h), iw: s.w + 1}
 	var sum float64
 	for _, v := range t.p {
@@ -168,7 +171,7 @@ const (
 )
 
 // findTemplate trả chỗ giống mẫu t nhất trong s (cùng tỷ lệ px). Mẫu lớn hơn ảnh → Score 0.
-func findTemplate(s, t gray) Match {
+func findTemplate(s, t Gray) Match {
 	if t.w > s.w || t.h > s.h || t.w == 0 || t.h == 0 {
 		return Match{}
 	}
@@ -234,4 +237,37 @@ func findTemplate(s, t gray) Match {
 	}
 	best.Score = math.Max(best.Score, 0)
 	return best
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
+// ImageScale: px ảnh chụp trên 1 đơn vị toạ độ.
+func ImageScale(img image.Image, r model.Rect) float64 {
+	if r.W == 0 {
+		return 1
+	}
+	return float64(img.Bounds().Dx()) / float64(r.W)
+}
+
+// MatchScaled đưa mẫu và ảnh chụp về cùng tỷ lệ px (mẫu chụp ở màn 1x, chạy trên Retina…) rồi tìm. Luôn thu nhỏ
+// bên nét hơn (trung bình theo ô ≈ cách màn 1x vẽ) thay vì phóng to bên kia – phóng to làm mẫu nhoè, độ khớp tụt.
+// Trả kết quả theo px ảnh chụp và tỷ lệ px / toạ độ của ảnh chụp.
+func MatchScaled(img image.Image, area model.Rect, tpl Gray, tplScale float64) (Match, float64) {
+	sc := ImageScale(img, area)
+	g := ToGray(img)
+	if tplScale <= 0 || math.Abs(sc-tplScale) <= 0.01 {
+		return findTemplate(g, tpl), sc
+	}
+	if k := tplScale / sc; k > 1 { // mẫu nét hơn ảnh chụp → thu nhỏ mẫu
+		return findTemplate(g, tpl.resize(int(math.Round(float64(tpl.w)/k)), int(math.Round(float64(tpl.h)/k)))), sc
+	}
+	k := sc / tplScale // ảnh chụp nét hơn → thu nhỏ ảnh chụp, đổi kết quả về px ảnh chụp
+	m := findTemplate(g.resize(int(math.Round(float64(g.w)/k)), int(math.Round(float64(g.h)/k))), tpl)
+	return Match{X: int(math.Round(float64(m.X) * k)), Y: int(math.Round(float64(m.Y) * k)),
+		W: int(math.Round(float64(m.W) * k)), H: int(math.Round(float64(m.H) * k)), Score: m.Score}, sc
 }

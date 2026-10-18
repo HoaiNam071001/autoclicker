@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"autoclicker/internal/model"
+	"autoclicker/internal/vision"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -25,15 +27,15 @@ type TemplateShot struct {
 
 // FindResult – kết quả thử tìm ảnh mẫu trên màn hình hiện tại.
 type FindResult struct {
-	Found bool     `json:"found"` // độ khớp ≥ ngưỡng của bước
-	Score int      `json:"score"` // % khớp tốt nhất
-	X     int      `json:"x"`     // khung chỗ giống nhất (toạ độ robotgo)
-	Y     int      `json:"y"`
-	W     int      `json:"w"`
-	H     int      `json:"h"`
-	Area  Rect     `json:"area"`           // vùng đã tìm
-	Ms    int      `json:"ms"`             // thời gian tìm
-	Read  []string `json:"read,omitempty"` // tìm theo chữ mà không thấy: các dòng đọc được trong vùng
+	Found bool       `json:"found"` // độ khớp ≥ ngưỡng của bước
+	Score int        `json:"score"` // % khớp tốt nhất
+	X     int        `json:"x"`     // khung chỗ giống nhất (toạ độ robotgo)
+	Y     int        `json:"y"`
+	W     int        `json:"w"`
+	H     int        `json:"h"`
+	Area  model.Rect `json:"area"`           // vùng đã tìm
+	Ms    int        `json:"ms"`             // thời gian tìm
+	Read  []string   `json:"read,omitempty"` // tìm theo chữ mà không thấy: các dòng đọc được trong vùng
 }
 
 // withHidden ẩn cửa sổ app, chạy f, rồi hiện lại – chỉ khi không chụp được mà bỏ qua cửa sổ app (macOS < 14, Linux…).
@@ -47,7 +49,7 @@ func (a *App) withHidden(f func() error) error {
 }
 
 // CaptureTemplate chụp vùng r (toạ độ robotgo, nằm trong một màn hình) làm ảnh mẫu.
-func (a *App) CaptureTemplate(r Rect) (TemplateShot, error) {
+func (a *App) CaptureTemplate(r model.Rect) (TemplateShot, error) {
 	if err := captureArea(r, displays()); err != nil {
 		return TemplateShot{}, err
 	}
@@ -61,15 +63,15 @@ func (a *App) CaptureTemplate(r Rect) (TemplateShot, error) {
 			return err
 		}
 		png, err := encodePNG(img)
-		shot = TemplateShot{Png: png, Scale: imageScale(img, r), W: r.W, H: r.H}
+		shot = TemplateShot{Png: png, Scale: vision.ImageScale(img, r), W: r.W, H: r.H}
 		return err
 	})
 	return shot, err
 }
 
 // FindImage thử tìm ảnh mẫu của bước stepID trên màn hình hiện tại (một lần, không chờ) – nút "Thử tìm".
-func (a *App) FindImage(sc Script, stepID string) (FindResult, error) {
-	var s *Step
+func (a *App) FindImage(sc model.Script, stepID string) (FindResult, error) {
+	var s *model.Step
 	for i := range sc.Steps {
 		if sc.Steps[i].ID == stepID {
 			s = &sc.Steps[i]
@@ -78,7 +80,7 @@ func (a *App) FindImage(sc Script, stepID string) (FindResult, error) {
 	if s == nil {
 		return FindResult{}, errors.New("không có bước này")
 	}
-	if s.FindBy == FindByText {
+	if s.FindBy == model.FindByText {
 		return a.findTextOnce(sc, *s)
 	}
 	if s.Template == "" {
@@ -101,7 +103,7 @@ func (a *App) FindImage(sc Script, stepID string) (FindResult, error) {
 			return err
 		}
 		start := time.Now()
-		m, k := matchScaled(shot, area, toGray(img), s.TemplateScale)
+		m, k := vision.MatchScaled(shot, area, vision.ToGray(img), s.TemplateScale)
 		res = FindResult{
 			Score: int(math.Round(m.Score * 100)), Area: area, Ms: int(time.Since(start).Milliseconds()),
 			X: area.X + int(float64(m.X)/k), Y: area.Y + int(float64(m.Y)/k), W: int(float64(m.W) / k), H: int(float64(m.H) / k),
@@ -113,7 +115,7 @@ func (a *App) FindImage(sc Script, stepID string) (FindResult, error) {
 }
 
 // findTextOnce – nút "Thử tìm" của bước tìm theo chữ ({{biến}} lấy giá trị lần trước / mặc định).
-func (a *App) findTextOnce(sc Script, s Step) (FindResult, error) {
+func (a *App) findTextOnce(sc model.Script, s model.Step) (FindResult, error) {
 	if strings.TrimSpace(s.FindText) == "" {
 		return FindResult{}, errors.New("chưa nhập chữ cần tìm")
 	}

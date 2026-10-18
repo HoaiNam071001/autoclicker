@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { GetInputMemory, SaveInputMemory, ValidateScript } from '../wailsjs/go/main/App';
-import { main } from '../wailsjs/go/models';
+import { main, model } from '../wailsjs/go/models';
 import { getEditor } from './store';
 import { Debug, errorText, runScript } from './engineStore';
 import { parseValue } from './scriptInputs';
@@ -96,7 +96,7 @@ export async function submitRun(raw: Values, remember: boolean, preset: string) 
   const values = cleanValues(script, raw);
   if (inWails) {
     try {
-      await ValidateScript(main.Script.createFrom(script), values);
+      await ValidateScript(model.Script.createFrom(script), values);
     } catch (e) {
       return set({ error: errorText(e) });
     }

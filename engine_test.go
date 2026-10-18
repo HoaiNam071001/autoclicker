@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"autoclicker/internal/model"
 )
 
 // fakeInput ghi lại các lệnh dưới dạng chuỗi thay vì điều khiển chuột thật.
@@ -43,8 +45,8 @@ func (f *fakeInput) lines() []string {
 	return append([]string(nil), f.log...)
 }
 
-func step(t string, mod func(*Step)) Step {
-	s, err := (&App{}).NewStep(t)
+func step(t string, mod func(*model.Step)) model.Step {
+	s, err := model.NewStep(t)
 	if err != nil {
 		panic(err)
 	}
@@ -57,13 +59,13 @@ func step(t string, mod func(*Step)) Step {
 
 func TestRunClickLoopsAndRegion(t *testing.T) {
 	in := &fakeInput{}
-	sc := Script{
+	sc := model.Script{
 		Loops:  2,
-		Region: &Rect{X: 100, Y: 50},
-		Steps: []Step{
-			step(StepClick, func(s *Step) { s.Points = []Point{{X: 10, Y: 20}}; s.Clicks = 2 }),
-			step(StepDouble, func(s *Step) { s.Points = []Point{{X: 1, Y: 2}}; s.Button = "right" }),
-			step(StepClick, func(s *Step) { s.Enabled = false }),
+		Region: &model.Rect{X: 100, Y: 50},
+		Steps: []model.Step{
+			step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{{X: 10, Y: 20}}; s.Clicks = 2 }),
+			step(model.StepDouble, func(s *model.Step) { s.Points = []model.Point{{X: 1, Y: 2}}; s.Button = "right" }),
+			step(model.StepClick, func(s *model.Step) { s.Enabled = false }),
 		},
 	}
 	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
@@ -78,8 +80,8 @@ func TestRunClickLoopsAndRegion(t *testing.T) {
 
 func TestRunDrag(t *testing.T) {
 	in := &fakeInput{}
-	sc := Script{Loops: 1, Steps: []Step{
-		step(StepDrag, func(s *Step) { s.Points = []Point{{X: 0, Y: 0}, {X: 100, Y: 40}}; s.DragMs = 40 }),
+	sc := model.Script{Loops: 1, Steps: []model.Step{
+		step(model.StepDrag, func(s *model.Step) { s.Points = []model.Point{{X: 0, Y: 0}, {X: 100, Y: 40}}; s.DragMs = 40 }),
 	}}
 	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 		t.Fatal(err)
@@ -93,9 +95,9 @@ func TestRunDrag(t *testing.T) {
 
 func TestRunTypeAndKey(t *testing.T) {
 	in := &fakeInput{}
-	sc := Script{Loops: 1, Steps: []Step{
-		step(StepText, func(s *Step) { s.Text = "Gõ" }),
-		step(StepKey, func(s *Step) { s.Keys = []string{"v"}; s.Modifiers = []string{"cmd", "shift"} }),
+	sc := model.Script{Loops: 1, Steps: []model.Step{
+		step(model.StepText, func(s *model.Step) { s.Text = "Gõ" }),
+		step(model.StepKey, func(s *model.Step) { s.Keys = []string{"v"}; s.Modifiers = []string{"cmd", "shift"} }),
 	}}
 	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 		t.Fatal(err)
@@ -109,8 +111,8 @@ func TestRunTypeAndKey(t *testing.T) {
 
 func TestStopInfiniteLoopReleasesButton(t *testing.T) {
 	in := &fakeInput{}
-	sc := Script{Loops: 0, Steps: []Step{
-		step(StepHold, func(s *Step) { s.HoldMs = 10_000 }),
+	sc := model.Script{Loops: 0, Steps: []model.Step{
+		step(model.StepHold, func(s *model.Step) { s.HoldMs = 10_000 }),
 	}}
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error)
@@ -133,15 +135,15 @@ func TestStopInfiniteLoopReleasesButton(t *testing.T) {
 }
 
 func TestValidateScript(t *testing.T) {
-	cases := map[string]Script{
-		"không có node nào được bật": {Steps: []Step{step(StepWait, func(s *Step) { s.Enabled = false })}},
-		"cần 2 điểm":                 {Steps: []Step{step(StepDrag, func(s *Step) { s.Points = s.Points[:1] })}},
-		"chưa nhập nội dung gõ":      {Steps: []Step{step(StepText, nil)}},
-		"chưa chọn phím":             {Steps: []Step{step(StepKey, func(s *Step) { s.Keys = nil })}},
-		"không hợp lệ":               {Steps: []Step{{Type: "scroll", Enabled: true}}},
+	cases := map[string]model.Script{
+		"không có node nào được bật": {Steps: []model.Step{step(model.StepWait, func(s *model.Step) { s.Enabled = false })}},
+		"cần 2 điểm":                 {Steps: []model.Step{step(model.StepDrag, func(s *model.Step) { s.Points = s.Points[:1] })}},
+		"chưa nhập nội dung gõ":      {Steps: []model.Step{step(model.StepText, nil)}},
+		"chưa chọn phím":             {Steps: []model.Step{step(model.StepKey, func(s *model.Step) { s.Keys = nil })}},
+		"không hợp lệ":               {Steps: []model.Step{{Type: "scroll", Enabled: true}}},
 	}
 	for want, sc := range cases {
-		err := validateScript(linear(sc), Rect{})
+		err := validateScript(linear(sc), model.Rect{})
 		if err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("muốn lỗi chứa %q, nhận %v", want, err)
 		}
@@ -150,9 +152,9 @@ func TestValidateScript(t *testing.T) {
 
 func TestPauseResumeAndProgress(t *testing.T) {
 	in := &fakeInput{}
-	sc := Script{Loops: 2, Steps: []Step{
-		step(StepClick, func(s *Step) { s.Points = []Point{{X: 1, Y: 1}}; s.Clicks = 3; s.ClickInterval = 20 }),
-		step(StepWait, func(s *Step) { s.DelayAfter = 10 }),
+	sc := model.Script{Loops: 2, Steps: []model.Step{
+		step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{{X: 1, Y: 1}}; s.Clicks = 3; s.ClickInterval = 20 }),
+		step(model.StepWait, func(s *model.Step) { s.DelayAfter = 10 }),
 	}}
 	var mu sync.Mutex
 	var progs []Progress
@@ -196,13 +198,13 @@ func TestPauseResumeAndProgress(t *testing.T) {
 func TestKeyChordAndSequence(t *testing.T) {
 	cases := map[string][]string{
 		// Ctrl+C+T nhấn giữ cùng lúc rồi nhả ngược thứ tự
-		KeyChord: {"down ctrl []", "down c [ctrl]", "down t [ctrl]", "up t", "up c", "up ctrl"},
+		model.KeyChord: {"down ctrl []", "down c [ctrl]", "down t [ctrl]", "up t", "up c", "up ctrl"},
 		// giữ Ctrl, gõ C rồi T
-		KeySequence: {"down ctrl []", "down c [ctrl]", "up c", "down t [ctrl]", "up t", "up ctrl"},
+		model.KeySequence: {"down ctrl []", "down c [ctrl]", "up c", "down t [ctrl]", "up t", "up ctrl"},
 	}
 	for mode, want := range cases {
 		in := &fakeInput{}
-		sc := Script{Loops: 1, Steps: []Step{step(StepKey, func(s *Step) {
+		sc := model.Script{Loops: 1, Steps: []model.Step{step(model.StepKey, func(s *model.Step) {
 			s.Keys = []string{"c", "t"}
 			s.Modifiers = []string{"ctrl"}
 			s.KeyMode = mode
@@ -218,7 +220,7 @@ func TestKeyChordAndSequence(t *testing.T) {
 
 func TestKeyCancelReleasesAll(t *testing.T) {
 	in := &fakeInput{}
-	s := step(StepKey, func(s *Step) { s.Keys = []string{"c", "t"}; s.Modifiers = []string{"ctrl"} })
+	s := step(model.StepKey, func(s *model.Step) { s.Keys = []string{"c", "t"}; s.Modifiers = []string{"ctrl"} })
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // huỷ trước: lần chờ giữ phím trả lỗi ngay
 	if err := pressKeys(ctx, in, s); !errors.Is(err, context.Canceled) {
@@ -231,7 +233,7 @@ func TestKeyCancelReleasesAll(t *testing.T) {
 }
 
 func TestJitter(t *testing.T) {
-	e := newEngine(&fakeInput{}, linear(Script{}), nil)
+	e := newEngine(&fakeInput{}, linear(model.Script{}), nil)
 	e.intN = func(n int) int { return 0 } // lệch nhỏ nhất
 	if got := e.jitter(100, 5); got != 95 {
 		t.Errorf("jitter min = %d, muốn 95", got)
@@ -253,8 +255,8 @@ func TestJitter(t *testing.T) {
 
 func TestRunJitterPositionsInBounds(t *testing.T) {
 	in := &fakeInput{}
-	sc := Script{Loops: 1, Steps: []Step{
-		step(StepClick, func(s *Step) { s.Points = []Point{{X: 500, Y: 300}}; s.Clicks = 200; s.JitterPx = 4 }),
+	sc := model.Script{Loops: 1, Steps: []model.Step{
+		step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{{X: 500, Y: 300}}; s.Clicks = 200; s.JitterPx = 4 }),
 	}}
 	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 		t.Fatal(err)
@@ -277,16 +279,16 @@ func TestRunJitterPositionsInBounds(t *testing.T) {
 
 func TestDragFromPrevAndRelative(t *testing.T) {
 	in := &fakeInput{}
-	sc := Script{Loops: 1, Region: &Rect{X: 1000, Y: 0}, Steps: []Step{
-		step(StepClick, func(s *Step) { s.Points = []Point{{X: 100, Y: 100}} }),
+	sc := model.Script{Loops: 1, Region: &model.Rect{X: 1000, Y: 0}, Steps: []model.Step{
+		step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{{X: 100, Y: 100}} }),
 		// kéo từ chỗ vừa click, sang phải 40, lên 20
-		step(StepDrag, func(s *Step) {
-			s.Points = []Point{{X: 0, Y: 0}, {X: 40, Y: -20}}
+		step(model.StepDrag, func(s *model.Step) {
+			s.Points = []model.Point{{X: 0, Y: 0}, {X: 40, Y: -20}}
 			s.DragFromPrev, s.DragRelative, s.DragMs = true, true, 20
 		}),
 		// kéo tiếp từ điểm thả vừa rồi tới điểm cố định (trong vùng)
-		step(StepDrag, func(s *Step) {
-			s.Points = []Point{{X: 0, Y: 0}, {X: 10, Y: 10}}
+		step(model.StepDrag, func(s *model.Step) {
+			s.Points = []model.Point{{X: 0, Y: 0}, {X: 10, Y: 10}}
 			s.DragFromPrev, s.DragMs = true, 10
 		}),
 	}}
@@ -304,9 +306,9 @@ func TestDragFromPrevAndRelative(t *testing.T) {
 }
 
 func TestDragFromPrevNeedsPrevPoint(t *testing.T) {
-	sc := Script{Loops: 1, Steps: []Step{
-		step(StepKey, nil),
-		step(StepDrag, func(s *Step) { s.DragFromPrev = true }),
+	sc := model.Script{Loops: 1, Steps: []model.Step{
+		step(model.StepKey, nil),
+		step(model.StepDrag, func(s *model.Step) { s.DragFromPrev = true }),
 	}}
 	err := newEngine(&fakeInput{}, linear(sc), nil).run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "n2: kéo từ điểm trước đó") {

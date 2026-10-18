@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"autoclicker/internal/model"
 	"github.com/go-vgo/robotgo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -83,10 +84,10 @@ func (a *App) SetWindowMode(mode string) error {
 
 // DisplayInfo – một màn hình cho bộ chọn màn trên overlay. Khung theo toạ độ robotgo (như toạ độ điểm).
 type DisplayInfo struct {
-	Index   int  `json:"index"`
-	Rect    Rect `json:"rect"`
-	Main    bool `json:"main"`    // màn chính – "toàn màn hình" (vùng = nil) tính theo màn này
-	Current bool `json:"current"` // cửa sổ app / overlay đang ở màn này
+	Index   int        `json:"index"`
+	Rect    model.Rect `json:"rect"`
+	Main    bool       `json:"main"`    // màn chính – "toàn màn hình" (vùng = nil) tính theo màn này
+	Current bool       `json:"current"` // cửa sổ app / overlay đang ở màn này
 }
 
 // Displays trả danh sách màn hình (màn chính đứng đầu).
@@ -107,10 +108,10 @@ func (a *App) Displays() []DisplayInfo {
 
 // OverlayDisplayFor chọn màn cho lần mở overlay tới: màn chứa tâm khung r (vùng của kịch bản, toàn màn hình = màn
 // chính) – mở overlay luôn ở đúng màn đang soạn, không phải màn chứa cửa sổ app. Trả chỉ số màn (-1 = không đổi).
-func (a *App) OverlayDisplayFor(r Rect) int {
+func (a *App) OverlayDisplayFor(r model.Rect) int {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if i := displayAt(displays(), Point{X: r.X + r.W/2, Y: r.Y + r.H/2}); i >= 0 {
+	if i := displayAt(displays(), model.Point{X: r.X + r.W/2, Y: r.Y + r.H/2}); i >= 0 {
 		a.ovDisp = i
 		return i
 	}
@@ -118,7 +119,7 @@ func (a *App) OverlayDisplayFor(r Rect) int {
 }
 
 // displayAt – chỉ số màn chứa điểm p, -1 nếu không màn nào.
-func displayAt(ds []Rect, p Point) int {
+func displayAt(ds []model.Rect, p model.Point) int {
 	for i, d := range ds {
 		if p.X >= d.X && p.X < d.X+d.W && p.Y >= d.Y && p.Y < d.Y+d.H {
 			return i
@@ -171,11 +172,11 @@ func (a *App) detectDisplay() int {
 	}
 	w, h, _ := a.currentScreenSize()
 	mx, my := robotgo.Location()
-	return pickDisplay(ds, displays(), w, h, Point{X: mx, Y: my})
+	return pickDisplay(ds, displays(), w, h, model.Point{X: mx, Y: my})
 }
 
 // pickDisplay: raw – khung màn theo đơn vị cửa sổ, scaled – theo toạ độ chuột robotgo (cùng thứ tự).
-func pickDisplay(raw, scaled []Rect, w, h int, mouse Point) int {
+func pickDisplay(raw, scaled []model.Rect, w, h int, mouse model.Point) int {
 	under := -1
 	for i, r := range scaled {
 		if mouse.X >= r.X && mouse.X < r.X+r.W && mouse.Y >= r.Y && mouse.Y < r.Y+r.H {
@@ -223,7 +224,7 @@ func (a *App) currentScreenSize() (int, int, error) {
 
 // MousePos trả vị trí chuột theo robotgo (toạ độ màn hình thật).
 // Overlay so với clientX/Y để đo độ lệch giữa toạ độ trong cửa sổ và toạ độ click.
-func (a *App) MousePos() Point {
+func (a *App) MousePos() model.Point {
 	x, y := robotgo.Location()
-	return Point{X: x, Y: y}
+	return model.Point{X: x, Y: y}
 }

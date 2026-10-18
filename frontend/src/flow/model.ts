@@ -1,5 +1,5 @@
 // Flow (bước 20) – phần dùng chung với Go (flow.go): cổng ra theo loại node, thứ tự hiển thị node.
-// flowOrder phải cùng công thức với flow.go – test chung dữ liệu testdata/flow_order.json (gốc repo).
+// flowOrder phải cùng công thức với internal/model/flow.go – test chung dữ liệu testdata/flow_order.json (gốc repo).
 import type { Edge, Step } from '../types';
 
 export const PORT_SUCCESS = 'success';

@@ -3,21 +3,23 @@ package main
 import (
 	"strings"
 	"testing"
+
+	"autoclicker/internal/model"
 )
 
-func inputScript() Script {
-	return Script{
+func inputScript() model.Script {
+	return model.Script{
 		Name: "Nhắn tin",
-		Steps: []Step{
-			{ID: "s1", Type: StepClick, Points: []Point{{X: 10, Y: 10}}, Clicks: 1, DelayAfter: 500, Enabled: true},
-			{ID: "s2", Type: StepText, Text: "xin chào {{M1}} và {{M2}}", DelayAfter: 300, Enabled: true},
-			{ID: "s3", Type: StepClick, Points: []Point{{X: 20, Y: 20}}, Clicks: 1, DelayAfter: 500, Enabled: true},
+		Steps: []model.Step{
+			{ID: "s1", Type: model.StepClick, Points: []model.Point{{X: 10, Y: 10}}, Clicks: 1, DelayAfter: 500, Enabled: true},
+			{ID: "s2", Type: model.StepText, Text: "xin chào {{M1}} và {{M2}}", DelayAfter: 300, Enabled: true},
+			{ID: "s3", Type: model.StepClick, Points: []model.Point{{X: 20, Y: 20}}, Clicks: 1, DelayAfter: 500, Enabled: true},
 		},
-		Inputs: []ScriptInput{
-			{Key: "click_delay", Label: "Chờ sau khi click", Type: InputMs, Default: 500.0,
-				Targets: []InputTarget{{StepID: "s1", Field: "delayAfter"}, {StepID: "s3", Field: "delayAfter"}}},
-			{Key: "M1", Label: "Tên người nhận", Type: InputText, Required: true},
-			{Key: "M2", Label: "Tên thứ hai", Type: InputText, Default: "Lan"},
+		Inputs: []model.ScriptInput{
+			{Key: "click_delay", Label: "Chờ sau khi click", Type: model.InputMs, Default: 500.0,
+				Targets: []model.InputTarget{{StepID: "s1", Field: "delayAfter"}, {StepID: "s3", Field: "delayAfter"}}},
+			{Key: "M1", Label: "Tên người nhận", Type: model.InputText, Required: true},
+			{Key: "M2", Label: "Tên thứ hai", Type: model.InputText, Default: "Lan"},
 		},
 	}
 }
@@ -48,7 +50,7 @@ func TestResolveInputs(t *testing.T) {
 func TestResolveInputsErrors(t *testing.T) {
 	cases := []struct {
 		name   string
-		edit   func(*Script)
+		edit   func(*model.Script)
 		values map[string]any
 		want   string
 	}{
@@ -57,13 +59,13 @@ func TestResolveInputsErrors(t *testing.T) {
 		{"số lẻ", nil, map[string]any{"M1": "a", "click_delay": 1.5}, "cần số nguyên"},
 		{"số âm", nil, map[string]any{"M1": "a", "click_delay": -1.0}, "không được âm"},
 		{"input lạ", nil, map[string]any{"M1": "a", "M9": "x"}, `không có input "M9"`},
-		{"biến không có", func(sc *Script) { sc.Steps[1].Text = "chào {{ten}}" }, map[string]any{"M1": "a"}, "bước 2: biến {{ten}} không có"},
-		{"không bước nào dùng", func(sc *Script) { sc.Steps[1].Text = "chào {{M1}}" }, map[string]any{"M1": "a"}, "(M2): không bước nào dùng"},
-		{"ngoài khoảng", func(sc *Script) { m := 100; sc.Inputs[0].Max = &m }, map[string]any{"M1": "a"}, "ngoài khoảng ≤ 100"},
-		{"không có trong danh sách", func(sc *Script) {
-			sc.Inputs[2].Type, sc.Inputs[2].Options = InputSelect, []string{"Lan", "Mai"}
+		{"biến không có", func(sc *model.Script) { sc.Steps[1].Text = "chào {{ten}}" }, map[string]any{"M1": "a"}, "bước 2: biến {{ten}} không có"},
+		{"không bước nào dùng", func(sc *model.Script) { sc.Steps[1].Text = "chào {{M1}}" }, map[string]any{"M1": "a"}, "(M2): không bước nào dùng"},
+		{"ngoài khoảng", func(sc *model.Script) { m := 100; sc.Inputs[0].Max = &m }, map[string]any{"M1": "a"}, "ngoài khoảng ≤ 100"},
+		{"không có trong danh sách", func(sc *model.Script) {
+			sc.Inputs[2].Type, sc.Inputs[2].Options = model.InputSelect, []string{"Lan", "Mai"}
 		}, map[string]any{"M1": "a", "M2": "Hùng"}, "không có trong danh sách"},
-		{"chỉ ghim vào bước đã xoá", func(sc *Script) {
+		{"chỉ ghim vào bước đã xoá", func(sc *model.Script) {
 			sc.Steps = sc.Steps[1:2]
 		}, map[string]any{"M1": "a"}, "(click_delay): không bước nào dùng"},
 	}
@@ -83,7 +85,7 @@ func TestResolveInputsStructuredError(t *testing.T) {
 	sc := inputScript()
 	sc.Steps[1].Text = "{{lạ}} {{ten}}"
 	_, err := resolveInputs(sc, map[string]any{"M1": "a"})
-	se, ok := err.(*ScriptError)
+	se, ok := err.(*model.ScriptError)
 	if !ok || se.Step != 2 || se.StepID != "s2" || se.Field != "text" {
 		t.Fatalf("muốn ScriptError bước 2 / s2 / text, có %#v", err)
 	}
@@ -98,7 +100,7 @@ func TestExpandVarsEscape(t *testing.T) {
 
 func TestResolveBoolInput(t *testing.T) {
 	sc := inputScript()
-	sc.Inputs = append(sc.Inputs, ScriptInput{Key: "on3", Type: InputBool, Default: true, Targets: []InputTarget{{StepID: "s3", Field: "enabled"}}})
+	sc.Inputs = append(sc.Inputs, model.ScriptInput{Key: "on3", Type: model.InputBool, Default: true, Targets: []model.InputTarget{{StepID: "s3", Field: "enabled"}}})
 	out, err := resolveInputs(sc, map[string]any{"M1": "a", "on3": "false"})
 	if err != nil || out.Steps[2].Enabled {
 		t.Fatalf("bool từ chuỗi: %v enabled=%v", err, out.Steps[2].Enabled)

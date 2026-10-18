@@ -6,6 +6,7 @@ import (
 	"image"
 	"time"
 
+	"autoclicker/internal/model"
 	"github.com/go-vgo/robotgo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -22,7 +23,7 @@ type runHandle struct {
 }
 
 // ValidateScript áp giá trị input rồi kiểm tra như lúc chạy (frontend gọi trước khi thu cửa sổ thành mini bar).
-func (a *App) ValidateScript(sc Script, values map[string]any) error {
+func (a *App) ValidateScript(sc model.Script, values map[string]any) error {
 	out, err := resolveInputs(sc, values)
 	if err != nil {
 		return err
@@ -35,7 +36,7 @@ func (a *App) ValidateScript(sc Script, values map[string]any) error {
 // Emit "engine:state" (true khi bắt đầu, false khi kết thúc), "engine:countdown" (số giây còn lại)
 // "engine:progress" (Progress) và "engine:node" (StepResult mỗi node xong) trong lúc chạy, "engine:done" (RunSummary)
 // khi chạy xong – lần chạy lưu vào lịch sử (runlog.go).
-func (a *App) RunScript(sc Script, values map[string]any, opt RunOptions) error {
+func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) error {
 	screen := mainScreen()
 	if opt.From != "" {
 		sc.Start, sc.Loops = opt.From, 1 // chạy từ node: một vòng, node trước đó không chạy (biến của chúng trống)
@@ -60,11 +61,11 @@ func (a *App) RunScript(sc Script, values map[string]any, opt RunOptions) error 
 	if opt.Source == "" {
 		opt.Source = SourceUser
 	}
-	rec := RunRecord{RunSummary: RunSummary{Script: sc.Name, Source: opt.Source}, Inputs: values, Results: []StepResult{}}
+	rec := RunRecord{RunSummary: RunSummary{Script: sc.Name, Source: opt.Source}, Inputs: values, Results: []model.StepResult{}}
 	eng.shots = map[string]image.Image{}
 	eng.debug = opt.Source == SourceUser
 	eng.step.Store(opt.Step)
-	eng.onNode = func(r StepResult) {
+	eng.onNode = func(r model.StepResult) {
 		rec.add(r, eng.byID[r.NodeID].Type)
 		runtime.EventsEmit(a.ctx, "engine:node", r)
 	}

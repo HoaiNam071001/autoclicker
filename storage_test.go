@@ -6,26 +6,28 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"autoclicker/internal/model"
 )
 
-func sampleScript() Script {
-	return Script{
+func sampleScript() model.Script {
+	return model.Script{
 		Name:   "Thử lưu",
-		Region: &Rect{X: 10, Y: 20, W: 1000, H: 700},
+		Region: &model.Rect{X: 10, Y: 20, W: 1000, H: 700},
 		Loops:  3,
-		Steps: []Step{
-			{ID: "a", Ref: "n1", Type: StepClick, Points: []Point{{X: 300, Y: 300, Ax: AnchorEnd}}, Button: "right", Clicks: 2, Keys: []string{}, KeyMode: KeyChord, Modifiers: []string{}, DelayAfter: 500, Enabled: true},
-			{ID: "b", Ref: "n2", Type: StepDrag, Points: []Point{{X: 1, Y: 2}, {X: 5000, Y: 40, Ax: AnchorRatio, Ay: AnchorCenter}}, Button: "left", DragMs: 400, DragRelative: true, Keys: []string{}, KeyMode: KeyChord, Modifiers: []string{}},
-			{ID: "c", Ref: "n3", Type: StepKey, Points: []Point{}, Button: "left", Keys: []string{"c", "t"}, KeyMode: KeySequence, Modifiers: []string{"ctrl"}, JitterMs: 50},
-			{ID: "d", Ref: "n4", Type: StepText, Points: []Point{}, Button: "left", Text: "xin chào", Keys: []string{}, KeyMode: KeyChord, Modifiers: []string{}},
+		Steps: []model.Step{
+			{ID: "a", Ref: "n1", Type: model.StepClick, Points: []model.Point{{X: 300, Y: 300, Ax: AnchorEnd}}, Button: "right", Clicks: 2, Keys: []string{}, KeyMode: model.KeyChord, Modifiers: []string{}, DelayAfter: 500, Enabled: true},
+			{ID: "b", Ref: "n2", Type: model.StepDrag, Points: []model.Point{{X: 1, Y: 2}, {X: 5000, Y: 40, Ax: AnchorRatio, Ay: AnchorCenter}}, Button: "left", DragMs: 400, DragRelative: true, Keys: []string{}, KeyMode: model.KeyChord, Modifiers: []string{}},
+			{ID: "c", Ref: "n3", Type: model.StepKey, Points: []model.Point{}, Button: "left", Keys: []string{"c", "t"}, KeyMode: model.KeySequence, Modifiers: []string{"ctrl"}, JitterMs: 50},
+			{ID: "d", Ref: "n4", Type: model.StepText, Points: []model.Point{}, Button: "left", Text: "xin chào", Keys: []string{}, KeyMode: model.KeyChord, Modifiers: []string{}},
 		},
 		Start: "a",
-		Edges: []Edge{
-			{ID: "e1", From: "a", Port: PortSuccess, To: "b"},
-			{ID: "e2", From: "a", Port: PortFail, To: "d"},
-			{ID: "e3", From: "b", Port: PortSuccess, To: "c"},
+		Edges: []model.Edge{
+			{ID: "e1", From: "a", Port: model.PortSuccess, To: "b"},
+			{ID: "e2", From: "a", Port: model.PortFail, To: "d"},
+			{ID: "e3", From: "b", Port: model.PortSuccess, To: "c"},
 		},
-		AnchorMode: AnchorTopLeft,
+		AnchorMode: model.AnchorTopLeft,
 	}
 }
 
@@ -39,7 +41,7 @@ func TestScriptFileRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	sc.Version = ScriptVersion
+	sc.Version = model.ScriptVersion
 	if !reflect.DeepEqual(got, sc) {
 		t.Fatalf("đọc lại khác:\n%+v\nmuốn\n%+v", got, sc)
 	}
@@ -92,7 +94,7 @@ func TestDecodeScriptFillsDefaults(t *testing.T) {
 			t.Fatalf("bước %d: id %q trống / trùng", i+1, s.ID)
 		}
 		ids[s.ID] = true
-		if s.Points == nil || s.Keys == nil || s.Modifiers == nil || s.Button != "left" || s.KeyMode != KeyChord {
+		if s.Points == nil || s.Keys == nil || s.Modifiers == nil || s.Button != "left" || s.KeyMode != model.KeyChord {
 			t.Fatalf("bước %d chưa bổ sung mặc định: %+v", i+1, s)
 		}
 	}
@@ -107,7 +109,7 @@ func TestDraftRoundTrip(t *testing.T) {
 		t.Fatal("chưa có nháp mà loadDraft khác nil")
 	}
 	d := Draft{Script: sampleScript(), Path: "/tmp/k.json", Dirty: true, SavedAt: 123}
-	d.Script.Version = ScriptVersion
+	d.Script.Version = model.ScriptVersion
 	b, _ := encodeDraft(d)
 	if err := os.WriteFile(filepath.Join(dir, draftFile), b, 0o644); err != nil {
 		t.Fatal(err)

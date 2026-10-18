@@ -9,18 +9,20 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"autoclicker/internal/model"
 )
 
 func TestRunRecordAddKeepsLastAndEndMessage(t *testing.T) {
 	var r RunRecord
 	for i := 0; i < maxRunResults+3; i++ {
-		r.add(StepResult{NodeID: "a", Attempts: i}, StepText)
+		r.add(model.StepResult{NodeID: "a", Attempts: i}, model.StepText)
 	}
 	if len(r.Results) != maxRunResults || r.Truncated != 3 || r.Results[0].Attempts != 3 || r.Nodes != maxRunResults+3 {
 		t.Errorf("giữ %d kết quả, bỏ %d, đầu %d", len(r.Results), r.Truncated, r.Results[0].Attempts)
 	}
-	r.add(StepResult{Status: StatusSuccess, Output: map[string]any{"message": "Đã gửi"}}, StepEnd)
-	r.add(StepResult{Status: StatusSuccess, Output: map[string]any{"message": "không phải end"}}, StepText)
+	r.add(model.StepResult{Status: model.StatusSuccess, Output: map[string]any{"message": "Đã gửi"}}, model.StepEnd)
+	r.add(model.StepResult{Status: model.StatusSuccess, Output: map[string]any{"message": "không phải end"}}, model.StepText)
 	if r.Message != "Đã gửi" {
 		t.Errorf("lời nhắn = %q", r.Message)
 	}
@@ -68,8 +70,8 @@ func TestShootOnFail(t *testing.T) {
 	e, _ := sendFlow(-1, nil)
 	e.sc.Edges = e.sc.Edges[:1] // không thấy → dừng
 	e.shots = map[string]image.Image{}
-	var got []StepResult
-	e.onNode = func(r StepResult) { got = append(got, r) }
+	var got []model.StepResult
+	e.onNode = func(r model.StepResult) { got = append(got, r) }
 	if err := e.run(context.Background()); err == nil {
 		t.Fatal("phải lỗi")
 	}
@@ -83,11 +85,11 @@ func TestShootOnFail(t *testing.T) {
 
 // Debug: breakpoint chỉ dừng khi debug bật; chạy từng node dừng trước mọi node; Tiếp tắt chạy từng node.
 func TestDebugBreakpointAndStep(t *testing.T) {
-	sc := Script{Loops: 1, Start: "a", Steps: []Step{
-		node("a", "n1", StepText, func(s *Step) { s.Text = "a" }),
-		node("b", "n2", StepText, func(s *Step) { s.Text = "b"; s.Breakpoint = true }),
-		node("c", "n3", StepText, func(s *Step) { s.Text = "c" }),
-	}, Edges: []Edge{edge("a", PortSuccess, "b"), edge("b", PortSuccess, "c")}}
+	sc := model.Script{Loops: 1, Start: "a", Steps: []model.Step{
+		node("a", "n1", model.StepText, func(s *model.Step) { s.Text = "a" }),
+		node("b", "n2", model.StepText, func(s *model.Step) { s.Text = "b"; s.Breakpoint = true }),
+		node("c", "n3", model.StepText, func(s *model.Step) { s.Text = "c" }),
+	}, Edges: []model.Edge{edge("a", model.PortSuccess, "b"), edge("b", model.PortSuccess, "c")}}
 
 	// không debug: chạy thẳng
 	if err := newEngine(&fakeInput{}, sc, nil).run(context.Background()); err != nil {

@@ -5,7 +5,7 @@ import { EventsOn } from '../wailsjs/runtime/runtime';
 import {
   ClearDraft, ConfirmQuit, LoadDraft, NewScript, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetDirty,
 } from '../wailsjs/go/main/App';
-import { main } from '../wailsjs/go/models';
+import { main, model } from '../wailsjs/go/models';
 import { getEditor, markSaved, replaceScript, subscribe } from './store';
 import { inWails, setWindowMode } from './windowMode';
 import { Script } from './types';
@@ -35,8 +35,8 @@ export const useFile = () =>
   }, () => fs);
 
 // Struct Go → Script của frontend (class Wails có region?: Rect, anchorMode?: string).
-const fromGo = (sc: main.Script) => ({ ...sc, region: sc.region ?? null }) as unknown as Script;
-const toGo = (sc: Script) => main.Script.createFrom(sc);
+const fromGo = (sc: model.Script) => ({ ...sc, region: sc.region ?? null }) as unknown as Script;
+const toGo = (sc: Script) => model.Script.createFrom(sc);
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 export const fileName = (path: string) => path.split(/[\\/]/).pop() ?? path;

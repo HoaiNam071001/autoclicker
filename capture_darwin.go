@@ -72,6 +72,8 @@ import (
 	"errors"
 	"image"
 	"unsafe"
+
+	"autoclicker/internal/model"
 )
 
 // macOS: chụp màn hình cần quyền Screen Recording (System Settings → Privacy & Security → Screen Recording).
@@ -89,7 +91,7 @@ func screenCaptureCheck() error {
 
 // captureNoSelf chụp vùng r không có cửa sổ của app và con trỏ chuột. ok = false: hệ không hỗ trợ (macOS < 14) –
 // dùng robotgo (có cả cửa sổ app nên phải ẩn app trước khi chụp).
-func captureNoSelf(r Rect) (img image.Image, ok bool, err error) {
+func captureNoSelf(r model.Rect) (img image.Image, ok bool, err error) {
 	var buf *C.uchar
 	var w, h C.int
 	rc := C.capture_without_self(C.double(r.X), C.double(r.Y), C.double(r.W), C.double(r.H), &buf, &w, &h)

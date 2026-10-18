@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { RunScript, ValidateScript } from '../wailsjs/go/main/App';
-import { main } from '../wailsjs/go/models';
+import { main, model } from '../wailsjs/go/models';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { Script } from './types';
 import { inWails, setWindowMode } from './windowMode';
@@ -70,7 +70,7 @@ export type Debug = { from?: string; step?: boolean };
 // path: file kịch bản – Go gom lịch sử chạy theo file.
 export async function runScript(script: Script, countdown: boolean, values: Record<string, unknown> = {}, preset = '', path = '', debug: Debug = {}) {
   if (state.running || !inWails) return;
-  const sc = main.Script.createFrom(debug.from ? { ...script, start: debug.from } : script);
+  const sc = model.Script.createFrom(debug.from ? { ...script, start: debug.from } : script);
   set({ preset });
   try {
     await ValidateScript(sc, values);

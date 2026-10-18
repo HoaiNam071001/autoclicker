@@ -10,6 +10,9 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"autoclicker/internal/model"
+	"autoclicker/internal/vision"
 )
 
 // dragStepMs – khoảng thời gian giữa các lần di chuột khi kéo thả.
@@ -21,12 +24,12 @@ const scrollGapMs = 30
 // validateScript kiểm tra kịch bản (đã áp input) trước khi chạy để không dừng giữa chừng vì dữ liệu sai.
 // Lỗi là *ScriptError (bước / trường) để UI và AI biết chỗ sửa.
 // screen: khung màn hình khi Region = nil; W = 0 thì bỏ qua kiểm tra điểm nằm trong vùng (không biết màn hình).
-func validateScript(sc Script, screen Rect) error {
+func validateScript(sc model.Script, screen model.Rect) error {
 	if err := validateFlow(sc); err != nil {
 		return err
 	}
 	b := bounds(sc, screen)
-	inside := func(p Point) bool {
+	inside := func(p model.Point) bool {
 		q := resolvePoint(p, b)
 		return b.W == 0 || q.X >= b.X && q.X <= b.X+b.W && q.Y >= b.Y && q.Y <= b.Y+b.H
 	}
@@ -38,30 +41,30 @@ func validateScript(sc Script, screen Rect) error {
 		enabled++
 		need := 0
 		switch s.Type {
-		case StepClick, StepDouble, StepHold:
+		case model.StepClick, model.StepDouble, model.StepHold:
 			need = 1
-		case StepDrag:
+		case model.StepDrag:
 			need = 2
-		case StepScroll:
+		case model.StepScroll:
 			need = min(len(s.Points), 1) // có điểm thì điểm phải trong vùng
-			if !slices.Contains(scrollDirections, s.Direction) {
+			if !slices.Contains(model.ScrollDirections, s.Direction) {
 				return stepErr(i, s, "direction", "hướng cuộn không hợp lệ %q", s.Direction)
 			}
 			if s.Amount < 1 {
 				return stepErr(i, s, "amount", "số nấc cuộn phải ≥ 1")
 			}
-		case StepOpen:
+		case model.StepOpen:
 			if strings.TrimSpace(s.Target) == "" || s.Target == "https://" {
 				return stepErr(i, s, "target", "chưa nhập URL / app cần mở")
 			}
-		case StepWaitImage, StepClickImage:
+		case model.StepWaitImage, model.StepClickImage:
 			// click theo chỗ node khác thấy: nguồn đã kiểm tra ở validateFlow
-			if s.Type == StepWaitImage || s.ImageSource == ImageFromSearch {
+			if s.Type == model.StepWaitImage || s.ImageSource == model.ImageFromSearch {
 				if err := checkImageStep(i, s); err != nil {
 					return err
 				}
 			}
-		case StepWaitPixel:
+		case model.StepWaitPixel:
 			need = 1
 			if _, err := parseColor(s.Color); err != nil {
 				return stepErr(i, s, "color", "%v", err)
@@ -72,16 +75,16 @@ func validateScript(sc Script, screen Rect) error {
 			if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
 				return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
 			}
-		case StepWait:
-		case StepText:
+		case model.StepWait:
+		case model.StepText:
 			if s.Text == "" {
 				return stepErr(i, s, "text", "chưa nhập nội dung gõ")
 			}
-		case StepKey:
+		case model.StepKey:
 			if len(s.Keys) == 0 {
 				return stepErr(i, s, "keys", "chưa chọn phím")
 			}
-		case StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar:
+		case model.StepIf, model.StepSwitch, model.StepSwitchScreen, model.StepCounter, model.StepEnd, model.StepSetVar:
 			if err := validateControl(i, s, inside); err != nil {
 				return err
 			}
@@ -92,18 +95,18 @@ func validateScript(sc Script, screen Rect) error {
 			return stepErr(i, s, "points", "cần %d điểm, mới có %d", need, len(s.Points))
 		}
 		for j := 0; j < need; j++ {
-			skip := s.Type == StepDrag && (j == 0 && s.DragFromPrev || j == 1 && s.DragRelative)
+			skip := s.Type == model.StepDrag && (j == 0 && s.DragFromPrev || j == 1 && s.DragRelative)
 			if !skip && !inside(s.Points[j]) {
 				q := resolvePoint(s.Points[j], b)
 				return stepErr(i, s, "points", "điểm X %d Y %d nằm ngoài vùng", q.X, q.Y)
 			}
 		}
-		if r := s.Retry; r != nil && (r.Count < 0 || r.Count > maxRetries || r.DelayMs < 0) {
-			return stepErr(i, s, "retry", "số lần thử lại phải trong 0–%d", maxRetries)
+		if r := s.Retry; r != nil && (r.Count < 0 || r.Count > model.MaxRetries || r.DelayMs < 0) {
+			return stepErr(i, s, "retry", "số lần thử lại phải trong 0–%d", model.MaxRetries)
 		}
 	}
 	if enabled == 0 {
-		return &ScriptError{Msg: "kịch bản không có node nào được bật"}
+		return &model.ScriptError{Msg: "kịch bản không có node nào được bật"}
 	}
 	return nil
 }
@@ -112,7 +115,7 @@ func validateScript(sc Script, screen Rect) error {
 type Progress struct {
 	Loop      int           `json:"loop"`  // vòng hiện tại, từ 1
 	Loops     int           `json:"loops"` // 0 = vô hạn
-	Step      int           `json:"step"`  // số thứ tự node đang chạy (theo flowOrder, trong các node đang bật), từ 1
+	Step      int           `json:"step"`  // số thứ tự node đang chạy (theo model.FlowOrder, trong các node đang bật), từ 1
 	Total     int           `json:"total"` // số node đang bật
 	NodeID    string        `json:"nodeId,omitempty"`
 	Ref       string        `json:"ref,omitempty"`
@@ -131,30 +134,30 @@ const progressEvery = 100 * time.Millisecond
 // engine chạy một kịch bản. Tạo mới cho mỗi lần chạy.
 type engine struct {
 	in         Input
-	sc         Script
+	sc         model.Script
 	gate       pauseGate
-	screen     Rect                           // khung màn hình khi Region = nil (runner đặt = mainScreen); zero = gốc (0, 0)
-	displays   []Rect                         // khung các màn (tìm ảnh "cả màn", kiểm tra vùng chụp); nil = không kiểm tra
+	screen     model.Rect                     // khung màn hình khi Region = nil (runner đặt = mainScreen); zero = gốc (0, 0)
+	displays   []model.Rect                   // khung các màn (tìm ảnh "cả màn", kiểm tra vùng chụp); nil = không kiểm tra
 	onProgress func(Progress)                 // có thể nil
 	intN       func(n int) int                // số ngẫu nhiên [0, n) – test thay bằng hàm cố định
 	open       func(target, app string) error // bước Mở – test thay bằng hàm ghi lại
 	scr        Screen                         // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
 	ocr        TextReader                     // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
 
-	onNode  func(StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
-	shots   map[string]image.Image // ảnh màn hình lúc node thất bại theo tên file (nil = không chụp – runlog.go)
-	debug   bool                   // dừng ở node có Breakpoint (chạy từ app); không thì bỏ qua breakpoint
-	step    atomic.Bool            // chạy từng node: dừng trước mỗi node (StepScript bật, ResumeScript tắt)
-	failed  string                 // id node làm lần chạy dừng vì lỗi (runner gửi engine:failed)
-	miss    *FindResult            // node chờ ảnh hết giờ: chỗ giống nhất (để xem lại vì sao không thấy)
-	tpls    map[string]gray        // ảnh mẫu đã giải mã theo id node
-	byID    map[string]Step        // node theo id (run đặt)
-	order   map[string]int         // số thứ tự hiển thị của node (flowOrder) – thanh mini
-	results map[string]*StepResult // kết quả lần chạy gần nhất của từng node trong vòng này
-	rv      runVars                // bảng tra biến {{nX…}} / {{last…}} / {{vars…}}
-	counts  map[string]int         // node Đếm: số lần đã đi qua trong vòng này
+	onNode  func(model.StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
+	shots   map[string]image.Image       // ảnh màn hình lúc node thất bại theo tên file (nil = không chụp – runlog.go)
+	debug   bool                         // dừng ở node có Breakpoint (chạy từ app); không thì bỏ qua breakpoint
+	step    atomic.Bool                  // chạy từng node: dừng trước mỗi node (StepScript bật, ResumeScript tắt)
+	failed  string                       // id node làm lần chạy dừng vì lỗi (runner gửi engine:failed)
+	miss    *FindResult                  // node chờ ảnh hết giờ: chỗ giống nhất (để xem lại vì sao không thấy)
+	tpls    map[string]vision.Gray       // ảnh mẫu đã giải mã theo id node
+	byID    map[string]model.Step        // node theo id (run đặt)
+	order   map[string]int               // số thứ tự hiển thị của node (model.FlowOrder) – thanh mini
+	results map[string]*model.StepResult // kết quả lần chạy gần nhất của từng node trong vòng này
+	rv      runVars                      // bảng tra biến {{nX…}} / {{last…}} / {{vars…}}
+	counts  map[string]int               // node Đếm: số lần đã đi qua trong vòng này
 
-	last    Point // chỗ engine vừa đưa chuột tới – cho bước kéo "từ điểm trước đó"
+	last    model.Point // chỗ engine vừa đưa chuột tới – cho bước kéo "từ điểm trước đó"
 	hasLast bool
 
 	mu       sync.Mutex
@@ -163,7 +166,7 @@ type engine struct {
 	lastEmit time.Time
 }
 
-func newEngine(in Input, sc Script, onProgress func(Progress)) *engine {
+func newEngine(in Input, sc model.Script, onProgress func(Progress)) *engine {
 	return &engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: openTarget, scr: robotgoScreen{}, ocr: systemOCR{}}
 }
 
@@ -236,7 +239,7 @@ func (e *engine) Step() bool {
 }
 
 // breakBefore – debug: tạm dừng trước node s nếu đang chạy từng node / s có breakpoint (wait sau đó chặn tới khi tiếp).
-func (e *engine) breakBefore(s Step, loop int) {
+func (e *engine) breakBefore(s model.Step, loop int) {
 	why := ""
 	switch {
 	case !s.Enabled: // node tắt chỉ đi qua, không đáng dừng
@@ -262,22 +265,22 @@ func (e *engine) click(button string, double bool) error {
 
 // move đưa chuột tới (x, y) và nhớ lại vị trí đó.
 func (e *engine) move(x, y int) error {
-	e.last, e.hasLast = Point{X: x, Y: y}, true
+	e.last, e.hasLast = model.Point{X: x, Y: y}, true
 	return e.in.Move(x, y)
 }
 
 // runStep chạy hành động của node; output là giá trị node trả về cho node sau ({{nX.output.key}}).
-func (e *engine) runStep(ctx context.Context, s Step) (map[string]any, error) {
+func (e *engine) runStep(ctx context.Context, s model.Step) (map[string]any, error) {
 	switch s.Type {
-	case StepWaitImage:
+	case model.StepWaitImage:
 		h, err := e.findImage(ctx, s)
 		if err != nil {
 			return nil, err
 		}
 		return h.output(), nil
-	case StepClickImage:
+	case model.StepClickImage:
 		return e.clickImage(ctx, s)
-	case StepWaitPixel:
+	case model.StepWaitPixel:
 		c, err := e.waitPixel(ctx, s)
 		if err != nil {
 			return nil, err
@@ -288,18 +291,18 @@ func (e *engine) runStep(ctx context.Context, s Step) (map[string]any, error) {
 		return nil, err
 	}
 	switch s.Type {
-	case StepClick, StepDouble, StepHold, StepDrag:
+	case model.StepClick, model.StepDouble, model.StepHold, model.StepDrag:
 		return map[string]any{"x": e.last.X, "y": e.last.Y}, nil // chỗ chuột dừng
-	case StepText:
+	case model.StepText:
 		return map[string]any{"text": s.Text}, nil
-	case StepOpen:
+	case model.StepOpen:
 		return map[string]any{"target": s.Target}, nil
 	}
 	return nil, nil
 }
 
 // doStep – hành động của các node không tìm ảnh (chuột, phím, cuộn, mở).
-func (e *engine) doStep(ctx context.Context, s Step) error {
+func (e *engine) doStep(ctx context.Context, s model.Step) error {
 	in := e.in
 	// pt: toạ độ màn hình của điểm i (theo neo), mỗi lần gọi lệch ngẫu nhiên ± JitterPx.
 	pt := func(i int) (int, int) {
@@ -308,7 +311,7 @@ func (e *engine) doStep(ctx context.Context, s Step) error {
 	}
 
 	switch s.Type {
-	case StepClick:
+	case model.StepClick:
 		n := max(s.Clicks, 1)
 		for i := 0; i < n; i++ {
 			if err := e.gate.wait(ctx); err != nil {
@@ -327,13 +330,13 @@ func (e *engine) doStep(ctx context.Context, s Step) error {
 				}
 			}
 		}
-	case StepDouble:
+	case model.StepDouble:
 		x, y := pt(0)
 		if err := e.move(x, y); err != nil {
 			return err
 		}
 		return e.click(s.Button, true)
-	case StepHold:
+	case model.StepHold:
 		x, y := pt(0)
 		if err := e.move(x, y); err != nil {
 			return err
@@ -343,11 +346,11 @@ func (e *engine) doStep(ctx context.Context, s Step) error {
 		}
 		defer in.Toggle(s.Button, false) // luôn nhả chuột, kể cả khi bị huỷ giữa chừng
 		return sleep(ctx, s.HoldMs)
-	case StepDrag:
+	case model.StepDrag:
 		return e.drag(ctx, s, pt)
-	case StepWait:
+	case model.StepWait:
 		// chỉ chờ DelayAfter
-	case StepText:
+	case model.StepText:
 		// Gõ từng ký tự để dừng / tạm dừng được giữa chừng với chuỗi dài.
 		for _, r := range s.Text {
 			if err := e.gate.wait(ctx); err != nil {
@@ -357,9 +360,9 @@ func (e *engine) doStep(ctx context.Context, s Step) error {
 				return err
 			}
 		}
-	case StepKey:
+	case model.StepKey:
 		return pressKeys(ctx, in, s)
-	case StepScroll:
+	case model.StepScroll:
 		if len(s.Points) > 0 {
 			x, y := pt(0)
 			if err := e.move(x, y); err != nil {
@@ -377,7 +380,7 @@ func (e *engine) doStep(ctx context.Context, s Step) error {
 				return err
 			}
 		}
-	case StepOpen:
+	case model.StepOpen:
 		return e.open(s.Target, s.App)
 	}
 	return nil
@@ -388,7 +391,7 @@ func (e *engine) doStep(ctx context.Context, s Step) error {
 const keyHoldMs, keyGapMs = 50, 50
 
 // pressKeys bấm tổ hợp theo KeyMode; mọi phím đã nhấn luôn được nhả (ngược thứ tự), kể cả khi lỗi / bị huỷ.
-func pressKeys(ctx context.Context, in Input, s Step) error {
+func pressKeys(ctx context.Context, in Input, s model.Step) error {
 	var held []string
 	defer func() {
 		for i := len(held) - 1; i >= 0; i-- {
@@ -408,7 +411,7 @@ func pressKeys(ctx context.Context, in Input, s Step) error {
 			return err
 		}
 	}
-	if s.KeyMode == KeySequence {
+	if s.KeyMode == model.KeySequence {
 		for i, k := range s.Keys {
 			if err := press(k, s.Modifiers); err != nil {
 				return err
@@ -439,7 +442,7 @@ func pressKeys(ctx context.Context, in Input, s Step) error {
 // drag giữ nút tại A, di dần tới B trong DragMs, rồi nhả.
 // A: points[0] hoặc chỗ chuột dừng ở bước trước (DragFromPrev);
 // B: points[1] hoặc A + points[1] (DragRelative) – cả hai đều lệch ngẫu nhiên ± JitterPx.
-func (e *engine) drag(ctx context.Context, s Step, pt func(int) (int, int)) error {
+func (e *engine) drag(ctx context.Context, s model.Step, pt func(int) (int, int)) error {
 	in := e.in
 	ax, ay := pt(0)
 	if s.DragFromPrev {
@@ -471,7 +474,7 @@ func (e *engine) drag(ctx context.Context, s Step, pt func(int) (int, int)) erro
 		if err := in.Drag(x, y, s.Button); err != nil {
 			return err
 		}
-		e.last = Point{X: x, Y: y}
+		e.last = model.Point{X: x, Y: y}
 	}
 	return nil
 }
@@ -567,8 +570,8 @@ func (g *pauseGate) activeSince(start time.Time) time.Duration {
 }
 
 // checkImageStep: bước chờ ảnh / click theo ảnh tự tìm có ảnh mẫu đọc được (hoặc chữ cần tìm) và thông số hợp lệ.
-func checkImageStep(i int, s Step) error {
-	if s.FindBy == FindByText {
+func checkImageStep(i int, s model.Step) error {
+	if s.FindBy == model.FindByText {
 		if strings.TrimSpace(s.FindText) == "" {
 			return stepErr(i, s, "findText", "chưa nhập chữ cần tìm")
 		}

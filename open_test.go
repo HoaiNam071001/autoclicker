@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"autoclicker/internal/model"
 )
 
 func TestOpenCommand(t *testing.T) {
@@ -45,12 +47,12 @@ func TestTargetKind(t *testing.T) {
 
 // Biến trong URL được mã hoá, trong tên app / văn bản thì giữ nguyên.
 func TestResolveOpenTarget(t *testing.T) {
-	sc := Script{
-		Steps: []Step{
-			{ID: "o", Type: StepOpen, Target: "youtube.com/results?search_query={{bai_hat}}", Enabled: true},
-			{ID: "t", Type: StepText, Text: "{{bai_hat}}", Enabled: true},
+	sc := model.Script{
+		Steps: []model.Step{
+			{ID: "o", Type: model.StepOpen, Target: "youtube.com/results?search_query={{bai_hat}}", Enabled: true},
+			{ID: "t", Type: model.StepText, Text: "{{bai_hat}}", Enabled: true},
 		},
-		Inputs: []ScriptInput{{Key: "bai_hat", Type: InputText}},
+		Inputs: []model.ScriptInput{{Key: "bai_hat", Type: model.InputText}},
 	}
 	out, err := resolveInputs(sc, map[string]any{"bai_hat": "Tinh Hà Say 2 & bạn"})
 	if err != nil {
@@ -66,10 +68,10 @@ func TestResolveOpenTarget(t *testing.T) {
 
 func TestRunScrollAndOpen(t *testing.T) {
 	in := &fakeInput{}
-	sc := Script{Loops: 1, Steps: []Step{
-		step(StepOpen, func(s *Step) { s.Target = "a.vn"; s.App = "Firefox" }),
-		step(StepScroll, func(s *Step) { s.Amount = 2 }),
-		step(StepScroll, func(s *Step) { s.Direction, s.Amount, s.Points = "up", 1, []Point{{X: 10, Y: 20}} }),
+	sc := model.Script{Loops: 1, Steps: []model.Step{
+		step(model.StepOpen, func(s *model.Step) { s.Target = "a.vn"; s.App = "Firefox" }),
+		step(model.StepScroll, func(s *model.Step) { s.Amount = 2 }),
+		step(model.StepScroll, func(s *model.Step) { s.Direction, s.Amount, s.Points = "up", 1, []model.Point{{X: 10, Y: 20}} }),
 	}}
 	e := newEngine(in, linear(sc), nil)
 	var opened []string
@@ -89,15 +91,15 @@ func TestRunScrollAndOpen(t *testing.T) {
 }
 
 func TestValidateScrollOpen(t *testing.T) {
-	cases := map[string]Step{
-		"hướng lạ":        step(StepScroll, func(s *Step) { s.Direction = "xeo" }),
-		"0 nấc":           step(StepScroll, func(s *Step) { s.Amount = 0 }),
-		"chưa nhập URL":   step(StepOpen, nil),
-		"điểm ngoài vùng": step(StepScroll, func(s *Step) { s.Points = []Point{{X: 5000, Y: 5000}} }),
+	cases := map[string]model.Step{
+		"hướng lạ":        step(model.StepScroll, func(s *model.Step) { s.Direction = "xeo" }),
+		"0 nấc":           step(model.StepScroll, func(s *model.Step) { s.Amount = 0 }),
+		"chưa nhập URL":   step(model.StepOpen, nil),
+		"điểm ngoài vùng": step(model.StepScroll, func(s *model.Step) { s.Points = []model.Point{{X: 5000, Y: 5000}} }),
 	}
 	for name, s := range cases {
-		sc := Script{Region: &Rect{W: 100, H: 100}, Steps: []Step{s}}
-		if err := validateScript(linear(sc), Rect{}); err == nil || !strings.HasPrefix(err.Error(), "n1:") {
+		sc := model.Script{Region: &model.Rect{W: 100, H: 100}, Steps: []model.Step{s}}
+		if err := validateScript(linear(sc), model.Rect{}); err == nil || !strings.HasPrefix(err.Error(), "n1:") {
 			t.Errorf("%s: muốn lỗi ở n1, có %v", name, err)
 		}
 	}

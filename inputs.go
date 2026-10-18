@@ -11,40 +11,13 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"autoclicker/internal/model"
 )
 
 // Input của kịch bản (bước 21b): giá trị người soạn cho phép đổi khi bấm Chạy.
 // Nguồn: trường được ghim (Targets) và biến {{key}} trong trường chữ (gõ chữ, URL / app của bước Mở).
 // resolveInputs áp giá trị vào bản sao kịch bản trước khi chạy – engine không biết gì về input.
-
-// Kiểu input (ScriptInput.Type).
-const (
-	InputText      = "text"
-	InputMultiline = "multiline"
-	InputNumber    = "number"
-	InputMs        = "ms"
-	InputBool      = "bool"
-	InputSelect    = "select"
-)
-
-// InputTarget – trường của một bước được ghim vào input.
-type InputTarget struct {
-	StepID string `json:"stepId"`
-	Field  string `json:"field"` // tên json của trường trong Step, xem pinFields
-}
-
-type ScriptInput struct {
-	Key      string        `json:"key"` // chữ không dấu, số, _ – dùng trong {{key}}
-	Label    string        `json:"label"`
-	Type     string        `json:"type"`              // text | multiline | number | ms | bool | select
-	Default  any           `json:"default,omitempty"` // số / chữ / bool theo Type; trống = không có mặc định
-	Required bool          `json:"required,omitempty"`
-	Min      *int          `json:"min,omitempty"` // number / ms
-	Max      *int          `json:"max,omitempty"`
-	Options  []string      `json:"options,omitempty"` // select
-	Hint     string        `json:"hint,omitempty"`    // gợi ý dưới ô trong form Chạy
-	Targets  []InputTarget `json:"targets,omitempty"`
-}
 
 // pinFields – trường ghim được và kiểu giá trị: "int" (input number / ms) hoặc "bool".
 // Không ghim được trường tự tính (kéo thả "từ điểm trước") hay danh sách (điểm, phím).
@@ -64,16 +37,16 @@ var pinFields = map[string]string{
 
 func inputKind(typ string) string {
 	switch typ {
-	case InputNumber, InputMs:
+	case model.InputNumber, model.InputMs:
 		return "int"
-	case InputBool:
+	case model.InputBool:
 		return "bool"
 	}
 	return "string"
 }
 
 func validInputType(t string) bool {
-	return slices.Contains([]string{InputText, InputMultiline, InputNumber, InputMs, InputBool, InputSelect}, t)
+	return slices.Contains([]string{model.InputText, model.InputMultiline, model.InputNumber, model.InputMs, model.InputBool, model.InputSelect}, t)
 }
 
 var inputKeyRe = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
@@ -81,35 +54,15 @@ var inputKeyRe = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 // varRe: \{{ là "{{" thật; {{key}} là biến.
 var varRe = regexp.MustCompile(`\\\{\{|\{\{([A-Za-z_][A-Za-z0-9_]*)\}\}`)
 
-// ScriptError – lỗi kiểm tra kịch bản có cấu trúc (bước / trường / input) để UI, CLI và AI (MCP, bước 31) biết chỗ sửa.
-type ScriptError struct {
-	Step   int    `json:"step,omitempty"` // vị trí node trong mảng steps từ 1, 0 = không thuộc node nào
-	StepID string `json:"stepId,omitempty"`
-	Ref    string `json:"ref,omitempty"` // mã node (n2) – hiện trong lời báo lỗi
-	Field  string `json:"field,omitempty"`
-	Input  string `json:"input,omitempty"` // key input liên quan
-	Msg    string `json:"message"`
+func stepErr(i int, s model.Step, field, format string, a ...any) *model.ScriptError {
+	return &model.ScriptError{Step: i + 1, StepID: s.ID, Ref: s.Ref, Field: field, Msg: fmt.Sprintf(format, a...)}
 }
 
-func (e *ScriptError) Error() string {
-	if e.Ref != "" {
-		return fmt.Sprintf("%s: %s", e.Ref, e.Msg)
-	}
-	if e.Step > 0 {
-		return fmt.Sprintf("bước %d: %s", e.Step, e.Msg)
-	}
-	return e.Msg
+func inputErr(in model.ScriptInput, format string, a ...any) *model.ScriptError {
+	return &model.ScriptError{Input: in.Key, Msg: fmt.Sprintf("%s: %s", inputName(in), fmt.Sprintf(format, a...))}
 }
 
-func stepErr(i int, s Step, field, format string, a ...any) *ScriptError {
-	return &ScriptError{Step: i + 1, StepID: s.ID, Ref: s.Ref, Field: field, Msg: fmt.Sprintf(format, a...)}
-}
-
-func inputErr(in ScriptInput, format string, a ...any) *ScriptError {
-	return &ScriptError{Input: in.Key, Msg: fmt.Sprintf("%s: %s", inputName(in), fmt.Sprintf(format, a...))}
-}
-
-func inputName(in ScriptInput) string {
+func inputName(in model.ScriptInput) string {
 	if in.Label != "" && in.Label != in.Key {
 		return fmt.Sprintf("%s (%s)", in.Label, in.Key)
 	}
@@ -118,7 +71,7 @@ func inputName(in ScriptInput) string {
 
 // checkInputs (mở file): key hợp lệ, không trùng, kiểu đúng, trường ghim tồn tại và hợp kiểu.
 // Ghim vào bước không còn (sửa tay file) thì bỏ ghim đó. Không bắt buộc đã có bước dùng – bản soạn dở vẫn mở được.
-func checkInputs(sc *Script) error {
+func checkInputs(sc *model.Script) error {
 	ids := map[string]bool{}
 	for _, s := range sc.Steps {
 		ids[s.ID] = true
@@ -136,7 +89,7 @@ func checkInputs(sc *Script) error {
 		if !validInputType(in.Type) {
 			return fmt.Errorf("input %q: kiểu không hợp lệ %q", in.Key, in.Type)
 		}
-		targets := []InputTarget{}
+		targets := []model.InputTarget{}
 		for _, t := range in.Targets {
 			kind, ok := pinFields[t.Field]
 			if !ok {
@@ -157,14 +110,14 @@ func checkInputs(sc *Script) error {
 // resolveInputs trả bản sao kịch bản đã áp giá trị input: values[key] (thiếu / trống thì lấy mặc định),
 // ghi vào các trường ghim và thay {{key}} trong ô chữ. Lỗi: thiếu bắt buộc, sai kiểu / ngoài khoảng, biến không có
 // trong inputs, input không bước nào dùng (ghim vào bước đã xoá không tính), giá trị cho input không tồn tại. Sau đó vẫn cần validateScript.
-func resolveInputs(sc Script, values map[string]any) (Script, error) {
-	byKey := map[string]ScriptInput{}
+func resolveInputs(sc model.Script, values map[string]any) (model.Script, error) {
+	byKey := map[string]model.ScriptInput{}
 	for _, in := range sc.Inputs {
 		byKey[in.Key] = in
 	}
 	for k := range values {
 		if _, ok := byKey[k]; !ok {
-			return Script{}, &ScriptError{Input: k, Msg: fmt.Sprintf("kịch bản không có input %q", k)}
+			return model.Script{}, &model.ScriptError{Input: k, Msg: fmt.Sprintf("kịch bản không có input %q", k)}
 		}
 	}
 
@@ -176,19 +129,19 @@ func resolveInputs(sc Script, values map[string]any) (Script, error) {
 		}
 		if isEmptyValue(v) {
 			if in.Required {
-				return Script{}, inputErr(in, "chưa nhập (bắt buộc)")
+				return model.Script{}, inputErr(in, "chưa nhập (bắt buộc)")
 			}
 			continue
 		}
 		cv, err := coerceInput(in, v)
 		if err != nil {
-			return Script{}, err
+			return model.Script{}, err
 		}
 		vals[in.Key] = cv
 	}
 
 	out := sc
-	out.Steps = make([]Step, len(sc.Steps))
+	out.Steps = make([]model.Step, len(sc.Steps))
 	for i, s := range sc.Steps {
 		out.Steps[i] = cloneStep(s)
 	}
@@ -206,7 +159,7 @@ func resolveInputs(sc Script, values map[string]any) (Script, error) {
 			used[in.Key] = true
 			if v, ok := vals[in.Key]; ok {
 				if err := setStepField(&out.Steps[i], t.Field, v); err != nil {
-					return Script{}, stepErr(i, out.Steps[i], t.Field, "%v", err)
+					return model.Script{}, stepErr(i, out.Steps[i], t.Field, "%v", err)
 				}
 			}
 		}
@@ -225,14 +178,14 @@ func resolveInputs(sc Script, values map[string]any) (Script, error) {
 				return valueString(vals[key]), true
 			})
 			if err != nil {
-				return Script{}, stepErr(i, *s, f.name, "%v", err)
+				return model.Script{}, stepErr(i, *s, f.name, "%v", err)
 			}
 			*f.p = text
 		}
 	}
 	for _, in := range sc.Inputs {
 		if !used[in.Key] {
-			return Script{}, inputErr(in, "không bước nào dùng – ghim vào một trường, chèn {{%s}} vào ô chữ, hoặc xoá input", in.Key)
+			return model.Script{}, inputErr(in, "không bước nào dùng – ghim vào một trường, chèn {{%s}} vào ô chữ, hoặc xoá input", in.Key)
 		}
 	}
 	return out, nil
@@ -264,7 +217,7 @@ func isEmptyValue(v any) bool {
 }
 
 // coerceInput đổi giá trị (từ form, JSON, dòng lệnh – số có thể là chuỗi) sang kiểu của input và kiểm tra khoảng / lựa chọn.
-func coerceInput(in ScriptInput, v any) (any, error) {
+func coerceInput(in model.ScriptInput, v any) (any, error) {
 	switch inputKind(in.Type) {
 	case "int":
 		n, err := toInt(v)
@@ -290,7 +243,7 @@ func coerceInput(in ScriptInput, v any) (any, error) {
 		return nil, inputErr(in, "cần bật / tắt (true / false), nhận %v", v)
 	}
 	s := valueString(v)
-	if in.Type == InputSelect && len(in.Options) > 0 && !slices.Contains(in.Options, s) {
+	if in.Type == model.InputSelect && len(in.Options) > 0 && !slices.Contains(in.Options, s) {
 		return nil, inputErr(in, "%q không có trong danh sách chọn (%s)", s, strings.Join(in.Options, ", "))
 	}
 	return s, nil
@@ -329,7 +282,7 @@ func valueString(v any) string {
 	return fmt.Sprint(v)
 }
 
-func rangeText(in ScriptInput) string {
+func rangeText(in model.ScriptInput) string {
 	switch {
 	case in.Min != nil && in.Max != nil:
 		return fmt.Sprintf("%d–%d", *in.Min, *in.Max)
@@ -340,7 +293,7 @@ func rangeText(in ScriptInput) string {
 	}
 }
 
-func setStepField(s *Step, field string, v any) error {
+func setStepField(s *model.Step, field string, v any) error {
 	if field == "enabled" {
 		s.Enabled = v.(bool)
 		return nil

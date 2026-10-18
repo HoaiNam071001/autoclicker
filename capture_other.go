@@ -6,6 +6,7 @@ import (
 	"image"
 	goruntime "runtime"
 
+	"autoclicker/internal/model"
 	"autoclicker/internal/winexclude"
 
 	"github.com/go-vgo/robotgo"
@@ -29,7 +30,7 @@ func excludeSelfFromCapture() {
 }
 
 // captureNoSelf: ok = false khi không loại được cửa sổ app (Linux, Windows cũ) – nơi gọi phải ẩn app trước khi chụp.
-func captureNoSelf(r Rect) (image.Image, bool, error) {
+func captureNoSelf(r model.Rect) (image.Image, bool, error) {
 	if !selfExcluded {
 		return nil, false, nil
 	}

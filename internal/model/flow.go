@@ -1,4 +1,4 @@
-package main
+package model
 
 import (
 	"regexp"
@@ -61,7 +61,7 @@ type LogLine struct {
 	Msg   string `json:"msg"`
 }
 
-// portsOf – cổng ra hợp lệ của node, theo thứ tự hiện trên thẻ (trên → dưới). frontend/src/flow/model.ts cùng công thức.
+// PortsOf – cổng ra hợp lệ của node, theo thứ tự hiện trên thẻ (trên → dưới). frontend/src/flow/model.ts cùng công thức.
 func portsOf(s Step) []string {
 	switch s.Type {
 	case StepIf:
@@ -80,7 +80,7 @@ func portsOf(s Step) []string {
 	return []string{PortSuccess, PortFail}
 }
 
-func hasPort(s Step, port string) bool {
+func HasPort(s Step, port string) bool {
 	for _, p := range portsOf(s) {
 		if p == port {
 			return true
@@ -91,13 +91,13 @@ func hasPort(s Step, port string) bool {
 
 var refPattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]{0,31}$`)
 
-// validRef: mã node dùng được trong biến {{ref.output.x}} – chữ cái đầu, chữ / số / _, không trùng tên dành riêng.
-func validRef(r string) bool {
+// ValidRef: mã node dùng được trong biến {{ref.output.x}} – chữ cái đầu, chữ / số / _, không trùng tên dành riêng.
+func ValidRef(r string) bool {
 	return refPattern.MatchString(r) && r != "vars" && r != "last"
 }
 
-// edgeOut trả node đích của cổng (from, port), "" nếu cổng chưa nối.
-func edgeOut(edges []Edge, from, port string) string {
+// EdgeOut trả node đích của cổng (from, port), "" nếu cổng chưa nối.
+func EdgeOut(edges []Edge, from, port string) string {
 	for _, e := range edges {
 		if e.From == from && e.Port == port {
 			return e.To
@@ -106,10 +106,10 @@ func edgeOut(edges []Edge, from, port string) string {
 	return ""
 }
 
-// flowOrder – thứ tự hiển thị node (đánh số marker overlay, Xem trước, form Chạy): duyệt sâu từ start, ở mỗi node đi
-// các cổng theo thứ tự portsOf (nhánh success / true / case đầu trước), node đã gặp thì bỏ qua; node không đi tới được
+// FlowOrder – thứ tự hiển thị node (đánh số marker overlay, Xem trước, form Chạy): duyệt sâu từ start, ở mỗi node đi
+// các cổng theo thứ tự PortsOf (nhánh success / true / case đầu trước), node đã gặp thì bỏ qua; node không đi tới được
 // xếp cuối theo thứ tự trong mảng. frontend/src/flow.ts phải cùng công thức (test chung testdata/flow_order.json).
-func flowOrder(sc Script) []string {
+func FlowOrder(sc Script) []string {
 	byID := make(map[string]Step, len(sc.Steps))
 	for _, s := range sc.Steps {
 		byID[s.ID] = s
@@ -130,7 +130,7 @@ func flowOrder(sc Script) []string {
 		order = append(order, id)
 		ports := portsOf(byID[id])
 		for i := len(ports) - 1; i >= 0; i-- { // đẩy ngược để cổng đầu được lấy ra trước
-			if to := edgeOut(sc.Edges, id, ports[i]); to != "" && !seen[to] {
+			if to := EdgeOut(sc.Edges, id, ports[i]); to != "" && !seen[to] {
 				if _, ok := byID[to]; ok {
 					stack = append(stack, to)
 				}
@@ -145,8 +145,8 @@ func flowOrder(sc Script) []string {
 	return order
 }
 
-// reachableFrom – các node đi tới được từ start theo mọi cạnh (node còn lại sẽ không bao giờ chạy – UI cảnh báo).
-func reachableFrom(sc Script) map[string]bool {
+// ReachableFrom – các node đi tới được từ start theo mọi cạnh (node còn lại sẽ không bao giờ chạy – UI cảnh báo).
+func ReachableFrom(sc Script) map[string]bool {
 	seen := map[string]bool{}
 	stack := []string{}
 	if sc.Start != "" {

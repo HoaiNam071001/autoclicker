@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"autoclicker/internal/model"
 )
 
 // Nút "Thử node" (bước 20 F3): xét node Nếu / Switch / Switch theo màn hình trên màn hình lúc này (một lần, không chờ),
@@ -19,8 +21,8 @@ type NodeTest struct {
 }
 
 // TestNode thử node stepID của kịch bản sc.
-func (a *App) TestNode(sc Script, stepID string) (NodeTest, error) {
-	var s *Step
+func (a *App) TestNode(sc model.Script, stepID string) (NodeTest, error) {
+	var s *model.Step
 	for i := range sc.Steps {
 		if sc.Steps[i].ID == stepID {
 			s = &sc.Steps[i]
@@ -43,14 +45,14 @@ func (a *App) TestNode(sc Script, stepID string) (NodeTest, error) {
 		res.Ms = int(time.Since(start).Milliseconds())
 		return err
 	}
-	if n.Type == StepSwitch { // không nhìn màn hình – khỏi ẩn cửa sổ
+	if n.Type == model.StepSwitch { // không nhìn màn hình – khỏi ẩn cửa sổ
 		return res, run()
 	}
 	return res, a.withHidden(run)
 }
 
 // withInputDefaults – bản sao node với {{key}} của input thay bằng giá trị mặc định (Thử tìm / Thử node).
-func withInputDefaults(sc Script, s Step) (Step, error) {
+func withInputDefaults(sc model.Script, s model.Step) (model.Step, error) {
 	s = cloneStep(s)
 	for _, f := range varFields(&s) {
 		t, err := expandVars(*f.p, func(key string) (string, bool) {
@@ -69,10 +71,10 @@ func withInputDefaults(sc Script, s Step) (Step, error) {
 	return s, nil
 }
 
-func (e *engine) testNode(s Step) (NodeTest, error) {
+func (e *engine) testNode(s model.Step) (NodeTest, error) {
 	res := NodeTest{Known: true, Parts: []CondPart{}}
 	switch s.Type {
-	case StepIf:
+	case model.StepIf:
 		if s.Cond == nil {
 			return res, errors.New("node chưa có điều kiện")
 		}
@@ -82,11 +84,11 @@ func (e *engine) testNode(s Step) (NodeTest, error) {
 		}
 		res.Known = known
 		if known {
-			res.Port = map[bool]string{true: PortTrue, false: PortFalse}[ok]
+			res.Port = map[bool]string{true: model.PortTrue, false: model.PortFalse}[ok]
 		}
-	case StepSwitchScreen:
+	case model.StepSwitchScreen:
 		snap := newSnapshot(e.scr, e.ocr)
-		res.Port = PortNone
+		res.Port = model.PortNone
 		for i, c := range s.Cases {
 			if c.Cond == nil {
 				continue
@@ -99,18 +101,18 @@ func (e *engine) testNode(s Step) (NodeTest, error) {
 			for j := p0; j < len(res.Parts); j++ {
 				res.Parts[j].Case = c.Key
 			}
-			if ok && res.Port == PortNone {
-				res.Port = casePrefix + c.Key // vẫn xét hết các case để báo từng cái
+			if ok && res.Port == model.PortNone {
+				res.Port = model.CasePrefix + c.Key // vẫn xét hết các case để báo từng cái
 			}
 		}
-	case StepSwitch:
+	case model.StepSwitch:
 		res.Value = s.Value
 		if nodeVarRe.MatchString(s.Value) {
 			res.Known = false
 		}
-		res.Port = PortDefault
+		res.Port = model.PortDefault
 		for i, c := range s.Cases {
-			part := CondPart{Path: []int{i}, Case: c.Key, Kind: CondValue, Known: res.Known}
+			part := CondPart{Path: []int{i}, Case: c.Key, Kind: model.CondValue, Known: res.Known}
 			op := map[string]string{"eq": "bằng", "contains": "chứa", "regex": "khớp mẫu"}[c.Op]
 			part.Detail = fmt.Sprintf("“%s” %s “%s”", s.Value, op, c.Match)
 			if res.Known {
@@ -119,8 +121,8 @@ func (e *engine) testNode(s Step) (NodeTest, error) {
 					return res, err
 				}
 				part.Ok = ok
-				if ok && res.Port == PortDefault {
-					res.Port = casePrefix + c.Key
+				if ok && res.Port == model.PortDefault {
+					res.Port = model.CasePrefix + c.Key
 				}
 			}
 			res.Parts = append(res.Parts, part)

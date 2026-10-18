@@ -16,6 +16,8 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"autoclicker/internal/model"
 )
 
 // Lịch sử chạy (bước 20 F5): mỗi lần chạy lưu một file runs/<kịch bản>/<id>.json (RunRecord – StepResult từng node,
@@ -68,15 +70,15 @@ type RunSummary struct {
 // RunRecord – toàn bộ một lần chạy.
 type RunRecord struct {
 	RunSummary
-	Inputs    map[string]any `json:"inputs,omitempty"`
-	Results   []StepResult   `json:"results"`
-	Truncated int            `json:"truncated,omitempty"`
+	Inputs    map[string]any     `json:"inputs,omitempty"`
+	Results   []model.StepResult `json:"results"`
+	Truncated int                `json:"truncated,omitempty"`
 }
 
 // add ghi kết quả một node (giữ maxRunResults cuối); node Kết thúc thành công có lời nhắn thì nhớ làm Message.
-func (r *RunRecord) add(res StepResult, typ string) {
+func (r *RunRecord) add(res model.StepResult, typ string) {
 	r.Nodes++
-	if typ == StepEnd && res.Status == StatusSuccess {
+	if typ == model.StepEnd && res.Status == model.StatusSuccess {
 		if m, ok := res.Output["message"].(string); ok {
 			r.Message = m
 		}
@@ -89,11 +91,11 @@ func (r *RunRecord) add(res StepResult, typ string) {
 }
 
 // shoot chụp màn chứa vùng kịch bản lúc node thất bại (tối đa maxShots mỗi lần chạy); lỗi chụp thì bỏ qua.
-func (e *engine) shoot(res *StepResult) {
-	if e.shots == nil || len(e.shots) >= maxShots || res.Error == nil || res.Error.Code == ErrPermission || res.Error.Code == ErrEnd {
+func (e *engine) shoot(res *model.StepResult) {
+	if e.shots == nil || len(e.shots) >= maxShots || res.Error == nil || res.Error.Code == model.ErrPermission || res.Error.Code == model.ErrEnd {
 		return
 	}
-	img, err := e.scr.Capture(e.searchArea(Step{SearchArea: "screen"}))
+	img, err := e.scr.Capture(e.searchArea(model.Step{SearchArea: "screen"}))
 	if err != nil {
 		return
 	}

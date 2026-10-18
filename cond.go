@@ -10,40 +10,33 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"autoclicker/internal/model"
+	"autoclicker/internal/vision"
 )
 
 // Điều kiện (bước 20 F3) của node Nếu và case của Switch theo màn hình: xét một lần trên màn hình lúc này, trả đúng / sai
 // kèm chi tiết từng điều kiện lá (chỗ thấy, % khớp, màu đọc được, 2 vế) – engine ghi vào log, nút Thử node hiện ra.
-
-// Cond.Kind
-const (
-	CondImage = "image"
-	CondText  = "text"
-	CondPixel = "pixel"
-	CondValue = "value" // so 2 vế Left Op Right (đã thay {{biến}})
-	CondAll   = "all"
-	CondAny   = "any"
-)
 
 var condOps = []string{"eq", "ne", "contains", "gt", "lt", "empty"}
 
 var condOpText = map[string]string{"eq": "=", "ne": "≠", "contains": "chứa", "gt": ">", "lt": "<"}
 
 func isLeafScreen(kind string) bool {
-	return kind == CondImage || kind == CondText || kind == CondPixel
+	return kind == model.CondImage || kind == model.CondText || kind == model.CondPixel
 }
 
 // CondPart – kết quả một điều kiện lá.
 type CondPart struct {
-	Path   []int  `json:"path"`           // vị trí trong conds lồng nhau ([] = điều kiện gốc); switchScreen: [case, …]
-	Case   string `json:"case,omitempty"` // switchScreen: key của case
-	Kind   string `json:"kind"`
-	Ok     bool   `json:"ok"`            // kết quả sau khi đã đảo (not)
-	Known  bool   `json:"known"`         // false: chỉ biết lúc chạy (vế có biến node {{n2…}} – nút Thử node)
-	Detail string `json:"detail"`        // vd "thấy “Gửi” tại X 120 Y 40", "khớp 97% (cần 90%)"
-	Hit    *Rect  `json:"hit,omitempty"` // chỗ thấy (toạ độ robotgo)
-	Score  int    `json:"score,omitempty"`
-	Text   string `json:"text,omitempty"`
+	Path   []int       `json:"path"`           // vị trí trong conds lồng nhau ([] = điều kiện gốc); switchScreen: [case, …]
+	Case   string      `json:"case,omitempty"` // switchScreen: key của case
+	Kind   string      `json:"kind"`
+	Ok     bool        `json:"ok"`            // kết quả sau khi đã đảo (not)
+	Known  bool        `json:"known"`         // false: chỉ biết lúc chạy (vế có biến node {{n2…}} – nút Thử node)
+	Detail string      `json:"detail"`        // vd "thấy “Gửi” tại X 120 Y 40", "khớp 97% (cần 90%)"
+	Hit    *model.Rect `json:"hit,omitempty"` // chỗ thấy (toạ độ robotgo)
+	Score  int         `json:"score,omitempty"`
+	Text   string      `json:"text,omitempty"`
 }
 
 // output – chỗ thấy của điều kiện lá dưới dạng output node (x, y tâm…) để Click theo ảnh dùng lại.
@@ -58,15 +51,15 @@ func (p CondPart) output() map[string]any {
 type snapshot struct {
 	scr   Screen
 	ocr   TextReader
-	shots map[Rect]image.Image
-	texts map[image.Image][]TextLine
+	shots map[model.Rect]image.Image
+	texts map[image.Image][]vision.TextLine
 }
 
 func newSnapshot(scr Screen, ocr TextReader) *snapshot {
-	return &snapshot{scr: scr, ocr: ocr, shots: map[Rect]image.Image{}, texts: map[image.Image][]TextLine{}}
+	return &snapshot{scr: scr, ocr: ocr, shots: map[model.Rect]image.Image{}, texts: map[image.Image][]vision.TextLine{}}
 }
 
-func (s *snapshot) Capture(r Rect) (image.Image, error) {
+func (s *snapshot) Capture(r model.Rect) (image.Image, error) {
 	if img, ok := s.shots[r]; ok {
 		return img, nil
 	}
@@ -79,7 +72,7 @@ func (s *snapshot) Capture(r Rect) (image.Image, error) {
 
 func (s *snapshot) Pixel(x, y int) (color.RGBA, error) { return s.scr.Pixel(x, y) }
 
-func (s *snapshot) ReadText(img image.Image) ([]TextLine, error) {
+func (s *snapshot) ReadText(img image.Image) ([]vision.TextLine, error) {
 	if l, ok := s.texts[img]; ok {
 		return l, nil
 	}
@@ -90,23 +83,11 @@ func (s *snapshot) ReadText(img image.Image) ([]TextLine, error) {
 	return l, err
 }
 
-// probe – node Chờ ảnh / chữ tương ứng điều kiện (dùng lại vùng tìm, ảnh mẫu, tìm chữ). key: id riêng để nhớ ảnh mẫu.
-func (c Cond) probe(key string) Step {
-	s := Step{
-		ID: key, Type: StepWaitImage, Template: c.Template, TemplateScale: c.TemplateScale, Threshold: c.Threshold,
-		SearchArea: c.SearchArea, FindText: c.FindText, TextExact: c.TextExact, TextNoAccent: c.TextNoAccent, Occurrence: c.Occurrence,
-	}
-	if c.Kind == CondText {
-		s.FindBy = FindByText
-	}
-	return s
-}
-
 // evalCond xét c một lần trên snap; ghi kết quả từng điều kiện lá vào parts. known = false khi kết quả phụ thuộc biến
 // node chưa biết (chỉ xảy ra ở Thử node – lúc chạy biến đã thay). Lỗi (thiếu quyền, ảnh hỏng…) là lỗi của node.
-func (e *engine) evalCond(c Cond, key string, path []int, snap *snapshot, parts *[]CondPart) (ok, known bool, err error) {
-	if c.Kind == CondAll || c.Kind == CondAny {
-		all := c.Kind == CondAll
+func (e *engine) evalCond(c model.Cond, key string, path []int, snap *snapshot, parts *[]CondPart) (ok, known bool, err error) {
+	if c.Kind == model.CondAll || c.Kind == model.CondAny {
+		all := c.Kind == model.CondAll
 		ok, known = all, true
 		decided := false
 		for i, sub := range c.Conds {
@@ -137,11 +118,11 @@ func (e *engine) evalCond(c Cond, key string, path []int, snap *snapshot, parts 
 }
 
 // checkLeaf xét một điều kiện lá (ảnh / chữ / màu / so giá trị).
-func (e *engine) checkLeaf(c Cond, key string, snap *snapshot) (CondPart, error) {
+func (e *engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, error) {
 	part := CondPart{Kind: c.Kind, Known: true}
 	var ok bool
 	switch c.Kind {
-	case CondValue:
+	case model.CondValue:
 		if nodeVarRe.MatchString(c.Left) || nodeVarRe.MatchString(c.Right) {
 			part.Known, part.Detail = false, fmt.Sprintf("“%s” – chỉ biết lúc chạy (biến node)", c.Left)
 			return part, nil
@@ -156,8 +137,8 @@ func (e *engine) checkLeaf(c Cond, key string, snap *snapshot) (CondPart, error)
 		} else {
 			part.Detail = fmt.Sprintf("“%s” %s “%s”", c.Left, condOpText[c.Op], c.Right)
 		}
-	case CondText:
-		probe := c.probe(key)
+	case model.CondText:
+		probe := c.Probe(key)
 		area := e.searchArea(probe)
 		if err := captureArea(area, e.displays); err != nil {
 			return part, err
@@ -173,8 +154,8 @@ func (e *engine) checkLeaf(c Cond, key string, snap *snapshot) (CondPart, error)
 		} else {
 			part.Detail = fmt.Sprintf("không thấy “%s”%s", c.FindText, readHint(read))
 		}
-	case CondImage:
-		probe := c.probe(key)
+	case model.CondImage:
+		probe := c.Probe(key)
 		tpl, err := e.template(probe)
 		if err != nil {
 			return part, err
@@ -187,14 +168,14 @@ func (e *engine) checkLeaf(c Cond, key string, snap *snapshot) (CondPart, error)
 		if err != nil {
 			return part, err
 		}
-		m, k := matchScaled(img, area, tpl, probe.TemplateScale)
+		m, k := vision.MatchScaled(img, area, tpl, probe.TemplateScale)
 		score := int(math.Round(m.Score * 100))
-		box := Rect{X: area.X + int(float64(m.X)/k), Y: area.Y + int(float64(m.Y)/k), W: int(float64(m.W) / k), H: int(float64(m.H) / k)}
+		box := model.Rect{X: area.X + int(float64(m.X)/k), Y: area.Y + int(float64(m.Y)/k), W: int(float64(m.W) / k), H: int(float64(m.H) / k)}
 		ok = score >= max(c.Threshold, 1)
 		part.Hit, part.Score = &box, score
 		part.Detail = fmt.Sprintf("%s tại X %d Y %d · khớp %d%% (cần %d%%)", map[bool]string{true: "thấy ảnh", false: "giống nhất"}[ok],
 			box.X+box.W/2, box.Y+box.H/2, score, c.Threshold)
-	case CondPixel:
+	case model.CondPixel:
 		want, err := parseColor(c.Color)
 		if err != nil {
 			return part, err
@@ -209,7 +190,7 @@ func (e *engine) checkLeaf(c Cond, key string, snap *snapshot) (CondPart, error)
 		}
 		d := colorDiff(got, want)
 		ok = d <= c.Tolerance
-		part.Hit = &Rect{X: p.X, Y: p.Y}
+		part.Hit = &model.Rect{X: p.X, Y: p.Y}
 		part.Detail = fmt.Sprintf("X %d Y %d màu %s (cần %s ± %d, lệch %d)", p.X, p.Y, hexColor(got), strings.ToUpper(c.Color), c.Tolerance, d)
 	default:
 		return part, fmt.Errorf("loại điều kiện không hợp lệ %q", c.Kind)
@@ -224,7 +205,7 @@ func (e *engine) checkLeaf(c Cond, key string, snap *snapshot) (CondPart, error)
 // firstHit – output chỗ thấy của điều kiện lá đầu tiên đúng có chỗ thấy (Click theo ảnh lấy từ node Nếu / Switch).
 func firstHit(parts []CondPart) map[string]any {
 	for _, p := range parts {
-		if p.Ok && p.Hit != nil && p.Kind != CondPixel {
+		if p.Ok && p.Hit != nil && p.Kind != model.CondPixel {
 			return p.output()
 		}
 	}
@@ -264,7 +245,7 @@ func parseNumber(s string) (float64, error) {
 
 // matchCase – Switch theo giá trị: eq / contains như compareValues, regex = khớp mẫu (Go regexp, phân biệt hoa thường
 // trừ khi mẫu có (?i)).
-func matchCase(value string, c Case) (bool, error) {
+func matchCase(value string, c model.Case) (bool, error) {
 	if c.Op == "regex" {
 		re, err := regexp.Compile(c.Match)
 		if err != nil {
@@ -276,14 +257,14 @@ func matchCase(value string, c Case) (bool, error) {
 }
 
 // checkCond kiểm cấu trúc điều kiện (mở file): loại, phép so, lồng nhóm.
-func checkCond(c *Cond, depth int) error {
+func checkCond(c *model.Cond, depth int) error {
 	switch c.Kind {
-	case CondImage, CondText, CondPixel:
-	case CondValue:
+	case model.CondImage, model.CondText, model.CondPixel:
+	case model.CondValue:
 		if !slices.Contains(condOps, c.Op) {
 			return fmt.Errorf("phép so không hợp lệ: %q", c.Op)
 		}
-	case CondAll, CondAny:
+	case model.CondAll, model.CondAny:
 		if depth > 8 {
 			return errors.New("điều kiện lồng quá sâu")
 		}
@@ -305,13 +286,13 @@ func checkCond(c *Cond, depth int) error {
 
 // validateCond – điều kiện đủ dữ liệu để chạy (trước khi chạy): chữ, ảnh mẫu, điểm + màu, nhóm không rỗng.
 // inside: điểm nằm trong vùng.
-func validateCond(c Cond, inside func(Point) bool) error {
+func validateCond(c model.Cond, inside func(model.Point) bool) error {
 	switch c.Kind {
-	case CondText:
+	case model.CondText:
 		if strings.TrimSpace(c.FindText) == "" {
 			return errors.New("điều kiện chưa nhập chữ cần thấy")
 		}
-	case CondImage:
+	case model.CondImage:
 		if c.Template == "" {
 			return errors.New("điều kiện chưa có ảnh mẫu")
 		}
@@ -321,7 +302,7 @@ func validateCond(c Cond, inside func(Point) bool) error {
 		if c.Threshold < 1 || c.Threshold > 100 {
 			return errors.New("độ khớp của điều kiện phải trong 1–100%")
 		}
-	case CondPixel:
+	case model.CondPixel:
 		if len(c.Points) == 0 {
 			return errors.New("điều kiện màu chưa chọn điểm")
 		}
@@ -331,11 +312,11 @@ func validateCond(c Cond, inside func(Point) bool) error {
 		if _, err := parseColor(c.Color); err != nil {
 			return err
 		}
-	case CondValue:
+	case model.CondValue:
 		if !slices.Contains(condOps, c.Op) {
 			return fmt.Errorf("phép so không hợp lệ %q", c.Op)
 		}
-	case CondAll, CondAny:
+	case model.CondAll, model.CondAny:
 		if len(c.Conds) == 0 {
 			return errors.New("nhóm điều kiện chưa có điều kiện nào")
 		}
@@ -349,14 +330,14 @@ func validateCond(c Cond, inside func(Point) bool) error {
 }
 
 // cloneCond chép sâu (thay biến trên bản sao không đụng kịch bản gốc).
-func cloneCond(c *Cond) *Cond {
+func cloneCond(c *model.Cond) *model.Cond {
 	if c == nil {
 		return nil
 	}
 	x := *c
 	x.Points = slices.Clone(c.Points)
 	if c.Conds != nil {
-		x.Conds = make([]Cond, len(c.Conds))
+		x.Conds = make([]model.Cond, len(c.Conds))
 		for i := range c.Conds {
 			x.Conds[i] = *cloneCond(&c.Conds[i])
 		}

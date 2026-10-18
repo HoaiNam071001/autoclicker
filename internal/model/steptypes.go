@@ -1,4 +1,4 @@
-package main
+package model
 
 // Mô tả các loại bước cho người đọc file kịch bản và cho AI (MCP, bước 31 – sinh schema / hướng dẫn từ bảng này).
 // Thêm loại bước mới: thêm hằng trong model.go, xử lý trong checkStep / validateScript / engine, và một dòng ở đây
@@ -12,7 +12,7 @@ type StepTypeDoc struct {
 	Pinnable []string `json:"pinnable"` // trường ghim được làm input (inputs.go)
 	Example  string   `json:"example"`  // một node JSON hợp lệ
 	Outputs  []string `json:"outputs"`  // khoá output khi thành công – node sau đọc bằng {{ref.output.khoá}}
-	Ports    []string `json:"ports"`    // cổng ra (portsOf) – điền lúc khởi động
+	Ports    []string `json:"ports"`    // cổng ra (PortsOf) – điền lúc khởi động
 }
 
 func init() {
@@ -125,16 +125,16 @@ var stepTypeDocs = []StepTypeDoc{
 		`{"id":"s1","ref":"n1","type":"setVar","varName":"so_lan","varOp":"add","value":"1","enabled":true}`, []string{"name", "value"}, nil},
 }
 
-// StepTypes trả mô tả các loại bước app đang hỗ trợ.
-func (a *App) StepTypes() []StepTypeDoc { return stepTypeDocs }
-
-// FlowGuide trả hướng dẫn cấu trúc flow, trường chung và kịch bản mẫu (cho AI / MCP, bước 31).
-func (a *App) FlowGuide() FlowGuideDoc {
-	return FlowGuideDoc{Flow: flowDoc, CommonFields: commonFieldsDoc, Example: flowExample}
-}
-
 type FlowGuideDoc struct {
 	Flow         string `json:"flow"`
 	CommonFields string `json:"commonFields"`
 	Example      string `json:"example"`
+}
+
+// StepTypeDocs – mô tả các loại bước app đang hỗ trợ.
+func StepTypeDocs() []StepTypeDoc { return stepTypeDocs }
+
+// Guide – hướng dẫn cấu trúc flow, trường chung và kịch bản mẫu (cho AI / MCP, bước 31).
+func Guide() FlowGuideDoc {
+	return FlowGuideDoc{Flow: flowDoc, CommonFields: commonFieldsDoc, Example: flowExample}
 }

@@ -1,4 +1,6 @@
-package main
+// Package model – kiểu dữ liệu kịch bản (node, cạnh, input, kết quả node) và công thức thuần đi kèm. Không phụ thuộc
+// thiết bị / Wails; mọi package khác dùng chung.
+package model
 
 import (
 	"fmt"
@@ -31,12 +33,12 @@ const (
 	StepSetVar       = "setVar"       // đặt biến {{vars.VarName}} = Value (VarOp set) hoặc cộng thêm Value (add)
 )
 
-// stepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
-var stepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
+// StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
+var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
 	StepWaitImage, StepClickImage, StepWaitPixel, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
-// isControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
-func isControl(t string) bool {
+// IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
+func IsControl(t string) bool {
 	switch t {
 	case StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar:
 		return true
@@ -51,7 +53,7 @@ const (
 )
 
 // Hướng cuộn (Step.Direction).
-var scrollDirections = []string{"up", "down", "left", "right"}
+var ScrollDirections = []string{"up", "down", "left", "right"}
 
 // Cách bấm khi bước phím có nhiều phím chính (Step.KeyMode).
 const (
@@ -78,7 +80,7 @@ type Rect struct {
 // Step – một node của flow (bước 20): chạy xong trả StepResult (flow.go), cổng ra trong đó chọn cạnh đi tiếp.
 type Step struct {
 	ID            string   `json:"id"`
-	Type          string   `json:"type"`                 // stepTypes: click | … | waitPixel | if | switch | switchScreen | counter | end | setVar
+	Type          string   `json:"type"`                 // StepTypes: click | … | waitPixel | if | switch | switchScreen | counter | end | setVar
 	Ref           string   `json:"ref"`                  // mã ngắn n1, n2… (duy nhất) – node sau đọc kết quả bằng {{n2.output.x}}
 	Name          string   `json:"name,omitempty"`       // tên hiện trên thẻ ("" = tên theo loại)
 	Pos           *Pos     `json:"pos,omitempty"`        // vị trí thẻ trên canvas (nil = chưa đặt, xếp tự động)
@@ -177,7 +179,7 @@ type Retry struct {
 	DelayMs int `json:"delayMs,omitempty"`
 }
 
-const maxRetries = 100
+const MaxRetries = 100
 
 // Pos – vị trí thẻ node trên canvas (toạ độ canvas, không phải màn hình).
 type Pos struct {
@@ -199,6 +201,11 @@ const (
 	AnchorTopLeft = "start" // luôn tính từ góc trên trái
 )
 
+// ScriptVersion – định dạng file kịch bản hiện tại. Tăng khi đổi model theo cách file cũ không đọc đúng được.
+// 2 (bước 21b): thêm inputs – app cũ không biết inputs nên không được mở file mới.
+// 4 (bước 20): kịch bản thành flow node + cạnh. File cũ hơn KHÔNG chuyển đổi (người dùng chốt 2026-10-17) – báo không mở được.
+const ScriptVersion = 4
+
 type Script struct {
 	Version    int           `json:"version"` // định dạng file, xem storage.go
 	Name       string        `json:"name"`
@@ -216,7 +223,7 @@ type Script struct {
 var stepSeq atomic.Int64
 
 // NewStep trả bước mới với giá trị mặc định theo loại – dùng cho nút "+ Thêm bước".
-func (a *App) NewStep(stepType string) (Step, error) {
+func NewStep(stepType string) (Step, error) {
 	s := Step{
 		ID:         fmt.Sprintf("%d-%d", time.Now().UnixNano(), stepSeq.Add(1)),
 		Type:       stepType,
@@ -273,13 +280,13 @@ func (a *App) NewStep(stepType string) (Step, error) {
 	default:
 		return Step{}, fmt.Errorf("loại bước không hợp lệ: %q", stepType)
 	}
-	if isControl(stepType) {
+	if IsControl(stepType) {
 		s.DelayAfter = 0
 	}
 	return s, nil
 }
 
 // NewScript trả kịch bản rỗng mặc định.
-func (a *App) NewScript() Script {
+func NewScript() Script {
 	return Script{Version: ScriptVersion, Name: "Kịch bản 1", Loops: 1, Steps: []Step{}, Edges: []Edge{}}
 }

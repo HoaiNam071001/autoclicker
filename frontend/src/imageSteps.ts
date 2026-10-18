@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { CaptureTemplate, FindImage, PixelColorAt, RequestScreenCapture, ScreenCaptureAllowed, TestNode } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
-import { main } from '../wailsjs/go/models';
+import { model } from '../wailsjs/go/models';
 import { addStep, getEditor, selectStep, setNotice, toScreen, updateCond, updateStep } from './store';
 import { CondAt, condOf } from './flow/cond';
 import { errorText } from './engineStore';
@@ -70,7 +70,7 @@ export function addTextStep(type: 'waitImage' | 'clickImage') {
 export async function applyCapture(r: Rect): Promise<string | null> {
   if (!inWails) return 'Chỉ chụp được trong app';
   try {
-    const shot = await CaptureTemplate(main.Rect.createFrom(r));
+    const shot = await CaptureTemplate(model.Rect.createFrom(r));
     if (captureCond && captureTarget && getEditor().script.steps.some((s) => s.id === captureTarget)) {
       updateCond(captureTarget, captureCond, (c) => ({ ...c, template: shot.png, templateScale: shot.scale }));
       dropTest(captureTarget);
@@ -99,7 +99,7 @@ export async function testFind(stepId: string) {
   if (!inWails) return;
   set({ busy: stepId, error: '' });
   try {
-    const r = await FindImage(main.Script.createFrom(getEditor().script), stepId);
+    const r = await FindImage(model.Script.createFrom(getEditor().script), stepId);
     set({ finds: { ...state.finds, [stepId]: r as FindResult }, busy: '' });
   } catch (e) {
     set({ busy: '', error: errorText(e) });
@@ -117,7 +117,7 @@ export async function testNode(stepId: string) {
   if (!inWails) return;
   set({ busy: stepId, error: '' });
   try {
-    const r = (await TestNode(main.Script.createFrom(getEditor().script), stepId)) as NodeTestResult;
+    const r = (await TestNode(model.Script.createFrom(getEditor().script), stepId)) as NodeTestResult;
     const boxes = r.parts.filter((p) => p.hit && p.hit.w > 0);
     const hit = (boxes.find((p) => p.ok) ?? boxes[0])?.hit;
     const finds = { ...state.finds };

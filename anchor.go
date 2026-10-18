@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 
+	"autoclicker/internal/model"
 	"github.com/go-vgo/robotgo"
 )
 
@@ -33,12 +34,12 @@ func resolveAxis(v int, a string, origin, size int) int {
 
 // resolvePoint trả toạ độ màn hình (robotgo) của điểm p neo theo khung b (vùng hoặc màn hình).
 // Phải khớp resolvePoint trong frontend/src/anchor.ts.
-func resolvePoint(p Point, b Rect) Point {
-	return Point{X: resolveAxis(p.X, p.Ax, b.X, b.W), Y: resolveAxis(p.Y, p.Ay, b.Y, b.H)}
+func resolvePoint(p model.Point, b model.Rect) model.Point {
+	return model.Point{X: resolveAxis(p.X, p.Ax, b.X, b.W), Y: resolveAxis(p.Y, p.Ay, b.Y, b.H)}
 }
 
 // bounds trả khung tính toạ độ điểm: vùng của kịch bản, không có thì màn hình.
-func bounds(sc Script, screen Rect) Rect {
+func bounds(sc model.Script, screen model.Rect) model.Rect {
 	if sc.Region != nil {
 		return *sc.Region
 	}
@@ -46,13 +47,13 @@ func bounds(sc Script, screen Rect) Rect {
 }
 
 // mainScreen – khung màn hình chính theo toạ độ robotgo; "toàn màn hình" (Region = nil) neo theo khung này.
-func mainScreen() Rect {
+func mainScreen() model.Rect {
 	if d := displays(); len(d) > 0 {
 		return d[0]
 	}
 	w, h := robotgo.GetScreenSize()
-	return Rect{W: w, H: h}
+	return model.Rect{W: w, H: h}
 }
 
 // ScreenBounds trả khung màn hình chính – frontend dùng để tính điểm neo khi chọn toàn màn hình.
-func (a *App) ScreenBounds() Rect { return mainScreen() }
+func (a *App) ScreenBounds() model.Rect { return mainScreen() }

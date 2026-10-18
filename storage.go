@@ -12,15 +12,11 @@ import (
 	"sync"
 	"time"
 
+	"autoclicker/internal/model"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // Lưu / mở kịch bản (bước 21): file .json, bản nháp tự lưu và danh sách mở gần đây trong configDir().
-
-// ScriptVersion – định dạng file kịch bản hiện tại. Tăng khi đổi model theo cách file cũ không đọc đúng được.
-// 2 (bước 21b): thêm inputs – app cũ không biết inputs nên không được mở file mới.
-// 4 (bước 20): kịch bản thành flow node + cạnh. File cũ hơn KHÔNG chuyển đổi (người dùng chốt 2026-10-17) – báo không mở được.
-const ScriptVersion = 4
 
 const (
 	draftFile  = "draft.json"
@@ -34,58 +30,58 @@ var settingsMu sync.Mutex
 
 // ScriptFile – kịch bản vừa mở và đường dẫn file của nó. Path "" = người dùng huỷ hộp thoại.
 type ScriptFile struct {
-	Script Script `json:"script"`
-	Path   string `json:"path"`
+	Script model.Script `json:"script"`
+	Path   string       `json:"path"`
 }
 
 // Draft – bản nháp tự lưu: kịch bản đang soạn kèm file nó thuộc về, mở lại app thì khôi phục nguyên trạng.
 type Draft struct {
-	Script  Script `json:"script"`
-	Path    string `json:"path"`    // file đang mở, "" = chưa lưu lần nào
-	Dirty   bool   `json:"dirty"`   // có thay đổi chưa lưu xuống file
-	SavedAt int64  `json:"savedAt"` // thời điểm ghi nháp, unix ms
+	Script  model.Script `json:"script"`
+	Path    string       `json:"path"`    // file đang mở, "" = chưa lưu lần nào
+	Dirty   bool         `json:"dirty"`   // có thay đổi chưa lưu xuống file
+	SavedAt int64        `json:"savedAt"` // thời điểm ghi nháp, unix ms
 }
 
-func encodeScript(sc Script) ([]byte, error) {
-	sc.Version = ScriptVersion
+func encodeScript(sc model.Script) ([]byte, error) {
+	sc.Version = model.ScriptVersion
 	return json.MarshalIndent(sc, "", "  ")
 }
 
 // decodeScript đọc file kịch bản: kiểm tra version, cấu trúc (checkScript) và bổ sung giá trị trống.
 // Không chạy validateScript – bản đang soạn dở (vd bước gõ chữ chưa nhập) vẫn mở được, lúc Chạy mới kiểm tra.
-func decodeScript(b []byte) (Script, error) {
-	var sc Script
+func decodeScript(b []byte) (model.Script, error) {
+	var sc model.Script
 	if err := json.Unmarshal(b, &sc); err != nil {
-		return Script{}, fmt.Errorf("file hỏng hoặc không phải JSON: %w", err)
+		return model.Script{}, fmt.Errorf("file hỏng hoặc không phải JSON: %w", err)
 	}
 	switch {
 	case sc.Version == 0:
-		return Script{}, errors.New("không phải file kịch bản (thiếu version)")
-	case sc.Version > ScriptVersion:
-		return Script{}, fmt.Errorf("file tạo bởi phiên bản app mới hơn (version %d, app đọc được tới %d) – hãy cập nhật app", sc.Version, ScriptVersion)
-	case sc.Version < ScriptVersion:
-		return Script{}, fmt.Errorf("kịch bản tạo bằng bản cũ (version %d, dạng danh sách bước), không mở được – bản này dùng dạng flow (version %d)", sc.Version, ScriptVersion)
+		return model.Script{}, errors.New("không phải file kịch bản (thiếu version)")
+	case sc.Version > model.ScriptVersion:
+		return model.Script{}, fmt.Errorf("file tạo bởi phiên bản app mới hơn (version %d, app đọc được tới %d) – hãy cập nhật app", sc.Version, model.ScriptVersion)
+	case sc.Version < model.ScriptVersion:
+		return model.Script{}, fmt.Errorf("kịch bản tạo bằng bản cũ (version %d, dạng danh sách bước), không mở được – bản này dùng dạng flow (version %d)", sc.Version, model.ScriptVersion)
 	}
 	if err := checkScript(&sc); err != nil {
-		return Script{}, err
+		return model.Script{}, err
 	}
 	return sc, nil
 }
 
 // checkScript kiểm tra giá trị nằm trong miền hợp lệ và bổ sung phần trống (slice nil, id / ref trùng, nút / cách bấm mặc định,
 // cạnh trỏ node không còn) để frontend dùng ngay được. Không kiểm tra đủ flow – validateFlow làm lúc Chạy.
-func checkScript(sc *Script) error {
+func checkScript(sc *model.Script) error {
 	if sc.Loops < 0 || sc.MaxMinutes < 0 {
 		return errors.New("số vòng / số phút không được âm")
 	}
 	if sc.Region != nil && (sc.Region.W <= 0 || sc.Region.H <= 0) {
 		return errors.New("vùng có kích thước không hợp lệ")
 	}
-	if sc.AnchorMode != AnchorNearest && sc.AnchorMode != AnchorTopLeft {
+	if sc.AnchorMode != model.AnchorNearest && sc.AnchorMode != model.AnchorTopLeft {
 		return fmt.Errorf("cách neo điểm không hợp lệ: %q", sc.AnchorMode)
 	}
 	if sc.Steps == nil {
-		sc.Steps = []Step{}
+		sc.Steps = []model.Step{}
 	}
 	ids := map[string]bool{}
 	n := 0
@@ -106,11 +102,11 @@ func checkScript(sc *Script) error {
 }
 
 // fixRefs đặt ref cho node chưa có / trùng / sai dạng: n1, n2… (số nhỏ nhất chưa dùng).
-func fixRefs(steps []Step) {
+func fixRefs(steps []model.Step) {
 	used := map[string]bool{}
 	bad := []int{}
 	for i, s := range steps {
-		if !validRef(s.Ref) || used[s.Ref] {
+		if !model.ValidRef(s.Ref) || used[s.Ref] {
 			bad = append(bad, i)
 			continue
 		}
@@ -127,9 +123,9 @@ func fixRefs(steps []Step) {
 
 // checkEdges bỏ cạnh hỏng (trỏ node không còn, thiếu cổng, trùng cổng – sửa tay file), đặt id cạnh trống / trùng;
 // start trỏ node không còn thì bỏ trống.
-func checkEdges(sc *Script, ids map[string]bool) {
+func checkEdges(sc *model.Script, ids map[string]bool) {
 	if sc.Edges == nil {
-		sc.Edges = []Edge{}
+		sc.Edges = []model.Edge{}
 	}
 	out := sc.Edges[:0]
 	seenPort := map[[2]string]bool{}
@@ -154,31 +150,31 @@ func checkEdges(sc *Script, ids map[string]bool) {
 	}
 }
 
-func checkStep(s *Step) error {
+func checkStep(s *model.Step) error {
 	need := 0
 	switch s.Type {
-	case StepClick, StepDouble, StepHold, StepWaitPixel:
+	case model.StepClick, model.StepDouble, model.StepHold, model.StepWaitPixel:
 		need = 1
-	case StepDrag:
+	case model.StepDrag:
 		need = 2
-	case StepWait, StepText, StepKey, StepOpen, StepScroll, StepWaitImage, StepClickImage:
-	case StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar:
+	case model.StepWait, model.StepText, model.StepKey, model.StepOpen, model.StepScroll, model.StepWaitImage, model.StepClickImage:
+	case model.StepIf, model.StepSwitch, model.StepSwitchScreen, model.StepCounter, model.StepEnd, model.StepSetVar:
 		if err := checkControl(s); err != nil {
 			return err
 		}
 	default:
 		return fmt.Errorf("loại bước không hợp lệ: %q", s.Type)
 	}
-	if s.Direction != "" && !slices.Contains(scrollDirections, s.Direction) {
+	if s.Direction != "" && !slices.Contains(model.ScrollDirections, s.Direction) {
 		return fmt.Errorf("hướng cuộn không hợp lệ: %q", s.Direction)
 	}
-	if s.ImageSource != "" && s.ImageSource != ImageFromNode && s.ImageSource != ImageFromSearch {
+	if s.ImageSource != "" && s.ImageSource != model.ImageFromNode && s.ImageSource != model.ImageFromSearch {
 		return fmt.Errorf("nguồn vị trí ảnh không hợp lệ: %q", s.ImageSource)
 	}
-	if r := s.Retry; r != nil && (r.Count < 0 || r.Count > maxRetries || r.DelayMs < 0) {
-		return fmt.Errorf("số lần thử lại phải trong 0–%d, thời gian nghỉ không âm", maxRetries)
+	if r := s.Retry; r != nil && (r.Count < 0 || r.Count > model.MaxRetries || r.DelayMs < 0) {
+		return fmt.Errorf("số lần thử lại phải trong 0–%d, thời gian nghỉ không âm", model.MaxRetries)
 	}
-	if s.FindBy != "" && s.FindBy != FindByText {
+	if s.FindBy != "" && s.FindBy != model.FindByText {
 		return fmt.Errorf("cách tìm không hợp lệ: %q", s.FindBy)
 	}
 	if s.SearchArea != "" && s.SearchArea != "screen" {
@@ -204,8 +200,8 @@ func checkStep(s *Step) error {
 	}
 	switch s.KeyMode {
 	case "":
-		s.KeyMode = KeyChord
-	case KeyChord, KeySequence:
+		s.KeyMode = model.KeyChord
+	case model.KeyChord, model.KeySequence:
 	default:
 		return fmt.Errorf("cách bấm phím không hợp lệ: %q", s.KeyMode)
 	}
@@ -218,7 +214,7 @@ func checkStep(s *Step) error {
 		return errors.New("số lần / thời gian / ngẫu nhiên không được âm")
 	}
 	if s.Points == nil {
-		s.Points = []Point{}
+		s.Points = []model.Point{}
 	}
 	if s.Keys == nil {
 		s.Keys = []string{}
@@ -233,14 +229,14 @@ func validAnchor(a string) bool {
 	return a == "" || a == AnchorStart || a == AnchorEnd || a == AnchorCenter || a == AnchorRatio
 }
 
-func readScriptFile(path string) (Script, error) {
+func readScriptFile(path string) (model.Script, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return Script{}, err
+		return model.Script{}, err
 	}
 	sc, err := decodeScript(b)
 	if err != nil {
-		return Script{}, err
+		return model.Script{}, err
 	}
 	if sc.Name == "" {
 		sc.Name = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
@@ -248,7 +244,7 @@ func readScriptFile(path string) (Script, error) {
 	return sc, nil
 }
 
-func writeScriptFile(path string, sc Script) error {
+func writeScriptFile(path string, sc model.Script) error {
 	b, err := encodeScript(sc)
 	if err != nil {
 		return err
@@ -298,11 +294,11 @@ var scriptFilters = []runtime.FileFilter{{DisplayName: dialogName + " (*.json)",
 
 // SaveScript ghi kịch bản vào path; path "" (chưa lưu lần nào) thì hỏi chỗ lưu như SaveScriptAs.
 // Trả kịch bản đã ghi + đường dẫn; Path "" nếu người dùng huỷ hộp thoại.
-func (a *App) SaveScript(sc Script, path string) (ScriptFile, error) {
+func (a *App) SaveScript(sc model.Script, path string) (ScriptFile, error) {
 	if path == "" {
 		return a.SaveScriptAs(sc, "")
 	}
-	sc.Version = ScriptVersion
+	sc.Version = model.ScriptVersion
 	if err := writeScriptFile(path, sc); err != nil {
 		return ScriptFile{}, fmt.Errorf("không lưu được %s: %w", filepath.Base(path), err)
 	}
@@ -311,7 +307,7 @@ func (a *App) SaveScript(sc Script, path string) (ScriptFile, error) {
 }
 
 // SaveScriptAs hỏi chỗ lưu (gợi ý thư mục / tên từ path hoặc tên kịch bản) rồi ghi; tên kịch bản đổi theo tên file.
-func (a *App) SaveScriptAs(sc Script, path string) (ScriptFile, error) {
+func (a *App) SaveScriptAs(sc model.Script, path string) (ScriptFile, error) {
 	opts := runtime.SaveDialogOptions{
 		Title:                "Lưu kịch bản",
 		DefaultFilename:      safeFileName(sc.Name) + scriptExt,
@@ -383,7 +379,7 @@ func (a *App) SaveDraft(d Draft) error {
 }
 
 func encodeDraft(d Draft) ([]byte, error) {
-	d.Script.Version = ScriptVersion
+	d.Script.Version = model.ScriptVersion
 	return json.Marshal(d)
 }
 

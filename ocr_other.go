@@ -5,9 +5,11 @@ package main
 import (
 	"errors"
 	"image"
+
+	"autoclicker/internal/vision"
 )
 
 // readText: Windows (Windows.Media.Ocr) làm khi có máy Windows (bước 17 / 18).
-func readText(image.Image) ([]TextLine, error) {
+func readText(image.Image) ([]vision.TextLine, error) {
 	return nil, errors.New("tìm theo chữ hiện chỉ có trên macOS")
 }

@@ -7,29 +7,12 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+
+	"autoclicker/internal/model"
 )
 
 // Node điều khiển của flow (bước 20 F3): Nếu, Switch theo giá trị, Switch theo màn hình, Đếm, Kết thúc, Đặt biến.
 // Không thao tác chuột / phím – chỉ chọn cổng ra. Điều kiện xét ở cond.go.
-
-// Cổng ra của node điều khiển (ngoài success / fail ở flow.go).
-const (
-	PortTrue    = "true"
-	PortFalse   = "false"
-	PortDefault = "default" // switch: không case nào khớp
-	PortNone    = "none"    // switchScreen: hết giờ không case nào hiện
-	PortNext    = "next"    // counter: còn lượt
-	PortDone    = "done"    // counter: hết lượt
-	casePrefix  = "case:"
-)
-
-// Step.EndStatus / Step.VarOp
-const (
-	EndSuccess = "success"
-	EndFail    = "fail"
-	VarSet     = "set"
-	VarAdd     = "add"
-)
 
 var caseOps = []string{"eq", "contains", "regex"}
 
@@ -38,24 +21,15 @@ var (
 	varNameRe = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]{0,31}$`)
 )
 
-// casePorts – cổng case:<key> theo thứ tự case, rồi cổng cuối (default / none).
-func casePorts(cases []Case, last string) []string {
-	out := make([]string, 0, len(cases)+1)
-	for _, c := range cases {
-		out = append(out, casePrefix+c.Key)
-	}
-	return append(out, last)
-}
-
 // endErr – node Kết thúc báo thất bại (StepError code "end"): dừng kịch bản với lời nhắn của người soạn.
 type endErr struct{ msg string }
 
 func (e *endErr) Error() string { return e.msg }
 
 // runControl chạy node điều khiển; trả cổng ra + output. logf ghi chi tiết (từng điều kiện) vào nhật ký node.
-func (e *engine) runControl(ctx context.Context, s Step, logf func(level, format string, a ...any)) (string, map[string]any, error) {
+func (e *engine) runControl(ctx context.Context, s model.Step, logf func(level, format string, a ...any)) (string, map[string]any, error) {
 	switch s.Type {
-	case StepIf:
+	case model.StepIf:
 		var parts []CondPart
 		ok, err := e.watch(ctx, s, func(snap *snapshot) (bool, error) {
 			parts = parts[:0]
@@ -69,11 +43,11 @@ func (e *engine) runControl(ctx context.Context, s Step, logf func(level, format
 		out := firstHit(parts)
 		out["result"] = ok
 		if ok {
-			return PortTrue, out, nil
+			return model.PortTrue, out, nil
 		}
-		return PortFalse, out, nil
+		return model.PortFalse, out, nil
 
-	case StepSwitchScreen:
+	case model.StepSwitchScreen:
 		var parts []CondPart
 		won := -1
 		_, err := e.watch(ctx, s, func(snap *snapshot) (bool, error) {
@@ -99,15 +73,15 @@ func (e *engine) runControl(ctx context.Context, s Step, logf func(level, format
 		}
 		logParts(parts, logf)
 		if won < 0 {
-			return PortNone, map[string]any{"case": PortNone}, nil
+			return model.PortNone, map[string]any{"case": model.PortNone}, nil
 		}
 		c := s.Cases[won]
 		out := firstHit(parts)
 		out["case"] = c.Key
 		logf("info", "case %s hiện trước", caseName(c))
-		return casePrefix + c.Key, out, nil
+		return model.CasePrefix + c.Key, out, nil
 
-	case StepSwitch:
+	case model.StepSwitch:
 		for _, c := range s.Cases {
 			ok, err := matchCase(s.Value, c)
 			if err != nil {
@@ -115,24 +89,24 @@ func (e *engine) runControl(ctx context.Context, s Step, logf func(level, format
 			}
 			if ok {
 				logf("info", "“%s” khớp case %s", s.Value, caseName(c))
-				return casePrefix + c.Key, map[string]any{"value": s.Value, "case": c.Key}, nil
+				return model.CasePrefix + c.Key, map[string]any{"value": s.Value, "case": c.Key}, nil
 			}
 		}
 		logf("info", "“%s” không khớp case nào", s.Value)
-		return PortDefault, map[string]any{"value": s.Value, "case": PortDefault}, nil
+		return model.PortDefault, map[string]any{"value": s.Value, "case": model.PortDefault}, nil
 
-	case StepCounter:
+	case model.StepCounter:
 		e.counts[s.ID]++
 		n := e.counts[s.ID]
 		if n <= s.Max {
-			return PortNext, map[string]any{"count": n}, nil
+			return model.PortNext, map[string]any{"count": n}, nil
 		}
 		e.counts[s.ID] = 0 // hết lượt thì đếm lại – đi qua vòng thử lần nữa (vd vòng ngoài) vẫn có đủ lượt
 		logf("info", "đã đi qua %d lần (tối đa %d) – hết lượt", n, s.Max)
-		return PortDone, map[string]any{"count": n}, nil
+		return model.PortDone, map[string]any{"count": n}, nil
 
-	case StepEnd:
-		if s.EndStatus == EndFail {
+	case model.StepEnd:
+		if s.EndStatus == model.EndFail {
 			msg := s.Message
 			if strings.TrimSpace(msg) == "" {
 				msg = "kết thúc: thất bại"
@@ -145,9 +119,9 @@ func (e *engine) runControl(ctx context.Context, s Step, logf func(level, format
 		logf("info", "%s", s.Message)
 		return "", map[string]any{"message": s.Message}, nil // lời nhắn hiện ở thanh trạng thái / nhật ký (F5)
 
-	case StepSetVar:
+	case model.StepSetVar:
 		var v any = s.Value
-		if s.VarOp == VarAdd {
+		if s.VarOp == model.VarAdd {
 			cur := 0.0
 			if old, ok := e.rv.vars[s.VarName]; ok {
 				f, err := parseNumber(fmtValue(old))
@@ -163,7 +137,7 @@ func (e *engine) runControl(ctx context.Context, s Step, logf func(level, format
 			v = numValue(cur + add)
 		}
 		e.rv.vars[s.VarName] = v
-		return PortSuccess, map[string]any{"name": s.VarName, "value": v}, nil
+		return model.PortSuccess, map[string]any{"name": s.VarName, "value": v}, nil
 	}
 	return "", nil, fmt.Errorf("không phải node điều khiển: %q", s.Type)
 }
@@ -183,7 +157,7 @@ func numValue(f float64) any {
 
 // watch xét check trên một ảnh chụp mới mỗi IntervalMs tới khi đúng, tối đa TimeoutMs (0 = xem một lần).
 // Hết giờ không phải lỗi – trả false.
-func (e *engine) watch(ctx context.Context, s Step, check func(*snapshot) (bool, error)) (bool, error) {
+func (e *engine) watch(ctx context.Context, s model.Step, check func(*snapshot) (bool, error)) (bool, error) {
 	if s.TimeoutMs <= 0 {
 		return check(newSnapshot(e.scr, e.ocr))
 	}
@@ -206,7 +180,7 @@ func logParts(parts []CondPart, logf func(level, format string, a ...any)) {
 	}
 }
 
-func caseName(c Case) string {
+func caseName(c model.Case) string {
 	if c.Label != "" {
 		return c.Label
 	}
@@ -214,7 +188,7 @@ func caseName(c Case) string {
 }
 
 // checkControl kiểm cấu trúc node điều khiển khi mở file (giá trị lạ → lỗi; thiếu dữ liệu để lúc chạy báo).
-func checkControl(s *Step) error {
+func checkControl(s *model.Step) error {
 	if s.Cond != nil {
 		if err := checkCond(s.Cond, 0); err != nil {
 			return err
@@ -238,10 +212,10 @@ func checkControl(s *Step) error {
 			}
 		}
 	}
-	if s.EndStatus != "" && s.EndStatus != EndSuccess && s.EndStatus != EndFail {
+	if s.EndStatus != "" && s.EndStatus != model.EndSuccess && s.EndStatus != model.EndFail {
 		return fmt.Errorf("kết quả kết thúc không hợp lệ: %q", s.EndStatus)
 	}
-	if s.VarOp != "" && s.VarOp != VarSet && s.VarOp != VarAdd {
+	if s.VarOp != "" && s.VarOp != model.VarSet && s.VarOp != model.VarAdd {
 		return fmt.Errorf("cách đặt biến không hợp lệ: %q", s.VarOp)
 	}
 	if s.Max < 0 {
@@ -251,9 +225,9 @@ func checkControl(s *Step) error {
 }
 
 // validateControl – node điều khiển đủ dữ liệu để chạy (validateScript gọi). inside: điểm nằm trong vùng.
-func validateControl(i int, s Step, inside func(Point) bool) error {
+func validateControl(i int, s model.Step, inside func(model.Point) bool) error {
 	switch s.Type {
-	case StepIf:
+	case model.StepIf:
 		if s.Cond == nil {
 			return stepErr(i, s, "cond", "chưa có điều kiện")
 		}
@@ -263,12 +237,12 @@ func validateControl(i int, s Step, inside func(Point) bool) error {
 		if s.TimeoutMs < 0 || s.TimeoutMs > 0 && s.IntervalMs <= 0 {
 			return stepErr(i, s, "timeoutMs", "thời gian chờ không âm, kiểm tra mỗi phải > 0")
 		}
-	case StepSwitch, StepSwitchScreen:
+	case model.StepSwitch, model.StepSwitchScreen:
 		if len(s.Cases) == 0 {
 			return stepErr(i, s, "cases", "chưa có case nào")
 		}
 		for j, c := range s.Cases {
-			if s.Type == StepSwitch {
+			if s.Type == model.StepSwitch {
 				if !slices.Contains(caseOps, c.Op) {
 					return stepErr(i, s, "cases", "case %s: cách so không hợp lệ %q", caseName(c), c.Op)
 				}
@@ -279,33 +253,33 @@ func validateControl(i int, s Step, inside func(Point) bool) error {
 				}
 				continue
 			}
-			if c.Cond == nil || !isLeafScreen(c.Cond.Kind) && c.Cond.Kind != CondAll && c.Cond.Kind != CondAny {
+			if c.Cond == nil || !isLeafScreen(c.Cond.Kind) && c.Cond.Kind != model.CondAll && c.Cond.Kind != model.CondAny {
 				return stepErr(i, s, "cases", "case %d (%s): cần điều kiện thấy chữ / ảnh / màu", j+1, caseName(c))
 			}
 			if err := validateCond(*c.Cond, inside); err != nil {
 				return stepErr(i, s, "cases", "case %s: %v", caseName(c), err)
 			}
 		}
-		if s.Type == StepSwitchScreen && (s.TimeoutMs < 0 || s.IntervalMs <= 0) {
+		if s.Type == model.StepSwitchScreen && (s.TimeoutMs < 0 || s.IntervalMs <= 0) {
 			return stepErr(i, s, "timeoutMs", "thời gian chờ không âm, kiểm tra mỗi phải > 0")
 		}
-	case StepCounter:
+	case model.StepCounter:
 		if s.Max < 1 {
 			return stepErr(i, s, "max", "số lần tối đa phải ≥ 1")
 		}
-	case StepEnd:
-		if s.EndStatus != EndSuccess && s.EndStatus != EndFail {
+	case model.StepEnd:
+		if s.EndStatus != model.EndSuccess && s.EndStatus != model.EndFail {
 			return stepErr(i, s, "endStatus", "chọn kết thúc thành công hay thất bại")
 		}
-	case StepSetVar:
+	case model.StepSetVar:
 		if !varNameRe.MatchString(s.VarName) {
 			return stepErr(i, s, "varName", "tên biến %q không hợp lệ – chữ cái / _ đầu, sau đó chữ / số / _", s.VarName)
 		}
-		if s.VarOp == VarAdd {
+		if s.VarOp == model.VarAdd {
 			if _, err := parseNumber(s.Value); err != nil && !nodeVarRe.MatchString(s.Value) && !varRe.MatchString(s.Value) {
 				return stepErr(i, s, "value", "cộng cần một số, có “%s”", s.Value)
 			}
-		} else if s.VarOp != VarSet {
+		} else if s.VarOp != model.VarSet {
 			return stepErr(i, s, "varOp", "chọn gán hay cộng")
 		}
 	}

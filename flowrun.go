@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"autoclicker/internal/model"
 )
 
 // Engine chạy flow (bước 20): từ node start, chạy node → StepResult → đi theo cạnh của cổng ra → node kế.
@@ -34,10 +36,10 @@ func (e *engine) run(ctx context.Context) error {
 		defer cancel()
 	}
 
-	e.byID = make(map[string]Step, len(sc.Steps))
+	e.byID = make(map[string]model.Step, len(sc.Steps))
 	e.order = map[string]int{}
 	total := 0
-	for _, id := range flowOrder(sc) {
+	for _, id := range model.FlowOrder(sc) {
 		for _, s := range sc.Steps {
 			if s.ID == id && s.Enabled {
 				total++
@@ -71,8 +73,8 @@ func (e *engine) run(ctx context.Context) error {
 
 // runLoop chạy một vòng flow. Kết quả / biến đặt lại mỗi vòng (Đếm cũng đếm lại từ 0).
 func (e *engine) runLoop(ctx context.Context, loop int) error {
-	e.rv = runVars{byRef: map[string]*StepResult{}, vars: map[string]any{}}
-	e.results = map[string]*StepResult{}
+	e.rv = runVars{byRef: map[string]*model.StepResult{}, vars: map[string]any{}}
+	e.results = map[string]*model.StepResult{}
 	e.counts = map[string]int{}
 	var trail []string // các node gần nhất – báo lỗi lặp vô hạn
 	cur := e.sc.Start
@@ -85,25 +87,25 @@ func (e *engine) runLoop(ctx context.Context, loop int) error {
 		}
 		e.breakBefore(s, loop)
 		res := e.execNode(ctx, s, loop)
-		if res.Status == StatusFail {
+		if res.Status == model.StatusFail {
 			e.shoot(&res)
 		}
 		e.results[s.ID], e.rv.byRef[s.Ref], e.rv.last = &res, &res, &res
 		if e.onNode != nil {
 			e.onNode(res)
 		}
-		if res.Status == StatusCancelled {
+		if res.Status == model.StatusCancelled {
 			return ctx.Err()
 		}
 		if trail = append(trail, s.Ref); len(trail) > 6 {
 			trail = trail[1:]
 		}
-		next := edgeOut(e.sc.Edges, s.ID, res.Port)
-		if res.Status == StatusFail && next == "" {
+		next := model.EdgeOut(e.sc.Edges, s.ID, res.Port)
+		if res.Status == model.StatusFail && next == "" {
 			e.failed = s.ID
 			return fmt.Errorf("vòng %d, %s: %s", loop, s.Ref, res.Error.Message)
 		}
-		if res.Status == StatusSuccess {
+		if res.Status == model.StatusSuccess {
 			if err := sleep(ctx, e.jitterMs(s.DelayAfter, s.JitterMs)); err != nil {
 				return err
 			}
@@ -114,21 +116,21 @@ func (e *engine) runLoop(ctx context.Context, loop int) error {
 }
 
 // execNode chạy một node, thử lại theo Retry; không bao giờ trả lỗi – mọi kết quả nằm trong StepResult.
-func (e *engine) execNode(ctx context.Context, s Step, loop int) StepResult {
-	res := StepResult{NodeID: s.ID, Ref: s.Ref, Loop: loop, StartedAt: time.Now()}
+func (e *engine) execNode(ctx context.Context, s model.Step, loop int) model.StepResult {
+	res := model.StepResult{NodeID: s.ID, Ref: s.Ref, Loop: loop, StartedAt: time.Now()}
 	defer func() { res.DurationMs = time.Since(res.StartedAt).Milliseconds() }()
 	logf := func(level, format string, a ...any) {
-		res.Logs = append(res.Logs, LogLine{AtMs: time.Since(res.StartedAt).Milliseconds(), Level: level, Msg: fmt.Sprintf(format, a...)})
+		res.Logs = append(res.Logs, model.LogLine{AtMs: time.Since(res.StartedAt).Milliseconds(), Level: level, Msg: fmt.Sprintf(format, a...)})
 	}
 	if !s.Enabled {
-		res.Status, res.Port = StatusSkipped, PortSuccess
+		res.Status, res.Port = model.StatusSkipped, model.PortSuccess
 		logf("info", "node đang tắt – đi tiếp cổng success")
 		return res
 	}
 	e.miss = nil
 	tries := 1
 	delay := 0
-	if s.Retry != nil && !isControl(s.Type) {
+	if s.Retry != nil && !model.IsControl(s.Type) {
 		tries += s.Retry.Count
 		delay = s.Retry.DelayMs
 	}
@@ -146,21 +148,21 @@ func (e *engine) execNode(ctx context.Context, s Step, loop int) StepResult {
 		e.update(true, func(p *Progress) {
 			p.Loop, p.Step, p.NodeID, p.Ref, p.Retry, p.Retries = loop, e.order[s.ID], s.ID, s.Ref, t-1, tries-1
 		})
-		var rs Step
+		var rs model.Step
 		if rs, err = resolveNodeVars(s, e.rv); err != nil {
-			res.Status, res.Port = StatusFail, PortFail
-			res.Error = &StepError{Code: ErrInvalidInput, Message: err.Error()}
+			res.Status, res.Port = model.StatusFail, model.PortFail
+			res.Error = &model.StepError{Code: model.ErrInvalidInput, Message: err.Error()}
 			logf("error", "%v", err)
 			return res
 		}
-		port, out := PortSuccess, map[string]any(nil)
-		if isControl(s.Type) {
+		port, out := model.PortSuccess, map[string]any(nil)
+		if model.IsControl(s.Type) {
 			port, out, err = e.runControl(ctx, rs, logf)
 		} else {
 			out, err = e.runStep(ctx, rs)
 		}
 		if err == nil {
-			res.Status, res.Port, res.Output = StatusSuccess, port, out
+			res.Status, res.Port, res.Output = model.StatusSuccess, port, out
 			if tries > 1 {
 				e.update(true, func(p *Progress) { p.Retry, p.Retries = 0, 0 })
 			}
@@ -177,12 +179,12 @@ func (e *engine) execNode(ctx context.Context, s Step, loop int) StepResult {
 		e.update(true, func(p *Progress) { p.Retry, p.Retries = 0, 0 })
 	}
 	if ctx.Err() != nil {
-		res.Status = StatusCancelled
-		res.Error = &StepError{Code: ErrCancelled, Message: "đã dừng"}
+		res.Status = model.StatusCancelled
+		res.Error = &model.StepError{Code: model.ErrCancelled, Message: "đã dừng"}
 		return res
 	}
-	res.Status, res.Port = StatusFail, PortFail
-	res.Error = &StepError{Code: errCode(err), Message: err.Error()}
+	res.Status, res.Port = model.StatusFail, model.PortFail
+	res.Error = &model.StepError{Code: errCode(err), Message: err.Error()}
 	logf("error", "%v", err)
 	return res
 }
@@ -193,13 +195,13 @@ func errCode(err error) string {
 	var bad *invalidErr
 	switch {
 	case errors.As(err, &nf):
-		return ErrNotFound
+		return model.ErrNotFound
 	case errors.As(err, &end):
-		return ErrEnd
+		return model.ErrEnd
 	case errors.As(err, &bad):
-		return ErrInvalidInput
+		return model.ErrInvalidInput
 	case errors.Is(err, errNoPermission):
-		return ErrPermission
+		return model.ErrPermission
 	}
-	return ErrInternal
+	return model.ErrInternal
 }

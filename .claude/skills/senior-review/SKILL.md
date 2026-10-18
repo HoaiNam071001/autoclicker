@@ -15,7 +15,7 @@ Phạm vi: `git diff` (+ `git diff --cached`, file mới chưa track). Đọc di
 - Toạ độ: neo, màn phụ toạ độ âm, DPI (Windows), vùng `nil`.
 - File / đường dẫn từ frontend: chặn đường dẫn lạ (`safeName`), tên file Windows (`safeFileName`).
 - Đa nền tảng: code chỉ macOS phải có build tag + bản `_other.go`; không gọi API chỉ có trên macOS từ code chung.
-- Go ↔ TS: struct `model.go` khớp `types.ts` (đã `wails generate module`?); công thức đôi (`portsOf`, `flowOrder`, neo) sửa cả hai + test chung `testdata/`.
+- Go ↔ TS: struct `internal/model` khớp `types.ts` (đã `wails generate module`?); công thức đôi (`PortsOf`, `FlowOrder`, neo) sửa cả hai + test chung `testdata/`.
 
 ## 2. Kiến trúc (nên sửa)
 

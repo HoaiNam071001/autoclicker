@@ -22,7 +22,7 @@
 - **Go là nguồn chuẩn model**; frontend gọi Go qua `frontend/wailsjs/go/main/App` (tự sinh), Go đẩy trạng thái về qua `runtime.EventsEmit`.
 - **Trình duyệt không có Go** (`inWails = false`): store nạp dữ liệu mẫu, nút Chạy tắt – dùng để xem UI.
 
-## 2. Model (model.go, flow.go)
+## 2. Model (`internal/model`: model.go, flow.go)
 
 - `Script` = `{version(4), name, region(nil = màn chính), loops(0 = vô hạn), maxMinutes, steps[], start, edges[], anchorMode, inputs[]}`.
 - `Step` = **node**. Định danh bằng `id` (cạnh, `start`, `imageFrom` trỏ theo id); `ref` (`n2`) chỉ để hiển thị + biến. Thứ tự mảng `steps` **không** quyết định thứ tự chạy.
@@ -39,7 +39,7 @@
 
 - `Point{x, y, ax, ay}` – toạ độ **trong vùng**, mỗi trục neo `start|end|center|ratio` (`anchor.go` ↔ `anchor.ts`). Đổi ra toạ độ màn hình lúc chạy bằng `resolvePoint`.
 - `StepResult{nodeId, ref, status, port, output, error{code,message}, logs, attempts, loop, shot}` – kết quả mỗi lần chạy node. Mã lỗi: `not_found`, `timeout`, `permission`, `invalid_input`, `cancelled`, `end`, `internal`.
-- Output theo loại (đầy đủ ở `steptypes.go`): chờ / click ảnh·chữ → `x, y, w, h, score(, text)`; waitPixel → `color`; if → `result` + chỗ thấy; end thành công → `message`.
+- Output theo loại (đầy đủ ở `internal/model/steptypes.go`): chờ / click ảnh·chữ → `x, y, w, h, score(, text)`; waitPixel → `color`; if → `result` + chỗ thấy; end thành công → `message`.
 
 ## 3. Luồng soạn kịch bản
 
@@ -85,7 +85,7 @@ Bấm Chạy / F8 (hotkey:f8start)
 2. Tạo `engine` với `trackingInput{robotgoInput}`; đếm ngược (`engine:countdown`); bật `watchCorners` (chuột chạm góc → dừng, `engine:stopped "corner"`).
 3. `engine.run` → mỗi vòng `runLoop`: từ `start`, lặp:
    - `breakBefore` (debug: breakpoint / chạy từng node → chờ Tiếp / F10)
-   - `execNode`: node tắt → `skipped` đi `success`; `resolveNodeVars` (biến `{{n2.output.x}}`, `{{last.…}}`, `{{vars.x}}` – thiếu biến → `invalid_input`); node điều khiển → `runControl` (nodes.go, `cond.go` xét điều kiện, chụp một lần mỗi lần xét); node hành động → `runStep` (engine.go `doStep`, ảnh / pixel / chữ ở `imagestep.go`, `match.go`, `ocr.go`); lỗi thì thử lại theo `Retry` (node hành động).
+   - `execNode`: node tắt → `skipped` đi `success`; `resolveNodeVars` (biến `{{n2.output.x}}`, `{{last.…}}`, `{{vars.x}}` – thiếu biến → `invalid_input`); node điều khiển → `runControl` (nodes.go, `cond.go` xét điều kiện, chụp một lần mỗi lần xét); node hành động → `runStep` (engine.go `doStep`, ảnh / pixel / chữ ở `imagestep.go`, `internal/vision` – `match.go`, `ocr.go`); lỗi thì thử lại theo `Retry` (node hành động).
    - Thất bại → chụp màn (`shoot`). Gửi `engine:node` (StepResult). Đi theo `edgeOut(port)`; `fail` không nối → dừng báo lỗi (`engine:failed`); cổng khác không nối → xong vòng. Thành công → chờ `delayAfter ± jitter`.
    - Quá 10 000 node / vòng → lỗi lặp vô hạn. Kết quả + biến đặt lại mỗi vòng.
 4. `finishRun` → ghi `runs/…/<id>.json` + ảnh lỗi (giữ 50 lần) → `engine:done` (RunSummary). Cuối cùng `engine:state false`.
@@ -131,17 +131,17 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | Việc | Chỗ |
 |---|---|
 | Thêm loại node | Skill `add-node-type` (Go model + check + run + portsOf + varFields + steptypes; TS view + form + palette + test) |
-| Thêm trường cho node | `model.go` → `wails generate module` → `types.ts` → `checkStep` / `validateScript` → form trong `stepform/` |
+| Thêm trường cho node | `internal/model/model.go` → `wails generate module` → `types.ts` → `checkStep` / `validateScript` → form trong `stepform/` |
 | Đổi cách chạy / rẽ nhánh | `flowrun.go` (vòng, thử lại, cạnh), `nodes.go` (node điều khiển), `cond.go` (điều kiện) |
 | Ô chữ mới nhận `{{biến}}` | `varFields` (vars.go) + `mapVarText` (`scriptInputs.ts`) |
-| Tìm ảnh / chữ / màu | `imagestep.go` (engine), `match.go` (NCC), `ocr*.go`, `capture*.go`; UI `imageSteps.ts`, `stepform/ImageFields` |
+| Tìm ảnh / chữ / màu | `imagestep.go` (engine), `internal/vision` (`match.go` NCC, `ocr.go` tìm chữ), `ocr_*.go` (đọc chữ), `capture*.go`; UI `imageSteps.ts`, `stepform/ImageFields` |
 | Toạ độ / neo / DPI | `anchor.go` ↔ `anchor.ts` (cùng công thức), `coordMap.ts` (overlay ↔ robotgo), `window.go` (màn hình) |
 | Overlay (công cụ, gợi ý, vẽ marker) | Tính: `overlay/geometry.ts` / `hint.ts`; vẽ: `components/overlay/`; chuột / phím + state: `OverlayScreen` |
 | Thao tác canvas | `flow/edit.ts` (thuần) → `store/nodes.ts` → `FlowEditor` |
 | Hiển thị khi chạy | `flow/run.ts` (thuần), `runStore.ts`, `components/flow/RunLog.tsx` |
 | Định dạng file | `storage.go` (`ScriptVersion`, `checkScript`) |
 | UI chưa có logic | `components/steps/`, `AppChrome.tsx`, dữ liệu giả `src/demo/` (màn `#demo*`) |
-| Mô tả cho AI / MCP | `steptypes.go` (có test bắt đủ loại node) |
+| Mô tả cho AI / MCP | `internal/model/steptypes.go` (có test bắt đủ loại node) |
 
 ## 7. Test
 
@@ -151,21 +151,30 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 ## 8. Bản đồ file
 
-**Go (thư mục gốc, package main)**
+**Go** – đang tách `package main` ở root thành package trong `internal/` (bước 32), phụ thuộc một chiều `model` ← `vision` ← … ← `main`. Package con không import `main`.
 
-- `main.go`, `app.go` – Wails app; method public của `App` bind sang frontend (`frontend/wailsjs/` tự sinh – không sửa tay, không cần đọc).
-- `model.go` – model (`Step` = node, `Script` có `start` + `edges`, `Retry`, `NewStep` mặc định). `flow.go` – `StepResult`, cổng `portsOf`, `flowOrder` (test chung `testdata/flow_order.json` với `flow/model.ts`); test kịch bản dạng danh sách bọc `linear(sc)` (`flowtest_test.go`). `flowcheck.go` – `validateFlow`. `flowrun.go` – engine theo cạnh (`runLoop`, `execNode`, thử lại).
+`internal/model` – kiểu dữ liệu thuần, không thiết bị / Wails:
+- `model.go` – `Step` = node, `Script` có `start` + `edges`, `Retry`, `ScriptVersion`, `NewStep` / `NewScript` (mặc định). `flow.go` – `StepResult`, `StepError` + mã lỗi, cổng `PortsOf`, `FlowOrder`, `EdgeOut` (test chung `testdata/flow_order.json` với `flow/model.ts`). `nodes.go` – cổng node điều khiển, `EndStatus` / `VarOp`. `cond.go` – `Cond.Kind`, `Probe`. `inputs.go` – `ScriptInput`, `ScriptError`. `steptypes.go` – mô tả + ví dụ JSON từng loại node cho AI / MCP (`StepTypeDocs`, `Guide`).
+
+`internal/vision` – tìm ảnh / chữ thuần trên ảnh đã chụp: `match.go` (NCC, `MatchScaled`, `ImageScale`), `ocr.go` (`TextLine`, `FindText`, `ReadingOrder`). `visiontest/` – ảnh giả dùng chung cho test (`Scene`, `Button`, `Crop`).
+
+`internal/winexclude/` – Windows: loại cửa sổ app khỏi ảnh chụp.
+
+**Root (package main)**
+
+- `main.go`, `app.go` – Wails app; method public của `App` bind sang frontend, chỉ gọi xuống package con (`frontend/wailsjs/` tự sinh – không sửa tay, không cần đọc; namespace TS theo package Go: `model.Step`, `main.RunOptions`).
+- Test kịch bản dạng danh sách bọc `linear(sc)` (`flowtest_test.go`). `flowcheck.go` – `validateFlow`. `flowrun.go` – engine theo cạnh (`runLoop`, `execNode`, thử lại).
 - `vars.go` – biến `{{n2.output.x}}`, `varFields` (mọi ô chữ nhận biến). `nodes.go` – node điều khiển (`runControl`, cổng, kiểm tra). `cond.go` – điều kiện (`evalCond`, `snapshot` chụp một lần mỗi lần xét). `nodetest.go` – `TestNode`.
 - `engine.go` – `validateScript`, `engine`, `runStep` / `doStep`, tạm dừng / debug; thiết bị qua `Input` (`input.go` = robotgo). `runner.go` – `RunScript` / Stop / Pause / Resume / Step. `runlog.go` – lịch sử chạy. `failsafe.go` – dừng khi chuột chạm góc.
-- `imagestep.go` – chờ ảnh / click theo ảnh / chờ pixel. `match.go` – tìm ảnh mẫu (NCC). `capture.go` / `capture_darwin.go` / `capture_other.go` – chụp màn hình (`Screen`), quyền Screen Recording. `ocr.go` / `ocr_darwin.go` / `ocr_other.go` – đọc chữ (Vision; Windows chưa có), `findText`. `imageapi.go` – API ảnh cho UI (ẩn cửa sổ lúc chụp). `internal/winexclude` – Windows: loại cửa sổ app khỏi ảnh chụp.
-- `open.go` – mở URL / app (`openCommand` theo hệ điều hành). `anchor.go` – neo điểm (`resolvePoint`, cùng công thức `anchor.ts`). `inputs.go` – input kịch bản (`resolveInputs`, `ScriptError`, `stepErr`, `inputs.json`). `steptypes.go` – mô tả + ví dụ JSON từng loại node cho AI / MCP.
+- `imagestep.go` – chờ ảnh / click theo ảnh / chờ pixel. `capture.go` / `capture_darwin.go` / `capture_other.go` – chụp màn hình (`Screen`), quyền Screen Recording. `ocr.go` / `ocr_darwin.go` / `ocr_other.go` – đọc chữ (`TextReader`; Vision, Windows chưa có). `imageapi.go` – API ảnh cho UI (ẩn cửa sổ lúc chụp).
+- `open.go` – mở URL / app (`openCommand` theo hệ điều hành). `anchor.go` – neo điểm (`resolvePoint`, cùng công thức `anchor.ts`). `inputs.go` – input kịch bản (`resolveInputs`, `stepErr`, `inputs.json`).
 - `window.go` – chế độ cửa sổ, màn hình. `hotkey.go` – F6 / F8 / F10 (gohook). `settings.go` – `settings.json`, `configDir`. `storage.go` – file kịch bản, nháp, hỏi lưu khi đóng.
 
 **Frontend (`frontend/src/`)**
 
 - `App.tsx` chọn màn theo hash; `screens/` – `MainScreen`, `OverlayScreen` (state + chuột / phím; vẽ ở `components/overlay/`), `MiniBar`, `PreviewScreen`, màn mẫu `Demo*`.
 - Overlay: `overlay/` (thuần, có test) – `geometry` (marker, đường neo, mũi tên cuộn, chỗ đặt nút khoanh ảnh), `hint` (chữ gợi ý theo công cụ); `components/overlay/` (chỉ props) – `OverlayToolbar`, `Hud` (gợi ý, crosshair, ô toạ độ), `MarkerLayer` (đường nối, ô ngẫu nhiên, marker), `Shapes` (vùng, khung Thử tìm, khung khoanh ảnh), `hooks` (`useRefState`, thanh tự ẩn, chọn màn hình, `useCapture` khoanh ảnh).
-- `types.ts` – model TS (khớp `model.go`, tsc kiểm), nhãn loại node `STEP_LABEL`.
+- `types.ts` – model TS (khớp `internal/model/model.go`, tsc kiểm), nhãn loại node `STEP_LABEL`.
 - Logic thuần (có test): `flow/` – `model` (cổng, `flowOrder`, `orderedSteps`), `edit` (nối / cắt cạnh, chèn / xoá node, `nextRef`, `pruneEdges`), `layout` (elkjs, `placeNode`), `view` (thẻ node, nhãn cổng, `outputsOf`), `cond` (điều kiện lồng nhau `CondAt`), `run` (kết quả chạy → trạng thái thẻ, nhật ký); `anchor.ts`; `transform.ts` (biến đổi nhiều điểm); `overlay/` (hình học + gợi ý overlay); `scriptInputs.ts` (ghim trường, input, `mapVarText`).
 - `store/` (import qua `store/index.ts`): `editor` (state, hoàn tác, `updateScript`, `replaceScript`), `geometry` (khung, neo ↔ màn hình), `nodes` (thêm / sửa / xoá / nhân bản, nối cạnh, `insertAt`), `control` (node điều khiển, điều kiện), `points` (điểm trên overlay, F6, kéo thả), `multi` (chọn nhiều + biến đổi, phím công cụ Chọn nhiều `selectToolKey`, đổi vùng).
 - Store khác: `engineStore.ts` (trạng thái engine, `runScript`), `runStore.ts` (nhật ký lần chạy + lịch sử), `runForm.ts` (Chạy / F8 → form Chạy, preset), `scriptFile.ts` (lưu / mở / nháp / cờ chưa lưu), `imageSteps.ts` (khoanh ảnh mẫu, thử tìm, lấy màu, quyền chụp), `coordMap.ts` (overlay ↔ robotgo), `windowMode.ts` (`setWindowMode`, `openOverlay`), `theme.ts`.

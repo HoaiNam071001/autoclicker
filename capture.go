@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"autoclicker/internal/model"
 	"github.com/go-vgo/robotgo"
 )
 
@@ -19,7 +20,7 @@ import (
 // bằng màn hình giả. Toạ độ theo hệ robotgo (macOS: point, Windows: px thật); ảnh chụp theo px thật nên có thể lớn hơn
 // vùng chụp (Retina 2x) – tỷ lệ = cỡ ảnh / cỡ vùng.
 type Screen interface {
-	Capture(r Rect) (image.Image, error)
+	Capture(r model.Rect) (image.Image, error)
 	Pixel(x, y int) (color.RGBA, error)
 }
 
@@ -27,7 +28,7 @@ type robotgoScreen struct{}
 
 // Capture chụp vùng r (nằm gọn trong một màn hình, xem captureArea). Ưu tiên cách chụp không dính cửa sổ app (thanh mini
 // đang chạy, overlay) và con trỏ chuột – không thì thanh mini che mất chỗ cần tìm.
-func (robotgoScreen) Capture(r Rect) (image.Image, error) {
+func (robotgoScreen) Capture(r model.Rect) (image.Image, error) {
 	if err := screenCaptureCheck(); err != nil {
 		return nil, err
 	}
@@ -50,7 +51,7 @@ func (s robotgoScreen) Pixel(x, y int) (color.RGBA, error) {
 	if err := screenCaptureCheck(); err != nil {
 		return color.RGBA{}, err
 	}
-	if img, ok, err := captureNoSelf(Rect{X: x, Y: y, W: 1, H: 1}); ok {
+	if img, ok, err := captureNoSelf(model.Rect{X: x, Y: y, W: 1, H: 1}); ok {
 		if err != nil {
 			return color.RGBA{}, err
 		}
@@ -64,7 +65,7 @@ func (s robotgoScreen) Pixel(x, y int) (color.RGBA, error) {
 // errNoPermission – thiếu quyền ghi màn hình (macOS Screen Recording) – StepError code permission.
 var errNoPermission = errors.New("chưa cấp quyền ghi màn hình (Screen Recording) – System Settings → Privacy & Security → Screen Recording, bật cho app / terminal rồi mở lại")
 
-func captureArea(r Rect, ds []Rect) error {
+func captureArea(r model.Rect, ds []model.Rect) error {
 	if r.W <= 0 || r.H <= 0 {
 		return errors.New("vùng tìm rỗng")
 	}
@@ -79,26 +80,18 @@ func captureArea(r Rect, ds []Rect) error {
 	return errors.New("vùng tìm nằm ngoài màn hình")
 }
 
-func inside(r, d Rect) bool {
+func inside(r, d model.Rect) bool {
 	return r.X >= d.X && r.Y >= d.Y && r.X+r.W <= d.X+d.W && r.Y+r.H <= d.Y+d.H
 }
 
 // displayOf trả chỉ số màn chứa trọn r, -1 nếu không có.
-func displayOf(r Rect, ds []Rect) int {
+func displayOf(r model.Rect, ds []model.Rect) int {
 	for i, d := range ds {
 		if inside(r, d) {
 			return i
 		}
 	}
 	return -1
-}
-
-// imageScale: px ảnh chụp trên 1 đơn vị toạ độ.
-func imageScale(img image.Image, r Rect) float64 {
-	if r.W == 0 {
-		return 1
-	}
-	return float64(img.Bounds().Dx()) / float64(r.W)
 }
 
 func encodePNG(img image.Image) (string, error) {

@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"testing"
+
+	"autoclicker/internal/model"
 )
 
 // Kịch bản flow mẫu cho AI đọc được và chạy qua kiểm tra đầy đủ (input lấy mặc định).
 func TestFlowExampleValidates(t *testing.T) {
-	sc, err := decodeScript([]byte(flowExample))
+	sc, err := decodeScript([]byte(model.Guide().Example))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -15,7 +17,7 @@ func TestFlowExampleValidates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := validateScript(sc, Rect{W: 1920, H: 1080}); err != nil {
+	if err := validateScript(sc, model.Rect{W: 1920, H: 1080}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -23,9 +25,9 @@ func TestFlowExampleValidates(t *testing.T) {
 // Mọi loại bước NewStep nhận đều có mô tả; ví dụ đọc được qua checkStep và đúng loại.
 func TestStepTypeDocs(t *testing.T) {
 	docs := map[string]bool{}
-	for _, d := range stepTypeDocs {
+	for _, d := range model.StepTypeDocs() {
 		docs[d.Type] = true
-		var s Step
+		var s model.Step
 		if err := json.Unmarshal([]byte(d.Example), &s); err != nil {
 			t.Errorf("%s: ví dụ không phải JSON: %v", d.Type, err)
 			continue
@@ -44,8 +46,8 @@ func TestStepTypeDocs(t *testing.T) {
 			}
 		}
 	}
-	for _, typ := range stepTypes {
-		if _, err := (&App{}).NewStep(typ); err != nil {
+	for _, typ := range model.StepTypes {
+		if _, err := model.NewStep(typ); err != nil {
 			t.Errorf("NewStep(%s): %v", typ, err)
 		}
 		if !docs[typ] {

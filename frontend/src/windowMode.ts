@@ -1,5 +1,5 @@
 import { OverlayDisplayFor, SetWindowMode } from '../wailsjs/go/main/App';
-import { main } from '../wailsjs/go/models';
+import { model } from '../wailsjs/go/models';
 import type { Rect } from './types';
 
 export type WindowMode = 'main' | 'overlay' | 'minibar';
@@ -31,7 +31,7 @@ export async function openOverlay(tool: OverlayTool = 'point', focus: string | n
   overlayTool = tool;
   overlayFocus = focus;
   const r = editingBounds();
-  if (inWails && r) await OverlayDisplayFor(main.Rect.createFrom(r)).catch(() => -1);
+  if (inWails && r) await OverlayDisplayFor(model.Rect.createFrom(r)).catch(() => -1);
   return setWindowMode('overlay');
 }
 

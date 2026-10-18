@@ -1,4 +1,4 @@
-import { main } from '../wailsjs/go/models';
+import { model } from '../wailsjs/go/models';
 import { fmtAxis, fmtPoint } from './anchor';
 
 // Neo của một trục (anchor.ts, khớp anchor.go): bỏ trống = start (cách cạnh trái / trên).
@@ -33,8 +33,8 @@ export interface StepResult {
   startedAt: string;
   durationMs: number;
 }
-const edgeMatchesGo: Same<keyof Edge, keyof Fields<main.Edge>> = true;
-const resultMatchesGo: Same<keyof StepResult, keyof Fields<main.StepResult>> = true;
+const edgeMatchesGo: Same<keyof Edge, keyof Fields<model.Edge>> = true;
+const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = true;
 void edgeMatchesGo, resultMatchesGo;
 
 export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel';
@@ -134,9 +134,9 @@ export interface Step {
 type Fields<T> = { [K in keyof T as T[K] extends Function ? never : K]: DeepFields<T[K]> };
 type DeepFields<T> = T extends (infer U)[] ? DeepFields<U>[] : T extends object ? Fields<T> : T;
 type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
-const stepMatchesGo: [Step extends Fields<main.Step> ? true : false, Same<keyof Step, keyof Fields<main.Step>>] = [true, true];
+const stepMatchesGo: [Step extends Fields<model.Step> ? true : false, Same<keyof Step, keyof Fields<model.Step>>] = [true, true];
 void stepMatchesGo;
-const condMatchesGo: [Same<keyof Cond, keyof Fields<main.Cond>>, Same<keyof Case, keyof Fields<main.Case>>] = [true, true];
+const condMatchesGo: [Same<keyof Cond, keyof Fields<model.Cond>>, Same<keyof Case, keyof Fields<model.Case>>] = [true, true];
 void condMatchesGo;
 
 // Kịch bản – khớp struct Script trong model.go. Toạ độ điểm tương đối theo region (null = toàn màn hình).
@@ -153,7 +153,7 @@ export interface Script {
   inputs?: ScriptInput[]; // giá trị hỏi khi bấm Chạy (bước 21b, inputs.go)
 }
 export type AnchorMode = 'start';
-const scriptMatchesGo: Same<keyof Script, keyof Fields<main.Script>> = true;
+const scriptMatchesGo: Same<keyof Script, keyof Fields<model.Script>> = true;
 void scriptMatchesGo;
 
 // ---- Input của kịch bản (bước 21b) – khớp ScriptInput trong inputs.go ----
@@ -174,7 +174,7 @@ export interface ScriptInput {
   hint?: string; // gợi ý dưới ô trong form Chạy
   targets?: InputTarget[]; // trường được ghim
 }
-const inputMatchesGo: Same<keyof ScriptInput, keyof Fields<main.ScriptInput>> = true;
+const inputMatchesGo: Same<keyof ScriptInput, keyof Fields<model.ScriptInput>> = true;
 void inputMatchesGo;
 
 // Tạo bước với giá trị trống, ghi đè bằng p (dùng cho dữ liệu mẫu / demo).
