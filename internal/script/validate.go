@@ -64,6 +64,20 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 					return stepErr(i, s, "at", "%v", err)
 				}
 			}
+		case model.StepPath:
+			need = 1 // hình: tâm trong vùng; đường gấp khúc: mọi điểm trong vùng
+			if s.Shape == "" {
+				if len(s.Points) < 2 {
+					return stepErr(i, s, "points", "đường vẽ cần ít nhất 2 điểm")
+				}
+				need = len(s.Points)
+			}
+			if s.Shape != "" && s.ShapeW < 4 {
+				return stepErr(i, s, "shapeW", "hình quá nhỏ – rộng tối thiểu 4 px")
+			}
+			if s.DragMs <= 0 {
+				return stepErr(i, s, "dragMs", "thời gian vẽ phải > 0")
+			}
 		case model.StepSystem: // check.go đã kiểm thao tác + mức 0–100
 		case model.StepFile:
 			if err := checkFileStep(i, s); err != nil {

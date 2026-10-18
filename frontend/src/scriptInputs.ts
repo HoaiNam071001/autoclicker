@@ -39,7 +39,7 @@ export function mapVarText(s: Step, f: (t: string) => string): Step {
   return out.numVars?.length ? { ...out, numVars: out.numVars.map((v) => ({ ...v, expr: f(v.expr) })) } : out;
 }
 // Loại node có điểm nhận toạ độ từ biến – khớp hasPoints (varfields.go).
-const POINT_TYPES: Step['type'][] = ['click', 'double', 'hold', 'drag', 'scroll', 'waitPixel'];
+const POINT_TYPES: Step['type'][] = ['click', 'double', 'hold', 'drag', 'scroll', 'waitPixel', 'path'];
 
 function mapFieldText(s: Step, f: (t: string) => string): Step {
   const cond = (c: Cond): Cond =>

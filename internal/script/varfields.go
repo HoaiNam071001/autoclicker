@@ -140,7 +140,7 @@ func EscapeValue(f VarField, v string) string {
 // hasPoints – loại node có điểm trên màn hình nhận toạ độ từ biến (điểm trong điều kiện pixel chưa nhận).
 func hasPoints(t string) bool {
 	switch t {
-	case model.StepClick, model.StepDouble, model.StepHold, model.StepDrag, model.StepScroll, model.StepWaitPixel:
+	case model.StepClick, model.StepDouble, model.StepHold, model.StepDrag, model.StepScroll, model.StepWaitPixel, model.StepPath:
 		return true
 	}
 	return false

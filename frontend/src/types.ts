@@ -41,7 +41,7 @@ const edgeMatchesGo: Same<keyof Edge, keyof Fields<model.Edge>> = true;
 const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = true;
 void edgeMatchesGo, resultMatchesGo;
 
-export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'waitUntil'
+export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'waitUntil' | 'path'
   | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'end' | 'setVar';
@@ -238,6 +238,7 @@ export const STEP_LABEL: Record<StepType, string> = {
   file: 'Tệp / thư mục',
   system: 'Hệ thống',
   waitUntil: 'Chờ đến giờ',
+  path: 'Vẽ đường',
   webWait: 'Chờ phần tử web',
   webClick: 'Click phần tử web',
   webType: 'Gõ vào ô web',

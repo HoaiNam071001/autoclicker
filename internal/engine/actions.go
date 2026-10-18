@@ -86,6 +86,8 @@ func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[strin
 		return e.systemStep(ctx, s)
 	case model.StepWaitUntil:
 		return e.waitUntil(ctx, s)
+	case model.StepPath:
+		return e.drawPath(ctx, s)
 	case model.StepWaitPixel:
 		c, err := e.waitPixel(ctx, s)
 		if err != nil {

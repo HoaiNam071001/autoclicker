@@ -1,0 +1,23 @@
+{
+ "meta": {
+  "name": "Vẽ đường – sao, tròn, chữ nhật, đường gấp khúc",
+  "description": "Trên Bảng vẽ: vẽ ngôi sao giữa màn, hình tròn bên trái, chữ nhật bên phải, rồi một đường gấp khúc chữ Z phía dưới – mỗi hình một nét liền (một lần giữ chuột). Đúng: bảng có 4 vệt màu khác nhau đúng hình, ô Số lần kéo = 4.",
+  "app": "Cơ bản",
+  "level": 1,
+  "page": "draw.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (hình neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   { "type": "open", "target": "{{sandbox}}/draw.html", "delayAfter": 2500 },
+   { "type": "path", "shape": "star", "points": [{ "x": 0, "y": -40, "ax": "center", "ay": "center" }], "shapeW": 260, "dragMs": 2000, "delayAfter": 400 },
+   { "type": "path", "shape": "circle", "points": [{ "x": -330, "y": -40, "ax": "center", "ay": "center" }], "shapeW": 200, "dragMs": 1500, "delayAfter": 400 },
+   { "type": "path", "shape": "rect", "points": [{ "x": 330, "y": -40, "ax": "center", "ay": "center" }], "shapeW": 220, "shapeH": 150, "dragMs": 1500, "delayAfter": 400 },
+   { "type": "path", "points": [
+     { "x": -200, "y": 140, "ax": "center", "ay": "center" }, { "x": 200, "y": 140, "ax": "center", "ay": "center" },
+     { "x": -200, "y": 240, "ax": "center", "ay": "center" }, { "x": 200, "y": 240, "ax": "center", "ay": "center" }
+   ], "dragMs": 1500 }
+  ]
+ }
+}

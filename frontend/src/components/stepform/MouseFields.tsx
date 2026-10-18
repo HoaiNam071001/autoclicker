@@ -9,7 +9,7 @@ import { usesVar } from '../../anchor';
 import PointSource from './PointSource';
 import { ButtonField, Field, hint, NumField, PickButton, PinSoon, SetPoint } from './shared';
 
-export const isMouse = (s: Step) => s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'drag';
+export const isMouse = (s: Step) => s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'drag' || s.type === 'path';
 
 export function MouseFields({ step: s, setPoint }: { step: Step; setPoint: SetPoint }) {
   const { region } = useScript();
@@ -21,9 +21,9 @@ export function MouseFields({ step: s, setPoint }: { step: Step; setPoint: SetPo
         <ButtonField step={s} />
       )}
 
-      {mouse && s.type !== 'drag' && s.points[0] && (
+      {mouse && s.type !== 'drag' && !(s.type === 'path' && !s.shape) && s.points[0] && (
         <PointSource step={s} index={0} setPoint={setPoint}
-          label={<>Vị trí {!usesVar(s.points[0]) && <span className="text-xs">(neo theo góc {region ? 'vùng' : 'màn hình'})</span>}</>}>
+          label={<>{s.type === 'path' ? 'Tâm hình' : 'Vị trí'} {!usesVar(s.points[0]) && <span className="text-xs">(neo theo góc {region ? 'vùng' : 'màn hình'})</span>}</>}>
           <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
             pick={<PickButton step={s} />} trailing={<PinSoon />} bounds={boundsOf(region)} boundsLabel={region ? 'Vùng' : 'Màn hình'} />
         </PointSource>

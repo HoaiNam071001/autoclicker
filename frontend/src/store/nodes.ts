@@ -47,7 +47,7 @@ export function insertNode(step: Step, notice: (ref: string) => string) {
 
 // Thêm node không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở, chờ ảnh…) – giá trị mặc định giống NewStep (model.go).
 // patch: sửa thêm sau mặc định (vd node Mở bằng Chrome của app).
-export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'waitUntil' | WebType>, patch: Partial<Step> = {}) {
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'waitUntil' | 'path' | WebType>, patch: Partial<Step> = {}) {
   const defaults: Record<typeof type, Partial<Step>> = {
     wait: { clicks: 0, delayAfter: 1000 },
     type: { clicks: 0, delayAfter: 500 },
@@ -59,6 +59,8 @@ export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scrol
     waitPixel: { clicks: 0, points: [centerPoint(script().region)], color: '#000000', tolerance: 10, timeoutMs: 5000, intervalMs: 100, delayAfter: 300 },
     screenshot: { clicks: 0, delayAfter: 300 },
     clipboard: { clicks: 0, delayAfter: 300 },
+    // 3 điểm neo giữa vùng / màn hình – kéo marker trên overlay để sửa
+    path: { points: [-150, 0, 150].map((x, i) => ({ x, y: i === 1 ? -100 : 0, ax: 'center' as const, ay: 'center' as const })), dragMs: 1500, delayAfter: 300 },
     waitUntil: { clicks: 0, at: '12:00:00', delayAfter: 0 },
     system: { clicks: 0, sysOp: 'volume', volume: 50, delayAfter: 300 },
     file: { clicks: 0, filePath: '~/Documents/autoclicker/nhat-ky.txt', delayAfter: 300 },
@@ -163,7 +165,7 @@ export function changeStepType(id: string, type: StepType) {
   const s = sc.steps.find((x) => x.id === id);
   if (!s || s.type === type) return;
   const points = s.points.slice(0, type === 'scroll' ? 1 : undefined).map((p) => ({ ...p })); // cuộn: điểm tuỳ chọn, tối đa 1
-  const need = type === 'drag' ? 2 : type === 'click' || type === 'double' || type === 'hold' || type === 'waitPixel' ? 1 : 0;
+  const need = type === 'drag' || (type === 'path' && !s.shape) ? 2 : type === 'click' || type === 'double' || type === 'hold' || type === 'waitPixel' || type === 'path' ? 1 : 0;
   if (need >= 1 && points.length === 0) points.push({ x: 0, y: 0 });
   if (need === 2 && points.length === 1) {
     const a = points[0];
@@ -176,7 +178,7 @@ export function changeStepType(id: string, type: StepType) {
     points,
     clicks: Math.max(s.clicks, 1),
     holdMs: type === 'hold' && !s.holdMs ? 1000 : s.holdMs,
-    dragMs: type === 'drag' && !s.dragMs ? 400 : s.dragMs,
+    dragMs: (type === 'drag' || type === 'path') && !s.dragMs ? (type === 'path' ? 1500 : 400) : s.dragMs,
     keys: type === 'key' && s.keys.length === 0 ? ['enter'] : s.keys,
     direction: type === 'scroll' ? s.direction ?? 'down' : s.direction,
     amount: type === 'scroll' && !s.amount ? 3 : s.amount,

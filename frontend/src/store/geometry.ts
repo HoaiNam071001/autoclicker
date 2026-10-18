@@ -31,9 +31,10 @@ export const pointKey = (id: string, index: number) => `${id}:${index}`;
 // Điểm chọn được của một node: A "từ điểm trước" tự tính, điểm dùng biến (F5b) không có chỗ cố định – không chọn / biến đổi.
 export const selectableIndexes = (s: Step) =>
   (s.points.length === 0 || s.type === 'wait' || s.type === 'type' || s.type === 'key' || s.type === 'open' ? []
-    : s.type === 'drag' ? (s.dragFromPrev ? [1] : [0, 1]) : [0]).filter((j) => s.points[j] && !usesVar(s.points[j]));
+    : s.type === 'drag' ? (s.dragFromPrev ? [1] : [0, 1]) : s.type === 'path' && !s.shape ? s.points.map((_, j) => j) : [0]).filter((j) => s.points[j] && !usesVar(s.points[j]));
 
-export type Ends = { start: Point | null; end: Point | null; prevStep: string | null };
+// pts: mọi điểm của node Vẽ đường (null = điểm dùng biến)
+export type Ends = { start: Point | null; end: Point | null; prevStep: string | null; pts?: (Point | null)[] };
 
 // Toạ độ màn hình (danh nghĩa, chưa tính ngẫu nhiên) điểm đầu / cuối của các node chuột đang bật. "Điểm trước" = chỗ chuột
 // dừng ở node chuột gần nhất phía trước theo thứ tự hiển thị (flowOrder – nhánh chính); lúc chạy thật theo đường đi thực tế.
@@ -55,6 +56,12 @@ export function endpoints(sc: Pick<Script, 'steps' | 'start' | 'edges'>, region:
       const p = at(s.points[0]);
       out.set(s.id, { start: p, end: p, prevStep: null });
       last = p;
+      lastStep = s.id;
+    } else if (s.type === 'path') {
+      const pts = s.points.map(at);
+      const end = s.shape ? pts[0] : s.closed ? pts[0] : pts[pts.length - 1];
+      out.set(s.id, { start: pts[0], end, prevStep: null, pts });
+      last = end;
       lastStep = s.id;
     } else if (s.type === 'drag' && s.points.length >= 2) {
       const start: Point | null = s.dragFromPrev ? last : at(s.points[0]);

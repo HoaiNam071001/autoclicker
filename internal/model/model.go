@@ -24,6 +24,7 @@ const (
 	StepHTTP       = "http"       // gọi API: Method URL + Query / Headers / Body; 2xx → success, khác → fail (engine/http.go)
 	StepSystem     = "system"     // SysOp: âm lượng đặt / tăng / giảm, tắt / bật tiếng (engine/system.go)
 	StepWaitUntil  = "waitUntil"  // chờ đến giờ At (hôm nay / ngày giờ), tuỳ chọn canh giờ chuẩn NTP (engine/waituntil.go)
+	StepPath       = "path"       // vẽ: giữ chuột đi qua Points (đường gấp khúc) hoặc hình Shape quanh Points[0] trong DragMs (engine/draw.go)
 	StepFile       = "file"       // FileOp: ghi file / thêm dòng csv · xlsx / tạo thư mục / xoá vào Thùng rác / dọn Thùng rác (engine/file.go)
 
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
@@ -44,7 +45,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
@@ -148,9 +149,14 @@ type Step struct {
 	SysOp  string `json:"sysOp,omitempty"`  // SysOps: volume = đặt mức | volumeUp | volumeDown | mute | unmute
 	Volume int    `json:"volume,omitempty"` // volume: mức 0–100 %; volumeUp / volumeDown: mỗi lần bao nhiêu % (0 = 10)
 	// Chờ đến giờ (bước 35 N6, waituntil.go)
-	At        string `json:"at,omitempty"`        // HH:mm[:ss[.mmm]] hôm nay, có thể kèm ngày YYYY-MM-DD / DD/MM/YYYY (script.ParseAt); nhận {{biến}}
-	IfPassed  string `json:"ifPassed,omitempty"`  // giờ đã qua: "" = đi tiếp ngay | tomorrow = chờ giờ đó ngày mai (chỉ khi không ghi ngày) | fail
-	UseNTP    bool   `json:"useNtp,omitempty"`    // canh theo giờ chuẩn internet (NTP) thay vì đồng hồ máy
+	At       string `json:"at,omitempty"`       // HH:mm[:ss[.mmm]] hôm nay, có thể kèm ngày YYYY-MM-DD / DD/MM/YYYY (script.ParseAt); nhận {{biến}}
+	IfPassed string `json:"ifPassed,omitempty"` // giờ đã qua: "" = đi tiếp ngay | tomorrow = chờ giờ đó ngày mai (chỉ khi không ghi ngày) | fail
+	UseNTP   bool   `json:"useNtp,omitempty"`   // canh theo giờ chuẩn internet (NTP) thay vì đồng hồ máy
+	// Vẽ đường (bước 35 N7, draw.go) – Button, DragMs (thời gian vẽ cả nét) dùng chung với kéo thả
+	Shape     string `json:"shape,omitempty"`     // Shapes: "" = đi qua Points | circle | rect | star (tâm Points[0], cỡ ShapeW × ShapeH)
+	ShapeW    int    `json:"shapeW,omitempty"`    // rộng / đường kính (px)
+	ShapeH    int    `json:"shapeH,omitempty"`    // cao (0 = bằng ShapeW)
+	Closed    bool   `json:"closed,omitempty"`    // đường gấp khúc: nối điểm cuối về điểm đầu
 	Color     string `json:"color,omitempty"`     // waitPixel: #RRGGBB
 	Tolerance int    `json:"tolerance,omitempty"` // waitPixel: sai số mỗi kênh màu (0–255)
 	// Node điều khiển (bước 20 F3, nodes.go)

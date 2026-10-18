@@ -9,6 +9,7 @@ import { fmtHTTP } from '../flow/http';
 import { fmtFile } from '../flow/file';
 import { fmtSystem } from '../flow/system';
 import { fmtWaitUntil } from '../flow/waitUntil';
+import { pathVertices } from '../flow/shape';
 import { fmtKey } from '../keys';
 import { effectiveHuman } from '../flow/human';
 import { curveAt, HUMAN_PROFILES, humanLegs } from '../overlay/humanPath';
@@ -186,6 +187,17 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges' | 'hu
             await travel(e.end, s, s.dragMs);
             patch({ pressed: false });
             break;
+          case 'path': { // một nét liền: tới đỉnh đầu, giữ, đi qua các đỉnh – thời gian chia theo độ dài như engine (draw.go)
+            const v = pathVertices(s, e?.pts ?? []);
+            if (!v || v.length < 2) break;
+            await travel(v[0], s);
+            patch({ pressed: true });
+            const len = (i: number) => Math.hypot(v[i].x - v[i - 1].x, v[i].y - v[i - 1].y);
+            const total = v.slice(1).reduce((n, _, i) => n + len(i + 1), 0) || 1;
+            for (let i = 1; i < v.length; i++) await moveTo(v[i], Math.max((s.dragMs * len(i)) / total, 1), true);
+            patch({ pressed: false });
+            break;
+          }
           case 'type':
             for (let n = 1; n <= [...s.text].length; n++) {
               patch({ bubble: `⌨ ${[...s.text].slice(0, n).join('')}` });

@@ -17,7 +17,7 @@ import SimulationLayer from '../components/simulation/SimulationLayer';
 import { PageBackdrop, usePageKind } from '../components/MockPage';
 import { captureTargetStep, capturesRect, useImageState } from '../imageSteps';
 import { Eye, Region, SelectIcon, StepIcon } from '../components/icons';
-import { anchorLinesOf, buildMarkers, MIN_REGION, rectOf, scrollArrowsOf } from '../overlay/geometry';
+import { anchorLinesOf, buildMarkers, MIN_REGION, pathOutlines, rectOf, scrollArrowsOf } from '../overlay/geometry';
 import { overlayHint } from '../overlay/hint';
 import { useAutoHideBar, useCapture, useDisplays, useFlash, useRefState } from '../components/overlay/hooks';
 import { CaptureBox, FindBoxes, RegionBox } from '../components/overlay/Shapes';
@@ -244,7 +244,8 @@ export default function OverlayScreen() {
       )}
       {shown && <RegionBox rect={shown} size={shownSize} dim={!!focus} />}
 
-      <OverlayLines anchorLines={anchorLines} scrollArrows={scrollArrows} markers={markers} dragA={dragA && toClient(dragA)} cursor={cursor} focus={focus} />
+      <OverlayLines anchorLines={anchorLines} scrollArrows={scrollArrows} markers={markers} dragA={dragA && toClient(dragA)} cursor={cursor} focus={focus}
+        paths={preview ? [] : pathOutlines(view.steps, ends, toClient)} />
       <JitterBoxes markers={markers} scale={{ x: 1 / map.kx, y: 1 / map.ky }} focus={focus} />
 
       {/* Chọn nhiều: khung biến đổi quanh các điểm đã chọn (theo vị trí đang xem trước) + khung kéo chọn */}

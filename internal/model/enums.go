@@ -78,3 +78,13 @@ const (
 )
 
 var PassedModes = []string{PassedGo, PassedTomorrow, PassedFail}
+
+// Hình của node Vẽ đường (Step.Shape) – đỉnh: ShapePoints (shape.go).
+const (
+	ShapeLine   = ""       // đi lần lượt qua Points
+	ShapeCircle = "circle" // tròn / elip
+	ShapeRect   = "rect"
+	ShapeStar   = "star" // sao 5 cánh
+)
+
+var Shapes = []string{ShapeLine, ShapeCircle, ShapeRect, ShapeStar}

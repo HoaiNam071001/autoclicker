@@ -6,8 +6,9 @@ import { Point } from '../../types';
 const dot = 'grid h-[34px] w-[34px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-white bg-accent text-[13px] font-bold text-on-accent shadow-[0_2px_8px_rgb(0_0_0/.35)]';
 
 // focus: id node đang xem riêng – phần của node khác mờ đi. dragA: điểm A đã đặt (toạ độ cửa sổ), chờ B.
-export function OverlayLines({ anchorLines, scrollArrows, markers, dragA, cursor, focus }: {
+export function OverlayLines({ anchorLines, scrollArrows, markers, dragA, cursor, focus, paths = [] }: {
   anchorLines: AnchorLine[]; scrollArrows: ScrollArrow[]; markers: Marker[]; dragA: Point | null; cursor: Point; focus: string | null;
+  paths?: { id: string; pts: Point[] }[]; // nét node Vẽ đường
 }) {
   return (
     <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
@@ -16,6 +17,10 @@ export function OverlayLines({ anchorLines, scrollArrows, markers, dragA, cursor
           <path d="M0 0 10 5 0 10z" className="fill-accent" />
         </marker>
       </defs>
+      {paths.map((p) => (
+        <polyline key={p.id} points={p.pts.map((q) => `${q.x},${q.y}`).join(' ')} fill="none" className="stroke-accent" strokeWidth={3}
+          strokeLinejoin="round" strokeLinecap="round" opacity={focus && p.id !== focus ? 0.2 : 0.85} />
+      ))}
       {anchorLines.map((l) => (
         <g key={l.key}>
           <line x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke="#fff" strokeWidth={1} strokeDasharray="3 4" opacity={0.7} />

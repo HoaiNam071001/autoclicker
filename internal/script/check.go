@@ -111,6 +111,14 @@ func checkStep(s *model.Step) error {
 	switch s.Type {
 	case model.StepClick, model.StepDouble, model.StepHold, model.StepWaitPixel:
 		need = 1
+	case model.StepPath:
+		need = 1
+		if !slices.Contains(model.Shapes, s.Shape) {
+			return fmt.Errorf("hình vẽ không hợp lệ: %q (trống | circle | rect | star)", s.Shape)
+		}
+		if s.ShapeW < 0 || s.ShapeH < 0 {
+			return errors.New("cỡ hình không được âm")
+		}
 	case model.StepDrag:
 		need = 2
 	case model.StepScreenshot:

@@ -29,6 +29,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   file: { desc: 'Ghi chữ vào file, thêm dòng vào bảng .csv / .xlsx, tạo thư mục, xoá file vào Thùng rác hoặc dọn Thùng rác.', use: 'Lưu nhật ký / kết quả từng vòng vào Excel, dọn ảnh chụp cũ trong thư mục.' },
   system: { desc: 'Chỉnh âm lượng loa của máy: đặt mức, tăng / giảm, tắt / bật tiếng.', use: 'Bật nhạc nền vừa đủ nghe, tắt tiếng trước khi họp, giảm âm lượng ban đêm.' },
   waitUntil: { desc: 'Chờ tới đúng giờ hẹn (tới ms, có thể kèm ngày) rồi chạy tiếp; canh được theo giờ chuẩn internet.', use: 'Săn sale lúc 20:00:00, gửi tin nhắn đúng giờ, chạy việc mỗi ngày lúc 9:00.' },
+  path: { desc: 'Giữ chuột kéo một nét liền qua nhiều điểm, hoặc vẽ hình tròn / chữ nhật / sao quanh một tâm.', use: 'Vẽ trong app vẽ, ký tên, mở khoá bằng hình vẽ, khoanh vùng trên bản đồ.' },
   webWait: { desc: 'Chờ phần tử trong trang web (theo chữ, nhãn, CSS…) hiện ra hoặc biến mất.', use: 'Đợi trang tải xong, đợi kết quả tìm kiếm – nhanh và chắc hơn chờ ảnh.' },
   webClick: { desc: 'Tìm phần tử trong trang web theo chữ / nhãn rồi bấm vào bằng chuột.', use: 'Trang hay đổi bố cục / theme khiến ảnh mẫu không còn khớp.' },
   webType: { desc: 'Tìm ô nhập trong trang web, bấm vào rồi gõ chữ (xoá chữ cũ nếu muốn).', use: 'Điền form đăng ký, ô tìm kiếm, bình luận.' },

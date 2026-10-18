@@ -14,6 +14,7 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'double', label: 'Double click', info: NODE_INFO.double, keywords: 'nhay dup hai lan', run: () => addPointStep('double') },
       { icon: 'hold', label: 'Giữ chuột', info: NODE_INFO.hold, keywords: 'hold nhan giu', run: () => addPointStep('hold') },
       { icon: 'drag', label: 'Kéo thả', info: NODE_INFO.drag, keywords: 'drag keo tha a b', run: () => addPointStep('drag') },
+      { icon: 'path', label: 'Vẽ đường', info: NODE_INFO.path, keywords: 've duong net hinh tron chu nhat sao ky ten draw path shape', run: () => addStep('path') },
       { icon: 'scroll', label: 'Cuộn', info: NODE_INFO.scroll, keywords: 'scroll lan chuot', run: () => addStep('scroll') },
       { icon: 'clickImage', label: 'Click theo ảnh', info: NODE_INFO.clickImage, keywords: 'image anh mau tim nut', run: () => addImageStep('clickImage') },
       { icon: 'clickImage', label: 'Click theo chữ', info: NODE_INFO.clickText, keywords: 'text chu ocr doc nut tim', run: () => addTextStep('clickImage') },

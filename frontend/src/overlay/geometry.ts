@@ -1,11 +1,12 @@
-// Hình học vẽ trên overlay (toạ độ cửa sổ): marker, đường neo, mũi tên cuộn, chỗ đặt nút khoanh ảnh.
+// Hình học vẽ trên overlay (toạ độ cửa sổ): marker, đường neo, mũi tên cuộn, nét node Vẽ đường, chỗ đặt nút khoanh ảnh.
 import { fmtAxis } from '../anchor';
 import { Point, Rect, SCROLL_ARROW, scrollDelta, Step, StepPoint } from '../types';
+import { pathVertices } from '../flow/shape';
 
 export const MIN_REGION = 10; // px – kéo nhỏ hơn coi như click nhầm
 
 type ToClient = (p: Point) => Point;
-type Ends = Map<string, { start: Point | null; end: Point | null }>;
+type Ends = Map<string, { start: Point | null; end: Point | null; pts?: (Point | null)[] }>;
 
 export const rectOf = (a: Point, b: Point): Rect => ({
   x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y),
@@ -31,12 +32,12 @@ export function buildMarkers(
   steps.forEach((s) => {
     const e = ends.get(s.id);
     if (!e) return;
-    const pts = s.type === 'drag' ? [e.start, e.end] : [e.start];
+    const pts = s.type === 'drag' ? [e.start, e.end] : s.type === 'path' && !s.shape ? e.pts ?? [] : [e.start];
     pts.forEach((p, j) => {
       if (!p) return;
       const isDragging = dragging?.id === s.id && dragging.index === j;
       out.push({
-        id: s.id, index: j, key: keyOf(s.id, j), label: s.type === 'drag' ? `${s.ref}${j === 0 ? 'A' : 'B'}` : s.ref,
+        id: s.id, index: j, key: keyOf(s.id, j), label: s.type === 'drag' ? `${s.ref}${j === 0 ? 'A' : 'B'}` : pts.length > 1 ? `${s.ref}·${j + 1}` : s.ref,
         at: isDragging ? cursor : toClient(p), scr: p, drag: s.type === 'drag', jitter: s.jitterPx,
         ghost: s.type === 'drag' && j === 0 && s.dragFromPrev,
         pt: s.type === 'drag' && (j === 0 ? s.dragFromPrev : s.dragRelative) ? undefined : s.points[j],
@@ -44,6 +45,14 @@ export function buildMarkers(
     });
   });
   return out;
+}
+
+// Nét của node Vẽ đường (toạ độ cửa sổ) – vẽ trước trên overlay đúng hình sẽ vẽ.
+export function pathOutlines(steps: Step[], ends: Ends, toClient: ToClient): { id: string; pts: Point[] }[] {
+  return steps.flatMap((s) => {
+    const v = s.type === 'path' && s.enabled ? pathVertices(s, ends.get(s.id)?.pts ?? []) : null;
+    return v && v.length > 1 ? [{ id: s.id, pts: v.map(toClient) }] : [];
+  });
 }
 
 export type AnchorLine = { key: string; x1: number; y1: number; x2: number; y2: number; text: string };

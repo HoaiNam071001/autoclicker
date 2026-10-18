@@ -28,5 +28,5 @@ export function usesHuman(s: Pick<Step, 'type' | 'webBackground' | 'scrollMode'>
     if (s.type === 'webWait' || s.type === 'webRead' || s.webBackground) return false;
     return s.type !== 'webScroll' || s.scrollMode === 'in' || s.scrollMode === 'until';
   }
-  return ['click', 'double', 'hold', 'drag', 'type', 'key', 'scroll', 'clickImage'].includes(s.type);
+  return ['click', 'double', 'hold', 'drag', 'path', 'type', 'key', 'scroll', 'clickImage'].includes(s.type);
 }

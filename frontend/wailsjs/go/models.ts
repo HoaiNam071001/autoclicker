@@ -880,6 +880,10 @@ export namespace model {
 	    at?: string;
 	    ifPassed?: string;
 	    useNtp?: boolean;
+	    shape?: string;
+	    shapeW?: number;
+	    shapeH?: number;
+	    closed?: boolean;
 	    color?: string;
 	    tolerance?: number;
 	    cond?: Cond;
@@ -977,6 +981,10 @@ export namespace model {
 	        this.at = source["at"];
 	        this.ifPassed = source["ifPassed"];
 	        this.useNtp = source["useNtp"];
+	        this.shape = source["shape"];
+	        this.shapeW = source["shapeW"];
+	        this.shapeH = source["shapeH"];
+	        this.closed = source["closed"];
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	        this.cond = this.convertValues(source["cond"], Cond);

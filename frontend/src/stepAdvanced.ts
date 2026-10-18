@@ -6,6 +6,7 @@ import type { BodyType, HttpMethod } from './flow/http';
 import type { FileOp } from './flow/file';
 import type { SysOp } from './flow/system';
 import type { IfPassed } from './flow/waitUntil';
+import type { Shape } from './flow/shape';
 import type { KV, Rect } from './types';
 
 export interface AdvancedFields {
@@ -40,4 +41,9 @@ export interface AdvancedFields {
   at?: string; // HH:mm[:ss[.mmm]] (kèm ngày nếu cần); nhận {{biến}}
   ifPassed?: IfPassed;
   useNtp?: boolean;
+  // vẽ đường (bước 35 N7, internal/engine/draw.go) – points, button, dragMs dùng chung
+  shape?: Shape; // bỏ trống = qua các điểm
+  shapeW?: number;
+  shapeH?: number; // 0 = bằng shapeW
+  closed?: boolean; // qua các điểm: nối điểm cuối về đầu
 }
