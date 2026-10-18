@@ -4,6 +4,7 @@ package device
 
 import (
 	goruntime "runtime"
+	"time"
 
 	"github.com/go-vgo/robotgo"
 
@@ -26,7 +27,15 @@ type Input interface {
 // RobotgoInput – Input thật qua robotgo.
 type RobotgoInput struct{}
 
-func (RobotgoInput) Move(x, y int) error { return robotgo.Move(x, y) }
+// moveSettle – chờ sau khi di chuột để app kịp nhận vị trí mới trước cú bấm kế tiếp. Đo trên Chrome macOS
+// (bước 33): bấm ngay sau khi chuột nhảy tới nút vừa đổi chỗ trượt ~50%, chờ 15 ms đã trúng 10/10 – lấy 40 ms cho dư.
+const moveSettle = 40 * time.Millisecond
+
+func (RobotgoInput) Move(x, y int) error {
+	err := robotgo.Move(x, y)
+	time.Sleep(moveSettle)
+	return err
+}
 
 // Drag dùng robotgo.Drag (đã deprecated) vì trên macOS Move chỉ gửi sự kiện "di chuột" kể cả khi
 // đang giữ nút – nhiều app không nhận là kéo; Drag gửi đúng sự kiện "kéo". Windows/Linux: như Move.

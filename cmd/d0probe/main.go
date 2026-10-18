@@ -24,6 +24,10 @@ import (
 	"github.com/go-vgo/robotgo"
 )
 
+var lagFull = flag.Bool("full", false, "lag: chụp cả màn hình (như OCR)")
+
+var settleMs = flag.Int("settle", 60, "ms chờ giữa di chuột và bấm")
+
 var chromePath = flag.String("chrome", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "đường dẫn Chrome")
 
 func main() {
@@ -107,6 +111,12 @@ func runScenario(name string) error {
 		return err
 	}
 	fmt.Println(cal)
+	if name == "lag" {
+		return checkLag(ctx, cal)
+	}
+	if name == "jump" {
+		return checkJump(ctx, cal)
+	}
 	if err := clickTargets(ctx, cal, ""); err != nil {
 		return err
 	}

@@ -115,7 +115,7 @@ func clickTargets(ctx context.Context, cal calibration, label string) error {
 		}
 		s := cal.toScreen(c)
 		robotgo.Move(int(math.Round(s.X)), int(math.Round(s.Y)))
-		time.Sleep(60 * time.Millisecond)
+		time.Sleep(time.Duration(*settleMs) * time.Millisecond)
 		robotgo.Click("left", false)
 		time.Sleep(150 * time.Millisecond)
 		downs, err := evalJS[[]struct {

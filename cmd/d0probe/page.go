@@ -20,7 +20,7 @@ window.__mv = {x:0, y:0, n:0};
 window.__downs = [];
 addEventListener('pointermove', e => { __mv = {x:e.clientX, y:e.clientY, n:__mv.n+1}; }, true);
 addEventListener('pointerdown', e => { __downs.push({id:e.target.id||'', x:e.clientX, y:e.clientY, trusted:e.isTrusted}); }, true);
-addEventListener('click', e => e.preventDefault(), true);
+addEventListener('click', e => { e.preventDefault(); document.body.style.background = document.body.style.background === 'rgb(17, 24, 39)' ? '#f4f4f4' : '#111827'; }, true);
 </script></body></html>`
 
 // targetIDs – thứ tự bấm; "far" cuộn vào giữa trước khi đo rect.
