@@ -24,8 +24,6 @@ wails dev
 
 ## Data model
 
-Nguồn chuẩn: **`model.go`** (`Point`, `Rect`, `Step`, `Script`, hằng loại bước, `NewStep` / `NewScript` cho giá trị mặc định). Wails sinh class TS vào `frontend/wailsjs/go/models.ts`; `frontend/src/types.ts` giữ interface `Step` với union type chặt hơn và có kiểm tra lúc type-check rằng field khớp struct Go.
-
-Loại bước: `click` · `double` · `hold` · `drag` (points[0] → points[1]) · `wait` · `type` (gõ `text`) · `key` (bấm `keys` – một hay nhiều phím chính – kèm `modifiers`: cmd / ctrl / alt / shift; `keyMode`: `chord` nhấn giữ cùng lúc, vd Ctrl+C+T, hoặc `sequence` giữ phím kèm rồi gõ lần lượt).
+Xem `docs/ARCHITECTURE.md` §2 (nguồn chuẩn `model.go`; danh sách loại node + mô tả ở `steptypes.go`).
 
 ---

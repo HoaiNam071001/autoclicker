@@ -130,12 +130,13 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 | Việc | Chỗ |
 |---|---|
-| Thêm loại node | Checklist trong `CLAUDE.md` › *Thêm loại node* (Go model + check + run + portsOf + varFields + steptypes; TS view + form + palette + test) |
+| Thêm loại node | Skill `add-node-type` (Go model + check + run + portsOf + varFields + steptypes; TS view + form + palette + test) |
 | Thêm trường cho node | `model.go` → `wails generate module` → `types.ts` → `checkStep` / `validateScript` → form trong `stepform/` |
 | Đổi cách chạy / rẽ nhánh | `flowrun.go` (vòng, thử lại, cạnh), `nodes.go` (node điều khiển), `cond.go` (điều kiện) |
 | Ô chữ mới nhận `{{biến}}` | `varFields` (vars.go) + `mapVarText` (`scriptInputs.ts`) |
 | Tìm ảnh / chữ / màu | `imagestep.go` (engine), `match.go` (NCC), `ocr*.go`, `capture*.go`; UI `imageSteps.ts`, `stepform/ImageFields` |
 | Toạ độ / neo / DPI | `anchor.go` ↔ `anchor.ts` (cùng công thức), `coordMap.ts` (overlay ↔ robotgo), `window.go` (màn hình) |
+| Overlay (công cụ, gợi ý, vẽ marker) | Tính: `overlay/geometry.ts` / `hint.ts`; vẽ: `components/overlay/`; chuột / phím + state: `OverlayScreen` |
 | Thao tác canvas | `flow/edit.ts` (thuần) → `store/nodes.ts` → `FlowEditor` |
 | Hiển thị khi chạy | `flow/run.ts` (thuần), `runStore.ts`, `components/flow/RunLog.tsx` |
 | Định dạng file | `storage.go` (`ScriptVersion`, `checkScript`) |
@@ -156,16 +157,17 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 - `model.go` – model (`Step` = node, `Script` có `start` + `edges`, `Retry`, `NewStep` mặc định). `flow.go` – `StepResult`, cổng `portsOf`, `flowOrder` (test chung `testdata/flow_order.json` với `flow/model.ts`); test kịch bản dạng danh sách bọc `linear(sc)` (`flowtest_test.go`). `flowcheck.go` – `validateFlow`. `flowrun.go` – engine theo cạnh (`runLoop`, `execNode`, thử lại).
 - `vars.go` – biến `{{n2.output.x}}`, `varFields` (mọi ô chữ nhận biến). `nodes.go` – node điều khiển (`runControl`, cổng, kiểm tra). `cond.go` – điều kiện (`evalCond`, `snapshot` chụp một lần mỗi lần xét). `nodetest.go` – `TestNode`.
 - `engine.go` – `validateScript`, `engine`, `runStep` / `doStep`, tạm dừng / debug; thiết bị qua `Input` (`input.go` = robotgo). `runner.go` – `RunScript` / Stop / Pause / Resume / Step. `runlog.go` – lịch sử chạy. `failsafe.go` – dừng khi chuột chạm góc.
-- `imagestep.go` – chờ ảnh / click theo ảnh / chờ pixel. `match.go` – tìm ảnh mẫu (NCC). `capture.go` / `capture_darwin.go` / `capture_other.go` – chụp màn hình (`Screen`), quyền Screen Recording. `ocr.go` / `ocr_darwin.go` – đọc chữ (Vision; Windows chưa có), `findText`. `imageapi.go` – API ảnh cho UI (ẩn cửa sổ lúc chụp). `internal/winexclude` – Windows: loại cửa sổ app khỏi ảnh chụp.
+- `imagestep.go` – chờ ảnh / click theo ảnh / chờ pixel. `match.go` – tìm ảnh mẫu (NCC). `capture.go` / `capture_darwin.go` / `capture_other.go` – chụp màn hình (`Screen`), quyền Screen Recording. `ocr.go` / `ocr_darwin.go` / `ocr_other.go` – đọc chữ (Vision; Windows chưa có), `findText`. `imageapi.go` – API ảnh cho UI (ẩn cửa sổ lúc chụp). `internal/winexclude` – Windows: loại cửa sổ app khỏi ảnh chụp.
 - `open.go` – mở URL / app (`openCommand` theo hệ điều hành). `anchor.go` – neo điểm (`resolvePoint`, cùng công thức `anchor.ts`). `inputs.go` – input kịch bản (`resolveInputs`, `ScriptError`, `stepErr`, `inputs.json`). `steptypes.go` – mô tả + ví dụ JSON từng loại node cho AI / MCP.
 - `window.go` – chế độ cửa sổ, màn hình. `hotkey.go` – F6 / F8 / F10 (gohook). `settings.go` – `settings.json`, `configDir`. `storage.go` – file kịch bản, nháp, hỏi lưu khi đóng.
 
 **Frontend (`frontend/src/`)**
 
-- `App.tsx` chọn màn theo hash; `screens/` – `MainScreen`, `OverlayScreen`, `MiniBar`, `PreviewScreen`, màn mẫu `Demo*`.
+- `App.tsx` chọn màn theo hash; `screens/` – `MainScreen`, `OverlayScreen` (state + chuột / phím; vẽ ở `components/overlay/`), `MiniBar`, `PreviewScreen`, màn mẫu `Demo*`.
+- Overlay: `overlay/` (thuần, có test) – `geometry` (marker, đường neo, mũi tên cuộn, chỗ đặt nút khoanh ảnh), `hint` (chữ gợi ý theo công cụ); `components/overlay/` (chỉ props) – `OverlayToolbar`, `Hud` (gợi ý, crosshair, ô toạ độ), `MarkerLayer` (đường nối, ô ngẫu nhiên, marker), `Shapes` (vùng, khung Thử tìm, khung khoanh ảnh), `hooks` (`useRefState`, thanh tự ẩn, chọn màn hình, `useCapture` khoanh ảnh).
 - `types.ts` – model TS (khớp `model.go`, tsc kiểm), nhãn loại node `STEP_LABEL`.
-- Logic thuần (có test): `flow/` – `model` (cổng, `flowOrder`, `orderedSteps`), `edit` (nối / cắt cạnh, chèn / xoá node, `nextRef`, `pruneEdges`), `layout` (elkjs, `placeNode`), `view` (thẻ node, nhãn cổng, `outputsOf`), `cond` (điều kiện lồng nhau `CondAt`), `run` (kết quả chạy → trạng thái thẻ, nhật ký); `anchor.ts`; `transform.ts` (biến đổi nhiều điểm); `scriptInputs.ts` (ghim trường, input, `mapVarText`).
-- `store/` (import qua `store/index.ts`): `editor` (state, hoàn tác, `updateScript`, `replaceScript`), `geometry` (khung, neo ↔ màn hình), `nodes` (thêm / sửa / xoá / nhân bản, nối cạnh, `insertAt`), `control` (node điều khiển, điều kiện), `points` (điểm trên overlay, F6, kéo thả), `multi` (chọn nhiều + biến đổi, đổi vùng).
+- Logic thuần (có test): `flow/` – `model` (cổng, `flowOrder`, `orderedSteps`), `edit` (nối / cắt cạnh, chèn / xoá node, `nextRef`, `pruneEdges`), `layout` (elkjs, `placeNode`), `view` (thẻ node, nhãn cổng, `outputsOf`), `cond` (điều kiện lồng nhau `CondAt`), `run` (kết quả chạy → trạng thái thẻ, nhật ký); `anchor.ts`; `transform.ts` (biến đổi nhiều điểm); `overlay/` (hình học + gợi ý overlay); `scriptInputs.ts` (ghim trường, input, `mapVarText`).
+- `store/` (import qua `store/index.ts`): `editor` (state, hoàn tác, `updateScript`, `replaceScript`), `geometry` (khung, neo ↔ màn hình), `nodes` (thêm / sửa / xoá / nhân bản, nối cạnh, `insertAt`), `control` (node điều khiển, điều kiện), `points` (điểm trên overlay, F6, kéo thả), `multi` (chọn nhiều + biến đổi, phím công cụ Chọn nhiều `selectToolKey`, đổi vùng).
 - Store khác: `engineStore.ts` (trạng thái engine, `runScript`), `runStore.ts` (nhật ký lần chạy + lịch sử), `runForm.ts` (Chạy / F8 → form Chạy, preset), `scriptFile.ts` (lưu / mở / nháp / cờ chưa lưu), `imageSteps.ts` (khoanh ảnh mẫu, thử tìm, lấy màu, quyền chụp), `coordMap.ts` (overlay ↔ robotgo), `windowMode.ts` (`setWindowMode`, `openOverlay`), `theme.ts`.
 - `components/`: `TitleBar`, `Library` (thư viện + lịch sử), `AddStepPalette` (Ctrl/Cmd+K, `PaletteView`), `StepForm` (inspector) + `stepform/` (`shared`, `MouseFields`, `ScrollFields`, `KeyFields`, `TextFields`, `ImageFields`, `FlowSections`, `ControlSection`, `InputsTab`), `RunSettings` (lặp / đếm ngược, `Switch`), `Simulation` (xem trước con trỏ giả), `MockPage`, `TransformTool`, `SaveChangesDialog`, `NumInput`, `Segmented`, `icons` (`StepIcon`), `StepCard`.
 - `components/flow/` (chỉ props, app + màn mẫu dùng chung): `FlowCanvas` (`@xyflow/react`), `NodeCard`, `FlowEdge`, `PortField`, `RunLog`, `model.ts` (cỡ thẻ), `nodes/ControlFields` + `CondEditor` + `NodeTestPanel`; `FlowEditor` = bản nối store.

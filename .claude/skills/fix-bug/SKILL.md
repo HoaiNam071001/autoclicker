@@ -1,9 +1,20 @@
 ---
 name: fix-bug
-description: Sửa lỗi người dùng báo (vd "bị lỗi", "không chạy", "click lệch", "bấm không ăn", kiểm tra tay thất bại trong checks.md). Tìm nguyên nhân gốc, viết test tái hiện trước, sửa, rà chỗ cùng kiểu lỗi, ghi lại.
+description: Sửa lỗi người dùng báo (vd "bị lỗi", "không chạy", "click lệch", "bấm không ăn", "UI lệch", kiểm tra tay thất bại trong checks.md). Lỗi vặt (UI, lệch nhỏ, 1–2 file) đi đường nhanh; lỗi thường thì tìm nguyên nhân gốc, test tái hiện trước, sửa, rà chỗ cùng kiểu lỗi, ghi lại.
 ---
 
 # Sửa bug
+
+## 0. Chọn đường: lỗi vặt hay lỗi thường
+
+**Lỗi vặt** = đủ cả 3: nhìn là thấy chỗ sai (UI lệch / sai chữ / sai màu / nút không ăn, tính năng lệch một nhánh nhỏ), sửa gọn trong 1–2 file, không đổi định dạng file / model / API Go ↔ TS. Làm nhanh:
+
+1. Định vị qua `docs/ARCHITECTURE.md` §6 → mở đúng file, sửa tận gốc (không vá triệu chứng), `grep` chỗ cùng mẫu.
+2. Logic thuần (Go hoặc TS) → thêm 1 ca test vào file test sẵn có; thuần giao diện → xem `#demo*` / `?theme=dark` nếu xem được, không thì ghi 1 dòng `checks.md`.
+3. Chạy kiểm tra của phía đã sửa (Go: `go test ./...`; TS: `npm run build && npm test`).
+4. `log.md` một dòng (`>>`), commit `fix: <triệu chứng> – <nguyên nhân>`. **Bỏ qua** mục con trong file bước, senior-review, wrap-up đầy đủ.
+
+Đang sửa thì thấy lỗi sâu hơn (nhiều file, đụng engine / toạ độ / đồng thời, không chắc nguyên nhân) → chuyển sang đường thường dưới đây.
 
 ## 1. Hiểu đúng lỗi
 

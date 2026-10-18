@@ -28,9 +28,12 @@ Xem riêng từng màn (wails dev / trình duyệt): hash `#preview`, `#overlay`
 
 Mục tiêu: thêm tính năng sau chỉ phải đụng đúng chỗ. Code mới theo các quy tắc dưới; gặp code cũ lệch thì sửa khi đang làm phần đó.
 
-- **Một file một việc.** File quá ~400 dòng hoặc gom nhiều nhóm việc → tách theo nhóm (vd `components/stepform/`, `store/`). Tên file nói đúng việc nó làm.
+- **Một file một việc** – mỗi file một tính năng / một nhóm việc, tên file nói đúng việc đó:
+  - Màn hình (`screens/`) và component lớn chỉ giữ state + xử lý sự kiện + ghép; mỗi khối giao diện (thanh công cụ, hộp thoại, lớp vẽ…) là component chỉ hiển thị trong `components/<màn>/`, phần tính (hình học, lọc, chữ theo trạng thái) là hàm thuần có test (mẫu: `OverlayScreen` → `components/overlay/` + `overlay/`).
+  - Nhắm ≤ ~300 dòng / file, component ≤ ~150 dòng JSX, hàm ≤ ~60 dòng. Thêm tính năng vào file đã gần ngưỡng → **tách trước** rồi mới thêm, không để phình rồi mới dọn. `check-docs.py` cảnh báo file > 300 dòng.
+  - State + ref đi cặp (cho listener gắn một lần) → `useRefState`; hook nhỏ của một màn để trong `components/<màn>/hooks.ts`.
 - **Ba lớp ở frontend**, phụ thuộc một chiều logic thuần ← store ← component:
-  1. *Logic thuần* (`src/flow/`, `anchor.ts`, `transform.ts`, phần tính trong `scriptInputs.ts`): không React, không Wails, không đọc store; có test `*.test.ts` cạnh file.
+  1. *Logic thuần* (`src/flow/`, `src/overlay/`, `anchor.ts`, `transform.ts`, phần tính trong `scriptInputs.ts`): không React, không Wails, không đọc store; có test `*.test.ts` cạnh file.
   2. *Store* (`src/store/`): ghép logic thuần với state, hoàn tác, thông báo. Chỉ module trong `store/` gọi `setEditor`; mọi sửa kịch bản đi qua `updateScript` (để có hoàn tác + cờ chưa lưu).
   3. *Component*: hiển thị + gọi hàm nghiệp vụ của store (`connectPort`, `updateStep`…), không tự dựng `script` mới. Tách thành phần **chỉ hiển thị** (nhận props: `FlowCanvas`, `NodeCard`, `PortField`) khỏi phần **nối store** (`FlowEditor`, `stepform/FlowSections`) để màn mẫu `#demo*` và app thật dùng chung một giao diện.
 - **Flow:** thao tác node / cạnh qua `flow/edit.ts`; thứ tự node qua `flow/model.ts` (`flowOrder`, `orderedSteps`) – không dựa vào thứ tự mảng `script.steps`. Tham chiếu node bằng `id` (cạnh, `start`, `imageFrom`); `ref` (n2) chỉ để hiển thị và dùng trong biến. Tên / dòng chi tiết / nhãn cổng / output của node chỉ lấy từ `flow/view.ts`.

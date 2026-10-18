@@ -42,7 +42,7 @@ def pending_checks():
         if m:
             num = m.group(1)
         elif line.startswith('## '):
-            num = None
+            num = '_'  # mục không gắn số bước (vd *Chờ máy Windows*) – chỉ tính vào tổng
         elif num and line.startswith('- [ ]'):
             out[num] = out.get(num, 0) + 1
     return out

@@ -2,7 +2,7 @@
 """Kiểm tra tài liệu / quy tắc lệch với code. Chạy: python3 scripts/check-docs.py (thoát 1 nếu có lỗi).
 - Mọi method public của App và mọi event EventsEmit phải có trong docs/ARCHITECTURE.md.
 - Mọi loại node trong stepTypes (model.go) phải có nhãn (types.ts), icon (icons.tsx), mô tả (steptypes.go).
-- Cảnh báo (không lỗi): file code > 400 dòng (quy tắc *Một file một việc*)."""
+- Cảnh báo (không lỗi): file code > 300 dòng (quy tắc *Một file một việc*); file code chưa có trong bản đồ file."""
 import glob
 import os
 import re
@@ -45,8 +45,17 @@ for f in sorted(code):
     if '/demo/' in f or f.endswith('.test.ts'):
         continue
     n = sum(1 for _ in open(f, encoding='utf-8'))
-    if n > 400:
-        warns.append(f'{os.path.relpath(f, ROOT)}: {n} dòng (> 400) – cân nhắc tách khi đang sửa file này')
+    if n > 300:
+        warns.append(f'{os.path.relpath(f, ROOT)}: {n} dòng (> 300) – tách trước khi thêm tính năng vào file này')
+
+# File code chưa có trong bản đồ file (theo tên, hoặc thư mục `components/x/` / mẫu `Demo*`) – bản đồ lệch thì phải tự đi tìm.
+for f in sorted(code):
+    rel = os.path.relpath(f, ROOT)
+    stem = re.sub(r'\.(go|tsx?)$', '', os.path.basename(f))
+    folder = os.path.relpath(os.path.dirname(f), os.path.join(ROOT, 'frontend/src')) + '/'
+    if f.endswith(('.test.ts', '.d.ts')) or '/demo/' in f or stem in arch or folder in arch or (stem.startswith('Demo') and 'Demo*' in arch):
+        continue
+    warns.append(f'{rel}: chưa có trong docs/ARCHITECTURE.md §8 Bản đồ file')
 
 for w in warns:
     print('cảnh báo:', w)

@@ -7,7 +7,7 @@ description: Làm một bước / mục con theo plan trong docs/tasks (vd "làm
 
 ## 1. Nạp ngữ cảnh (đọc ít, đúng chỗ)
 
-1. `docs/tasks/README.md` → mục *Trạng thái hiện tại* (đang làm / tiếp theo). Người dùng nêu bước khác thì theo người dùng.
+1. *Trạng thái hiện tại* (đang làm / tiếp theo) đã có sẵn đầu session nhờ hook – không mở `README.md`. Người dùng nêu bước khác thì theo người dùng.
 2. Chỉ mở file của bước đó `docs/tasks/phase3/<số>-<tên>.md`. Bước lớn (vd 20) thì chỉ đọc phần mục con đang làm + *Nguyên tắc* đầu file.
 3. `docs/ARCHITECTURE.md` – luồng + *muốn làm X → sửa ở đâu*. Chỉ mở code những file bảng đó chỉ tới.
 4. `docs/tasks/decisions.md` khi bước đụng tới quyết định đã chốt (không bàn lại điều đã chốt).

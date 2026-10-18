@@ -12,6 +12,29 @@
     ]
   },
   "permissions": {
+    "allow": [
+      "Bash(go vet:*)",
+      "Bash(go test:*)",
+      "Bash(go build:*)",
+      "Bash(gofmt:*)",
+      "Bash(go list:*)",
+      "Bash(~/go/bin/wails generate module)",
+      "Bash(wails generate module)",
+      "Bash(npm run build:*)",
+      "Bash(npm test:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(cd frontend && npm run build:*)",
+      "Bash(cd frontend && npm test:*)",
+      "Bash(python3 scripts/check-docs.py)",
+      "Bash(python3 scripts/tasks-index.py)",
+      "Bash(scripts/session-status.sh)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)"
+    ],
     "deny": [
       "Read(./frontend/wailsjs/**)",
       "Read(./frontend/package-lock.json)",
