@@ -11,12 +11,12 @@ description: Thêm một loại node mới vào flow (vd focus cửa sổ, web D
 
 - [ ] `internal/model/model.go`: hằng `StepXxx`, thêm vào `StepTypes`, `IsControl` nếu là node điều khiển, trường mới của `Step` (json camelCase, `omitempty` cho trường riêng loại), mặc định trong `NewStep`.
 - [ ] `~/go/bin/wails generate module`.
-- [ ] `storage.go` `checkStep`: miền giá trị hợp lệ khi mở file.
-- [ ] `engine.go` `validateScript`: dữ liệu đủ để chạy (lỗi `stepErr(i, s, "<field>", …)` – trường lỗi để UI / AI chỉ đúng chỗ); `flowcheck.go` nếu node trỏ node khác.
+- [ ] `internal/script/check.go` `checkStep` (node điều khiển: `control.go` `checkControl`): miền giá trị hợp lệ khi mở file.
+- [ ] `internal/script/validate.go` `ValidateScript` (điều khiển: `control.go` `validateControl`): dữ liệu đủ để chạy (lỗi `stepErr(i, s, "<field>", …)` – trường lỗi để UI / AI chỉ đúng chỗ); `script/flowcheck.go` nếu node trỏ node khác.
 - [ ] Chạy: hành động → `runStep` / `doStep` (engine.go) hoặc file riêng nếu lớn (như `imagestep.go`); điều khiển → `runControl` (nodes.go). Trả `output` map. Lỗi không thấy → `notFoundErr`; dữ liệu sai lúc chạy → `invalidErr`. Tôn trọng `ctx` (dùng `sleep(ctx, …)`, không `time.Sleep`).
 - [ ] Thiết bị / hệ điều hành mới → interface + bản thật (`_darwin.go` / `_windows.go` / `_other.go`) + bản giả trong test.
 - [ ] `internal/model/flow.go` `PortsOf` nếu cổng khác `success` / `fail`.
-- [ ] `vars.go` `varFields`: ô chữ nhận `{{biến}}`.
+- [ ] `internal/script/varfields.go` `VarFields`: ô chữ nhận `{{biến}}`.
 - [ ] `internal/model/steptypes.go`: mô tả, output, ví dụ JSON (test kiểm đủ loại).
 - [ ] Test: `nodes_test.go` / `flowrun_test.go` / file test riêng – chạy đúng, cổng đúng, output đúng, lỗi đúng mã, dừng được giữa chừng.
 
@@ -25,7 +25,7 @@ description: Thêm một loại node mới vào flow (vd focus cửa sổ, web D
 - [ ] `types.ts`: union loại, trường, nhãn (`STEP_LABEL`…); `components/icons.tsx` icon (có thể đã có từ bước 27b).
 - [ ] `flow/model.ts` `portsOf` (cùng công thức Go) + test.
 - [ ] `flow/view.ts`: dòng chi tiết, nhãn cổng, `outputsOf` + test.
-- [ ] `scriptInputs.ts` `mapVarText`: ô chữ nhận biến (khớp `varFields`).
+- [ ] `scriptInputs.ts` `mapVarText`: ô chữ nhận biến (khớp `script.VarFields`).
 - [ ] `store/nodes.ts` `addStep` hoặc `store/control.ts` `addControl`.
 - [ ] Bảng thêm node (`AddStepPalette`): mục mới, nhóm đúng, từ khoá tìm không dấu.
 - [ ] Inspector: hành động → `components/stepform/<Nhóm>Fields.tsx` (+ đăng ký trong `StepForm.tsx`); điều khiển → `components/flow/nodes/`. Dùng `Field` / `NumField` / `PickButton` / `VarTextInput`.

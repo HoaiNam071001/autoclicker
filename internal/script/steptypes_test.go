@@ -1,4 +1,4 @@
-package main
+package script
 
 import (
 	"encoding/json"
@@ -10,15 +10,15 @@ import (
 
 // Kịch bản flow mẫu cho AI đọc được và chạy qua kiểm tra đầy đủ (input lấy mặc định).
 func TestFlowExampleValidates(t *testing.T) {
-	sc, err := decodeScript([]byte(model.Guide().Example))
+	sc, err := DecodeScript([]byte(model.Guide().Example))
 	if err != nil {
 		t.Fatal(err)
 	}
-	sc, err = resolveInputs(sc, nil)
+	sc, err = ResolveInputs(sc, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := validateScript(sc, model.Rect{W: 1920, H: 1080}); err != nil {
+	if err := ValidateScript(sc, model.Rect{W: 1920, H: 1080}); err != nil {
 		t.Fatal(err)
 	}
 }

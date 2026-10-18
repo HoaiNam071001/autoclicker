@@ -24,7 +24,7 @@ export function GetSettings():Promise<store.Settings>;
 
 export function ListRuns(arg1:string,arg2:string):Promise<Array<model.RunSummary>>;
 
-export function LoadDraft():Promise<main.Draft>;
+export function LoadDraft():Promise<store.Draft>;
 
 export function MousePos():Promise<model.Point>;
 
@@ -52,7 +52,7 @@ export function RunScript(arg1:model.Script,arg2:Record<string, any>,arg3:main.R
 
 export function RunShot(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
 
-export function SaveDraft(arg1:main.Draft):Promise<void>;
+export function SaveDraft(arg1:store.Draft):Promise<void>;
 
 export function SaveInputMemory(arg1:string,arg2:store.InputMemory):Promise<void>;
 

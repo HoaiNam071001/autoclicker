@@ -1,7 +1,7 @@
 package model
 
 // Mô tả các loại bước cho người đọc file kịch bản và cho AI (MCP, bước 31 – sinh schema / hướng dẫn từ bảng này).
-// Thêm loại bước mới: thêm hằng trong model.go, xử lý trong checkStep / validateScript / engine, và một dòng ở đây
+// Thêm loại bước mới: thêm hằng trong model.go, xử lý trong script (checkStep / ValidateScript) / engine, và một dòng ở đây
 // (test kiểm tra mọi loại đều có mô tả và ví dụ hợp lệ).
 
 type StepTypeDoc struct {
@@ -9,7 +9,7 @@ type StepTypeDoc struct {
 	Label    string   `json:"label"`    // tên tiếng Việt trên UI
 	Desc     string   `json:"desc"`     // làm gì, khi nào dùng
 	Fields   []string `json:"fields"`   // trường riêng của loại này (ngoài trường chung, xem commonFieldsDoc)
-	Pinnable []string `json:"pinnable"` // trường ghim được làm input (inputs.go)
+	Pinnable []string `json:"pinnable"` // trường ghim được làm input (script/inputvalue.go)
 	Example  string   `json:"example"`  // một node JSON hợp lệ
 	Outputs  []string `json:"outputs"`  // khoá output khi thành công – node sau đọc bằng {{ref.output.khoá}}
 	Ports    []string `json:"ports"`    // cổng ra (PortsOf) – điền lúc khởi động
@@ -45,7 +45,7 @@ const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự tron
 	`error.code: not_found (chờ ảnh / chữ / màu hết giờ), permission, invalid_input (biến trỏ node chưa chạy…), end (node Kết thúc thất bại), internal.`
 
 // flowExample – kịch bản mẫu: mở trang → chờ chữ "Nhắn tin" → click → gõ; không thấy thì cuộn rồi chờ lại, tối đa
-// 10 lần (node Đếm) rồi kết thúc báo lỗi (test chạy qua validateScript).
+// 10 lần (node Đếm) rồi kết thúc báo lỗi (test chạy qua script.ValidateScript).
 const flowExample = `{"version":4,"name":"Nhắn tin","loops":1,"start":"s1",
 "steps":[
  {"id":"s1","ref":"n1","type":"open","target":"facebook.com/{{profile}}","delayAfter":3000,"enabled":true},
@@ -66,7 +66,7 @@ const flowExample = `{"version":4,"name":"Nhắn tin","loops":1,"start":"s1",
 "inputs":[{"key":"profile","type":"text","default":"lan.nguyen"}]}`
 
 var stepTypeDocs = []StepTypeDoc{
-	{StepClick, "Click", "Click chuột Clicks lần tại points[0] (neo theo cạnh vùng, xem anchor.go).",
+	{StepClick, "Click", "Click chuột Clicks lần tại points[0] (neo theo cạnh vùng, xem script/anchor.go).",
 		[]string{"points[1]", "button", "clicks", "clickInterval", "jitterPx"}, []string{"clicks", "clickInterval", "jitterPx", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"click","points":[{"x":400,"y":300}],"button":"left","clicks":1,"delayAfter":500,"enabled":true}`, []string{"x", "y"}, nil},
 	{StepDouble, "Double click", "Double click tại points[0].",

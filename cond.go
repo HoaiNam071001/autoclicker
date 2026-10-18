@@ -8,24 +8,18 @@ import (
 	"math"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
+	"autoclicker/internal/script"
 	"autoclicker/internal/vision"
 )
 
 // Điều kiện (bước 20 F3) của node Nếu và case của Switch theo màn hình: xét một lần trên màn hình lúc này, trả đúng / sai
 // kèm chi tiết từng điều kiện lá (chỗ thấy, % khớp, màu đọc được, 2 vế) – engine ghi vào log, nút Thử node hiện ra.
 
-var condOps = []string{"eq", "ne", "contains", "gt", "lt", "empty"}
-
 var condOpText = map[string]string{"eq": "=", "ne": "≠", "contains": "chứa", "gt": ">", "lt": "<"}
-
-func isLeafScreen(kind string) bool {
-	return kind == model.CondImage || kind == model.CondText || kind == model.CondPixel
-}
 
 // CondPart – kết quả một điều kiện lá.
 type CondPart struct {
@@ -124,7 +118,7 @@ func (e *engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, 
 	var ok bool
 	switch c.Kind {
 	case model.CondValue:
-		if nodeVarRe.MatchString(c.Left) || nodeVarRe.MatchString(c.Right) {
+		if script.NodeVarRe.MatchString(c.Left) || script.NodeVarRe.MatchString(c.Right) {
 			part.Known, part.Detail = false, fmt.Sprintf("“%s” – chỉ biết lúc chạy (biến node)", c.Left)
 			return part, nil
 		}
@@ -184,7 +178,7 @@ func (e *engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, 
 		if len(c.Points) == 0 {
 			return part, errors.New("điều kiện màu chưa chọn điểm")
 		}
-		p := resolvePoint(c.Points[0], bounds(e.sc, e.screen))
+		p := script.ResolvePoint(c.Points[0], script.Bounds(e.sc, e.screen))
 		got, err := snap.Pixel(p.X, p.Y)
 		if err != nil {
 			return part, err
@@ -227,8 +221,8 @@ func compareValues(left, op, right string) (bool, error) {
 	case "empty":
 		return l == "", nil
 	case "gt", "lt":
-		a, err1 := parseNumber(l)
-		b, err2 := parseNumber(r)
+		a, err1 := script.ParseNumber(l)
+		b, err2 := script.ParseNumber(r)
 		if err1 != nil || err2 != nil {
 			return false, fmt.Errorf("so lớn / nhỏ cần 2 số, có “%s” và “%s”", l, r)
 		}
@@ -238,10 +232,6 @@ func compareValues(left, op, right string) (bool, error) {
 		return a < b, nil
 	}
 	return false, fmt.Errorf("phép so không hợp lệ %q", op)
-}
-
-func parseNumber(s string) (float64, error) {
-	return strconv.ParseFloat(strings.ReplaceAll(strings.TrimSpace(s), ",", "."), 64)
 }
 
 // matchCase – Switch theo giá trị: eq / contains như compareValues, regex = khớp mẫu (Go regexp, phân biệt hoa thường
@@ -255,93 +245,4 @@ func matchCase(value string, c model.Case) (bool, error) {
 		return re.MatchString(value), nil
 	}
 	return compareValues(value, c.Op, c.Match)
-}
-
-// checkCond kiểm cấu trúc điều kiện (mở file): loại, phép so, lồng nhóm.
-func checkCond(c *model.Cond, depth int) error {
-	switch c.Kind {
-	case model.CondImage, model.CondText, model.CondPixel:
-	case model.CondValue:
-		if !slices.Contains(condOps, c.Op) {
-			return fmt.Errorf("phép so không hợp lệ: %q", c.Op)
-		}
-	case model.CondAll, model.CondAny:
-		if depth > 8 {
-			return errors.New("điều kiện lồng quá sâu")
-		}
-		for i := range c.Conds {
-			if err := checkCond(&c.Conds[i], depth+1); err != nil {
-				return err
-			}
-		}
-	default:
-		return fmt.Errorf("loại điều kiện không hợp lệ: %q", c.Kind)
-	}
-	for _, p := range c.Points {
-		if !validAnchor(p.Ax) || !validAnchor(p.Ay) {
-			return fmt.Errorf("neo điểm không hợp lệ: %q / %q", p.Ax, p.Ay)
-		}
-	}
-	return nil
-}
-
-// validateCond – điều kiện đủ dữ liệu để chạy (trước khi chạy): chữ, ảnh mẫu, điểm + màu, nhóm không rỗng.
-// inside: điểm nằm trong vùng.
-func validateCond(c model.Cond, inside func(model.Point) bool) error {
-	switch c.Kind {
-	case model.CondText:
-		if strings.TrimSpace(c.FindText) == "" {
-			return errors.New("điều kiện chưa nhập chữ cần thấy")
-		}
-	case model.CondImage:
-		if c.Template == "" {
-			return errors.New("điều kiện chưa có ảnh mẫu")
-		}
-		if _, err := vision.DecodePNG(c.Template); err != nil {
-			return fmt.Errorf("ảnh mẫu của điều kiện hỏng: %v", err)
-		}
-		if c.Threshold < 1 || c.Threshold > 100 {
-			return errors.New("độ khớp của điều kiện phải trong 1–100%")
-		}
-	case model.CondPixel:
-		if len(c.Points) == 0 {
-			return errors.New("điều kiện màu chưa chọn điểm")
-		}
-		if !inside(c.Points[0]) {
-			return errors.New("điểm của điều kiện màu nằm ngoài vùng")
-		}
-		if _, err := vision.ParseColor(c.Color); err != nil {
-			return err
-		}
-	case model.CondValue:
-		if !slices.Contains(condOps, c.Op) {
-			return fmt.Errorf("phép so không hợp lệ %q", c.Op)
-		}
-	case model.CondAll, model.CondAny:
-		if len(c.Conds) == 0 {
-			return errors.New("nhóm điều kiện chưa có điều kiện nào")
-		}
-		for i, sub := range c.Conds {
-			if err := validateCond(sub, inside); err != nil {
-				return fmt.Errorf("điều kiện %d: %w", i+1, err)
-			}
-		}
-	}
-	return nil
-}
-
-// cloneCond chép sâu (thay biến trên bản sao không đụng kịch bản gốc).
-func cloneCond(c *model.Cond) *model.Cond {
-	if c == nil {
-		return nil
-	}
-	x := *c
-	x.Points = slices.Clone(c.Points)
-	if c.Conds != nil {
-		x.Conds = make([]model.Cond, len(c.Conds))
-		for i := range c.Conds {
-			x.Conds[i] = *cloneCond(&c.Conds[i])
-		}
-	}
-	return &x
 }

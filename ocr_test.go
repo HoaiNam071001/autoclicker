@@ -9,6 +9,8 @@ import (
 
 	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
+	"autoclicker/internal/model/modeltest"
+	"autoclicker/internal/script"
 	"autoclicker/internal/vision"
 )
 
@@ -28,7 +30,7 @@ func (f *fakeOCR) ReadText(image.Image) ([]vision.TextLine, error) {
 }
 
 func textScript(text string, steps ...model.Step) model.Script {
-	wait := step(model.StepWaitImage, func(s *model.Step) {
+	wait := modeltest.Step(model.StepWaitImage, func(s *model.Step) {
 		s.FindBy, s.FindText, s.TimeoutMs, s.IntervalMs = model.FindByText, text, 2000, 1
 	})
 	return model.Script{Loops: 1, Region: &model.Rect{X: 100, Y: 50, W: 400, H: 300}, Steps: append([]model.Step{wait}, steps...)}
@@ -41,7 +43,7 @@ func TestWaitTextThenClick(t *testing.T) {
 		{line("Gửi", 200, 100, 60, 40), line("Gửi", 200, 300, 60, 40)},
 	}}
 	in := &devicetest.FakeInput{}
-	sc := textScript("gửi", step(model.StepClickImage, func(s *model.Step) { s.Dx = 5 }))
+	sc := textScript("gửi", modeltest.Step(model.StepClickImage, func(s *model.Step) { s.Dx = 5 }))
 	sc.Steps[0].Occurrence = 2
 	e := newEngine(in, linear(sc), nil)
 	e.scr, e.ocr = &fakeScreen{frames: []image.Image{retina}}, ocr
@@ -70,12 +72,12 @@ func TestWaitTextTimeout(t *testing.T) {
 
 func TestValidateTextStep(t *testing.T) {
 	sc := textScript("  ")
-	if err := validateScript(linear(sc), model.Rect{W: 1920, H: 1080}); err == nil || !strings.Contains(err.Error(), "chưa nhập chữ") {
+	if err := script.ValidateScript(linear(sc), model.Rect{W: 1920, H: 1080}); err == nil || !strings.Contains(err.Error(), "chưa nhập chữ") {
 		t.Errorf("chữ trống: %v", err)
 	}
 	sc = textScript("Gửi cho {{ten}}")
 	sc.Inputs = []model.ScriptInput{{Key: "ten", Label: "Tên", Type: model.InputText}}
-	out, err := resolveInputs(sc, map[string]any{"ten": "Lan"})
+	out, err := script.ResolveInputs(sc, map[string]any{"ten": "Lan"})
 	if err != nil || out.Steps[0].FindText != "Gửi cho Lan" {
 		t.Errorf("biến trong chữ cần tìm: %v %q", err, out.Steps[0].FindText)
 	}

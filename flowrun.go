@@ -9,6 +9,7 @@ import (
 
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
+	"autoclicker/internal/script"
 )
 
 // Engine chạy flow (bước 20): từ node start, chạy node → StepResult → đi theo cạnh của cổng ra → node kế.
@@ -27,7 +28,7 @@ func (e *notFoundErr) Error() string { return e.msg }
 // MaxMinutes tính theo đồng hồ thật, kể cả lúc tạm dừng.
 func (e *engine) run(ctx context.Context) error {
 	sc := e.sc
-	if err := validateScript(sc, e.screen); err != nil {
+	if err := script.ValidateScript(sc, e.screen); err != nil {
 		return err
 	}
 	runCtx := ctx

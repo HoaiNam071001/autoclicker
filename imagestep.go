@@ -10,6 +10,7 @@ import (
 
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
+	"autoclicker/internal/script"
 	"autoclicker/internal/vision"
 )
 
@@ -25,7 +26,7 @@ type WaitProgress struct {
 
 // searchArea: vùng tìm ảnh theo toạ độ robotgo – vùng của kịch bản, hoặc cả màn chứa vùng đó (không có vùng: màn chính).
 func (e *engine) searchArea(s model.Step) model.Rect {
-	b := bounds(e.sc, e.screen)
+	b := script.Bounds(e.sc, e.screen)
 	if s.SearchArea != "screen" {
 		return b
 	}
@@ -248,7 +249,7 @@ func (e *engine) waitPixel(ctx context.Context, s model.Step) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	p := resolvePoint(s.Points[0], bounds(e.sc, e.screen))
+	p := script.ResolvePoint(s.Points[0], script.Bounds(e.sc, e.screen))
 	var last string
 	_, err = e.waitLoop(ctx, s, "pixel", func() (bool, int, error) {
 		c, err := e.scr.Pixel(p.X, p.Y)

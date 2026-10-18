@@ -1,0 +1,132 @@
+package script
+
+import (
+	"slices"
+	"strings"
+
+	"autoclicker/internal/model"
+	"autoclicker/internal/vision"
+)
+
+// ValidateScript kiểm tra kịch bản (đã áp input) trước khi chạy để không dừng giữa chừng vì dữ liệu sai.
+// Lỗi là *ScriptError (bước / trường) để UI và AI biết chỗ sửa.
+// screen: khung màn hình khi Region = nil; W = 0 thì bỏ qua kiểm tra điểm nằm trong vùng (không biết màn hình).
+func ValidateScript(sc model.Script, screen model.Rect) error {
+	if err := validateFlow(sc); err != nil {
+		return err
+	}
+	b := Bounds(sc, screen)
+	inside := func(p model.Point) bool {
+		q := ResolvePoint(p, b)
+		return b.W == 0 || q.X >= b.X && q.X <= b.X+b.W && q.Y >= b.Y && q.Y <= b.Y+b.H
+	}
+	enabled := 0
+	for i, s := range sc.Steps {
+		if !s.Enabled {
+			continue
+		}
+		enabled++
+		need := 0
+		switch s.Type {
+		case model.StepClick, model.StepDouble, model.StepHold:
+			need = 1
+		case model.StepDrag:
+			need = 2
+		case model.StepScroll:
+			need = min(len(s.Points), 1) // có điểm thì điểm phải trong vùng
+			if !slices.Contains(model.ScrollDirections, s.Direction) {
+				return stepErr(i, s, "direction", "hướng cuộn không hợp lệ %q", s.Direction)
+			}
+			if s.Amount < 1 {
+				return stepErr(i, s, "amount", "số nấc cuộn phải ≥ 1")
+			}
+		case model.StepOpen:
+			if strings.TrimSpace(s.Target) == "" || s.Target == "https://" {
+				return stepErr(i, s, "target", "chưa nhập URL / app cần mở")
+			}
+		case model.StepWaitImage, model.StepClickImage:
+			// click theo chỗ node khác thấy: nguồn đã kiểm tra ở validateFlow
+			if s.Type == model.StepWaitImage || s.ImageSource == model.ImageFromSearch {
+				if err := checkImageStep(i, s); err != nil {
+					return err
+				}
+			}
+		case model.StepWaitPixel:
+			need = 1
+			if _, err := vision.ParseColor(s.Color); err != nil {
+				return stepErr(i, s, "color", "%v", err)
+			}
+			if s.Tolerance < 0 || s.Tolerance > 255 {
+				return stepErr(i, s, "tolerance", "sai số màu phải trong 0–255")
+			}
+			if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
+				return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
+			}
+		case model.StepWait:
+		case model.StepText:
+			if s.Text == "" {
+				return stepErr(i, s, "text", "chưa nhập nội dung gõ")
+			}
+		case model.StepKey:
+			if len(s.Keys) == 0 {
+				return stepErr(i, s, "keys", "chưa chọn phím")
+			}
+		case model.StepIf, model.StepSwitch, model.StepSwitchScreen, model.StepCounter, model.StepEnd, model.StepSetVar:
+			if err := validateControl(i, s, inside); err != nil {
+				return err
+			}
+		default:
+			return stepErr(i, s, "type", "loại bước không hợp lệ %q", s.Type)
+		}
+		if len(s.Points) < need {
+			return stepErr(i, s, "points", "cần %d điểm, mới có %d", need, len(s.Points))
+		}
+		for j := 0; j < need; j++ {
+			skip := s.Type == model.StepDrag && (j == 0 && s.DragFromPrev || j == 1 && s.DragRelative)
+			if !skip && !inside(s.Points[j]) {
+				q := ResolvePoint(s.Points[j], b)
+				return stepErr(i, s, "points", "điểm X %d Y %d nằm ngoài vùng", q.X, q.Y)
+			}
+		}
+		if r := s.Retry; r != nil && (r.Count < 0 || r.Count > model.MaxRetries || r.DelayMs < 0) {
+			return stepErr(i, s, "retry", "số lần thử lại phải trong 0–%d", model.MaxRetries)
+		}
+	}
+	if enabled == 0 {
+		return &model.ScriptError{Msg: "kịch bản không có node nào được bật"}
+	}
+	return nil
+}
+
+// checkImageStep: bước chờ ảnh / click theo ảnh tự tìm có ảnh mẫu đọc được (hoặc chữ cần tìm) và thông số hợp lệ.
+func checkImageStep(i int, s model.Step) error {
+	if s.FindBy == model.FindByText {
+		if strings.TrimSpace(s.FindText) == "" {
+			return stepErr(i, s, "findText", "chưa nhập chữ cần tìm")
+		}
+		if s.Occurrence < 0 {
+			return stepErr(i, s, "occurrence", "chỗ thứ mấy phải ≥ 1")
+		}
+		if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
+			return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
+		}
+		return nil
+	}
+	if s.Template == "" {
+		return stepErr(i, s, "template", "chưa có ảnh mẫu – bấm “Khoanh ảnh mẫu”")
+	}
+	img, err := vision.DecodePNG(s.Template)
+	if err != nil {
+		return stepErr(i, s, "template", "%v", err)
+	}
+	if b := img.Bounds(); b.Dx() < 4 || b.Dy() < 4 {
+		return stepErr(i, s, "template", "ảnh mẫu quá nhỏ (%d × %d px)", b.Dx(), b.Dy())
+	}
+	if s.Threshold < 1 || s.Threshold > 100 {
+		return stepErr(i, s, "threshold", "độ khớp tối thiểu phải trong 1–100%%")
+	}
+	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
+		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
+	}
+	return nil
+}

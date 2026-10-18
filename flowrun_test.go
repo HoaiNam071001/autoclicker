@@ -9,22 +9,9 @@ import (
 
 	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
+	"autoclicker/internal/model/modeltest"
 	"autoclicker/internal/vision"
 )
-
-// node gắn id + ref cố định cho test flow
-func node(id, ref, typ string, mod func(*model.Step)) model.Step {
-	return step(typ, func(s *model.Step) {
-		s.ID, s.Ref = id, ref
-		if mod != nil {
-			mod(s)
-		}
-	})
-}
-
-func edge(from, port, to string) model.Edge {
-	return model.Edge{ID: from + "." + port, From: from, Port: port, To: to}
-}
 
 var (
 	noText  = []vision.TextLine{line("Đang tải", 0, 0, 80, 20)}
@@ -46,12 +33,12 @@ func (f ocrAfter) ReadText(image.Image) ([]vision.TextLine, error) {
 func sendFlow(scrolls int, ready func() bool) (*engine, *devicetest.FakeInput) {
 	sc := model.Script{Loops: 1, Region: &model.Rect{X: 100, Y: 50, W: 400, H: 300}, Start: "w",
 		Steps: []model.Step{
-			node("w", "n1", model.StepWaitImage, func(s *model.Step) { s.FindBy, s.FindText, s.TimeoutMs, s.IntervalMs = model.FindByText, "Gửi", 1, 1 }),
-			node("c", "n2", model.StepClickImage, func(s *model.Step) { s.ImageFrom = "w" }),
-			node("t", "n3", model.StepText, func(s *model.Step) { s.Text = "ở {{n1.output.x}},{{n1.output.y}}" }),
-			node("s", "n4", model.StepScroll, func(s *model.Step) { s.Amount = 1 }),
+			modeltest.Node("w", "n1", model.StepWaitImage, func(s *model.Step) { s.FindBy, s.FindText, s.TimeoutMs, s.IntervalMs = model.FindByText, "Gửi", 1, 1 }),
+			modeltest.Node("c", "n2", model.StepClickImage, func(s *model.Step) { s.ImageFrom = "w" }),
+			modeltest.Node("t", "n3", model.StepText, func(s *model.Step) { s.Text = "ở {{n1.output.x}},{{n1.output.y}}" }),
+			modeltest.Node("s", "n4", model.StepScroll, func(s *model.Step) { s.Amount = 1 }),
 		},
-		Edges: []model.Edge{edge("w", model.PortSuccess, "c"), edge("w", model.PortFail, "s"), edge("s", model.PortSuccess, "w"), edge("c", model.PortSuccess, "t")},
+		Edges: []model.Edge{modeltest.Edge("w", model.PortSuccess, "c"), modeltest.Edge("w", model.PortFail, "s"), modeltest.Edge("s", model.PortSuccess, "w"), modeltest.Edge("c", model.PortSuccess, "t")},
 	}
 	in := &devicetest.FakeInput{}
 	if ready == nil {
@@ -127,9 +114,9 @@ func TestFlowRetry(t *testing.T) {
 
 func TestFlowVarFromNodeNotRun(t *testing.T) {
 	sc := model.Script{Loops: 1, Start: "a", Steps: []model.Step{
-		node("a", "n1", model.StepText, func(s *model.Step) { s.Text = "{{n2.output.text}}" }),
-		node("b", "n2", model.StepText, func(s *model.Step) { s.Text = "x" }),
-	}, Edges: []model.Edge{edge("a", model.PortSuccess, "b")}}
+		modeltest.Node("a", "n1", model.StepText, func(s *model.Step) { s.Text = "{{n2.output.text}}" }),
+		modeltest.Node("b", "n2", model.StepText, func(s *model.Step) { s.Text = "x" }),
+	}, Edges: []model.Edge{modeltest.Edge("a", model.PortSuccess, "b")}}
 	e := newEngine(&devicetest.FakeInput{}, sc, nil)
 	err := e.run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "n2 chưa chạy") || e.results["a"].Error.Code != model.ErrInvalidInput {
@@ -140,7 +127,7 @@ func TestFlowVarFromNodeNotRun(t *testing.T) {
 func TestFlowClickFromFailedNode(t *testing.T) {
 	// chờ chữ thất bại → đi cổng fail sang click lấy chỗ thấy của chính node đó → không có chỗ thấy → dừng
 	e, in := sendFlow(-1, nil)
-	e.sc.Edges = []model.Edge{edge("w", model.PortFail, "c")}
+	e.sc.Edges = []model.Edge{modeltest.Edge("w", model.PortFail, "c")}
 	err := e.run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "n2: node n1 chưa tìm thấy") || len(in.Lines()) != 0 {
 		t.Fatalf("lỗi %v, lệnh %q", err, in.Lines())
@@ -149,60 +136,11 @@ func TestFlowClickFromFailedNode(t *testing.T) {
 
 func TestFlowInfiniteLoopLimit(t *testing.T) {
 	sc := model.Script{Loops: 1, Start: "a", Steps: []model.Step{
-		node("a", "n1", model.StepWait, nil), node("b", "n2", model.StepWait, nil),
-	}, Edges: []model.Edge{edge("a", model.PortSuccess, "b"), edge("b", model.PortSuccess, "a")}}
+		modeltest.Node("a", "n1", model.StepWait, nil), modeltest.Node("b", "n2", model.StepWait, nil),
+	}, Edges: []model.Edge{modeltest.Edge("a", model.PortSuccess, "b"), modeltest.Edge("b", model.PortSuccess, "a")}}
 	sc.Steps[0].DelayAfter, sc.Steps[1].DelayAfter = 0, 0
 	err := newEngine(&devicetest.FakeInput{}, sc, nil).run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "lặp vô hạn") || !strings.Contains(err.Error(), "n1 → n2") {
 		t.Fatalf("lỗi %v", err)
-	}
-}
-
-func TestValidateFlow(t *testing.T) {
-	base := func() model.Script {
-		return model.Script{Start: "a", Steps: []model.Step{node("a", "n1", model.StepWait, nil), node("b", "n2", model.StepWait, nil)},
-			Edges: []model.Edge{edge("a", model.PortSuccess, "b")}}
-	}
-	cases := map[string]func(*model.Script){
-		"chưa chọn node bắt đầu": func(s *model.Script) { s.Start = "x" },
-		"trùng với node khác":    func(s *model.Script) { s.Steps[1].Ref = "n1" },
-		"không hợp lệ":           func(s *model.Script) { s.Steps[1].Ref = "vars" },
-		"không có cổng":          func(s *model.Script) { s.Edges[0].Port = "true" },
-		"nối tới node không còn": func(s *model.Script) { s.Edges[0].To = "x" },
-		"nối vào chính node này": func(s *model.Script) { s.Edges[0].To = "a" },
-		"có hơn một cạnh": func(s *model.Script) {
-			s.Edges = append(s.Edges, model.Edge{ID: "z", From: "a", Port: model.PortSuccess, To: "b"})
-		},
-		"không có trong kịch bản": func(s *model.Script) {
-			s.Steps[1] = node("b", "n2", model.StepText, func(x *model.Step) { x.Text = "{{n9.output.x}}" })
-		},
-		"chưa chọn node lấy chỗ": func(s *model.Script) { s.Steps[1] = node("b", "n2", model.StepClickImage, nil) },
-		"không tìm ảnh / chữ": func(s *model.Script) {
-			s.Steps[1] = node("b", "n2", model.StepClickImage, func(x *model.Step) { x.ImageFrom = "a" })
-		},
-		"kịch bản chưa có node nào": func(s *model.Script) { s.Steps = nil },
-	}
-	for want, mod := range cases {
-		sc := base()
-		mod(&sc)
-		if err := validateFlow(sc); err == nil || !strings.Contains(err.Error(), want) {
-			t.Errorf("muốn lỗi %q, có %v", want, err)
-		}
-	}
-	if err := validateFlow(base()); err != nil {
-		t.Errorf("flow hợp lệ báo lỗi: %v", err)
-	}
-	// biến vars / last không cần node
-	sc := base()
-	sc.Steps[1] = node("b", "n2", model.StepText, func(x *model.Step) { x.Text = "{{last.status}} {{vars.dem}}" })
-	if err := validateFlow(sc); err != nil {
-		t.Errorf("vars / last: %v", err)
-	}
-}
-
-func TestUnreachableNodes(t *testing.T) {
-	sc := model.Script{Start: "a", Steps: []model.Step{{ID: "a"}, {ID: "b"}, {ID: "c"}}, Edges: []model.Edge{edge("a", model.PortFail, "c")}}
-	if got := unreachableNodes(sc); !reflect.DeepEqual(got, []string{"b"}) {
-		t.Errorf("%q", got)
 	}
 }

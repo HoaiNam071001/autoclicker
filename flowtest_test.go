@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	"autoclicker/internal/model"
+	"autoclicker/internal/script"
 )
 
 // Helper test: dựng flow từ danh sách bước theo thứ tự mảng (success → node kế), đặt ref n1, n2…, click theo ảnh chưa
@@ -19,7 +20,7 @@ func linearToFlow(sc *model.Script) {
 		return
 	}
 	sc.Steps = slices.Clone(sc.Steps)
-	fixRefs(sc.Steps)
+	script.FixRefs(sc.Steps)
 	sc.Edges = nil
 	sc.Start = sc.Steps[0].ID
 	for i := 0; i+1 < len(sc.Steps); i++ {

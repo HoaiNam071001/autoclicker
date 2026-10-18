@@ -7,6 +7,7 @@ import (
 
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
+	"autoclicker/internal/script"
 )
 
 // Nút "Thử node" (bước 20 F3): xét node Nếu / Switch / Switch theo màn hình trên màn hình lúc này (một lần, không chờ),
@@ -54,12 +55,12 @@ func (a *App) TestNode(sc model.Script, stepID string) (NodeTest, error) {
 
 // withInputDefaults – bản sao node với {{key}} của input thay bằng giá trị mặc định (Thử tìm / Thử node).
 func withInputDefaults(sc model.Script, s model.Step) (model.Step, error) {
-	s = cloneStep(s)
-	for _, f := range varFields(&s) {
-		t, err := expandVars(*f.p, func(key string) (string, bool) {
+	s = script.CloneStep(s)
+	for _, f := range script.VarFields(&s) {
+		t, err := script.ExpandVars(*f.Ptr, func(key string) (string, bool) {
 			for _, in := range sc.Inputs {
-				if in.Key == key && !isEmptyValue(in.Default) {
-					return valueString(in.Default), true
+				if in.Key == key && !script.IsEmptyValue(in.Default) {
+					return script.ValueString(in.Default), true
 				}
 			}
 			return "", false
@@ -67,7 +68,7 @@ func withInputDefaults(sc model.Script, s model.Step) (model.Step, error) {
 		if err != nil {
 			return s, fmt.Errorf("thử dùng giá trị mặc định của input: %w", err)
 		}
-		*f.p = t
+		*f.Ptr = t
 	}
 	return s, nil
 }
@@ -97,7 +98,7 @@ func (e *engine) testNode(s model.Step) (NodeTest, error) {
 			p0 := len(res.Parts)
 			ok, _, err := e.evalCond(*c.Cond, fmt.Sprintf("%s#case%d", s.ID, i), []int{i}, snap, &res.Parts)
 			if err != nil {
-				return res, fmt.Errorf("case %s: %w", caseName(c), err)
+				return res, fmt.Errorf("case %s: %w", script.CaseName(c), err)
 			}
 			for j := p0; j < len(res.Parts); j++ {
 				res.Parts[j].Case = c.Key
@@ -108,7 +109,7 @@ func (e *engine) testNode(s model.Step) (NodeTest, error) {
 		}
 	case model.StepSwitch:
 		res.Value = s.Value
-		if nodeVarRe.MatchString(s.Value) {
+		if script.NodeVarRe.MatchString(s.Value) {
 			res.Known = false
 		}
 		res.Port = model.PortDefault

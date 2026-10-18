@@ -25,7 +25,7 @@ description: Sửa lỗi người dùng báo (vd "bị lỗi", "không chạy", 
 ## 2. Tìm nguyên nhân gốc, không vá triệu chứng
 
 - Lần ngược luồng dữ liệu tới chỗ giá trị sai sinh ra. Nghi vấn hay gặp:
-  - Toạ độ lệch: neo (`anchor.go` ↔ `anchor.ts`), `coordMap.ts` (DPI, màn phụ, menu bar macOS), vùng `nil` = màn chính.
+  - Toạ độ lệch: neo (`internal/script/anchor.go` ↔ `anchor.ts`), `coordMap.ts` (DPI, màn phụ, menu bar macOS), vùng `nil` = màn chính.
   - Go và TS tính khác nhau: `portsOf`, `flowOrder`, neo – hai bên phải cùng công thức.
   - State giữa các màn: màn không cùng mount, state phải ở store module.
   - Đồng thời: `a.mu`, `a.run`, goroutine hotkey / failsafe, `ctx` không được tôn trọng (dừng không ăn).

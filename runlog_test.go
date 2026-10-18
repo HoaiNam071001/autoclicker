@@ -10,6 +10,7 @@ import (
 
 	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
+	"autoclicker/internal/model/modeltest"
 	"autoclicker/internal/vision"
 )
 
@@ -33,10 +34,10 @@ func TestShootOnFail(t *testing.T) {
 // Debug: breakpoint chỉ dừng khi debug bật; chạy từng node dừng trước mọi node; Tiếp tắt chạy từng node.
 func TestDebugBreakpointAndStep(t *testing.T) {
 	sc := model.Script{Loops: 1, Start: "a", Steps: []model.Step{
-		node("a", "n1", model.StepText, func(s *model.Step) { s.Text = "a" }),
-		node("b", "n2", model.StepText, func(s *model.Step) { s.Text = "b"; s.Breakpoint = true }),
-		node("c", "n3", model.StepText, func(s *model.Step) { s.Text = "c" }),
-	}, Edges: []model.Edge{edge("a", model.PortSuccess, "b"), edge("b", model.PortSuccess, "c")}}
+		modeltest.Node("a", "n1", model.StepText, func(s *model.Step) { s.Text = "a" }),
+		modeltest.Node("b", "n2", model.StepText, func(s *model.Step) { s.Text = "b"; s.Breakpoint = true }),
+		modeltest.Node("c", "n3", model.StepText, func(s *model.Step) { s.Text = "c" }),
+	}, Edges: []model.Edge{modeltest.Edge("a", model.PortSuccess, "b"), modeltest.Edge("b", model.PortSuccess, "c")}}
 
 	// không debug: chạy thẳng
 	if err := newEngine(&devicetest.FakeInput{}, sc, nil).run(context.Background()); err != nil {

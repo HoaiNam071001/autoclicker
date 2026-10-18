@@ -1,0 +1,82 @@
+package script
+
+import (
+	"fmt"
+	"slices"
+
+	"autoclicker/internal/launch"
+	"autoclicker/internal/model"
+)
+
+// VarField – ô chữ nhận {{biến}} của node (kể cả trong điều kiện / case).
+type VarField struct {
+	Name string // tên trường (json) cho lời báo lỗi, vd "cond.conds[1].left"
+	Ptr  *string
+	URL  bool // ô URL: giá trị biến được mã hoá (launch.EscapeURLValue)
+}
+
+// VarFields – các ô chữ nhận biến của s (input {{key}} ở resolveInputs, biến node ở resolveNodeVars, kiểm tra ở
+// validateFlow). Con trỏ trỏ vào s – muốn sửa thì gọi trên bản sao (cloneStep).
+func VarFields(s *model.Step) []VarField {
+	var out []VarField
+	add := func(name string, p *string, url bool) { out = append(out, VarField{name, p, url}) }
+	switch s.Type {
+	case model.StepText:
+		add("text", &s.Text, false)
+	case model.StepWaitImage, model.StepClickImage:
+		if s.FindBy == model.FindByText {
+			add("findText", &s.FindText, false)
+		}
+	case model.StepOpen:
+		add("target", &s.Target, launch.TargetKind(s.Target) == launch.TargetURL)
+	case model.StepIf:
+		if s.Cond != nil {
+			condFields(s.Cond, "cond", add)
+		}
+	case model.StepSwitch:
+		add("value", &s.Value, false)
+		for i := range s.Cases {
+			add(fmt.Sprintf("cases[%d].match", i), &s.Cases[i].Match, false)
+		}
+	case model.StepSwitchScreen:
+		for i := range s.Cases {
+			if c := s.Cases[i].Cond; c != nil {
+				condFields(c, fmt.Sprintf("cases[%d].cond", i), add)
+			}
+		}
+	case model.StepEnd:
+		add("message", &s.Message, false)
+	case model.StepSetVar:
+		add("value", &s.Value, false)
+	}
+	return out
+}
+
+func condFields(c *model.Cond, name string, add func(string, *string, bool)) {
+	switch c.Kind {
+	case model.CondText:
+		add(name+".findText", &c.FindText, false)
+	case model.CondValue:
+		add(name+".left", &c.Left, false)
+		add(name+".right", &c.Right, false)
+	case model.CondAll, model.CondAny:
+		for i := range c.Conds {
+			condFields(&c.Conds[i], fmt.Sprintf("%s.conds[%d]", name, i), add)
+		}
+	}
+}
+
+// CloneStep chép sâu phần lồng nhau sửa được (điểm, điều kiện, case) – thay biến trên bản sao không đụng kịch bản gốc.
+func CloneStep(s model.Step) model.Step {
+	s.Points = slices.Clone(s.Points)
+	s.Cond = cloneCond(s.Cond)
+	if s.Cases != nil {
+		cs := make([]model.Case, len(s.Cases))
+		for i, c := range s.Cases {
+			c.Cond = cloneCond(c.Cond)
+			cs[i] = c
+		}
+		s.Cases = cs
+	}
+	return s
+}

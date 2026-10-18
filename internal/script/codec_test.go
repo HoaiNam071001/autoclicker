@@ -1,8 +1,6 @@
-package main
+package script
 
 import (
-	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -30,13 +28,13 @@ func sampleScript() model.Script {
 	}
 }
 
-func TestScriptFileRoundTrip(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "k.json")
+func TestScriptRoundTrip(t *testing.T) {
 	sc := sampleScript()
-	if err := writeScriptFile(path, sc); err != nil {
+	b, err := EncodeScript(sc)
+	if err != nil {
 		t.Fatal(err)
 	}
-	got, err := readScriptFile(path)
+	got, err := DecodeScript(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +58,7 @@ func TestDecodeScriptErrors(t *testing.T) {
 		"cách neo kịch bản": `{"version":4,"anchorMode":"nearest","steps":[]}`,
 	}
 	for name, in := range cases {
-		if _, err := decodeScript([]byte(in)); err == nil {
+		if _, err := DecodeScript([]byte(in)); err == nil {
 			t.Errorf("%s: muốn lỗi, không có", name)
 		}
 	}
@@ -68,7 +66,7 @@ func TestDecodeScriptErrors(t *testing.T) {
 
 // Sửa tay file: cạnh trỏ node không còn / thiếu cổng / trùng cổng bị bỏ, id cạnh trống được đặt, start không còn → trống.
 func TestDecodeScriptRepairsEdges(t *testing.T) {
-	sc, err := decodeScript([]byte(`{"version":4,"start":"zz","steps":[{"id":"a","type":"wait"},{"id":"b","type":"wait"}],
+	sc, err := DecodeScript([]byte(`{"version":4,"start":"zz","steps":[{"id":"a","type":"wait"},{"id":"b","type":"wait"}],
 		"edges":[{"from":"a","port":"success","to":"b"},{"from":"a","port":"success","to":"a"},{"from":"a","port":"fail","to":"x"},{"from":"b","to":"a"}]}`))
 	if err != nil {
 		t.Fatal(err)
@@ -83,7 +81,7 @@ func TestDecodeScriptRepairsEdges(t *testing.T) {
 
 // File sửa tay / tối giản: thiếu field thì bổ sung giá trị trống, id trống / trùng được đặt lại.
 func TestDecodeScriptFillsDefaults(t *testing.T) {
-	sc, err := decodeScript([]byte(`{"version":4,"steps":[{"type":"wait"},{"id":"x","type":"click","points":[{"x":1,"y":1}]},{"id":"x","type":"type"}]}`))
+	sc, err := DecodeScript([]byte(`{"version":4,"steps":[{"type":"wait"},{"id":"x","type":"click","points":[{"x":1,"y":1}]},{"id":"x","type":"type"}]}`))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,33 +100,11 @@ func TestDecodeScriptFillsDefaults(t *testing.T) {
 	}
 }
 
-func TestDraftRoundTrip(t *testing.T) {
-	dir := t.TempDir()
-	if loadDraft(dir) != nil {
-		t.Fatal("chưa có nháp mà loadDraft khác nil")
-	}
-	d := Draft{Script: sampleScript(), Path: "/tmp/k.json", Dirty: true, SavedAt: 123}
-	d.Script.Version = model.ScriptVersion
-	b, _ := encodeDraft(d)
-	if err := os.WriteFile(filepath.Join(dir, draftFile), b, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	got := loadDraft(dir)
-	if got == nil || !reflect.DeepEqual(*got, d) {
-		t.Fatalf("nháp đọc lại khác: %+v", got)
-	}
-	// nháp hỏng → bỏ qua, không lỗi
-	os.WriteFile(filepath.Join(dir, draftFile), []byte(`{"script":{"version":4,"steps":[{"type":"?"}]}}`), 0o644)
-	if loadDraft(dir) != nil {
-		t.Fatal("nháp hỏng phải bỏ qua")
-	}
-}
-
 func TestSafeFileName(t *testing.T) {
-	if got := safeFileName(` a/b:c? `); got != "a-b-c-" {
+	if got := SafeFileName(` a/b:c? `); got != "a-b-c-" {
 		t.Fatalf("safeFileName = %q", got)
 	}
-	if safeFileName("  ") != "kich-ban" {
+	if SafeFileName("  ") != "kich-ban" {
 		t.Fatal("tên trống phải có tên mặc định")
 	}
 }

@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"slices"
 	"strconv"
 	"strings"
 
 	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
+	"autoclicker/internal/script"
 )
 
 // Biến lúc chạy (bước 20): node đọc kết quả node đã chạy trước đó trong cùng vòng.
@@ -25,98 +25,25 @@ type runVars struct {
 // resolveNodeVars trả bản sao node với biến node trong các ô chữ đã thay giá trị. Biến trỏ node chưa chạy / output
 // không có → lỗi invalid_input (node thất bại, đi cổng fail) – không lặng lẽ gõ chữ trống.
 func resolveNodeVars(s model.Step, rv runVars) (model.Step, error) {
-	s = cloneStep(s)
+	s = script.CloneStep(s)
 	var firstErr error
-	for _, f := range varFields(&s) {
-		*f.p = nodeVarRe.ReplaceAllStringFunc(*f.p, func(m string) string {
-			sub := nodeVarRe.FindStringSubmatch(m)
+	for _, f := range script.VarFields(&s) {
+		*f.Ptr = script.NodeVarRe.ReplaceAllStringFunc(*f.Ptr, func(m string) string {
+			sub := script.NodeVarRe.FindStringSubmatch(m)
 			v, err := rv.lookup(sub[1], sub[2])
 			if err != nil {
 				if firstErr == nil {
-					firstErr = fmt.Errorf("%s: biến %s – %w", f.name, m, err)
+					firstErr = fmt.Errorf("%s: biến %s – %w", f.Name, m, err)
 				}
 				return m
 			}
-			if f.url {
+			if f.URL {
 				return launch.EscapeURLValue(v)
 			}
 			return v
 		})
 	}
 	return s, firstErr
-}
-
-// varField – ô chữ nhận {{biến}} của node (kể cả trong điều kiện / case). url: giá trị chèn vào phải mã hoá.
-type varField struct {
-	name string // tên trường (json) cho lời báo lỗi, vd "cond.conds[1].left"
-	p    *string
-	url  bool
-}
-
-// varFields – các ô chữ nhận biến của s (input {{key}} ở resolveInputs, biến node ở resolveNodeVars, kiểm tra ở
-// validateFlow). Con trỏ trỏ vào s – muốn sửa thì gọi trên bản sao (cloneStep).
-func varFields(s *model.Step) []varField {
-	var out []varField
-	add := func(name string, p *string, url bool) { out = append(out, varField{name, p, url}) }
-	switch s.Type {
-	case model.StepText:
-		add("text", &s.Text, false)
-	case model.StepWaitImage, model.StepClickImage:
-		if s.FindBy == model.FindByText {
-			add("findText", &s.FindText, false)
-		}
-	case model.StepOpen:
-		add("target", &s.Target, launch.TargetKind(s.Target) == launch.TargetURL)
-	case model.StepIf:
-		if s.Cond != nil {
-			condFields(s.Cond, "cond", add)
-		}
-	case model.StepSwitch:
-		add("value", &s.Value, false)
-		for i := range s.Cases {
-			add(fmt.Sprintf("cases[%d].match", i), &s.Cases[i].Match, false)
-		}
-	case model.StepSwitchScreen:
-		for i := range s.Cases {
-			if c := s.Cases[i].Cond; c != nil {
-				condFields(c, fmt.Sprintf("cases[%d].cond", i), add)
-			}
-		}
-	case model.StepEnd:
-		add("message", &s.Message, false)
-	case model.StepSetVar:
-		add("value", &s.Value, false)
-	}
-	return out
-}
-
-func condFields(c *model.Cond, name string, add func(string, *string, bool)) {
-	switch c.Kind {
-	case model.CondText:
-		add(name+".findText", &c.FindText, false)
-	case model.CondValue:
-		add(name+".left", &c.Left, false)
-		add(name+".right", &c.Right, false)
-	case model.CondAll, model.CondAny:
-		for i := range c.Conds {
-			condFields(&c.Conds[i], fmt.Sprintf("%s.conds[%d]", name, i), add)
-		}
-	}
-}
-
-// cloneStep chép sâu phần lồng nhau sửa được (điểm, điều kiện, case) – thay biến trên bản sao không đụng kịch bản gốc.
-func cloneStep(s model.Step) model.Step {
-	s.Points = slices.Clone(s.Points)
-	s.Cond = cloneCond(s.Cond)
-	if s.Cases != nil {
-		cs := make([]model.Case, len(s.Cases))
-		for i, c := range s.Cases {
-			c.Cond = cloneCond(c.Cond)
-			cs[i] = c
-		}
-		s.Cases = cs
-	}
-	return s
 }
 
 func (rv runVars) lookup(name, path string) (string, error) {

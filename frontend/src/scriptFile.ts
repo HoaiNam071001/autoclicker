@@ -5,7 +5,7 @@ import { EventsOn } from '../wailsjs/runtime/runtime';
 import {
   ClearDraft, ConfirmQuit, LoadDraft, NewScript, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetDirty,
 } from '../wailsjs/go/main/App';
-import { main, model } from '../wailsjs/go/models';
+import { model, store } from '../wailsjs/go/models';
 import { getEditor, markSaved, replaceScript, subscribe } from './store';
 import { inWails, setWindowMode } from './windowMode';
 import { Script } from './types';
@@ -114,7 +114,7 @@ async function flushDraft() {
   clearTimeout(draftTimer);
   const e = getEditor();
   try {
-    await SaveDraft(main.Draft.createFrom({ script: e.script, path: e.path ?? '', dirty: e.dirty, savedAt: 0 }));
+    await SaveDraft(store.Draft.createFrom({ script: e.script, path: e.path ?? '', dirty: e.dirty, savedAt: 0 }));
     setFs({ draftAt: Date.now() });
   } catch (err) {
     setFs({ error: `Không ghi được bản nháp: ${errText(err)}` });

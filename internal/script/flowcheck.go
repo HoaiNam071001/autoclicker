@@ -1,4 +1,4 @@
-package main
+package script
 
 import (
 	"fmt"
@@ -7,11 +7,11 @@ import (
 	"autoclicker/internal/model"
 )
 
-// nodeVarRe – biến đọc kết quả node: {{n2.output.x}}, {{n2.status}}, {{n2.error.message}}, {{vars.ten}}, {{last.output.text}}.
+// NodeVarRe – biến đọc kết quả node: {{n2.output.x}}, {{n2.status}}, {{n2.error.message}}, {{vars.ten}}, {{last.output.text}}.
 // Khác {{key}} của input (không có dấu chấm, inputs.go varRe).
-var nodeVarRe = regexp.MustCompile(`\{\{\s*([A-Za-z][A-Za-z0-9_]*)\.([A-Za-z0-9_.]+)\s*\}\}`)
+var NodeVarRe = regexp.MustCompile(`\{\{\s*([A-Za-z][A-Za-z0-9_]*)\.([A-Za-z0-9_.]+)\s*\}\}`)
 
-// validateFlow kiểm tra cấu trúc flow trước khi chạy: node bắt đầu, cạnh, mã node, nguồn chỗ thấy của click theo ảnh,
+// ValidateFlow kiểm tra cấu trúc flow trước khi chạy: node bắt đầu, cạnh, mã node, nguồn chỗ thấy của click theo ảnh,
 // biến trỏ node. Dữ liệu từng node (điểm, ảnh mẫu, phím…) do validateScript kiểm tra.
 // Node không đi tới được từ start không phải lỗi (unreachableNodes – UI cảnh báo).
 func validateFlow(sc model.Script) error {
@@ -70,11 +70,11 @@ func validateFlow(sc model.Script) error {
 				return stepErr(i, s, "imageFrom", "node %s không tìm ảnh / chữ nên không có chỗ thấy", sc.Steps[j].Ref)
 			}
 		}
-		for _, f := range varFields(&s) {
-			for _, m := range nodeVarRe.FindAllStringSubmatch(*f.p, -1) {
+		for _, f := range VarFields(&s) {
+			for _, m := range NodeVarRe.FindAllStringSubmatch(*f.Ptr, -1) {
 				if name := m[1]; name != "vars" && name != "last" {
 					if _, ok := refs[name]; !ok {
-						return stepErr(i, s, f.name, "biến %s trỏ tới node %q không có trong kịch bản", m[0], name)
+						return stepErr(i, s, f.Name, "biến %s trỏ tới node %q không có trong kịch bản", m[0], name)
 					}
 				}
 			}
@@ -89,7 +89,7 @@ func findsImage(s model.Step) bool {
 	return s.Type == model.StepWaitImage || s.Type == model.StepClickImage && s.ImageSource == model.ImageFromSearch || s.Type == model.StepIf || s.Type == model.StepSwitchScreen
 }
 
-// unreachableNodes – id các node không đi tới được từ start (sẽ không bao giờ chạy), theo thứ tự trong mảng.
+// UnreachableNodes – id các node không đi tới được từ start (sẽ không bao giờ chạy), theo thứ tự trong mảng.
 func unreachableNodes(sc model.Script) []string {
 	ok := model.ReachableFrom(sc)
 	out := []string{}

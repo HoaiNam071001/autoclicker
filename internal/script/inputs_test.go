@@ -1,4 +1,4 @@
-package main
+package script
 
 import (
 	"strings"
@@ -26,7 +26,7 @@ func inputScript() model.Script {
 
 func TestResolveInputs(t *testing.T) {
 	sc := inputScript()
-	out, err := resolveInputs(sc, map[string]any{"click_delay": "1000", "M1": "Hoà", "M2": ""})
+	out, err := ResolveInputs(sc, map[string]any{"click_delay": "1000", "M1": "Hoà", "M2": ""})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestResolveInputs(t *testing.T) {
 	}
 
 	// thiếu giá trị → mặc định; số từ JSON (float64)
-	out, err = resolveInputs(sc, map[string]any{"M1": "A", "click_delay": 250.0})
+	out, err = ResolveInputs(sc, map[string]any{"M1": "A", "click_delay": 250.0})
 	if err != nil || out.Steps[0].DelayAfter != 250 {
 		t.Fatalf("số float64: %v %d", err, out.Steps[0].DelayAfter)
 	}
@@ -74,7 +74,7 @@ func TestResolveInputsErrors(t *testing.T) {
 		if c.edit != nil {
 			c.edit(&sc)
 		}
-		_, err := resolveInputs(sc, c.values)
+		_, err := ResolveInputs(sc, c.values)
 		if err == nil || !strings.Contains(err.Error(), c.want) {
 			t.Errorf("%s: muốn lỗi chứa %q, có %v", c.name, c.want, err)
 		}
@@ -84,7 +84,7 @@ func TestResolveInputsErrors(t *testing.T) {
 func TestResolveInputsStructuredError(t *testing.T) {
 	sc := inputScript()
 	sc.Steps[1].Text = "{{lạ}} {{ten}}"
-	_, err := resolveInputs(sc, map[string]any{"M1": "a"})
+	_, err := ResolveInputs(sc, map[string]any{"M1": "a"})
 	se, ok := err.(*model.ScriptError)
 	if !ok || se.Step != 2 || se.StepID != "s2" || se.Field != "text" {
 		t.Fatalf("muốn ScriptError bước 2 / s2 / text, có %#v", err)
@@ -92,7 +92,7 @@ func TestResolveInputsStructuredError(t *testing.T) {
 }
 
 func TestExpandVarsEscape(t *testing.T) {
-	got, err := expandVars(`\{{M1}} là {{M1}}, {{ không phải biến`, func(k string) (string, bool) { return "Tú", k == "M1" })
+	got, err := ExpandVars(`\{{M1}} là {{M1}}, {{ không phải biến`, func(k string) (string, bool) { return "Tú", k == "M1" })
 	if err != nil || got != "{{M1}} là Tú, {{ không phải biến" {
 		t.Fatalf("%q %v", got, err)
 	}
@@ -101,7 +101,7 @@ func TestExpandVarsEscape(t *testing.T) {
 func TestResolveBoolInput(t *testing.T) {
 	sc := inputScript()
 	sc.Inputs = append(sc.Inputs, model.ScriptInput{Key: "on3", Type: model.InputBool, Default: true, Targets: []model.InputTarget{{StepID: "s3", Field: "enabled"}}})
-	out, err := resolveInputs(sc, map[string]any{"M1": "a", "on3": "false"})
+	out, err := ResolveInputs(sc, map[string]any{"M1": "a", "on3": "false"})
 	if err != nil || out.Steps[2].Enabled {
 		t.Fatalf("bool từ chuỗi: %v enabled=%v", err, out.Steps[2].Enabled)
 	}
@@ -109,7 +109,7 @@ func TestResolveBoolInput(t *testing.T) {
 
 func TestNoInputsKeepsScript(t *testing.T) {
 	sc := sampleScript()
-	out, err := resolveInputs(sc, nil)
+	out, err := ResolveInputs(sc, nil)
 	if err != nil || out.Steps[3].Text != "xin chào" {
 		t.Fatalf("%v %q", err, out.Steps[3].Text)
 	}
@@ -124,15 +124,15 @@ func TestCheckInputs(t *testing.T) {
 		"sai kiểu trường": `{"version":4,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"text","targets":[{"stepId":"s","field":"delayAfter"}]}]}`,
 	}
 	for name, in := range bad {
-		if _, err := decodeScript([]byte(in)); err == nil {
+		if _, err := DecodeScript([]byte(in)); err == nil {
 			t.Errorf("%s: muốn lỗi", name)
 		}
 	}
-	sc, err := decodeScript([]byte(`{"version":4,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"ms","targets":[{"stepId":"s","field":"delayAfter"},{"stepId":"x","field":"delayAfter"}]}]}`))
+	sc, err := DecodeScript([]byte(`{"version":4,"steps":[{"id":"s","type":"wait"}],"inputs":[{"key":"a","type":"ms","targets":[{"stepId":"s","field":"delayAfter"},{"stepId":"x","field":"delayAfter"}]}]}`))
 	if err != nil || len(sc.Inputs[0].Targets) != 1 {
 		t.Fatalf("bỏ ghim vào bước không còn: %v %+v", err, sc.Inputs)
 	}
-	if _, err := decodeScript([]byte(`{"version":3,"steps":[]}`)); err == nil || !strings.Contains(err.Error(), "bản cũ") {
+	if _, err := DecodeScript([]byte(`{"version":3,"steps":[]}`)); err == nil || !strings.Contains(err.Error(), "bản cũ") {
 		t.Errorf("file version cũ (danh sách bước) phải bị từ chối: %v", err)
 	}
 }

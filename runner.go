@@ -8,6 +8,7 @@ import (
 
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
+	"autoclicker/internal/script"
 	"autoclicker/internal/store"
 	"github.com/go-vgo/robotgo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -26,11 +27,11 @@ type runHandle struct {
 
 // ValidateScript áp giá trị input rồi kiểm tra như lúc chạy (frontend gọi trước khi thu cửa sổ thành mini bar).
 func (a *App) ValidateScript(sc model.Script, values map[string]any) error {
-	out, err := resolveInputs(sc, values)
+	out, err := script.ResolveInputs(sc, values)
 	if err != nil {
 		return err
 	}
-	return validateScript(out, device.MainScreen())
+	return script.ValidateScript(out, device.MainScreen())
 }
 
 // RunScript áp giá trị input (resolveInputs) vào bản sao kịch bản, đếm ngược opt.Countdown giây rồi chạy; chỉ trả về khi chạy xong / bị dừng
@@ -43,11 +44,11 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 	if opt.From != "" {
 		sc.Start, sc.Loops = opt.From, 1 // chạy từ node: một vòng, node trước đó không chạy (biến của chúng trống)
 	}
-	sc, err := resolveInputs(sc, values)
+	sc, err := script.ResolveInputs(sc, values)
 	if err != nil {
 		return err
 	}
-	if err := validateScript(sc, screen); err != nil {
+	if err := script.ValidateScript(sc, screen); err != nil {
 		return err
 	}
 	a.mu.Lock()

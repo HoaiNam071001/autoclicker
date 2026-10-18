@@ -61,7 +61,7 @@ const (
 	KeySequence = "sequence" // giữ phím kèm, gõ lần lượt từng phím chính rồi nhả phím kèm
 )
 
-// Point – toạ độ điểm trong vùng, mỗi trục neo riêng (anchor.go): Ax / Ay trống = start (cách cạnh trái / trên).
+// Point – toạ độ điểm trong vùng, mỗi trục neo riêng (script/anchor.go): Ax / Ay trống = start (cách cạnh trái / trên).
 // Điểm B kéo thả "lệch so với A" (DragRelative) là độ lệch, không dùng neo.
 type Point struct {
 	X  int    `json:"x"`
@@ -207,7 +207,7 @@ const (
 const ScriptVersion = 4
 
 type Script struct {
-	Version    int           `json:"version"` // định dạng file, xem storage.go
+	Version    int           `json:"version"` // định dạng file, xem ScriptVersion
 	Name       string        `json:"name"`
 	Region     *Rect         `json:"region"`     // nil = toàn màn hình (màn chính); toạ độ điểm neo theo cạnh vùng
 	Loops      int           `json:"loops"`      // 0 = vô hạn
@@ -216,7 +216,7 @@ type Script struct {
 	Start      string        `json:"start"`      // id node bắt đầu
 	Edges      []Edge        `json:"edges"`
 	AnchorMode string        `json:"anchorMode,omitempty"` // "" = góc gần nhất | start = luôn trên trái
-	Inputs     []ScriptInput `json:"inputs,omitempty"`     // giá trị hỏi khi bấm Chạy (inputs.go)
+	Inputs     []ScriptInput `json:"inputs,omitempty"`     // giá trị hỏi khi bấm Chạy (script/inputs.go)
 }
 
 // stepSeq – thêm vào id bước mới: gọi NewStep liên tiếp có thể cùng UnixNano (đồng hồ thô) → id trùng.

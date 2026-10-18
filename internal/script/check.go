@@ -1,0 +1,170 @@
+package script
+
+import (
+	"errors"
+	"fmt"
+	"slices"
+
+	"autoclicker/internal/model"
+)
+
+// Kiểm tra kịch bản lúc mở file: giá trị trong miền hợp lệ, bổ sung phần trống, sửa ref / cạnh hỏng.
+
+// checkScript kiểm tra giá trị nằm trong miền hợp lệ và bổ sung phần trống (slice nil, id / ref trùng, nút / cách bấm mặc định,
+// cạnh trỏ node không còn) để frontend dùng ngay được. Không kiểm tra đủ flow – validateFlow làm lúc Chạy.
+func checkScript(sc *model.Script) error {
+	if sc.Loops < 0 || sc.MaxMinutes < 0 {
+		return errors.New("số vòng / số phút không được âm")
+	}
+	if sc.Region != nil && (sc.Region.W <= 0 || sc.Region.H <= 0) {
+		return errors.New("vùng có kích thước không hợp lệ")
+	}
+	if sc.AnchorMode != model.AnchorNearest && sc.AnchorMode != model.AnchorTopLeft {
+		return fmt.Errorf("cách neo điểm không hợp lệ: %q", sc.AnchorMode)
+	}
+	if sc.Steps == nil {
+		sc.Steps = []model.Step{}
+	}
+	ids := map[string]bool{}
+	n := 0
+	for i := range sc.Steps {
+		s := &sc.Steps[i]
+		if err := checkStep(s); err != nil {
+			return fmt.Errorf("bước %d: %w", i+1, err)
+		}
+		for s.ID == "" || ids[s.ID] { // id trống / trùng (sửa tay file) → đặt id mới
+			n++
+			s.ID = fmt.Sprintf("f%d", n)
+		}
+		ids[s.ID] = true
+	}
+	FixRefs(sc.Steps)
+	checkEdges(sc, ids)
+	return checkInputs(sc)
+}
+
+// FixRefs đặt ref cho node chưa có / trùng / sai dạng: n1, n2… (số nhỏ nhất chưa dùng).
+func FixRefs(steps []model.Step) {
+	used := map[string]bool{}
+	bad := []int{}
+	for i, s := range steps {
+		if !model.ValidRef(s.Ref) || used[s.Ref] {
+			bad = append(bad, i)
+			continue
+		}
+		used[s.Ref] = true
+	}
+	n := 0
+	for _, i := range bad {
+		for n++; used[fmt.Sprintf("n%d", n)]; n++ {
+		}
+		steps[i].Ref = fmt.Sprintf("n%d", n)
+		used[steps[i].Ref] = true
+	}
+}
+
+// checkEdges bỏ cạnh hỏng (trỏ node không còn, thiếu cổng, trùng cổng – sửa tay file), đặt id cạnh trống / trùng;
+// start trỏ node không còn thì bỏ trống.
+func checkEdges(sc *model.Script, ids map[string]bool) {
+	if sc.Edges == nil {
+		sc.Edges = []model.Edge{}
+	}
+	out := sc.Edges[:0]
+	seenPort := map[[2]string]bool{}
+	seenID := map[string]bool{}
+	n := 0
+	for _, e := range sc.Edges {
+		key := [2]string{e.From, e.Port}
+		if !ids[e.From] || !ids[e.To] || e.Port == "" || seenPort[key] {
+			continue
+		}
+		seenPort[key] = true
+		for e.ID == "" || seenID[e.ID] {
+			n++
+			e.ID = fmt.Sprintf("e%d", n)
+		}
+		seenID[e.ID] = true
+		out = append(out, e)
+	}
+	sc.Edges = out
+	if !ids[sc.Start] {
+		sc.Start = ""
+	}
+}
+func checkStep(s *model.Step) error {
+	need := 0
+	switch s.Type {
+	case model.StepClick, model.StepDouble, model.StepHold, model.StepWaitPixel:
+		need = 1
+	case model.StepDrag:
+		need = 2
+	case model.StepWait, model.StepText, model.StepKey, model.StepOpen, model.StepScroll, model.StepWaitImage, model.StepClickImage:
+	case model.StepIf, model.StepSwitch, model.StepSwitchScreen, model.StepCounter, model.StepEnd, model.StepSetVar:
+		if err := checkControl(s); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("loại bước không hợp lệ: %q", s.Type)
+	}
+	if s.Direction != "" && !slices.Contains(model.ScrollDirections, s.Direction) {
+		return fmt.Errorf("hướng cuộn không hợp lệ: %q", s.Direction)
+	}
+	if s.ImageSource != "" && s.ImageSource != model.ImageFromNode && s.ImageSource != model.ImageFromSearch {
+		return fmt.Errorf("nguồn vị trí ảnh không hợp lệ: %q", s.ImageSource)
+	}
+	if r := s.Retry; r != nil && (r.Count < 0 || r.Count > model.MaxRetries || r.DelayMs < 0) {
+		return fmt.Errorf("số lần thử lại phải trong 0–%d, thời gian nghỉ không âm", model.MaxRetries)
+	}
+	if s.FindBy != "" && s.FindBy != model.FindByText {
+		return fmt.Errorf("cách tìm không hợp lệ: %q", s.FindBy)
+	}
+	if s.SearchArea != "" && s.SearchArea != "screen" {
+		return fmt.Errorf("vùng tìm không hợp lệ: %q", s.SearchArea)
+	}
+	if s.Threshold < 0 || s.Threshold > 100 || s.Tolerance < 0 || s.Tolerance > 255 || s.TemplateScale < 0 {
+		return errors.New("độ khớp / sai số màu / tỷ lệ ảnh mẫu ngoài khoảng cho phép")
+	}
+	if len(s.Points) < need {
+		return fmt.Errorf("thiếu điểm (cần %d)", need)
+	}
+	for _, p := range s.Points {
+		if !validAnchor(p.Ax) || !validAnchor(p.Ay) {
+			return fmt.Errorf("neo điểm không hợp lệ: %q / %q", p.Ax, p.Ay)
+		}
+	}
+	switch s.Button {
+	case "":
+		s.Button = "left"
+	case "left", "right", "center":
+	default:
+		return fmt.Errorf("nút chuột không hợp lệ: %q", s.Button)
+	}
+	switch s.KeyMode {
+	case "":
+		s.KeyMode = model.KeyChord
+	case model.KeyChord, model.KeySequence:
+	default:
+		return fmt.Errorf("cách bấm phím không hợp lệ: %q", s.KeyMode)
+	}
+	for _, m := range s.Modifiers {
+		if m != "cmd" && m != "ctrl" && m != "alt" && m != "shift" {
+			return fmt.Errorf("phím kèm không hợp lệ: %q", m)
+		}
+	}
+	if s.Clicks < 0 || s.ClickInterval < 0 || s.HoldMs < 0 || s.DragMs < 0 || s.DelayAfter < 0 || s.JitterMs < 0 || s.JitterPx < 0 || s.Amount < 0 || s.TimeoutMs < 0 || s.IntervalMs < 0 {
+		return errors.New("số lần / thời gian / ngẫu nhiên không được âm")
+	}
+	if s.Points == nil {
+		s.Points = []model.Point{}
+	}
+	if s.Keys == nil {
+		s.Keys = []string{}
+	}
+	if s.Modifiers == nil {
+		s.Modifiers = []string{}
+	}
+	return nil
+}
+func validAnchor(a string) bool {
+	return a == "" || a == AnchorStart || a == AnchorEnd || a == AnchorCenter || a == AnchorRatio
+}

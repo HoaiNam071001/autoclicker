@@ -11,6 +11,8 @@ import (
 
 	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
+	"autoclicker/internal/model/modeltest"
+	"autoclicker/internal/script"
 	"autoclicker/internal/vision"
 	"autoclicker/internal/vision/visiontest"
 )
@@ -74,7 +76,7 @@ func half(img *image.RGBA) *image.RGBA {
 }
 
 func imageScript(tpl string, tplScale float64, steps ...model.Step) model.Script {
-	wait := step(model.StepWaitImage, func(s *model.Step) { s.Template, s.TemplateScale, s.TimeoutMs, s.IntervalMs = tpl, tplScale, 2000, 1 })
+	wait := modeltest.Step(model.StepWaitImage, func(s *model.Step) { s.Template, s.TemplateScale, s.TimeoutMs, s.IntervalMs = tpl, tplScale, 2000, 1 })
 	return model.Script{Loops: 1, Region: &model.Rect{X: 0, Y: 0, W: 400, H: 300}, Steps: append([]model.Step{wait}, steps...)}
 }
 
@@ -83,7 +85,7 @@ func TestWaitImageThenClick(t *testing.T) {
 	with, _ := screenWithButton(1, true)
 	scr := &fakeScreen{frames: []image.Image{without, without, with}}
 	in := &devicetest.FakeInput{}
-	sc := imageScript(tpl, 1, step(model.StepClickImage, func(s *model.Step) { s.Dx = 5 }))
+	sc := imageScript(tpl, 1, modeltest.Step(model.StepClickImage, func(s *model.Step) { s.Dx = 5 }))
 	e := newEngine(in, linear(sc), nil)
 	e.scr = scr
 	if err := e.run(context.Background()); err != nil {
@@ -103,7 +105,7 @@ func TestWaitImageAcrossScales(t *testing.T) {
 		_, tpl := screenWithButton(c.tplScale, true)
 		screen, _ := screenWithButton(c.screenScale, true)
 		in := &devicetest.FakeInput{}
-		e := newEngine(in, linear(imageScript(tpl, float64(c.tplScale), step(model.StepClickImage, nil))), nil)
+		e := newEngine(in, linear(imageScript(tpl, float64(c.tplScale), modeltest.Step(model.StepClickImage, nil))), nil)
 		e.scr = &fakeScreen{frames: []image.Image{screen}}
 		if err := e.run(context.Background()); err != nil {
 			t.Fatalf("mẫu %dx, màn %dx: %v", c.tplScale, c.screenScale, err)
@@ -140,7 +142,7 @@ func TestWaitImageTimeout(t *testing.T) {
 func TestWaitPixel(t *testing.T) {
 	blue := color.RGBA{24, 119, 242, 255}
 	scr := &fakeScreen{colors: []color.RGBA{{255, 255, 255, 255}, {30, 115, 240, 255}}}
-	sc := model.Script{Loops: 1, Steps: []model.Step{step(model.StepWaitPixel, func(s *model.Step) {
+	sc := model.Script{Loops: 1, Steps: []model.Step{modeltest.Step(model.StepWaitPixel, func(s *model.Step) {
 		s.Points[0] = model.Point{X: 10, Y: 20}
 		s.Color, s.Tolerance, s.IntervalMs = vision.HexColor(blue), 10, 1
 	})}}
@@ -160,20 +162,20 @@ func TestWaitPixel(t *testing.T) {
 func TestValidateImageSteps(t *testing.T) {
 	_, tpl := screenWithButton(1, true)
 	cases := map[string][]model.Step{
-		"click theo bước trước nhưng không có chờ ảnh": {step(model.StepClickImage, nil)},
-		"chờ ảnh chưa có ảnh mẫu":                      {step(model.StepWaitImage, nil)},
-		"ảnh mẫu hỏng":                                 {step(model.StepWaitImage, func(s *model.Step) { s.Template = "abc" })},
-		"độ khớp 0":                                    {step(model.StepWaitImage, func(s *model.Step) { s.Template, s.Threshold = tpl, 0 })},
-		"màu sai":                                      {step(model.StepWaitPixel, func(s *model.Step) { s.Color = "xanh" })},
+		"click theo bước trước nhưng không có chờ ảnh": {modeltest.Step(model.StepClickImage, nil)},
+		"chờ ảnh chưa có ảnh mẫu":                      {modeltest.Step(model.StepWaitImage, nil)},
+		"ảnh mẫu hỏng":                                 {modeltest.Step(model.StepWaitImage, func(s *model.Step) { s.Template = "abc" })},
+		"độ khớp 0":                                    {modeltest.Step(model.StepWaitImage, func(s *model.Step) { s.Template, s.Threshold = tpl, 0 })},
+		"màu sai":                                      {modeltest.Step(model.StepWaitPixel, func(s *model.Step) { s.Color = "xanh" })},
 	}
 	for name, steps := range cases {
-		if err := validateScript(linear(model.Script{Steps: steps}), model.Rect{}); err == nil {
+		if err := script.ValidateScript(linear(model.Script{Steps: steps}), model.Rect{}); err == nil {
 			t.Errorf("%s: muốn lỗi", name)
 		}
 	}
-	ok := []model.Step{step(model.StepWaitImage, func(s *model.Step) { s.Template = tpl }), step(model.StepClickImage, nil),
-		step(model.StepDrag, func(s *model.Step) { s.DragFromPrev = true })}
-	if err := validateScript(linear(model.Script{Steps: ok}), model.Rect{}); err != nil {
+	ok := []model.Step{modeltest.Step(model.StepWaitImage, func(s *model.Step) { s.Template = tpl }), modeltest.Step(model.StepClickImage, nil),
+		modeltest.Step(model.StepDrag, func(s *model.Step) { s.DragFromPrev = true })}
+	if err := script.ValidateScript(linear(model.Script{Steps: ok}), model.Rect{}); err != nil {
 		t.Errorf("chờ ảnh → click theo ảnh → kéo từ điểm trước: %v", err)
 	}
 }
