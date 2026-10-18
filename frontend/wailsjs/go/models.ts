@@ -805,6 +805,12 @@ export namespace model {
 	    retry?: Retry;
 	    human?: string;
 	    numVars?: NumVar[];
+	    shotArea?: string;
+	    display?: number;
+	    shotRect?: Rect;
+	    saveDir?: string;
+	    fileName?: string;
+	    toClipboard?: boolean;
 	    color?: string;
 	    tolerance?: number;
 	    cond?: Cond;
@@ -877,6 +883,12 @@ export namespace model {
 	        this.retry = this.convertValues(source["retry"], Retry);
 	        this.human = source["human"];
 	        this.numVars = this.convertValues(source["numVars"], NumVar);
+	        this.shotArea = source["shotArea"];
+	        this.display = source["display"];
+	        this.shotRect = this.convertValues(source["shotRect"], Rect);
+	        this.saveDir = source["saveDir"];
+	        this.fileName = source["fileName"];
+	        this.toClipboard = source["toClipboard"];
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	        this.cond = this.convertValues(source["cond"], Cond);

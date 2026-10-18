@@ -63,3 +63,35 @@ func (f *FakeInput) Lines() []string {
 	defer f.mu.Unlock()
 	return append([]string(nil), f.log...)
 }
+
+// FakeClipboard – clipboard giả: giữ chữ / đường dẫn ảnh đã ghi.
+type FakeClipboard struct {
+	mu    sync.Mutex
+	Text  string
+	Image string // đường dẫn file PNG ghi lần cuối
+	Err   error  // != nil: mọi lệnh trả lỗi này
+}
+
+func (c *FakeClipboard) ReadText() (string, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.Text, c.Err
+}
+
+func (c *FakeClipboard) WriteText(t string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.Err == nil {
+		c.Text = t
+	}
+	return c.Err
+}
+
+func (c *FakeClipboard) WriteImage(p string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.Err == nil {
+		c.Image = p
+	}
+	return c.Err
+}

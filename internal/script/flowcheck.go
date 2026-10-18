@@ -73,6 +73,17 @@ func validateFlow(sc model.Script) error {
 				return stepErr(i, s, "imageFrom", "node %s không tìm ảnh / chữ nên không có chỗ thấy", sc.Steps[j].Ref)
 			}
 		}
+		if s.Type == model.StepScreenshot && s.ShotArea == model.ShotNode {
+			j, ok := idx[s.ImageFrom]
+			switch {
+			case s.ImageFrom == "":
+				return stepErr(i, s, "imageFrom", "chưa chọn node lấy khung chụp (Chờ ảnh / chữ, phần tử web…)")
+			case !ok:
+				return stepErr(i, s, "imageFrom", "node lấy khung chụp không còn trong kịch bản – chọn lại")
+			case !HasFoundBox(sc.Steps[j]):
+				return stepErr(i, s, "imageFrom", "node %s không có chỗ thấy (khung x, y, w, h trên màn hình)", sc.Steps[j].Ref)
+			}
+		}
 		if err := checkNumVarPins(sc, i, s); err != nil {
 			return err
 		}
@@ -89,6 +100,18 @@ func validateFlow(sc model.Script) error {
 // (chỗ thấy của điều kiện đúng đầu tiên).
 func findsImage(s model.Step) bool {
 	return s.Type == model.StepWaitImage || s.Type == model.StepClickImage && s.ImageSource == model.ImageFromSearch || s.Type == model.StepIf || s.Type == model.StepSwitchScreen
+}
+
+// HasFoundBox: output node có khung chỗ thấy trên màn hình (x, y = tâm, w, h) – chụp theo node (screenshot ShotNode).
+// Node web chạy nền trả toạ độ trong trang nên không dùng được. Cùng công thức hasFoundBox (frontend/src/flow/shot.ts).
+func HasFoundBox(s model.Step) bool {
+	switch s.Type {
+	case model.StepWebWait:
+		return !s.WebGone && !s.WebBackground
+	case model.StepWebClick:
+		return !s.WebBackground
+	}
+	return findsImage(s)
 }
 
 // UnreachableNodes – id các node không đi tới được từ start (sẽ không bao giờ chạy), theo thứ tự trong mảng.

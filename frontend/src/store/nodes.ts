@@ -47,7 +47,7 @@ export function insertNode(step: Step, notice: (ref: string) => string) {
 
 // Thêm node không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở, chờ ảnh…) – giá trị mặc định giống NewStep (model.go).
 // patch: sửa thêm sau mặc định (vd node Mở bằng Chrome của app).
-export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | WebType>, patch: Partial<Step> = {}) {
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | WebType>, patch: Partial<Step> = {}) {
   const defaults: Record<typeof type, Partial<Step>> = {
     wait: { clicks: 0, delayAfter: 1000 },
     type: { clicks: 0, delayAfter: 500 },
@@ -57,6 +57,7 @@ export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scrol
     waitImage: { clicks: 0, threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 300 },
     clickImage: { imageSource: 'node', imageFrom: nearestFinder(), threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 500 },
     waitPixel: { clicks: 0, points: [centerPoint(script().region)], color: '#000000', tolerance: 10, timeoutMs: 5000, intervalMs: 100, delayAfter: 300 },
+    screenshot: { clicks: 0, delayAfter: 300 },
     webWait: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
     webClick: { selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 500 },
     webType: { clicks: 0, selectors: ['text='], webClear: true, timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },

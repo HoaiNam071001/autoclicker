@@ -1,0 +1,32 @@
+// Node Chụp màn hình (bước 35 N1) – nhãn vùng chụp, dòng chi tiết thẻ, node nào có khung chỗ thấy để chụp theo.
+// Chạy ở internal/engine/shot.go; HasFoundBox (internal/script/flowcheck.go) cùng công thức hasFoundBox.
+import type { Step } from '../types';
+
+// '' = vùng của kịch bản (khớp model.ShotAreas)
+export type ShotArea = '' | 'screen' | 'rect' | 'node';
+export const SHOT_AREAS: { id: ShotArea; label: string }[] = [
+  { id: '', label: 'Vùng kịch bản' }, { id: 'screen', label: 'Cả màn' }, { id: 'rect', label: 'Vùng cố định' }, { id: 'node', label: 'Chỗ node thấy' },
+];
+export const DEFAULT_SHOT_DIR = 'Pictures/autoclicker';
+
+// Node có khung chỗ thấy trên màn hình (output x, y = tâm, w, h): chờ ảnh / chữ, click theo ảnh tự tìm, Nếu / Switch theo
+// màn hình, chờ / click phần tử web không chạy nền (chạy nền trả toạ độ trong trang).
+export function hasFoundBox(s: Pick<Step, 'type' | 'imageSource' | 'webGone' | 'webBackground'>): boolean {
+  switch (s.type) {
+    case 'waitImage': case 'if': case 'switchScreen': return true;
+    case 'clickImage': return s.imageSource === 'search';
+    case 'webWait': return !s.webGone && !s.webBackground;
+    case 'webClick': return !s.webBackground;
+  }
+  return false;
+}
+
+// Dòng chi tiết thẻ: vùng · tên file · clipboard. refOf: id node → mã (n2).
+export function fmtShot(s: Step, refOf: (id: string) => string): string {
+  const area = s.shotArea === 'screen' ? (s.display ? `màn ${s.display}` : 'cả màn')
+    : s.shotArea === 'rect' ? (s.shotRect ? `vùng ${s.shotRect.w} × ${s.shotRect.h} tại ${s.shotRect.x}, ${s.shotRect.y}` : 'chưa chọn vùng')
+    : s.shotArea === 'node' ? `chỗ ${s.imageFrom ? refOf(s.imageFrom) : '(chưa chọn node)'} thấy`
+    : 'vùng kịch bản';
+  const name = s.fileName?.trim() ? `${s.fileName.trim().replace(/\.png$/i, '')}.png` : 'tên theo giờ';
+  return `${area} → ${name}${s.toClipboard ? ' · chép clipboard' : ''}`;
+}

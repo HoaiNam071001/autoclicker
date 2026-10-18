@@ -1,0 +1,45 @@
+{
+ "meta": {
+  "name": "Chụp màn hình – chụp chỗ thấy chữ + cả màn",
+  "description": "Trang Tín hiệu hiện ĐÃ XONG sau 2–6 s; chờ thấy chữ rồi chụp đúng khung chữ đó (chép luôn vào clipboard) và chụp cả màn. Ảnh lưu vào Pictures/autoclicker. Đúng: lời kết thúc ghi 2 đường dẫn ảnh; dán (Cmd/Ctrl+V) vào app chat / Paint ra ảnh chữ ĐÃ XONG.",
+  "app": "Chờ / tìm",
+  "level": 1,
+  "page": "signal.html",
+  "real": false,
+  "prep": "Cần quyền ghi màn hình (macOS: Screen Recording)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/signal.html",
+    "delayAfter": 500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "DA XONG",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 15000
+   },
+   {
+    "type": "screenshot",
+    "shotArea": "node",
+    "imageFrom": "s2",
+    "fileName": "mau-thu-chu-da-xong",
+    "toClipboard": true
+   },
+   {
+    "type": "screenshot",
+    "shotArea": "screen",
+    "fileName": "mau-thu-ca-man"
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã lưu {{n3.output.path}} ({{n3.output.w}} × {{n3.output.h}}) và {{n4.output.path}}"
+   }
+  ]
+ }
+}

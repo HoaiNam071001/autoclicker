@@ -34,6 +34,12 @@ const GROUPS: PaletteGroup[] = [
     ],
   },
   {
+    // bước 35: node nâng cao – hệ thống, tệp, API
+    name: 'Hệ thống & dữ liệu', items: [
+      { icon: 'screenshot', label: 'Chụp màn hình', info: NODE_INFO.screenshot, keywords: 'screenshot chup anh man hinh luu png clipboard bang chung', run: () => addStep('screenshot') },
+    ],
+  },
+  {
     name: 'Ứng dụng & cấu trúc', items: [
       { icon: 'open', label: 'Mở URL / app', info: NODE_INFO.open, keywords: 'url web link trinh duyet ung dung open youtube', run: () => addStep('open') },
       { icon: 'focusWindow', label: 'Focus cửa sổ', info: NODE_INFO.focusWindow, keywords: 'window cua so ung dung', soon: 'bước 26' },

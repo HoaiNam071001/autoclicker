@@ -113,6 +113,13 @@ func checkStep(s *model.Step) error {
 		need = 1
 	case model.StepDrag:
 		need = 2
+	case model.StepScreenshot:
+		if !slices.Contains(model.ShotAreas, s.ShotArea) {
+			return fmt.Errorf("vùng chụp không hợp lệ: %q (trống = vùng của kịch bản | screen | rect | node)", s.ShotArea)
+		}
+		if s.Display < 0 {
+			return errors.New("số thứ tự màn hình không được âm")
+		}
 	case model.StepWait, model.StepText, model.StepKey, model.StepOpen, model.StepScroll, model.StepWaitImage, model.StepClickImage,
 		model.StepWebWait, model.StepWebClick, model.StepWebType, model.StepWebRead, model.StepWebScroll:
 		if err := checkWebFields(s); err != nil {

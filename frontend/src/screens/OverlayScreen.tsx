@@ -3,8 +3,8 @@
 import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { MousePos } from '../../wailsjs/go/main/App';
 import {
-  boundsOf, cancelDragA, cancelPick, endpoints, getEditor, hasPoints, movePoint, pickingStep, placePoint, placingType, pointKey, refOf,
-  regionMapping, RegionMapMode, selectedScreenPoints, selectStep, selectToolKey, setDragMode, setFocusLock, setMulti, setRegion,
+  boundsOf, cancelPick, endpoints, hasPoints, movePoint, pickingStep, placePoint, placingType, pointKey, refOf,
+  regionMapping, RegionMapMode, selectedScreenPoints, selectStep, setDragMode, setFocusLock, setMulti, setRegion,
   setRegionMapped, startPick, transformedSteps, useEditor,
 } from '../store';
 import { frameRect, MapDialog, modKeyName, paramsPreview, TransformBar, TransformFrame, useTransformGesture } from '../components/TransformTool';
@@ -15,7 +15,7 @@ import { addSample, currentMapping, isMeasured, resetSamples, toClientPt, toScre
 import { scrollRange, useSimulation } from '../components/Simulation';
 import SimulationLayer from '../components/simulation/SimulationLayer';
 import { PageBackdrop, usePageKind } from '../components/MockPage';
-import { captureTargetStep, useImageState } from '../imageSteps';
+import { captureTargetStep, capturesRect, useImageState } from '../imageSteps';
 import { Eye, Region, SelectIcon, StepIcon } from '../components/icons';
 import { anchorLinesOf, buildMarkers, MIN_REGION, rectOf, scrollArrowsOf } from '../overlay/geometry';
 import { overlayHint } from '../overlay/hint';
@@ -24,13 +24,12 @@ import { CaptureBox, FindBoxes, RegionBox } from '../components/overlay/Shapes';
 import { JitterBoxes, MarkerDots, OverlayLines } from '../components/overlay/MarkerLayer';
 import { CoordInfo, Crosshair, HintPill } from '../components/overlay/Hud';
 import { OverlayToolbar, TOOLS } from '../components/overlay/OverlayToolbar';
+import { useOverlayKeys } from '../components/overlay/useOverlayKeys';
 
 const CALIBRATE_MS = 150; // chuột đứng yên bao lâu thì lấy mẫu đo toạ độ (coordMap.ts)
 const MIN_MOVE = 3; // px – kéo marker ít hơn coi như click (chọn bước)
 const TOP_EDGE = 12; // px – chuột sát mép trên thì hiện thanh công cụ
 const NOTICE_MS = 3500; // thông báo trong gợi ý tự tắt
-
-const isMac = navigator.platform.startsWith('Mac');
 
 // Marker đang được kéo: bước, điểm thứ mấy, vị trí bấm xuống (toạ độ cửa sổ), đã kéo đủ xa chưa.
 type Moving = { id: string; index: number; from: Point; moved: boolean };
@@ -85,44 +84,11 @@ export default function OverlayScreen() {
   const gestureRef = useRef(gesture);
   gestureRef.current = gesture;
 
-  useEffect(() => {
-    resetSamples(); // overlay có thể đang mở trên màn khác lần trước
-    const onKey = (e: KeyboardEvent) => {
-      // Chọn nhiều: mod+A, mũi tên – trừ khi đang gõ trong ô số hoặc đang chờ chọn cách đổi vùng
-      if (toolRef.current === 'select' && !(e.target as HTMLElement).closest('input') && !pendingRef.current
-        && selectToolKey(e.key, isMac ? e.metaKey : e.ctrlKey, e.shiftKey)) return e.preventDefault();
-      if (e.key === 'Enter' && capRef.current && toolRef.current === 'capture') {
-        e.preventDefault();
-        return capture.use();
-      }
-      if (e.key !== 'Escape') return;
-      // Đang kéo vùng / marker thì Esc chỉ huỷ thao tác đó.
-      if (gestureRef.current.cancel()) return;
-      if (simRef.current.running) simRef.current.stop(); // xem trước đang chạy → Esc chỉ dừng
-      else if (movingRef.current) setMoving(null);
-      else if (dragRef.current) setDragFrom(null);
-      else if (capRef.current) setCap(null); // khoanh ảnh: Esc = khoanh lại
-      else if (cancelDragA()) return;
-      else if (repickRef.current) {
-        cancelPick();
-        setRepicking(false);
-      } else if (toolRef.current === 'select' && getEditor().multi.length) setMulti([]); // Esc bỏ chọn trước
-      else setWindowMode('main');
-    };
-    const onAlt = (e: KeyboardEvent) => setAlt(e.altKey);
-    window.addEventListener('keydown', onKey);
-    window.addEventListener('keydown', onAlt);
-    window.addEventListener('keyup', onAlt);
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      window.removeEventListener('keydown', onAlt);
-      window.removeEventListener('keyup', onAlt);
-      clearTimeout(timer.current);
-      // Thoát overlay (Esc / Xong) mà chưa chọn lại điểm → huỷ. Chỉ khi đã rời overlay thật: StrictMode (wails dev)
-      // gỡ rồi gắn lại màn ngay khi mở – huỷ lúc đó sẽ mất loại bước (Double click / Giữ chuột) và chỗ chèn từ Ctrl+K.
-      if (location.hash !== '#overlay') cancelPick();
-    };
-  }, []);
+  useOverlayKeys({
+    toolRef, pendingRef, capRef, useCapture: capture.use, gestureRef, simRef, movingRef, dragRef, repickRef,
+    clearMoving: () => setMoving(null), clearDrag: () => setDragFrom(null), clearCap: () => setCap(null), endRepick: () => setRepicking(false), setAlt,
+    onLeave: () => clearTimeout(timer.current),
+  });
 
   useEffect(() => setDragMode(tool === 'drag'), [tool]);
   useEffect(() => setTf(NO_TF), [multi.join(), tool]); // đổi lựa chọn → bỏ số đang nhập dở trên thanh biến đổi
@@ -251,7 +217,7 @@ export default function OverlayScreen() {
 
   const captureStep = captureTargetStep();
   const hint = overlayHint({
-    focusStep, repicking, dragA: !!dragA, tool, captured: !!cap, captureRef: captureStep ? refOf(captureStep) : null,
+    focusStep, repicking, dragA: !!dragA, tool, captured: !!cap, captureRef: captureStep ? refOf(captureStep) : null, captureRect: capturesRect(),
     selected: multi.length, picking: !!picking, placing: placingType(), modKey: modKeyName,
   });
   const hintIcon = preview ? <Eye className="h-3 w-3" /> : tool === 'region' && !focus ? <Region className="h-3 w-3" />
@@ -273,7 +239,7 @@ export default function OverlayScreen() {
       {preview && <PageBackdrop kind={pageKind} rect={toClientRect(boundsOf(region))} s={1 / map.kx} offset={sim.offset} range={scrollRange(steps)} />}
       {!preview && <FindBoxes steps={steps} finds={finds} focus={focus} toClient={toClient} />}
       {capShown && (
-        <CaptureBox rect={capShown} size={toScreenRect(capShown)} confirmed={!!cap && !dragFrom} busy={capture.busy} err={capture.err}
+        <CaptureBox forRect={capturesRect()} rect={capShown} size={toScreenRect(capShown)} confirmed={!!cap && !dragFrom} busy={capture.busy} err={capture.err}
           onUse={capture.use} onRedo={capture.reset} />
       )}
       {shown && <RegionBox rect={shown} size={shownSize} dim={!!focus} />}

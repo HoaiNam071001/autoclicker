@@ -16,6 +16,8 @@ describe('overlayHint', () => {
   });
   it('khoanh ảnh: ghi node nhận ảnh hoặc tạo node mới', () => {
     expect(overlayHint({ ...base, tool: 'capture', captureRef: 'n4' })).toContain('(n4)');
+    expect(overlayHint({ ...base, tool: 'capture', captureRef: 'n5', captureRect: true })).toBe('Kéo khung quanh vùng cần chụp (n5)');
+    expect(overlayHint({ ...base, tool: 'capture', captureRef: 'n5', captureRect: true, captured: true })).toContain('dùng vùng này');
     expect(overlayHint({ ...base, tool: 'capture' })).toContain('tạo bước Chờ ảnh mới');
     expect(overlayHint({ ...base, tool: 'capture', captured: true })).toMatch(/^Enter/);
   });

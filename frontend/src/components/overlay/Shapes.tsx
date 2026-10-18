@@ -39,8 +39,9 @@ export function FindBoxes({ steps, finds, focus, toClient }: { steps: Step[]; fi
 }
 
 // Khoanh ảnh mẫu: tối ngoài khung, nhãn cỡ thật, 4 núm; confirmed (đã thả chuột) → nút Dùng ảnh này / Khoanh lại.
-export function CaptureBox({ rect: r, size, confirmed, busy, err, onUse, onRedo }: {
-  rect: Rect; size: Size; confirmed: boolean; busy: boolean; err: string; onUse: () => void; onRedo: () => void;
+// forRect: khoanh vùng chụp cho node Chụp màn hình – nút ghi "Dùng vùng này".
+export function CaptureBox({ rect: r, size, confirmed, busy, err, onUse, onRedo, forRect = false }: {
+  rect: Rect; size: Size; confirmed: boolean; busy: boolean; err: string; onUse: () => void; onRedo: () => void; forRect?: boolean;
 }) {
   const { left, top, labelTop } = captureLayout(r, safeArea(), window.innerWidth, confirmed);
   return (
@@ -55,7 +56,7 @@ export function CaptureBox({ rect: r, size, confirmed, busy, err, onUse, onRedo 
       {confirmed && (
         <div data-ui className="absolute flex items-center gap-2 rounded-xl bg-hud/95 p-1.5 shadow-[0_8px_24px_rgb(0_0_0/.4)]" style={{ left, top }}>
           <button onClick={onUse} disabled={busy} className="btn-primary h-[38px] rounded-lg px-3.5 font-semibold disabled:opacity-60">
-            {busy ? 'Đang chụp…' : <>Dùng ảnh này <span className="font-mono text-[11px] font-normal opacity-75">Enter</span></>}
+            {busy ? 'Đang chụp…' : <>{forRect ? 'Dùng vùng này' : 'Dùng ảnh này'} <span className="font-mono text-[11px] font-normal opacity-75">Enter</span></>}
           </button>
           <button onClick={onRedo} className="h-[38px] rounded-lg bg-white/10 px-3.5 text-hud-text hover:bg-white/15">Khoanh lại <span className="font-mono text-[11px] opacity-60">Esc</span></button>
           {err && <span className="max-w-[360px] px-1.5 text-xs text-danger-text">{err}</span>}

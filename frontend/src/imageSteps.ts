@@ -49,6 +49,8 @@ export async function requestCapture() {
 let captureTarget: string | null = null; // bước nhận ảnh mẫu; null = tạo bước Chờ ảnh mới
 let captureCond: CondAt | null = null; // ảnh mẫu cho điều kiện của node Nếu / case; null = của chính node
 export const captureTargetStep = () => captureTarget;
+// Khoanh cho node Chụp màn hình (bước 35 N1): lấy vùng (shotRect), không chụp ảnh mẫu.
+export const capturesRect = () => !captureCond && getEditor().script.steps.find((s) => s.id === captureTarget)?.type === 'screenshot';
 
 export function startCapture(stepId: string | null, at: CondAt | null = null) {
   captureTarget = stepId;
@@ -70,6 +72,13 @@ export function addTextStep(type: 'waitImage' | 'clickImage') {
 
 // "Dùng ảnh này" trên overlay: chụp vùng r (toạ độ màn hình thật) – Go ẩn cửa sổ lúc chụp – ghi vào bước, về màn chính.
 export async function applyCapture(r: Rect): Promise<string | null> {
+  if (capturesRect()) {
+    updateStep(captureTarget!, { shotArea: 'rect', shotRect: r });
+    setNotice(`Đã chọn vùng chụp ${r.w} × ${r.h}`);
+    captureTarget = null;
+    await setWindowMode('main');
+    return null;
+  }
   if (!inWails) return 'Chỉ chụp được trong app';
   try {
     const shot = await CaptureTemplate(model.Rect.createFrom(r));

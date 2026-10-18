@@ -221,19 +221,11 @@ func (e *Engine) clickImage(ctx context.Context, s model.Step) (map[string]any, 
 		}
 		out, p, box = h.output(), h.center(), h.Box
 	} else {
-		r := e.results[s.ImageFrom]
-		ref := e.byID[s.ImageFrom].Ref
-		if r == nil || r.Status != model.StatusSuccess {
-			return nil, fmt.Errorf("node %s chưa tìm thấy gì trong vòng này (chưa chạy hoặc lần gần nhất thất bại)", ref)
+		c, b, err := e.nodeBox(s.ImageFrom)
+		if err != nil {
+			return nil, err
 		}
-		x, okX := r.Output["x"].(int)
-		y, okY := r.Output["y"].(int)
-		if !okX || !okY {
-			return nil, fmt.Errorf("node %s không có chỗ thấy (output x / y)", ref)
-		}
-		w, _ := r.Output["w"].(int)
-		h, _ := r.Output["h"].(int)
-		out, p, box = map[string]any{}, model.Point{X: x, Y: y}, model.Rect{W: w, H: h}
+		out, p, box = map[string]any{}, c, b
 	}
 	at := e.aim(model.Point{X: p.X + s.Dx, Y: p.Y + s.Dy}, box, s.Dx, s.Dy)
 	x, y := e.jitter(at.X, s.JitterPx), e.jitter(at.Y, s.JitterPx)

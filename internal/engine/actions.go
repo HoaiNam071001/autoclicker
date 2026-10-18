@@ -74,6 +74,8 @@ func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[strin
 		return e.webRead(ctx, s)
 	case model.StepWebScroll:
 		return e.webScroll(ctx, s)
+	case model.StepScreenshot:
+		return e.screenshot(ctx, s)
 	case model.StepWaitPixel:
 		c, err := e.waitPixel(ctx, s)
 		if err != nil {

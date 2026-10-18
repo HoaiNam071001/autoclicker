@@ -9,6 +9,7 @@ export type HintState = {
   tool: OverlayTool;
   captured: boolean; // khoanh ảnh: đã có khung, chờ Dùng ảnh này
   captureRef: string | null; // mã node sẽ nhận ảnh mẫu, null = tạo node Chờ ảnh mới
+  captureRect?: boolean; // khoanh vùng cho node Chụp màn hình, không phải ảnh mẫu
   selected: number; // số điểm đang chọn (Chọn nhiều)
   picking: boolean; // đang chọn lại điểm của node có sẵn
   placing: StepType; // loại node sẽ thêm khi đặt điểm
@@ -28,6 +29,7 @@ export function overlayHint(h: HintState): string {
     case 'region':
       return 'Kéo để khoanh vùng';
     case 'capture':
+      if (h.captureRect) return h.captured ? 'Enter: dùng vùng này · kéo lại hoặc Esc: khoanh lại' : `Kéo khung quanh vùng cần chụp (${h.captureRef})`;
       return h.captured ? 'Enter: dùng ảnh này · kéo lại hoặc Esc: khoanh lại'
         : `Kéo khung sát quanh nút / chữ cần chờ${h.captureRef ? ` (${h.captureRef})` : ' – tạo bước Chờ ảnh mới'}`;
     case 'select':

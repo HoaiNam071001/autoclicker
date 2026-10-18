@@ -18,6 +18,9 @@ const (
 	StepClickImage = "clickImage" // click vào chỗ thấy ảnh: output của node ImageFrom (ImageSource node) hoặc tự tìm
 	StepWaitPixel  = "waitPixel"  // chờ tới khi điểm Points[0] có màu Color (± Tolerance)
 
+	// Node nâng cao (bước 35)
+	StepScreenshot = "screenshot" // chụp vùng ShotArea, lưu PNG vào SaveDir / FileName, tuỳ chọn chép vào clipboard (engine/shot.go)
+
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
 	StepWebWait   = "webWait"   // chờ tới khi phần tử hiện (WebGone: mất)
 	StepWebClick  = "webClick"  // chờ phần tử hiện rồi click vào tâm (+ Dx / Dy)
@@ -36,7 +39,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
@@ -47,32 +50,6 @@ func IsControl(t string) bool {
 	}
 	return false
 }
-
-// Nguồn vị trí của bước click theo ảnh (Step.ImageSource).
-const (
-	ImageFromNode   = "node"   // chỗ node ImageFrom (chờ ảnh / chữ, click theo ảnh tự tìm) tìm thấy lần chạy gần nhất
-	ImageFromSearch = "search" // tự tìm ảnh mẫu riêng của bước
-)
-
-// Mức thao tác giống người (Script.Human, Step.Human – bước 34, internal/humanize). Kịch bản "" = tắt; node "" = theo
-// kịch bản. Kịch bản mới (NewScript) bật sẵn mức vừa.
-const (
-	HumanOff    = "off"
-	HumanLow    = "low"
-	HumanMedium = "medium"
-	HumanHigh   = "high"
-)
-
-var HumanLevels = []string{HumanOff, HumanLow, HumanMedium, HumanHigh}
-
-// Hướng cuộn (Step.Direction).
-var ScrollDirections = []string{"up", "down", "left", "right"}
-
-// Cách bấm khi bước phím có nhiều phím chính (Step.KeyMode).
-const (
-	KeyChord    = "chord"    // nhấn giữ phím kèm + mọi phím chính cùng lúc rồi nhả (vd Ctrl+C+T)
-	KeySequence = "sequence" // giữ phím kèm, gõ lần lượt từng phím chính rồi nhả phím kèm
-)
 
 // Point – toạ độ điểm trong vùng, mỗi trục neo riêng (script/anchor.go): Ax / Ay trống = start (cách cạnh trái / trên).
 // Điểm B kéo thả "lệch so với A" (DragRelative) là độ lệch, không dùng neo.
@@ -149,7 +126,7 @@ type Step struct {
 	IntervalMs    int     `json:"intervalMs,omitempty"`    // kiểm tra mỗi
 	SearchArea    string  `json:"searchArea,omitempty"`    // "" = vùng của kịch bản | screen = cả màn chứa vùng (không có vùng: màn chính)
 	ImageSource   string  `json:"imageSource,omitempty"`   // clickImage: node | search
-	ImageFrom     string  `json:"imageFrom,omitempty"`     // clickImage ImageSource node: id node lấy chỗ thấy
+	ImageFrom     string  `json:"imageFrom,omitempty"`     // clickImage ImageSource node / screenshot ShotArea node: id node lấy chỗ thấy
 	Dx            int     `json:"dx,omitempty"`            // clickImage / webClick: lệch so với tâm ảnh / phần tử
 	Dy            int     `json:"dy,omitempty"`
 	FindBy        string  `json:"findBy,omitempty"`       // waitImage / clickImage tự tìm: "" = ảnh mẫu | text = chữ
@@ -160,9 +137,16 @@ type Step struct {
 	Retry         *Retry  `json:"retry,omitempty"`        // thất bại thì thử lại; hết lượt vẫn lỗi → cổng fail
 	Human         string  `json:"human,omitempty"`        // mức giống người của node: "" = theo kịch bản | off | low | medium | high
 	// Ô số lấy từ biến (F5c): mỗi trường số trong NumVarFieldsOf một dòng – giá trị lúc chạy thay cho trường đó.
-	NumVars   []NumVar `json:"numVars,omitempty"`
-	Color     string   `json:"color,omitempty"`     // waitPixel: #RRGGBB
-	Tolerance int      `json:"tolerance,omitempty"` // waitPixel: sai số mỗi kênh màu (0–255)
+	NumVars []NumVar `json:"numVars,omitempty"`
+	// Chụp màn hình (bước 35 N1)
+	ShotArea    string `json:"shotArea,omitempty"`    // ShotAreas: "" = vùng của kịch bản | screen | rect | node (ImageFrom)
+	Display     int    `json:"display,omitempty"`     // shotArea screen: 0 = màn chứa vùng kịch bản (không vùng: màn chính), n = màn thứ n
+	ShotRect    *Rect  `json:"shotRect,omitempty"`    // shotArea rect: vùng chụp, toạ độ màn hình
+	SaveDir     string `json:"saveDir,omitempty"`     // thư mục lưu ("" = Pictures/autoclicker, ~ = thư mục người dùng); nhận {{biến}}
+	FileName    string `json:"fileName,omitempty"`    // tên file ("" = autoclicker-<ngày>-<giờ>; tự thêm .png, trùng thì thêm số); nhận {{biến}}
+	ToClipboard bool   `json:"toClipboard,omitempty"` // chép ảnh vào clipboard
+	Color       string `json:"color,omitempty"`       // waitPixel: #RRGGBB
+	Tolerance   int    `json:"tolerance,omitempty"`   // waitPixel: sai số mỗi kênh màu (0–255)
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>

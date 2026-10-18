@@ -50,6 +50,11 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if s.WebBrowser && launch.TargetKind(s.Target) == launch.TargetApp {
 				return stepErr(i, s, "target", "Chrome của app chỉ mở được URL / file, không mở được app “%s”", s.Target)
 			}
+		case model.StepScreenshot:
+			// vùng theo node: nguồn đã kiểm tra ở validateFlow
+			if r := s.ShotRect; s.ShotArea == model.ShotRect && (r == nil || r.W <= 0 || r.H <= 0) {
+				return stepErr(i, s, "shotRect", "chưa chọn vùng chụp")
+			}
 		case model.StepWaitImage, model.StepClickImage:
 			// click theo chỗ node khác thấy: nguồn đã kiểm tra ở validateFlow
 			if s.Type == model.StepWaitImage || s.ImageSource == model.ImageFromSearch {

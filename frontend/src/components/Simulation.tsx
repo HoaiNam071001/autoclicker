@@ -1,8 +1,9 @@
 // Xem trước kịch bản: con trỏ giả chạy theo các bước trên overlay, không điều khiển chuột thật.
 import { useEffect, useRef, useState } from 'react';
-import { boundsOf, endpoints } from '../store';
+import { boundsOf, endpoints, refOf } from '../store';
 import { orderedSteps } from '../flow/model';
 import { fmtSelectors } from '../flow/web';
+import { fmtShot } from '../flow/shot';
 import { fmtKey } from '../keys';
 import { effectiveHuman } from '../flow/human';
 import { curveAt, HUMAN_PROFILES, humanLegs } from '../overlay/humanPath';
@@ -231,6 +232,10 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges' | 'hu
             if (e?.start) await travel(e.start, s);
             patch({ bubble: `Chờ màu ${s.color} ±${s.tolerance}` });
             await wait(Math.min(s.timeoutMs ?? 0, 800));
+            break;
+          case 'screenshot':
+            patch({ bubble: `📷 Chụp ${fmtShot(s, refOf)}` });
+            await wait(KEY_SHOW_MS);
             break;
           case 'wait':
             break;

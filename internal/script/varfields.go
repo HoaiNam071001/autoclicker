@@ -54,6 +54,9 @@ func VarFields(s *model.Step) []VarField {
 				add(fmt.Sprintf("scrollIn[%d]", i), &s.ScrollIn[i], false)
 			}
 		}
+	case model.StepScreenshot:
+		add("saveDir", &s.SaveDir, false)
+		add("fileName", &s.FileName, false)
 	case model.StepOpen:
 		add("target", &s.Target, launch.TargetKind(s.Target) == launch.TargetURL)
 	case model.StepIf:

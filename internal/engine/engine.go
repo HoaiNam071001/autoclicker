@@ -49,6 +49,7 @@ type Engine struct {
 	open       func(target, app string) error // bước Mở – test thay bằng hàm ghi lại
 	scr        device.Screen                  // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
 	ocr        device.TextReader              // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
+	clip       device.Clipboard               // clipboard (chụp màn hình chép ảnh – shot.go) – test thay bằng bản giả
 	browser    web.Browser                    // node web (webstep.go) – nil = không điều khiển trình duyệt
 
 	onNode  func(model.StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
@@ -77,7 +78,7 @@ type Engine struct {
 }
 
 func newEngine(in device.Input, sc model.Script, onProgress func(Progress)) *Engine {
-	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{},
+	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, clip: device.SystemClipboard{},
 		rng: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))}
 }
 

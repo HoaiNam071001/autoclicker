@@ -23,6 +23,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   clickImage: { desc: 'Tìm ảnh mẫu trên màn hình rồi bấm vào đó.', use: 'Nút không nằm cố định (đổi chỗ theo cửa sổ, theo trang đã cuộn).' },
   clickText: { desc: 'Tìm một dòng chữ trên màn hình rồi bấm vào đó.', use: 'Bấm nút / liên kết theo tên hiện trên màn, vd “Đăng nhập”, “Xem thêm”.' },
   waitPixel: { desc: 'Chờ tới khi một điểm trên màn hình có đúng màu cho trước.', use: 'Đèn trạng thái đổi màu, thanh tiến độ đầy, nút chuyển từ xám sang xanh.' },
+  screenshot: { desc: 'Chụp vùng kịch bản, cả màn, vùng cố định hoặc đúng chỗ node trước thấy, lưu PNG; chép vào clipboard được.', use: 'Lưu bằng chứng sau khi đặt hàng / chuyển tiền, chụp kết quả để gửi đi.' },
   webWait: { desc: 'Chờ phần tử trong trang web (theo chữ, nhãn, CSS…) hiện ra hoặc biến mất.', use: 'Đợi trang tải xong, đợi kết quả tìm kiếm – nhanh và chắc hơn chờ ảnh.' },
   webClick: { desc: 'Tìm phần tử trong trang web theo chữ / nhãn rồi bấm vào bằng chuột.', use: 'Trang hay đổi bố cục / theme khiến ảnh mẫu không còn khớp.' },
   webType: { desc: 'Tìm ô nhập trong trang web, bấm vào rồi gõ chữ (xoá chữ cũ nếu muốn).', use: 'Điền form đăng ký, ô tìm kiếm, bình luận.' },
