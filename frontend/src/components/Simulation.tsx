@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { boundsOf, endpoints } from '../store';
 import { orderedSteps } from '../flow/model';
 import { fmtSelectors } from '../flow/web';
-import { fmtKey, Point, Rect, SCROLL_ARROW, scrollDelta, ScrollDirection, Step, stepLabel, Script } from '../types';
+import { fmtKey } from '../keys';
+import { Point, Rect, SCROLL_ARROW, scrollDelta, ScrollDirection, Step, stepLabel, Script } from '../types';
 import ScrollProgress from './simulation/ScrollProgress';
 
 const TRAVEL_MS = 300; // thời gian con trỏ giả bay tới điểm (engine thật dịch chuyển tức thì)

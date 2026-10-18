@@ -41,7 +41,8 @@ func (e *Engine) pointAt(p model.Point) (model.Point, error) {
 }
 
 // runStep chạy hành động của node; output là giá trị node trả về cho node sau ({{nX.output.key}}).
-func (e *Engine) runStep(ctx context.Context, s model.Step) (map[string]any, error) {
+// wait: thời gian chờ sau node (delayAfter đã tính) – output ms của node Chờ.
+func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[string]any, error) {
 	switch s.Type {
 	case model.StepWaitImage:
 		h, err := e.findImage(ctx, s)
@@ -71,15 +72,7 @@ func (e *Engine) runStep(ctx context.Context, s model.Step) (map[string]any, err
 	if err := e.doStep(ctx, s); err != nil {
 		return nil, err
 	}
-	switch s.Type {
-	case model.StepClick, model.StepDouble, model.StepHold, model.StepDrag:
-		return map[string]any{"x": e.last.X, "y": e.last.Y}, nil // chỗ chuột dừng
-	case model.StepText:
-		return map[string]any{"text": s.Text}, nil
-	case model.StepOpen:
-		return map[string]any{"target": s.Target}, nil
-	}
-	return nil, nil
+	return e.actionOutput(s, wait), nil
 }
 
 // doStep – hành động của các node không tìm ảnh (chuột, phím, cuộn, mở).

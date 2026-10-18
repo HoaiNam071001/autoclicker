@@ -74,7 +74,7 @@ func TestValidateFlowCoordVars(t *testing.T) {
 	}
 	bad := map[string][2]string{
 		`không có output "x" – có: text`: {"{{n2.output.x}}", "1"},
-		"không phải số – toạ độ dùng":    {"{{n1.status}}", "1"},
+		"không phải số – ô số dùng":      {"{{n1.status}}", "1"},
 		"“{{n1.output.y}} +” sai dạng":   {"1", "{{n1.output.y}} +"},
 		"chưa nhập toạ độ Y":             {"{{n1.output.x}}", ""},
 		"không có trong kịch bản":        {"{{n9.output.x}}", "1"},

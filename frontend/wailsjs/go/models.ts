@@ -473,6 +473,20 @@ export namespace model {
 	        this.msg = source["msg"];
 	    }
 	}
+	export class NumVar {
+	    field: string;
+	    expr: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NumVar(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.field = source["field"];
+	        this.expr = source["expr"];
+	    }
+	}
 	
 	export class Pos {
 	    x: number;
@@ -789,6 +803,7 @@ export namespace model {
 	    textNoAccent?: boolean;
 	    occurrence?: number;
 	    retry?: Retry;
+	    numVars?: NumVar[];
 	    color?: string;
 	    tolerance?: number;
 	    cond?: Cond;
@@ -859,6 +874,7 @@ export namespace model {
 	        this.textNoAccent = source["textNoAccent"];
 	        this.occurrence = source["occurrence"];
 	        this.retry = this.convertValues(source["retry"], Retry);
+	        this.numVars = this.convertValues(source["numVars"], NumVar);
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	        this.cond = this.convertValues(source["cond"], Cond);

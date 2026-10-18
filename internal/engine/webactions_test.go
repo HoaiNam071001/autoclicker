@@ -52,7 +52,7 @@ func TestWebRead(t *testing.T) {
 	if !q.CheckOnly || q.Scroll || q.Read != "attr" || q.Attr != "href" || len(in.Lines()) != 0 {
 		t.Errorf("query %+v, chuột %q", q, in.Lines())
 	}
-	if want := map[string]any{"text": "https://shop.vn/don/7", "count": 3, "selector": "css=#history"}; !reflect.DeepEqual(res[0].Output, want) {
+	if want := map[string]any{"text": "https://shop.vn/don/7", "count": 3, "selector": "css=#history"}; !reflect.DeepEqual(ownOutput(res[0]), want) {
 		t.Errorf("output %v", res[0].Output)
 	}
 	// mặc định đọc chữ hiển thị; không thấy → fail not_found như webWait

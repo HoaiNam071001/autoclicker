@@ -1,7 +1,7 @@
 // Node (Step) → dữ liệu hiển thị thẻ trên canvas (FlowNodeView): tên, dòng chi tiết, chip, cổng ra có nhãn, cảnh báo,
 // trạng thái chạy. Hàm thuần – FlowEditor (app) gọi với dữ liệu thật; test ở view.test.ts.
 import type { FlowNodeView, PortView, RunState } from '../components/flow/model';
-import { Cond, fmtMs, fmtPos, isControl, Script, Step, stepLabel } from '../types';
+import { Cond, fmtMs, fmtPos, isControl, numVarOf, Script, Step, stepLabel } from '../types';
 import { reachable } from './edit';
 import { CASE_PREFIX, flowOrder, PORT_FAIL, PORT_SUCCESS, PortShape, portsOf } from './model';
 
@@ -27,7 +27,7 @@ export function portView(id: string, s?: Pick<Step, 'type' | 'cases'>): PortView
 }
 export const portViews = (s: PortShape) => portsOf(s).map((p) => portView(p, s));
 
-export const nodeTitle = (s: Step) => s.name || `${stepLabel(s)}${s.type === 'click' && s.clicks > 1 ? ` ×${s.clicks}` : ''}`;
+export const nodeTitle = (s: Step) => s.name || `${stepLabel(s)}${s.type === 'click' && !numVarOf(s, 'clicks') && s.clicks > 1 ? ` ×${s.clicks}` : ''}`;
 
 export type ViewOptions = {
   inputs?: (id: string) => number; // số input ghim vào node
@@ -46,7 +46,7 @@ export function nodeViews(sc: Pick<Script, 'steps' | 'start' | 'edges'>, opt: Vi
       ref: s.ref,
       icon: s.type,
       title: nodeTitle(s),
-      detail: isControl(s.type) ? controlDetail(s) : `${fmtPos(s, refOf)} · ${fmtMs(s.delayAfter)}`,
+      detail: isControl(s.type) ? controlDetail(s) : `${fmtPos(s, refOf)} · ${numVarOf(s, 'delayAfter') ?? fmtMs(s.delayAfter)}`,
       ports: portViews(s),
       enabled: s.enabled,
       chips: [...(n ? [`${n} input`] : []), ...(s.retry?.count ? [`thử lại ${s.retry.count}`] : [])],
@@ -127,12 +127,19 @@ const WEB_FOUND: OutputField[] = [
   { key: 'x', desc: 'tâm phần tử – X' }, { key: 'y', desc: 'tâm phần tử – Y' }, { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' },
   { key: 'text', desc: 'chữ của phần tử' }, { key: 'selector', desc: 'cách tìm đã khớp' },
 ];
-export function outputsOf(s: Step): OutputField[] {
+// Output mọi node có (CommonOutputs trong steptypes.go, engine điền ở execNode).
+const COMMON: OutputField[] = [{ key: 'startedAt', desc: 'giờ bắt đầu' }, { key: 'durationMs', desc: 'thời gian chạy (ms)' }];
+export const outputsOf = (s: Step): OutputField[] => [...ownOutputs(s), ...COMMON];
+const MOUSE_AT: OutputField[] = [{ key: 'x', desc: 'X chuột dừng' }, { key: 'y', desc: 'Y chuột dừng' }];
+function ownOutputs(s: Step): OutputField[] {
   switch (s.type) {
-    case 'click': case 'double': case 'hold': case 'drag':
-      return [{ key: 'x', desc: 'X chuột dừng' }, { key: 'y', desc: 'Y chuột dừng' }];
+    case 'click': case 'double': case 'drag': return MOUSE_AT;
+    case 'hold': return [...MOUSE_AT, { key: 'ms', desc: 'thời gian đã giữ (ms)' }];
+    case 'wait': return [{ key: 'ms', desc: 'thời gian đã chờ (ms, gồm ngẫu nhiên)' }];
+    case 'key': return [{ key: 'keys', desc: 'tổ hợp đã bấm, vd cmd+l' }];
+    case 'scroll': return [...MOUSE_AT, { key: 'direction', desc: 'hướng đã cuộn' }, { key: 'amount', desc: 'số nấc đã cuộn' }];
     case 'type': return [{ key: 'text', desc: 'chữ đã gõ (sau khi thay biến)' }];
-    case 'open': return [{ key: 'target', desc: 'URL / app đã mở' }];
+    case 'open': return [{ key: 'target', desc: 'URL / app đã mở' }, { key: 'app', desc: 'mở bằng app (trống = mặc định)' }];
     case 'waitImage': return FOUND;
     case 'clickImage': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...(s.imageSource === 'search' ? FOUND : [])];
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];

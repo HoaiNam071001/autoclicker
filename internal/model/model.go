@@ -147,8 +147,10 @@ type Step struct {
 	TextNoAccent  bool    `json:"textNoAccent,omitempty"` // FindBy text: bỏ qua dấu
 	Occurrence    int     `json:"occurrence,omitempty"`   // FindBy text: chỗ thứ mấy (trên → dưới, trái → phải); 0 = chỗ đầu
 	Retry         *Retry  `json:"retry,omitempty"`        // thất bại thì thử lại; hết lượt vẫn lỗi → cổng fail
-	Color         string  `json:"color,omitempty"`        // waitPixel: #RRGGBB
-	Tolerance     int     `json:"tolerance,omitempty"`    // waitPixel: sai số mỗi kênh màu (0–255)
+	// Ô số lấy từ biến (F5c): mỗi trường số trong NumVarFieldsOf một dòng – giá trị lúc chạy thay cho trường đó.
+	NumVars   []NumVar `json:"numVars,omitempty"`
+	Color     string   `json:"color,omitempty"`     // waitPixel: #RRGGBB
+	Tolerance int      `json:"tolerance,omitempty"` // waitPixel: sai số mỗi kênh màu (0–255)
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>
@@ -158,6 +160,23 @@ type Step struct {
 	Message   string `json:"message,omitempty"`   // end: lời nhắn (fail = lời báo lỗi); nhận {{biến}}
 	VarName   string `json:"varName,omitempty"`   // setVar: tên biến
 	VarOp     string `json:"varOp,omitempty"`     // setVar: set | add
+}
+
+// NumVar – trường số Field (tên json, vd clicks, delayAfter) lấy giá trị từ Expr: số / biến cộng trừ, vd
+// "{{n2.output.count}} + 1" (như ô toạ độ F5b, script.EvalCoord). Slice thay vì map để thay biến tại chỗ như ô chữ.
+type NumVar struct {
+	Field string `json:"field"`
+	Expr  string `json:"expr"`
+}
+
+// NumVarOf – biểu thức biến của trường số field ("" = trường dùng số cố định).
+func (s Step) NumVarOf(field string) string {
+	for _, v := range s.NumVars {
+		if v.Field == field {
+			return v.Expr
+		}
+	}
+	return ""
 }
 
 // Case – một nhánh của switch / switchScreen. Key duy nhất trong node, cổng ra là "case:" + Key.

@@ -13,8 +13,9 @@ type VarField struct {
 	Name string // tên trường (json) cho lời báo lỗi, vd "cond.conds[1].left"
 	Ptr  *string
 	URL  bool // ô URL: giá trị biến được mã hoá (launch.EscapeURLValue)
-	// Coord: ô toạ độ (Point.XVar / YVar, F5b) – biến phải ra số (output toạ độ của node), cả ô là số + / − px
-	Coord bool
+	// Num: ô số – toạ độ (Point.XVar / YVar, F5b) hoặc trường số (NumVars, F5c): biến phải ra số (output của node),
+	// cả ô là số + / − (EvalCoord)
+	Num bool
 }
 
 // VarFields – các ô chữ nhận biến của s (input {{key}} ở resolveInputs, biến node ở resolveNodeVars, kiểm tra ở
@@ -25,10 +26,13 @@ func VarFields(s *model.Step) []VarField {
 	if hasPoints(s.Type) {
 		for i := range s.Points {
 			if p := &s.Points[i]; p.UsesVar() && !(i == 0 && s.Type == model.StepDrag && s.DragFromPrev) { // A "từ điểm trước" không dùng
-				out = append(out, VarField{Name: fmt.Sprintf("points[%d].xVar", i), Ptr: &p.XVar, Coord: true},
-					VarField{Name: fmt.Sprintf("points[%d].yVar", i), Ptr: &p.YVar, Coord: true})
+				out = append(out, VarField{Name: fmt.Sprintf("points[%d].xVar", i), Ptr: &p.XVar, Num: true},
+					VarField{Name: fmt.Sprintf("points[%d].yVar", i), Ptr: &p.YVar, Num: true})
 			}
 		}
+	}
+	for i := range s.NumVars {
+		out = append(out, VarField{Name: fmt.Sprintf("numVars[%d].expr", i), Ptr: &s.NumVars[i].Expr, Num: true})
 	}
 	switch s.Type {
 	case model.StepText:
@@ -103,6 +107,7 @@ func CloneStep(s model.Step) model.Step {
 	s.Points = slices.Clone(s.Points)
 	s.Selectors = slices.Clone(s.Selectors)
 	s.ScrollIn = slices.Clone(s.ScrollIn)
+	s.NumVars = slices.Clone(s.NumVars)
 	s.Cond = cloneCond(s.Cond)
 	if s.Cases != nil {
 		cs := make([]model.Case, len(s.Cases))

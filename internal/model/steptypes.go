@@ -1,5 +1,7 @@
 package model
 
+import "slices"
+
 // Mô tả các loại bước cho người đọc file kịch bản và cho AI (MCP, bước 31 – sinh schema / hướng dẫn từ bảng này).
 // Thêm loại bước mới: thêm hằng trong model.go, xử lý trong script (checkStep / ValidateScript) / engine, và một dòng ở đây
 // (test kiểm tra mọi loại đều có mô tả và ví dụ hợp lệ).
@@ -11,7 +13,7 @@ type StepTypeDoc struct {
 	Fields   []string `json:"fields"`   // trường riêng của loại này (ngoài trường chung, xem commonFieldsDoc)
 	Pinnable []string `json:"pinnable"` // trường ghim được làm input (script/inputvalue.go)
 	Example  string   `json:"example"`  // một node JSON hợp lệ
-	Outputs  []string `json:"outputs"`  // khoá output khi thành công – node sau đọc bằng {{ref.output.khoá}}
+	Outputs  []string `json:"outputs"`  // khoá output riêng khi thành công (cộng CommonOutputs) – node sau đọc bằng {{ref.output.khoá}}
 	Ports    []string `json:"ports"`    // cổng ra (PortsOf) – điền lúc khởi động
 }
 
@@ -33,18 +35,22 @@ const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự tron
 	`Node hành động có cổng "success" / "fail". Cổng fail không nối = lỗi thì dừng kịch bản và báo lỗi; cổng khác không nối = kết thúc vòng. ` +
 	`Vòng lặp = cạnh quay lại node trước (tối đa 10000 lần chạy node mỗi vòng). ` +
 	`Biến trong ô chữ (text, target, findText): {{key}} = input của kịch bản; {{n2.status}} (success | fail | skipped), {{n2.port}}, ` +
-	`{{n2.error.code}} / {{n2.error.message}}, {{n2.output.<khoá>}} = kết quả lần chạy gần nhất của node có ref n2 trong vòng này; ` +
+	`{{n2.error.code}} / {{n2.error.message}}, {{n2.output.<khoá>}} = kết quả lần chạy gần nhất của node có ref n2 trong vòng này ` +
+	`(khoá theo outputs của loại node, cộng startedAt / durationMs mọi node đều có); ` +
 	`{{last.…}} = node vừa chạy trước; {{vars.<tên>}} = biến node setVar đặt. Biến nhận được trong: text, target, findText, selectors, tab, ` +
 	`cond (findText, left, right), cases (match, cond), value, message. ` +
 	`Điểm trên màn hình (points của click, double, hold, drag, scroll, waitPixel) nhận toạ độ từ biến: {"xVar":"{{n2.output.x}} + 20","yVar":"{{n2.output.y}}"} – ` +
 	`có xVar / yVar thì bỏ qua x, y và neo; mỗi ô là số hoặc biến cộng / trừ px, biến node phải là output của node đó (vd x, y, w, h của waitImage); ` +
 	`kết quả là toạ độ màn hình (như output waitImage), không tính theo vùng; drag dragRelative: points[1] từ biến là độ lệch so với A. ` +
+	`Trường số (clicks, clickInterval, holdMs, dragMs, delayAfter, jitterMs, jitterPx, amount, timeoutMs, threshold – trong pinnable của loại node) ` +
+	`nhận biến qua numVars: [{"field":"amount","expr":"{{n2.output.count}} + 1"}] – lúc chạy giá trị expr (số hoặc biến cộng / trừ, như xVar) ` +
+	`thay cho trường đó; biến node phải là output của node đó; ra số sai khoảng (vd clicks < 1, số âm) → node fail invalid_input. ` +
 	`Node điều khiển rẽ nhánh theo cổng: if (true / false), switch / switchScreen (case:<key> theo từng case, rồi default / none), ` +
 	`counter (next / done – dùng để giới hạn vòng lặp), end (không có cổng: kết thúc vòng, fail = dừng kịch bản báo lỗi), setVar (success). ` +
 	`Điều kiện cond: {kind: text | image | pixel | value | all | any, not}: text = thấy chữ findText (textExact, textNoAccent, occurrence, searchArea); ` +
 	`image = thấy ảnh mẫu template (templateScale, threshold, searchArea); pixel = points[0] có màu color ± tolerance; ` +
 	`value = so left op right (op: eq | ne | contains (không phân biệt hoa thường) | gt | lt (so số) | empty); all / any = conds[] (và / hoặc). ` +
-	`Kết quả mỗi node mỗi node: {nodeId, ref, status, port, output, error {code, message}, logs, attempts, durationMs}; ` +
+	`Kết quả mỗi node: {nodeId, ref, status, port, output, error {code, message}, logs, attempts, durationMs}; ` +
 	`error.code: not_found (chờ ảnh / chữ / màu / phần tử web hết giờ), browser (chưa mở Chrome của app), permission, invalid_input (biến trỏ node chưa chạy…), end (node Kết thúc thất bại), internal.`
 
 // flowExample – kịch bản mẫu: mở trang → chờ chữ "Nhắn tin" → click → gõ; không thấy thì cuộn rồi chờ lại, tối đa
@@ -77,25 +83,25 @@ var stepTypeDocs = []StepTypeDoc{
 		`{"id":"s1","ref":"n1","type":"double","points":[{"x":400,"y":300}],"button":"left","delayAfter":500,"enabled":true}`, []string{"x", "y"}, nil},
 	{StepHold, "Giữ chuột", "Nhấn giữ nút chuột holdMs mili giây tại points[0].",
 		[]string{"points[1]", "button", "holdMs", "jitterPx"}, []string{"holdMs", "jitterPx", "delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"hold","points":[{"x":400,"y":300}],"button":"left","holdMs":1000,"delayAfter":500,"enabled":true}`, []string{"x", "y"}, nil},
+		`{"id":"s1","ref":"n1","type":"hold","points":[{"x":400,"y":300}],"button":"left","holdMs":1000,"delayAfter":500,"enabled":true}`, []string{"x", "y", "ms"}, nil},
 	{StepDrag, "Kéo thả", "Giữ chuột tại points[0] kéo tới points[1] trong dragMs. dragFromPrev: bắt đầu từ chỗ chuột dừng ở node chuột chạy trước (chưa có thì lỗi); dragRelative: points[1] là độ lệch so với điểm bắt đầu.",
 		[]string{"points[2]", "button", "dragMs", "dragFromPrev", "dragRelative", "jitterPx"}, []string{"dragMs", "jitterPx", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"drag","points":[{"x":100,"y":300},{"x":600,"y":300}],"button":"left","dragMs":400,"delayAfter":500,"enabled":true}`, []string{"x", "y"}, nil},
 	{StepWait, "Chờ", "Chỉ chờ delayAfter mili giây.",
 		[]string{}, []string{"delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"wait","delayAfter":2000,"enabled":true}`, []string{}, nil},
+		`{"id":"s1","ref":"n1","type":"wait","delayAfter":2000,"enabled":true}`, []string{"ms"}, nil},
 	{StepText, "Gõ chữ", "Gõ text vào ô đang focus (thường sau một bước click). Nhận {{biến}}; \\{{ để gõ ra {{.",
 		[]string{"text"}, []string{"delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"type","text":"xin chào {{ten}}","delayAfter":300,"enabled":true}`, []string{"text"}, nil},
 	{StepKey, "Phím tắt", "Bấm keys (tên phím robotgo: enter, tab, esc, f5, a…) kèm modifiers (cmd, ctrl, alt, shift). keyMode chord: nhấn giữ cùng lúc; sequence: giữ phím kèm, gõ lần lượt.",
 		[]string{"keys", "modifiers", "keyMode"}, []string{"delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"key","keys":["l"],"modifiers":["cmd"],"keyMode":"chord","delayAfter":300,"enabled":true}`, []string{}, nil},
+		`{"id":"s1","ref":"n1","type":"key","keys":["l"],"modifiers":["cmd"],"keyMode":"chord","delayAfter":300,"enabled":true}`, []string{"keys"}, nil},
 	{StepScroll, "Cuộn", "Cuộn amount nấc theo direction (up | down | left | right) tại points[0]; không có điểm thì cuộn ở chỗ chuột đang đứng.",
 		[]string{"direction", "amount", "points[0..1]", "jitterPx"}, []string{"amount", "jitterPx", "delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"scroll","direction":"down","amount":5,"delayAfter":500,"enabled":true}`, []string{}, nil},
+		`{"id":"s1","ref":"n1","type":"scroll","direction":"down","amount":5,"delayAfter":500,"enabled":true}`, []string{"x", "y", "direction", "amount"}, nil},
 	{StepOpen, "Mở URL / app", "Mở target: URL (https://… hoặc tên miền như youtube.com/…), đường dẫn file / app, hoặc tên app (Spotify). app: mở bằng app này, vd Google Chrome; trống = mặc định của máy. Nhận {{biến}} (trong URL tự mã hoá). Không chờ trang tải xong – đặt delayAfter đủ lâu hoặc thêm bước chờ. webBrowser true: mở URL / file bằng Chrome của app (profile riêng của app, Chrome / Edge / Brave – lần đầu phải đăng nhập lại trang) để node web (webWait, webClick, webType, webRead, webScroll) điều khiển được; đang mở thì mở tab mới, bỏ qua app.",
 		[]string{"target", "app", "webBrowser"}, []string{"delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"open","target":"https://www.youtube.com/results?search_query={{bai_hat}}","app":"Google Chrome","delayAfter":3000,"enabled":true}`, []string{"target"}, nil},
+		`{"id":"s1","ref":"n1","type":"open","target":"https://www.youtube.com/results?search_query={{bai_hat}}","app":"Google Chrome","delayAfter":3000,"enabled":true}`, []string{"target", "app"}, nil},
 	{StepWaitImage, "Chờ ảnh", "Chờ tới khi ảnh mẫu template (PNG base64, chụp bằng app – CaptureTemplate) hiện trên màn hình, độ khớp ≥ threshold %. Hết timeoutMs không thấy → cổng fail (error.code not_found). Tìm trong vùng của kịch bản, hoặc searchArea \"screen\" = cả màn chứa vùng. Output x, y (tâm), w, h, score – node clickImage chọn imageFrom = id node này để click vào đó. findBy \"text\": tìm chữ findText thay ảnh mẫu (đọc chữ trên màn hình, tiếng Việt / Anh; không phân biệt hoa thường và khoảng trắng; nhận {{biến}}); textExact = cả dòng đúng chuỗi, textNoAccent = bỏ qua dấu, occurrence = chỗ thứ mấy theo thứ tự đọc. Chữ bền hơn ảnh khi đổi theme / zoom – nên dùng khi nút có chữ.",
 		[]string{"template", "templateScale", "threshold", "timeoutMs", "intervalMs", "searchArea", "findBy", "findText", "textExact", "textNoAccent", "occurrence"}, []string{"timeoutMs", "threshold", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"waitImage","template":"iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAAAAADhZOFXAAAAHUlEQVR4nGNkYPjPwMjwn4GJAQb+/4dguAgjEWoAyH0MAWBh3h0AAAAASUVORK5CYII=","templateScale":1,"threshold":90,"timeoutMs":10000,"intervalMs":250,"delayAfter":300,"enabled":true}`, []string{"x", "y", "w", "h", "score", "text"}, nil},
@@ -109,7 +115,7 @@ var stepTypeDocs = []StepTypeDoc{
 		[]string{"selectors", "tab", "webGone", "webBackground", "timeoutMs", "intervalMs"}, []string{"timeoutMs", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"webWait","selectors":["text=Xem lịch sử","aria=Lịch sử"],"timeoutMs":10000,"intervalMs":200,"delayAfter":300,"enabled":true}`, []string{"x", "y", "w", "h", "text", "selector"}, nil},
 	{StepWebClick, "Click phần tử web", "Chờ phần tử hiện (như webWait) rồi click chuột thật vào tâm (+ dx, dy) clicks lần. Phần tử ngoài màn hình thì cuộn vào giữa trước; bị phần tử khác che thì chờ tiếp tới timeoutMs. Đưa tab lên trước khi bấm. webBackground true: chạy nền – không đụng chuột / phím thật, không đưa Chrome lên trước (cửa sổ bị che / thu nhỏ vẫn chạy), bấm qua CDP; output x, y theo toạ độ trong trang (CSS px) thay vì màn hình. Trang nặng chống bot nên dùng chuột thật.",
-		[]string{"selectors", "tab", "webBackground", "button", "clicks", "clickInterval", "dx", "dy", "timeoutMs", "intervalMs"}, []string{"clicks", "timeoutMs", "delayAfter", "jitterMs", "enabled"},
+		[]string{"selectors", "tab", "webBackground", "button", "clicks", "clickInterval", "dx", "dy", "timeoutMs", "intervalMs"}, []string{"clicks", "clickInterval", "timeoutMs", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s2","ref":"n2","type":"webClick","selectors":["text=\"Gửi\"","css=button[type=submit]"],"button":"left","clicks":1,"timeoutMs":10000,"intervalMs":200,"delayAfter":500,"enabled":true}`, []string{"clickX", "clickY", "x", "y", "w", "h", "text", "selector"}, nil},
 	{StepWebType, "Gõ vào ô web", "Tìm ô nhập như webClick, click chuột thật vào ô, kiểm tra ô đã nhận focus (không thì fail not_found, không gõ) rồi gõ text bằng bàn phím thật (nhận {{biến}}). webClear true (mặc định): xoá chữ cũ trước (Cmd/Ctrl+A rồi Backspace); webEnter true: bấm Enter sau khi gõ. Selector nên trỏ đúng ô: aria=, role=textbox[name=\"Email\"], css=input[name=email], hoặc text= theo placeholder / nhãn. webBackground true: chạy nền – không đụng chuột / phím thật, không đưa Chrome lên trước (cửa sổ bị che / thu nhỏ vẫn chạy), click + chèn chữ (Input.insertText – cả chuỗi một lần, không gõ từng phím) qua CDP; output x, y theo toạ độ trong trang (CSS px) thay vì màn hình.",
 		[]string{"selectors", "tab", "webBackground", "text", "webClear", "webEnter", "dx", "dy", "timeoutMs", "intervalMs"}, []string{"timeoutMs", "delayAfter", "jitterMs", "enabled"},
@@ -152,11 +158,31 @@ type FlowGuideDoc struct {
 // StepTypeDocs – mô tả các loại bước app đang hỗ trợ.
 func StepTypeDocs() []StepTypeDoc { return stepTypeDocs }
 
-// OutputsOf – khoá output của loại node t (nil = loại không có trong bảng).
+// CommonOutputs – output mọi node có khi thành công / bị bỏ qua (engine điền trong execNode): startedAt (giờ bắt đầu,
+// RFC 3339), durationMs (thời gian chạy, kể cả thử lại, chưa tính delayAfter).
+var CommonOutputs = []string{"startedAt", "durationMs"}
+
+// OutputsOf – khoá output của loại node t, gồm CommonOutputs (nil = loại không có trong bảng).
 func OutputsOf(t string) []string {
 	for _, d := range stepTypeDocs {
 		if d.Type == t {
-			return d.Outputs
+			return append(slices.Clone(d.Outputs), CommonOutputs...)
+		}
+	}
+	return nil
+}
+
+// NumVarFieldsOf – trường số của loại node t nhận biến (numVars, F5c): các trường ghim được trừ enabled.
+func NumVarFieldsOf(t string) []string {
+	for _, d := range stepTypeDocs {
+		if d.Type == t {
+			out := []string{}
+			for _, f := range d.Pinnable {
+				if f != "enabled" {
+					out = append(out, f)
+				}
+			}
+			return out
 		}
 	}
 	return nil

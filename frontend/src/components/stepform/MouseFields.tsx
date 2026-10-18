@@ -4,7 +4,7 @@ import NumInput from '../NumInput';
 import Segmented from '../Segmented';
 import AnchorField, { AnchorMap } from '../steps/AnchorField';
 import { boundsOf, endpoints, refOf, setAnchor, setDragFromPrev, setDragRelative, updateStep, useScript } from '../../store';
-import { Step } from '../../types';
+import { numVarOf, Step } from '../../types';
 import { usesVar } from '../../anchor';
 import PointSource from './PointSource';
 import { ButtonField, Field, hint, NumField, PickButton, PinSoon, SetPoint } from './shared';
@@ -33,7 +33,7 @@ export function MouseFields({ step: s, setPoint }: { step: Step; setPoint: SetPo
       {s.type === 'click' && (
         <>
           <NumField label="Số click" step={s} field="clicks" min={1} />
-          {s.clicks > 1 && <NumField label="Giữa các click" step={s} field="clickInterval" unit="ms" />}
+          {(s.clicks > 1 || numVarOf(s, 'clicks') !== undefined) && <NumField label="Giữa các click" step={s} field="clickInterval" unit="ms" />}
         </>
       )}
       {s.type === 'hold' && <NumField label="Giữ chuột trong" step={s} field="holdMs" unit="ms" />}

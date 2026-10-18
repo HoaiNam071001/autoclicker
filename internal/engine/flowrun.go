@@ -89,7 +89,7 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 				loop, maxNodeRuns, strings.Join(trail, " → "))
 		}
 		e.breakBefore(s, loop)
-		res := e.execNode(ctx, s, loop)
+		res, wait := e.execNode(ctx, s, loop)
 		if res.Status == model.StatusFail {
 			e.shoot(&res)
 		}
@@ -109,7 +109,7 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 			return fmt.Errorf("vòng %d, %s: %s", loop, s.Ref, res.Error.Message)
 		}
 		if res.Status == model.StatusSuccess {
-			if err := Sleep(ctx, e.jitterMs(s.DelayAfter, s.JitterMs)); err != nil {
+			if err := Sleep(ctx, wait); err != nil {
 				return err
 			}
 		}
@@ -119,16 +119,25 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 }
 
 // execNode chạy một node, thử lại theo Retry; không bao giờ trả lỗi – mọi kết quả nằm trong StepResult.
-func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) model.StepResult {
-	res := model.StepResult{NodeID: s.ID, Ref: s.Ref, Loop: loop, StartedAt: time.Now()}
-	defer func() { res.DurationMs = time.Since(res.StartedAt).Milliseconds() }()
+// wait: thời gian chờ sau node khi thành công (delayAfter đã tính biến + cộng jitter).
+func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) (res model.StepResult, wait int) {
+	res = model.StepResult{NodeID: s.ID, Ref: s.Ref, Loop: loop, StartedAt: time.Now()}
+	defer func() {
+		res.DurationMs = time.Since(res.StartedAt).Milliseconds()
+		if res.Status == model.StatusSuccess || res.Status == model.StatusSkipped { // output chung (CommonOutputs)
+			if res.Output == nil {
+				res.Output = map[string]any{}
+			}
+			res.Output["startedAt"], res.Output["durationMs"] = res.StartedAt.Format(time.RFC3339), res.DurationMs
+		}
+	}()
 	logf := func(level, format string, a ...any) {
 		res.Logs = append(res.Logs, model.LogLine{AtMs: time.Since(res.StartedAt).Milliseconds(), Level: level, Msg: fmt.Sprintf(format, a...)})
 	}
 	if !s.Enabled {
 		res.Status, res.Port = model.StatusSkipped, model.PortSuccess
 		logf("info", "node đang tắt – đi tiếp cổng success")
-		return res
+		return res, 0
 	}
 	e.miss = nil
 	tries := 1
@@ -152,24 +161,28 @@ func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) model.Ste
 			p.Loop, p.Step, p.NodeID, p.Ref, p.Retry, p.Retries = loop, e.order[s.ID], s.ID, s.Ref, t-1, tries-1
 		})
 		var rs model.Step
-		if rs, err = resolveNodeVars(s, e.rv); err != nil {
+		if rs, err = resolveNodeVars(s, e.rv); err == nil {
+			err = script.ApplyNumVars(&rs)
+		}
+		if err != nil {
 			res.Status, res.Port = model.StatusFail, model.PortFail
 			res.Error = &model.StepError{Code: model.ErrInvalidInput, Message: err.Error()}
 			logf("error", "%v", err)
-			return res
+			return res, 0
 		}
+		wait = e.jitterMs(rs.DelayAfter, rs.JitterMs)
 		port, out := model.PortSuccess, map[string]any(nil)
 		if model.IsControl(s.Type) {
 			port, out, err = e.runControl(ctx, rs, logf)
 		} else {
-			out, err = e.runStep(ctx, rs)
+			out, err = e.runStep(ctx, rs, wait)
 		}
 		if err == nil {
 			res.Status, res.Port, res.Output = model.StatusSuccess, port, out
 			if tries > 1 {
 				e.update(true, func(p *Progress) { p.Retry, p.Retries = 0, 0 })
 			}
-			return res
+			return res, wait
 		}
 		if ctx.Err() != nil {
 			break
@@ -184,12 +197,12 @@ func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) model.Ste
 	if ctx.Err() != nil {
 		res.Status = model.StatusCancelled
 		res.Error = &model.StepError{Code: model.ErrCancelled, Message: "đã dừng"}
-		return res
+		return res, 0
 	}
 	res.Status, res.Port = model.StatusFail, model.PortFail
 	res.Error = &model.StepError{Code: errCode(err), Message: err.Error()}
 	logf("error", "%v", err)
-	return res
+	return res, 0
 }
 
 func errCode(err error) string {

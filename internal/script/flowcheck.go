@@ -1,6 +1,7 @@
 package script
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"slices"
@@ -72,6 +73,9 @@ func validateFlow(sc model.Script) error {
 				return stepErr(i, s, "imageFrom", "node %s không tìm ảnh / chữ nên không có chỗ thấy", sc.Steps[j].Ref)
 			}
 		}
+		if err := checkNumVarPins(sc, i, s); err != nil {
+			return err
+		}
 		for _, f := range VarFields(&s) {
 			if err := checkVarField(f, refs, sc.Steps); err != nil {
 				return stepErr(i, s, f.Name, "%v", err)
@@ -99,7 +103,7 @@ func unreachableNodes(sc model.Script) []string {
 	return out
 }
 
-// checkVarField – biến node trong ô f trỏ node có thật (refs: ref → chỉ số trong steps); ô toạ độ còn phải ra số.
+// checkVarField – biến node trong ô f trỏ node có thật (refs: ref → chỉ số trong steps); ô số còn phải ra số.
 func checkVarField(f VarField, refs map[string]int, steps []model.Step) error {
 	for _, m := range NodeVarRe.FindAllStringSubmatch(*f.Ptr, -1) {
 		if name := m[1]; name != "vars" && name != "last" {
@@ -107,17 +111,21 @@ func checkVarField(f VarField, refs map[string]int, steps []model.Step) error {
 			if !ok {
 				return fmt.Errorf("biến %s trỏ tới node %q không có trong kịch bản", m[0], name)
 			}
-			if f.Coord {
+			if f.Num {
 				if err := coordVar(m[0], m[2], steps[j]); err != nil {
 					return err
 				}
 			}
 		}
 	}
-	if !f.Coord {
+	if !f.Num {
 		return nil
 	}
+	isCoord := !strings.HasPrefix(f.Name, "numVars")
 	if strings.TrimSpace(*f.Ptr) == "" {
+		if !isCoord {
+			return errors.New("chưa nhập giá trị (số hoặc biến)")
+		}
 		axis := "X"
 		if strings.HasSuffix(f.Name, "yVar") {
 			axis = "Y"
@@ -125,17 +133,20 @@ func checkVarField(f VarField, refs map[string]int, steps []model.Step) error {
 		return fmt.Errorf("chưa nhập toạ độ %s", axis)
 	}
 	if _, err := EvalCoord(withoutVars(*f.Ptr)); err != nil {
+		if !isCoord {
+			return fmt.Errorf("“%s” sai dạng – cần số hoặc biến, cộng / trừ được (vd {{n2.output.count}} + 1)", *f.Ptr)
+		}
 		return fmt.Errorf("toạ độ “%s” sai dạng – cần số hoặc biến, cộng / trừ px (vd {{n2.output.x}} + 20)", *f.Ptr)
 	}
 	return nil
 }
 
-// coordVar – biến m (đường path) trong ô toạ độ phải là output của node src (vd x, y, w, h của Chờ ảnh / chữ).
+// coordVar – biến m (đường path) trong ô số phải là output của node src (vd x, y, w, h của Chờ ảnh / chữ).
 func coordVar(m, path string, src model.Step) error {
 	key, ok := strings.CutPrefix(path, "output.")
 	outs := model.OutputsOf(src.Type)
 	if !ok {
-		return fmt.Errorf("biến %s không phải số – toạ độ dùng output của node, vd {{%s.output.x}}", m, src.Ref)
+		return fmt.Errorf("biến %s không phải số – ô số dùng output của node, vd {{%s.output.x}}", m, src.Ref)
 	}
 	if !slices.Contains(outs, key) {
 		if len(outs) == 0 {

@@ -7,7 +7,8 @@ import {
 import { findsImage, flowOrder, portsOf } from '../flow/model';
 import { isWebStep, type WebType } from '../flow/web';
 import { placeNode, Positions } from '../flow/layout';
-import { makeStep, Point, Script, Step, StepType } from '../types';
+import { toggleNumVar, withNumVar } from '../flow/numvars';
+import { makeStep, NumVarField, Point, Script, Step, StepType } from '../types';
 import { getEditor, patchScriptSilently, setEditor, setNotice, updateScript } from './editor';
 import { boundsOf, centerPoint, refOf, toScreen } from './geometry';
 
@@ -79,6 +80,15 @@ function nearestFinder(): string | undefined {
 
 export function updateStep(id: string, patch: Partial<Step>) {
   setSteps(script().steps.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+}
+
+// Trường số lấy từ biến (F5c): bật / tắt (toggleNumVar), sửa biểu thức (withNumVar).
+export function setNumVarOn(id: string, field: NumVarField, on: boolean) {
+  const s = script().steps.find((x) => x.id === id);
+  if (s) setSteps(script().steps.map((x) => (x.id === id ? toggleNumVar(s, field, on) : x)));
+}
+export function setNumVarExpr(id: string, field: NumVarField, expr: string) {
+  setSteps(script().steps.map((x) => (x.id === id ? withNumVar(x, field, expr) : x)));
 }
 
 export const toggleStep = (id: string) => {

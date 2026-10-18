@@ -156,8 +156,8 @@ func TestWebWaitGone(t *testing.T) {
 	if b.n != 3 || !b.queries[0].CheckOnly || b.queries[0].Scroll || len(in.Lines()) != 0 {
 		t.Errorf("tìm %d lần, query %+v, chuột %q", b.n, b.queries[0], in.Lines())
 	}
-	if res[0].Output != nil {
-		t.Errorf("chờ mất không có output: %v", res[0].Output)
+	if out := ownOutput(res[0]); len(out) != 0 {
+		t.Errorf("chờ mất không có output riêng: %v", out)
 	}
 }
 

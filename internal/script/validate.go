@@ -27,6 +27,7 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 		if !s.Enabled {
 			continue
 		}
+		s = withNumVarPlaceholders(s)
 		enabled++
 		need := 0
 		switch s.Type {

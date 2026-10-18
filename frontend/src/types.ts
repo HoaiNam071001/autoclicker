@@ -1,6 +1,7 @@
 import { model } from '../wailsjs/go/models';
 import { fmtAxis, fmtPoint, usesVar } from './anchor';
 import { fmtWebStep, isWebStep, type ReadFrom, type ScrollMode } from './flow/web';
+import { fmtKey } from './keys';
 
 // Neo của một trục (anchor.ts, khớp internal/script/anchor.go): bỏ trống = start (cách cạnh trái / trên).
 export type Anchor = 'start' | 'center' | 'end' | 'ratio';
@@ -131,6 +132,7 @@ export interface Step {
   textNoAccent?: boolean; // bỏ qua dấu
   occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu
   retry?: Retry; // thất bại thì thử lại; hết lượt → cổng fail (internal/engine/flowrun.go execNode)
+  numVars?: NumVar[]; // trường số lấy từ biến (F5c) – giá trị lúc chạy thay cho trường đó
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
   // node điều khiển (bước 20 F3)
@@ -177,6 +179,11 @@ export type InputValue = string | number | boolean;
 // Trường ghim được (pinFields trong internal/script/inputvalue.go): số → input number / ms, enabled → bool.
 export type PinField = 'clicks' | 'clickInterval' | 'holdMs' | 'dragMs' | 'delayAfter' | 'jitterMs' | 'jitterPx' | 'amount' | 'timeoutMs' | 'threshold' | 'enabled';
 export interface InputTarget { stepId: string; field: PinField }
+// Trường số lấy từ biến (F5c, khớp NumVar trong model.go): expr là số / biến cộng trừ, vd "{{n2.output.count}} + 1".
+export type NumVarField = Exclude<PinField, 'enabled'>;
+export interface NumVar { field: NumVarField; expr: string }
+const numVarMatchesGo: Same<keyof NumVar, keyof Fields<model.NumVar>> = true;
+void numVarMatchesGo;
 export interface ScriptInput {
   key: string; // chữ không dấu, số, _ – dùng trong {{key}}
   label: string;
@@ -242,37 +249,9 @@ export const scrollDelta = (s: Pick<Step, 'direction' | 'amount'>): Point => {
   return { down: { x: 0, y: d }, up: { x: 0, y: -d }, right: { x: d, y: 0 }, left: { x: -d, y: 0 } }[s.direction ?? 'down'];
 };
 
-// Tên phím robotgo hỗ trợ (ngoài các ký tự đơn như a, 1, /) – gợi ý trong form và kiểm tra.
-export const KEY_NAMES = [
-  'enter', 'tab', 'esc', 'space', 'backspace', 'delete', 'up', 'down', 'left', 'right',
-  'home', 'end', 'pageup', 'pagedown', 'insert', 'capslock', 'printscreen', 'menu',
-  ...Array.from({ length: 24 }, (_, i) => `f${i + 1}`),
-  'num0', 'num1', 'num2', 'num3', 'num4', 'num5', 'num6', 'num7', 'num8', 'num9', 'num_enter',
-  'audio_mute', 'audio_vol_down', 'audio_vol_up', 'audio_play', 'audio_next', 'audio_prev',
-];
-export const isValidKey = (k: string) => [...k].length === 1 || KEY_NAMES.includes(k);
-
-// Mô tả tiếng Việt cho gợi ý tên phím trong form.
-const FIXED_LABEL: Record<string, string> = {
-  enter: 'Enter – xuống dòng / xác nhận', tab: 'Tab – sang ô kế', esc: 'Esc – thoát / huỷ', space: 'Phím cách',
-  backspace: 'Backspace – xoá lùi', delete: 'Delete – xoá tới', up: '↑ Mũi tên lên', down: '↓ Mũi tên xuống',
-  left: '← Mũi tên trái', right: '→ Mũi tên phải', home: 'Home – đầu dòng', end: 'End – cuối dòng',
-  pageup: 'Page Up – lên một trang', pagedown: 'Page Down – xuống một trang', insert: 'Insert', capslock: 'Caps Lock – bật / tắt chữ hoa',
-  printscreen: 'Print Screen – chụp màn hình', menu: 'Menu ngữ cảnh', num_enter: 'Enter bàn phím số',
-  audio_mute: 'Tắt / bật tiếng', audio_vol_down: 'Giảm âm lượng', audio_vol_up: 'Tăng âm lượng',
-  audio_play: 'Phát / tạm dừng nhạc', audio_next: 'Bài kế tiếp', audio_prev: 'Bài trước',
-};
-export const keyLabel = (k: string) =>
-  FIXED_LABEL[k] ?? (/^f\d+$/.test(k) ? `Phím chức năng ${k.toUpperCase()}` : /^num\d$/.test(k) ? `Số ${k.slice(3)} bàn phím số` : '');
-
-const cap = (k: string) => k[0].toUpperCase() + k.slice(1);
-// chord: "Ctrl + C + T" · sequence: "Ctrl + C → T"
-export const fmtKey = (s: Step) => {
-  const keys = s.keys.map(cap).join(s.keyMode === 'sequence' ? ' → ' : ' + ');
-  return [...s.modifiers.map(cap), keys].filter(Boolean).join(' + ') || '—';
-};
-
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);
+// Biểu thức biến của trường số (F5c) – undefined = trường dùng số cố định.
+export const numVarOf = (s: Pick<Step, 'numVars'>, field: NumVarField) => s.numVars?.find((v) => v.field === field)?.expr;
 const fmtSigned = (v: number) => (v > 0 ? `+${v}` : `${v}`);
 const fmtPair = (p: StepPoint) => (usesVar(p) ? `${p.xVar}, ${p.yVar}` : `${fmtAxis(p.x, p.ax)}, ${fmtAxis(p.y, p.ay)}`);
 // refOf: id node → mã (n2) để ghi nguồn chỗ thấy của click theo ảnh.
@@ -282,7 +261,8 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
       s.dragRelative ? `Δ ${usesVar(s.points[1]) ? fmtPair(s.points[1]) : `${fmtSigned(s.points[1].x)},${fmtSigned(s.points[1].y)}`}` : `B ${fmtPair(s.points[1])}`}`
     : s.type === 'type' ? `"${s.text}"`
     : s.type === 'key' ? fmtKey(s)
-    : s.type === 'scroll' ? `${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount ?? 0} nấc ≈ ${(s.amount ?? 0) * SCROLL_NOTCH_PX} px ${s.points[0] ? `tại ${fmtPoint(s.points[0])}` : 'tại chuột'}`
+    : s.type === 'scroll' ? `${SCROLL_ARROW[s.direction ?? 'down']} ${numVarOf(s, 'amount') !== undefined ? `${numVarOf(s, 'amount')} nấc` // nấc từ biến: chỉ biết lúc chạy
+      : `${s.amount ?? 0} nấc ≈ ${(s.amount ?? 0) * SCROLL_NOTCH_PX} px`} ${s.points[0] ? `tại ${fmtPoint(s.points[0])}` : 'tại chuột'}`
     : s.type === 'open' ? `${s.target || '—'}${s.webBrowser ? ' · Chrome của app' : s.app ? ` · ${s.app}` : ''}`
     : isWebStep(s.type) ? fmtWebStep(s)
     : s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search')

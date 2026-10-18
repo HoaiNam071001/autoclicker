@@ -29,12 +29,14 @@ export const fieldKind = (f: PinField) => (f === 'enabled' ? 'bool' : 'int');
 const inputsOf = (sc: Script) => sc.inputs ?? [];
 
 // Ô chữ nhận {{biến}} của node – khớp VarFields (internal/script/varfields.go): gõ chữ, mở, chữ cần tìm, điều kiện / case / giá trị của
-// node điều khiển, toạ độ điểm dùng biến (F5b). mapVarText trả node mới với từng ô qua f (không sửa node cũ).
+// node điều khiển, toạ độ điểm dùng biến (F5b), trường số lấy từ biến (F5c). mapVarText trả node mới với từng ô qua f
+// (không sửa node cũ).
 export function mapVarText(s: Step, f: (t: string) => string): Step {
-  return POINT_TYPES.includes(s.type) && s.points.some(usesVar)
+  const out = POINT_TYPES.includes(s.type) && s.points.some(usesVar)
     ? mapFieldText({ ...s, points: s.points.map((p, i) => (usesVar(p) && !(i === 0 && s.type === 'drag' && s.dragFromPrev) // A "từ điểm trước" không dùng
       ? { ...p, xVar: f(p.xVar ?? ''), yVar: f(p.yVar ?? '') } : p)) }, f)
     : mapFieldText(s, f);
+  return out.numVars?.length ? { ...out, numVars: out.numVars.map((v) => ({ ...v, expr: f(v.expr) })) } : out;
 }
 // Loại node có điểm nhận toạ độ từ biến – khớp hasPoints (varfields.go).
 const POINT_TYPES: Step['type'][] = ['click', 'double', 'hold', 'drag', 'scroll', 'waitPixel'];

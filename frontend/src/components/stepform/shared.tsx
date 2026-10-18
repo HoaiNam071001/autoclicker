@@ -2,10 +2,11 @@
 import { ReactNode, useMemo } from 'react';
 import NumInput, { fieldBox } from '../NumInput';
 import { Target } from '../icons';
-import PinButton, { KeyChip, PinMenu } from '../inputs/PinButton';
-import { pickPointFor, updateStep, useScript } from '../../store';
-import { compatibleInputs, pinField, pinnedInput, pinToInput, setPinnedValue, unpinField } from '../../scriptInputs';
-import { MouseButton, PinField, ScrollDirection, Step, StepPoint } from '../../types';
+import PinButton, { KeyChip, PinMenu, VarButton } from '../inputs/PinButton';
+import VarTextInput from '../inputs/VarTextInput';
+import { pickPointFor, setNumVarExpr, setNumVarOn, updateStep, useScript } from '../../store';
+import { addInput, compatibleInputs, pinField, pinnedInput, pinToInput, setPinnedValue, unpinField } from '../../scriptInputs';
+import { MouseButton, numVarOf, NumVarField, ScrollDirection, Step, StepPoint } from '../../types';
 import Segmented from '../Segmented';
 import { nodeVarOptions } from '../../flow/view';
 
@@ -40,21 +41,34 @@ export function Field({ label, children, wide = false, group = false }: {
 }
 
 // Ô số ghim được (bước 21b): đã ghim → viền nét đứt + chip key cạnh nhãn, sửa số = sửa mặc định của input
-// (mọi trường ghim cùng input đổi theo).
+// (mọi trường ghim cùng input đổi theo). Nút {x} (F5c): ô thành ô biến chiếm cả hàng (biểu thức dài) – giá trị lúc chạy
+// lấy từ biến, không ghim được.
 export function NumField({ label, step: s, field, unit, prefix, min = 0 }: {
-  label: string; step: Step; field: Exclude<PinField, 'enabled'>; unit?: string; prefix?: string; min?: number;
+  label: string; step: Step; field: NumVarField; unit?: string; prefix?: string; min?: number;
 }) {
   const script = useScript();
+  const nodeVars = useNodeVars(s.id);
   const inp = pinnedInput(script, s.id, field);
   const others = compatibleInputs(script, field).filter((i) => i !== inp);
+  const expr = numVarOf(s, field);
   return (
-    <div className="flex flex-col gap-1.5 text-muted">
+    <div className={`flex flex-col gap-1.5 text-muted ${expr !== undefined ? 'col-span-2' : ''}`}>
       <span className="flex min-w-0 items-center gap-1.5"><span className="truncate">{label}</span>{inp && <KeyChip k={inp.key} />}</span>
-      <span className="flex gap-1.5">
-        <NumInput value={s[field] ?? min} min={min} unit={unit} prefix={prefix} pinned={!!inp} className="min-w-0 flex-1"
-          onChange={(v) => (inp ? setPinnedValue(s.id, field, v) : updateStep(s.id, { [field]: v }))} />
-        <PinMenu pinnedKey={inp?.key} options={others} onPinNew={() => pinField(s.id, field)}
-          onPinTo={(key) => pinToInput(s.id, field, key)} onUnpin={() => unpinField(s.id, field)} />
+      <span className="flex items-start gap-1">
+        {expr !== undefined ? (
+          <div className="min-w-0 flex-1">
+            <VarTextInput value={expr} rows={1} compact inputs={script.inputs ?? []} nodeVars={nodeVars} placeholder="{{n2.output.count}}"
+              onCreateInput={(key) => addInput({ key, label: key, type: 'number' })} onChange={(v) => setNumVarExpr(s.id, field, v)} />
+          </div>
+        ) : (
+          <NumInput value={s[field] ?? min} min={min} unit={unit} prefix={prefix} pinned={!!inp} className="min-w-0 flex-1"
+            onChange={(v) => (inp ? setPinnedValue(s.id, field, v) : updateStep(s.id, { [field]: v }))} />
+        )}
+        <VarButton on={expr !== undefined} disabled={!!inp} onToggle={() => setNumVarOn(s.id, field, expr === undefined)} />
+        {expr === undefined && (
+          <PinMenu pinnedKey={inp?.key} options={others} onPinNew={() => pinField(s.id, field)}
+            onPinTo={(key) => pinToInput(s.id, field, key)} onUnpin={() => unpinField(s.id, field)} />
+        )}
       </span>
     </div>
   );

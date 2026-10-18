@@ -91,6 +91,7 @@ func checkEdges(sc *model.Script, ids map[string]bool) {
 		sc.Start = ""
 	}
 }
+
 // checkWebFields – miền giá trị riêng của node web (D4).
 func checkWebFields(s *model.Step) error {
 	if s.ReadFrom != "" && s.ReadFrom != model.ReadValue && s.ReadFrom != model.ReadAttr {
@@ -120,6 +121,9 @@ func checkStep(s *model.Step) error {
 		}
 	default:
 		return fmt.Errorf("loại bước không hợp lệ: %q", s.Type)
+	}
+	if err := checkNumVars(s); err != nil {
+		return err
 	}
 	if s.Direction != "" && !slices.Contains(model.ScrollDirections, s.Direction) {
 		return fmt.Errorf("hướng cuộn không hợp lệ: %q", s.Direction)

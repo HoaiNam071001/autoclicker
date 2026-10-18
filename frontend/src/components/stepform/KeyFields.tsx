@@ -1,6 +1,7 @@
 // Node phím tắt: phím chính (gợi ý tên phím), phím kèm, cách bấm.
 import { useEffect, useRef, useState } from 'react';
-import { fmtKey, isValidKey, KEY_NAMES, keyLabel, KeyMode, Modifier, Step } from '../../types';
+import { fmtKey, isValidKey, KEY_NAMES, keyLabel } from '../../keys';
+import { KeyMode, Modifier, Step } from '../../types';
 import { updateStep } from '../../store';
 import { hint } from './shared';
 

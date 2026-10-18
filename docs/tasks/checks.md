@@ -3,6 +3,12 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 20 F5c – Output mọi node + ô số nhận biến · [phase3/20-flow.md](phase3/20-flow.md)
+
+- [ ] Mẫu thử → **Ô số từ biến – số click, nhịp, thời gian chờ** → Chạy: ô Click trái = 5; lời kết thúc ghi thời gian click + thời gian đã chờ gần bằng nhau; form Chạy hỏi *Nhịp giữa các click*
+- [ ] Inspector node Click: bấm **{x}** cạnh *Số click* → ô biến chiếm cả hàng, gõ `{{` gợi ý output node trước (cả `startedAt`, `durationMs`); bấm lại {x} với ô là `4` → về ô số = 4. Ô đang ghim input thì {x} mờ – xem cả theme sáng + tối
+- [ ] Gõ sai ô biến (vd `{{n1.status}}`, `abc`) → Chạy báo lỗi rõ ở node đó; biến ra 0 cho Số click → node Thất bại “số click phải ≥ 1”
+
 ## 20 F5b – Toạ độ nhận biến · [phase3/20-flow.md](phase3/20-flow.md)
 
 - [ ] Mẫu thử → **Kanban – kéo theo toạ độ từ biến** → Chạy: thẻ VIỆC 1 sang cột HOÀN TẤT (HOÀN TẤT = 1); thử với Chrome zoom 125% vẫn đúng

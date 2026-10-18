@@ -17,6 +17,19 @@ export default function PinButton({ pinned, onToggle, disabled, title }: {
   );
 }
 
+// Nút {x} cạnh nút ghim của ô số (F5c): bật = ô lấy giá trị từ biến ({{n2.output.count}}), tắt = số cố định.
+export function VarButton({ on, onToggle, disabled }: { on: boolean; onToggle: () => void; disabled?: boolean }) {
+  return (
+    <button type="button" aria-pressed={on} onClick={onToggle} disabled={disabled} aria-label={on ? 'Dùng số cố định' : 'Lấy từ biến'}
+      title={disabled ? 'Đang ghim input – bỏ ghim trước khi lấy từ biến' : on ? 'Dùng số cố định' : 'Lấy từ biến – vd {{n2.output.count}} + 1'}
+      className={`grid h-8 w-7 flex-none place-items-center rounded-control border font-mono text-[11px] disabled:opacity-50 ${on
+        ? 'border-accent/45 bg-accent-soft text-accent-text'
+        : 'border-line text-muted enabled:hover:bg-hover enabled:hover:text-ink'}`}>
+      {'{x}'}
+    </button>
+  );
+}
+
 // Chip key cạnh nhãn của trường đã ghim
 export const KeyChip = ({ k }: { k: string }) => (
   <span className="var-token inline-flex items-center gap-1 py-0! text-[11px]"><Pin className="h-2.5 w-2.5" />{k}</span>

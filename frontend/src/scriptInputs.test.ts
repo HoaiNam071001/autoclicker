@@ -127,3 +127,8 @@ it('mapVarText: toạ độ điểm dùng biến (F5b), điểm số giữ nguy�
   expect(out.points).toEqual([{ x: 1, y: 1, xVar: '{{diem_x}} + 5', yVar: '{{n1.output.y}}' }, { x: 2, y: 2 }]);
   expect(mapVarText(makeStep({ id: 't', type: 'type', text: 'a', points: [{ x: 1, y: 1, xVar: '{{k}}' }] }), () => 'z').points[0].xVar).toBe('{{k}}');
 });
+
+it('mapVarText: trường số lấy từ biến (F5c)', () => {
+  const s = makeStep({ id: 's', type: 'scroll', numVars: [{ field: 'amount', expr: '{{nac}} + 1' }] });
+  expect(mapVarText(s, (t) => t.replace('{{nac}}', '{{so_nac}}')).numVars).toEqual([{ field: 'amount', expr: '{{so_nac}} + 1' }]);
+});
