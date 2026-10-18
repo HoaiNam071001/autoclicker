@@ -15,7 +15,7 @@
   - [ ] Test Go: gọi tool qua client MCP trong test (in-memory transport): tạo kịch bản hợp lệ / lỗi, sửa theo `stepId`, schema khớp struct
   - Xong khi: trên Claude Desktop nói "tạo kịch bản mở Spotify, tìm bài Tinh Hà Say 2 và phát" → kịch bản hiện trong thư viện app (chip AI), Xem trước chạy đúng thứ tự, bấm Chạy thì phát nhạc; nói "đổi thành bài khác, cho tên bài thành input" → AI sửa đúng kịch bản, có input `{{bai_hat}}`
 - [ ] **31b. MCP – AI nhìn màn hình** – Để AI tự biết vị trí nút thay vì đoán toạ độ.
-  - [ ] Tool `describe_screen` – **chữ trước ảnh** *(2026-10-18)*: các dòng chữ đọc được (OCR 25e) kèm khung, phần tử trang web nếu là Chrome của app (25d), danh sách cửa sổ – rẻ token, toạ độ chính xác, dùng được với AI không xem ảnh. Chỉ bọc hàm Go sẵn có
+  - [ ] Tool `describe_screen` – **chữ trước ảnh** *(2026-10-18)*: các dòng chữ đọc được (OCR 25e) kèm khung, danh sách cửa sổ (phần tử trang web của Chrome của app → [36](36-chrome-app-sau.md), 2026-10-18) – rẻ token, toạ độ chính xác, dùng được với AI không xem ảnh. Chỉ bọc hàm Go sẵn có
   - [ ] Tool `screenshot` (toàn màn hình / vùng / cửa sổ, thu nhỏ cho nhẹ, trả ảnh + tỷ lệ); toạ độ AI gửi về theo pixel ảnh, Go tự đổi sang toạ độ robotgo (Retina / DPI – dùng chung cách đổi của 17, 25)
   - [ ] Tool `find_image` (dùng so khớp mẫu của 25), `capture_template` (AI khoanh vùng trên ảnh chụp → lưu ảnh mẫu cạnh kịch bản cho bước `waitImage` / `clickImage`), `get_mouse_position`, `list_windows`
   - [ ] Người dùng thấy khi AI chụp màn hình: thông báo nhỏ / chấm đỏ trên thanh mini; tắt được trong Cài đặt

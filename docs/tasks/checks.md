@@ -22,40 +22,6 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 - [ ] Inspector node Click: Vị trí → **Biến** → ô X / Y điền sẵn số hiện tại; chọn *Điền chỗ thấy… → n1* ra `{{n1.output.x}}` / `{{n1.output.y}}`, sửa thành `+ 20`; marker trên overlay của node biến mất, thẻ ghi `X {{n1.output.x}} + 20`; bấm **Số** lại → về điểm cũ. Xem cả theme sáng + tối
 - [ ] Gõ sai (vd `{{n1.output.text}}`, `{{n1.output.x}} +`) → Chạy báo lỗi rõ ở node đó trước khi chạy; Kéo thả B *Lệch so với A* + Biến → ô ghi ΔX / ΔY
 
-## 25d D4b – Node web: chạy nền · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
-
-- [ ] Tắt hẳn Chrome của app (đã mở từ trước thì chưa có cờ chạy nền) → Mẫu thử → **Web: chạy nền** → Chạy, ngay sau khi trang mở thì chuyển sang app khác / thu nhỏ Chrome: chuột không động, kết thúc thành công “XIN CHÀO DEMO, lăn … lần”
-- [ ] Inspector node Click / Gõ / Cuộn / Chờ phần tử web: *Điều khiển* Chuột thật / Chạy nền + dòng giải thích đổi theo; node Đọc không có lựa chọn này; thẻ node hiện “· chạy nền” – xem cả theme sáng + tối
-- [ ] Chạy nền khi Chrome zoom 125% và khi tab đích không phải tab đang hiện (tab khác đang mở trên cùng cửa sổ) → vẫn bấm đúng phần tử
-
-## 25d D4a – Node web: gõ, đọc, cuộn · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
-
-- [ ] Ctrl+K nhóm *Web (trình duyệt)* có Gõ vào ô web / Đọc phần tử web / Cuộn trang web; inspector từng loại (công tắc Xoá chữ cũ / Enter, Đọc: chữ / giá trị ô / thuộc tính + ô tên, Cuộn: 3 cách + hướng / số nấc / khung) – xem cả theme sáng + tối
-- [ ] Mẫu thử → **Web: đăng nhập, đọc kết quả** → Chạy: gõ vào đúng ô, lần sai hiện chữ đỏ, lần đúng ra XIN CHÀO DEMO, kết thúc thành công
-- [ ] Mẫu thử → **Web: cuộn feed tới bài đặc biệt** và **Web: cuộn trong khung + tới phần tử** → Chạy: chuột lăn thật (feed tải thêm), dải ngang lăn mà trang không chạy, dừng ở MỤC 30
-- [ ] Node Đọc → **Thử tìm** hiện “đọc được “…”” + số phần tử khớp; node Gõ trỏ nhầm vào nút (không phải ô) → cổng Thất bại “ô nhập không nhận focus”, không gõ bậy
-
-## 25d D3 – Node web: Chọn phần tử, Thử tìm, trạng thái · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
-
-- [ ] Inspector node Chờ / Click phần tử web: dòng trạng thái “Chrome của app: chưa mở” → bấm Mở → Chrome riêng bật, trạng thái thành “đang mở, 1 tab”; xem cả theme sáng + tối
-- [ ] Mở trang sân thử web trong Chrome của app → **Chọn phần tử trên trang** → Chrome lên trước, viền cam theo chuột, bấm nút “Đồng ý” → app tự lên lại, ô cách tìm điền 2–3 dòng (`text=Đồng ý`, `role=button[name=…]`…), trang **không** nhận click đó; thử Esc / Huỷ chọn
-- [ ] Chọn ô đồng ý trong iframe (mẫu Web: thanh toán trong iframe) → ra `role=checkbox…`
-- [ ] **Thử tìm**: lần đầu chuột đi vào trang đo toạ độ rồi app lên lại, báo “Thấy … tại X Y · ms” + chữ; “xem trên màn hình” → khung xanh đúng chỗ phần tử; phần tử bị popup cookie che → báo bị che (khung vàng); phần tử dưới màn hình → “ngoài khung nhìn, lúc click sẽ tự cuộn tới”
-
-## 25d D2 – Node web: trước khi bấm, iframe, role · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
-
-- [ ] Mẫu thử → **Web: thanh toán trong iframe** → Chạy: tick ô đồng ý, chờ nút Thanh toán trượt xong mới bấm, hiện ĐÃ THANH TOÁN, *Click thật* = 2
-- [ ] Kéo cửa sổ Chrome của app xuống để nút “Xem lịch sử” / Thanh toán rơi vào chỗ **Dock che** rồi chạy mẫu → node tự cuộn phần tử lên giữa rồi bấm trúng (không bấm vào Dock)
-- [ ] Trong lúc node webClick đang chờ: đặt một cửa sổ app khác (luôn trên cùng, vd thanh mini) đè lên nút → không bấm nhầm; hết giờ báo “chưa bấm được: …” rõ lý do
-
-## 25d D1 – Node web (chờ / click phần tử) · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
-
-- [ ] `wails dev` → Mẫu thử → **Web: mở lịch sử đơn hàng** → Chạy: lần đầu app bật Chrome riêng (profile của app), chạy hết tới LỊCH SỬ ĐƠN HÀNG, ô *Click thật* tăng; chạy lại lần 2 → mở tab mới trong Chrome đó (không bật Chrome thứ hai)
-- [ ] Trong lúc chạy mẫu: dời cửa sổ Chrome / zoom 125% (Cmd +) / mở DevTools rồi chạy lại – vẫn bấm trúng (đo lại toạ độ)
-- [ ] Tắt Chrome của app rồi chạy một node web (không có node Mở trước) → lỗi rõ “Chrome của app chưa mở…” (mã `browser`), không treo
-- [ ] Inspector: thêm node qua Ctrl+K nhóm *Web (trình duyệt)*; nhập nhiều dòng selector, `{{biến}}` trong selector; node Mở chọn “Chrome của app”
-- [ ] Trang thật đăng nhập (vd Facebook) trong Chrome của app: đăng nhập một lần, lần sau profile còn nhớ
-
 ## 20 F6 – Thanh mini nổi trên app toàn màn hình · [phase3/20-flow.md](phase3/20-flow.md)
 
 - [ ] Chạy từng node (F10) → sang Chrome / app khác **toàn màn hình**: thanh mini vẫn hiện, bấm được nút chạy tiếp / dừng; overlay (chọn điểm, Thử tìm) cũng hiện trên app toàn màn hình
@@ -68,11 +34,6 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 - [ ] *Dùng mẫu* khi đang có thay đổi chưa lưu → hỏi lưu; mở xong là kịch bản mới chưa có file, Lưu hỏi chỗ lưu
 - [ ] Chạy vài mẫu từ app (Click nhiều lần, Kéo thả, Form đăng nhập nhập sai mật khẩu, Kanban, Quiz): trang sân thử hiện đúng kết quả (đã chạy tự động 31 / 31 bằng engine – còn thử qua nút Chạy, thanh mini, F8)
 - [ ] Click / bấm theo chữ trong app thật khác (không phải sân thử) không chậm đi rõ (mỗi lần di chuột chờ thêm 40 ms)
-
-## 25d D0 – Đo toạ độ web · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
-
-- [ ] Cắm màn ngoài (khác DPI Retina) rồi chạy `go run -tags probe ./cmd/d0probe -scenario all` – tình huống `display2` lệch ≤ 2 px (chuột sẽ tự di chuyển + bấm ~1 phút, đừng động vào chuột)
-- [ ] Khi có máy Windows: chạy lại trên màn DPI 125% (sửa `-chrome` trỏ tới chrome.exe; phím zoom là Ctrl) – dán kết quả vào file bước
 
 ## 32 – Tách Go thành package · [phase3/32-go-packages.md](phase3/32-go-packages.md)
 
@@ -117,3 +78,46 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 ## Chờ máy Windows
 
 - [ ] Bước 17: scale 100% / 125% / 150% và 2 màn khác scale; 23: mở URL / app (PowerShell `Start-Process`), cuộn theo nấc – làm cùng bước 18 ([phase1-mvp.md](phase1-mvp.md))
+
+## Tạm hoãn – node web qua Chrome của app · [phase3/36-chrome-app-sau.md](phase3/36-chrome-app-sau.md)
+
+Người dùng chốt 2026-10-18: việc qua Chrome của app làm sau cùng – thử khi làm 36.
+
+### 25d D4b – Node web: chạy nền · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
+
+- [ ] Tắt hẳn Chrome của app (đã mở từ trước thì chưa có cờ chạy nền) → Mẫu thử → **Web: chạy nền** → Chạy, ngay sau khi trang mở thì chuyển sang app khác / thu nhỏ Chrome: chuột không động, kết thúc thành công “XIN CHÀO DEMO, lăn … lần”
+- [ ] Inspector node Click / Gõ / Cuộn / Chờ phần tử web: *Điều khiển* Chuột thật / Chạy nền + dòng giải thích đổi theo; node Đọc không có lựa chọn này; thẻ node hiện “· chạy nền” – xem cả theme sáng + tối
+- [ ] Chạy nền khi Chrome zoom 125% và khi tab đích không phải tab đang hiện (tab khác đang mở trên cùng cửa sổ) → vẫn bấm đúng phần tử
+
+### 25d D4a – Node web: gõ, đọc, cuộn · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
+
+- [ ] Ctrl+K nhóm *Web (trình duyệt)* có Gõ vào ô web / Đọc phần tử web / Cuộn trang web; inspector từng loại (công tắc Xoá chữ cũ / Enter, Đọc: chữ / giá trị ô / thuộc tính + ô tên, Cuộn: 3 cách + hướng / số nấc / khung) – xem cả theme sáng + tối
+- [ ] Mẫu thử → **Web: đăng nhập, đọc kết quả** → Chạy: gõ vào đúng ô, lần sai hiện chữ đỏ, lần đúng ra XIN CHÀO DEMO, kết thúc thành công
+- [ ] Mẫu thử → **Web: cuộn feed tới bài đặc biệt** và **Web: cuộn trong khung + tới phần tử** → Chạy: chuột lăn thật (feed tải thêm), dải ngang lăn mà trang không chạy, dừng ở MỤC 30
+- [ ] Node Đọc → **Thử tìm** hiện “đọc được “…”” + số phần tử khớp; node Gõ trỏ nhầm vào nút (không phải ô) → cổng Thất bại “ô nhập không nhận focus”, không gõ bậy
+
+### 25d D3 – Node web: Chọn phần tử, Thử tìm, trạng thái · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
+
+- [ ] Inspector node Chờ / Click phần tử web: dòng trạng thái “Chrome của app: chưa mở” → bấm Mở → Chrome riêng bật, trạng thái thành “đang mở, 1 tab”; xem cả theme sáng + tối
+- [ ] Mở trang sân thử web trong Chrome của app → **Chọn phần tử trên trang** → Chrome lên trước, viền cam theo chuột, bấm nút “Đồng ý” → app tự lên lại, ô cách tìm điền 2–3 dòng (`text=Đồng ý`, `role=button[name=…]`…), trang **không** nhận click đó; thử Esc / Huỷ chọn
+- [ ] Chọn ô đồng ý trong iframe (mẫu Web: thanh toán trong iframe) → ra `role=checkbox…`
+- [ ] **Thử tìm**: lần đầu chuột đi vào trang đo toạ độ rồi app lên lại, báo “Thấy … tại X Y · ms” + chữ; “xem trên màn hình” → khung xanh đúng chỗ phần tử; phần tử bị popup cookie che → báo bị che (khung vàng); phần tử dưới màn hình → “ngoài khung nhìn, lúc click sẽ tự cuộn tới”
+
+### 25d D2 – Node web: trước khi bấm, iframe, role · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
+
+- [ ] Mẫu thử → **Web: thanh toán trong iframe** → Chạy: tick ô đồng ý, chờ nút Thanh toán trượt xong mới bấm, hiện ĐÃ THANH TOÁN, *Click thật* = 2
+- [ ] Kéo cửa sổ Chrome của app xuống để nút “Xem lịch sử” / Thanh toán rơi vào chỗ **Dock che** rồi chạy mẫu → node tự cuộn phần tử lên giữa rồi bấm trúng (không bấm vào Dock)
+- [ ] Trong lúc node webClick đang chờ: đặt một cửa sổ app khác (luôn trên cùng, vd thanh mini) đè lên nút → không bấm nhầm; hết giờ báo “chưa bấm được: …” rõ lý do
+
+### 25d D1 – Node web (chờ / click phần tử) · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
+
+- [ ] `wails dev` → Mẫu thử → **Web: mở lịch sử đơn hàng** → Chạy: lần đầu app bật Chrome riêng (profile của app), chạy hết tới LỊCH SỬ ĐƠN HÀNG, ô *Click thật* tăng; chạy lại lần 2 → mở tab mới trong Chrome đó (không bật Chrome thứ hai)
+- [ ] Trong lúc chạy mẫu: dời cửa sổ Chrome / zoom 125% (Cmd +) / mở DevTools rồi chạy lại – vẫn bấm trúng (đo lại toạ độ)
+- [ ] Tắt Chrome của app rồi chạy một node web (không có node Mở trước) → lỗi rõ “Chrome của app chưa mở…” (mã `browser`), không treo
+- [ ] Inspector: thêm node qua Ctrl+K nhóm *Web (trình duyệt)*; nhập nhiều dòng selector, `{{biến}}` trong selector; node Mở chọn “Chrome của app”
+- [ ] Trang thật đăng nhập (vd Facebook) trong Chrome của app: đăng nhập một lần, lần sau profile còn nhớ
+
+### 25d D0 – Đo toạ độ web · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
+
+- [ ] Cắm màn ngoài (khác DPI Retina) rồi chạy `go run -tags probe ./cmd/d0probe -scenario all` – tình huống `display2` lệch ≤ 2 px (chuột sẽ tự di chuyển + bấm ~1 phút, đừng động vào chuột)
+- [ ] Khi có máy Windows: chạy lại trên màn DPI 125% (sửa `-chrome` trỏ tới chrome.exe; phím zoom là Ctrl) – dán kết quả vào file bước
