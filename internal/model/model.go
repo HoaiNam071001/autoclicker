@@ -34,6 +34,9 @@ const (
 	StepWebRead   = "webRead"   // chờ phần tử hiện rồi đọc chữ / value / thuộc tính (ReadFrom) vào output
 	StepWebScroll = "webScroll" // cuộn tới phần tử / trong phần tử / tới khi thấy phần tử (ScrollMode)
 
+	// Phần tử màn hình qua Accessibility (bước 37, engine/elementstep.go) – Chờ / Click dùng waitImage / clickImage FindBy element
+	StepElementRead = "elementRead" // chờ phần tử có trong cửa sổ app rồi đọc chữ / giá trị (không di chuột, không cuộn)
+
 	// Node điều khiển (bước 20 F3, nodes.go) – không làm gì trên màn hình ngoài nhìn, chọn cổng ra theo kết quả.
 	StepIf           = "if"           // Cond đúng → cổng true, sai → false; TimeoutMs > 0 = chờ tới khi đúng
 	StepSwitch       = "switch"       // so Value với từng case (Op / Match) → case:<key>, không case nào khớp → default
@@ -46,7 +49,7 @@ const (
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
 	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWebWait, StepWebClick,
-	StepWebType, StepWebRead, StepWebScroll, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
+	StepWebType, StepWebRead, StepWebScroll, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
 func IsControl(t string) bool {

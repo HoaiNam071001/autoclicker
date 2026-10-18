@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeStep, stepLabel, type Step } from '../types';
-import { firstSelector, fmtElement } from './element';
+import { elementSelectorError, firstSelector, fmtElement } from './element';
 import { condMissing, condText } from './view';
 
 const wait = (p: Partial<Step>) =>
@@ -22,5 +22,9 @@ describe('phần tử màn hình', () => {
   it('điều kiện thấy phần tử', () => {
     expect(condMissing({ kind: 'element', selectors: [' '] })).toBe('Chưa nhập cách tìm phần tử');
     expect(condText({ kind: 'element', selectors: ['role=link'], not: true })).toBe('không thấy phần tử “role=link”');
+  });
+  it('elementSelectorError', () => {
+    expect(elementSelectorError(['text=Mua', 'role=button[name="Gửi"]', '{{cach}}'])).toBe('');
+    expect(elementSelectorError(['Mua', 'css=.buy'])).toContain('“css=.buy”');
   });
 });

@@ -1,0 +1,71 @@
+{
+ "meta": {
+  "name": "Phần tử – nút dưới cuối trang",
+  "description": "Nút XÁC NHẬN ĐƠN nằm dưới cuối trang: Click theo phần tử tự cuộn tới (AXScrollToVisible) rồi bấm; Nếu thấy phần tử ĐƠN ĐÃ XÁC NHẬN → thành công. Đúng: trang cuộn xuống, chữ hiện cạnh nút.",
+  "level": 2,
+  "app": "Phần tử",
+  "page": "element.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/element.html",
+    "delayAfter": 2000
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "element",
+    "selectors": [
+     "role=button[name=\"XÁC NHẬN ĐƠN\"]"
+    ],
+    "timeoutMs": 10000,
+    "delayAfter": 500
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "element",
+     "selectors": [
+      "ĐƠN ĐÃ XÁC NHẬN"
+     ]
+    },
+    "timeoutMs": 3000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã xác nhận đơn"
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Bấm rồi mà không thấy ĐƠN ĐÃ XÁC NHẬN"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "true",
+    "to": "s4"
+   },
+   {
+    "from": "s3",
+    "port": "false",
+    "to": "s5"
+   }
+  ]
+ }
+}

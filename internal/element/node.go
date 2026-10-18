@@ -45,9 +45,10 @@ func (n Node) ownText() string {
 	return n.Title
 }
 
-// Text – chữ đọc ra của phần tử (node Đọc phần tử): ô nhập / select / khối chữ → giá trị, còn lại → tên.
+// Text – chữ đọc ra của phần tử (node Đọc phần tử): ô nhập / select → giá trị (ô trống → "", không lấy nhãn),
+// khối chữ → nội dung, còn lại → tên.
 func (n Node) Text() string {
-	if n.Value != "" && (n.Role == RoleText || editable(n.Role)) {
+	if editable(n.Role) || n.Role == RoleText {
 		return n.Value
 	}
 	return n.Name()

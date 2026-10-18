@@ -207,3 +207,39 @@ func (e *Engine) elementCond(c model.Cond, snap *snapshot, part *CondPart) (bool
 	}
 	return true, nil
 }
+
+// elementRead – node Đọc phần tử: chờ tới khi có phần tử trong cây rồi đọc chữ / giá trị. Không cuộn, không di chuột –
+// phần tử ngoài khung nhìn vẫn đọc được giá trị.
+func (e *Engine) elementRead(ctx context.Context, s model.Step) (map[string]any, error) {
+	q, err := elementQuery(s.Selectors, s.TextNoAccent, s.Occurrence, e.elementArea(s))
+	if err != nil {
+		return nil, err
+	}
+	var got element.Result
+	why := ""
+	_, err = e.waitLoop(ctx, s, "element", func() (bool, int, error) {
+		nodes, r, err := e.lookElement(s.ElementApp, q)
+		switch {
+		case err != nil && waitable(err):
+			why = err.Error()
+			return false, 0, nil
+		case err != nil:
+			return false, 0, err
+		case !r.Found:
+			why = missWhy(r, nodes, max(s.Occurrence, 1))
+			return false, 0, nil
+		}
+		got = r
+		return true, 100, nil
+	})
+	if errors.Is(err, errTimeout) {
+		return nil, &notFoundErr{fmt.Sprintf("không thấy phần tử %s để đọc sau %s – %s", strings.Join(s.Selectors, " / "), fmtSeconds(s.TimeoutMs), why)}
+	}
+	if err != nil {
+		return nil, err
+	}
+	out := elementHit(got.Hit.Node).output()
+	delete(out, "score")
+	out["text"], out["count"] = got.Hit.Text(), got.Count // text luôn có, kể cả rỗng (ô nhập trống)
+	return out, nil
+}

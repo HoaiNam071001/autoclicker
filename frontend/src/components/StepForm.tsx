@@ -20,6 +20,7 @@ import { FileFields } from './stepform/FileFields';
 import { SystemFields } from './stepform/SystemFields';
 import { WaitUntilFields } from './stepform/WaitUntilFields';
 import { PathFields } from './stepform/PathFields';
+import { ElementReadFields } from './stepform/ElementFields';
 import { isWebStep } from '../flow/web';
 import FlowSections from './stepform/FlowSections';
 import ControlSection from './stepform/ControlSection';
@@ -31,7 +32,7 @@ import { NodeInfoCard, useNodeInfoShown } from './stepform/NodeInfoCard';
 
 // Loại node hành động đổi qua lại được trong ô Hành động (node điều khiển có trường riêng, không đổi loại)
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'screenshot', 'clipboard', 'http', 'file', 'system', 'waitUntil', 'path', 'webWait', 'webClick',
-  'webType', 'webRead', 'webScroll'];
+  'webType', 'webRead', 'webScroll', 'elementRead'];
 const REF_RE = /^[A-Za-z][A-Za-z0-9_]{0,31}$/; // khớp validRef (flow.go)
 
 export default function StepForm({ step: s }: { step: Step }) {
@@ -122,6 +123,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'system' && <SystemFields step={s} />}
       {s.type === 'waitUntil' && <WaitUntilFields step={s} />}
       {isWebStep(s.type) && <WebFields step={s} />}
+      {s.type === 'elementRead' && <ElementReadFields step={s} />}
       {s.type === 'open' && <OpenFields step={s} />}
       {s.type === 'type' && <TypeFields step={s} />}
       {s.type === 'key' && <KeyFields step={s} />}

@@ -69,6 +69,8 @@ func NewStep(stepType string) (Step, error) {
 		s.Selectors, s.WebClear, s.TimeoutMs, s.IntervalMs, s.DelayAfter = []string{"text="}, true, 10000, 200, 300
 	case StepWebRead:
 		s.Selectors, s.TimeoutMs, s.IntervalMs = []string{"text="}, 10000, 200
+	case StepElementRead:
+		s.Selectors, s.TimeoutMs, s.IntervalMs = []string{"text="}, 10000, 250
 	case StepWebScroll:
 		s.Selectors, s.Direction, s.Amount, s.TimeoutMs, s.IntervalMs, s.DelayAfter = []string{"text="}, "down", 3, 10000, 200, 300
 	case StepIf:

@@ -33,6 +33,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   webWait: { desc: 'Chờ phần tử trong trang web (theo chữ, nhãn, CSS…) hiện ra hoặc biến mất.', use: 'Đợi trang tải xong, đợi kết quả tìm kiếm – nhanh và chắc hơn chờ ảnh.' },
   webClick: { desc: 'Tìm phần tử trong trang web theo chữ / nhãn rồi bấm vào bằng chuột.', use: 'Trang hay đổi bố cục / theme khiến ảnh mẫu không còn khớp.' },
   webType: { desc: 'Tìm ô nhập trong trang web, bấm vào rồi gõ chữ (xoá chữ cũ nếu muốn).', use: 'Điền form đăng ký, ô tìm kiếm, bình luận.' },
+  elementRead: { desc: 'Đọc chữ / giá trị của phần tử trong cửa sổ app đang mở (Chrome thường, app khác) – chữ chính xác, không qua OCR.', use: 'Lấy giá, số dư, nội dung ô nhập trên trang đã đăng nhập sẵn (macOS).' },
   webRead: { desc: 'Đọc chữ, giá trị hoặc thuộc tính của phần tử trong trang web vào biến.', use: 'Lấy giá, mã đơn, số dư, link để node sau dùng hoặc so sánh.' },
   webScroll: { desc: 'Cuộn trang web tới phần tử, cuộn trong một khung, hoặc cuộn tới khi thấy phần tử.', use: 'Đưa nút cuối trang vào tầm nhìn, lăn feed tới bài cần tìm.' },
   focusWindow: { desc: 'Đưa cửa sổ của một app lên trước để thao tác tiếp vào đúng app đó.', use: 'Chuyển qua lại giữa nhiều app trong một kịch bản.' },

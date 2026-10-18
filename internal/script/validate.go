@@ -103,6 +103,10 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if err := checkWebStep(i, s); err != nil {
 				return err
 			}
+		case model.StepElementRead:
+			if err := checkElementFind(i, s); err != nil {
+				return err
+			}
 		case model.StepWaitPixel:
 			need = 1
 			if _, err := vision.ParseColor(s.Color); err != nil {
@@ -150,23 +154,27 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 	return nil
 }
 
+// checkFindWait – chỗ thứ mấy + thời gian chờ của node tự tìm chữ / phần tử.
+func checkFindWait(i int, s model.Step) error {
+	if s.Occurrence < 0 {
+		return stepErr(i, s, "occurrence", "chỗ thứ mấy phải ≥ 1")
+	}
+	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
+		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
+	}
+	return nil
+}
+
 // checkImageStep: bước chờ ảnh / click theo ảnh tự tìm có ảnh mẫu đọc được (hoặc chữ / cách tìm phần tử) và thông số hợp lệ.
 func checkImageStep(i int, s model.Step) error {
-	if s.FindBy == model.FindByText || s.FindBy == model.FindByElement {
-		if s.FindBy == model.FindByElement {
-			if err := checkElementSelectors(s.Selectors); err != nil {
-				return stepErr(i, s, "selectors", "%v", err)
-			}
-		} else if strings.TrimSpace(s.FindText) == "" {
+	switch s.FindBy {
+	case model.FindByElement:
+		return checkElementFind(i, s)
+	case model.FindByText:
+		if strings.TrimSpace(s.FindText) == "" {
 			return stepErr(i, s, "findText", "chưa nhập chữ cần tìm")
 		}
-		if s.Occurrence < 0 {
-			return stepErr(i, s, "occurrence", "chỗ thứ mấy phải ≥ 1")
-		}
-		if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
-			return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
-		}
-		return nil
+		return checkFindWait(i, s)
 	}
 	if s.Template == "" {
 		return stepErr(i, s, "template", "chưa có ảnh mẫu – bấm “Khoanh ảnh mẫu”")

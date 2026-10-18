@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  .row { display: flex; gap: 16px; align-items: center; padding: 0 20px 16px; flex-wrap: wrap; }
+  .price { font-size: 32px; font-weight: 800; }
+  .icon { font-size: 26px; width: 52px; height: 52px; border-radius: 26px; }
+  #box { height: 120px; width: 320px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+  #box p { margin: 6px 0; }
+  iframe { width: 340px; height: 110px; border: 1px solid var(--line); border-radius: 10px; }
+  #bottom { margin-top: 1800px; padding: 0 20px 40px; }
+  input { font-size: 18px; padding: 8px 10px; }
+  .status { font-size: 22px; font-weight: 800; }
+</style></head>
+<body>
+<div class="card row"><span>Giá hiện tại:</span><span class="price" id="price"></span><span id="tick" style="color:var(--muted)"></span></div>
+<div class="row">
+  <label>Email <input id="email" value="nam@example.com"></label>
+  <button class="btn icon" aria-label="Thêm vào yêu thích" id="like">♡</button>
+  <span class="status" id="likeState">Chưa thích</span>
+</div>
+<div class="row">
+  <div id="box">
+    <p>Khung cuộn riêng – dòng 1</p><p>dòng 2</p><p>dòng 3</p><p>dòng 4</p><p>dòng 5</p><p>dòng 6</p>
+    <p><button class="btn" id="inner">NÚT TRONG KHUNG</button></p>
+  </div>
+  <iframe srcdoc="<p style='font:18px sans-serif'>Trong iframe: <b>MÃ GIẢM GIÁ SALE50</b></p>"></iframe>
+</div>
+<div class="log"></div>
+<div id="bottom" class="row">
+  <button class="btn" id="confirm">XÁC NHẬN ĐƠN</button><span class="status" id="confirmState"></span>
+</div>
+<script src="sandbox.js"></script>
+<script>
+  // Sân thử phần tử màn hình (bước 37): giá đổi mỗi 1,5 s, nút chỉ có icon (aria-label), ô nhập có sẵn giá trị,
+  // khung cuộn riêng, iframe, nút nằm dưới cuối trang (phải cuộn). Nhật ký không chép chữ đích (mẫu tìm theo chữ).
+  sb.header('Phần tử màn hình');
+  const price = document.getElementById('price');
+  let n = 0;
+  const setPrice = () => { price.textContent = (1200000 + Math.floor(Math.random() * 200) * 1000).toLocaleString('vi-VN') + '₫'; document.getElementById('tick').textContent = `lần ${++n}`; };
+  setPrice();
+  setInterval(setPrice, 1500);
+  document.getElementById('like').onclick = (e) => {
+    e.target.textContent = '♥';
+    document.getElementById('likeState').textContent = 'ĐÃ THÍCH';
+    sb.log('bấm nút trái tim');
+  };
+  document.getElementById('inner').onclick = () => sb.log('bấm nút trong khung cuộn');
+  document.getElementById('confirm').onclick = () => {
+    document.getElementById('confirmState').textContent = 'ĐƠN ĐÃ XÁC NHẬN';
+    sb.log('bấm nút cuối trang');
+  };
+</script>
+</body></html>

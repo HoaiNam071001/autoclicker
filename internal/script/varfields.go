@@ -62,6 +62,11 @@ func VarFields(s *model.Step) []VarField {
 				add(fmt.Sprintf("scrollIn[%d]", i), &s.ScrollIn[i], false)
 			}
 		}
+	case model.StepElementRead:
+		for i := range s.Selectors {
+			add(fmt.Sprintf("selectors[%d]", i), &s.Selectors[i], false)
+		}
+		add("elementApp", &s.ElementApp, false)
 	case model.StepHTTP:
 		add("url", &s.URL, false)
 		kv := func(name string, rows []model.KV) {

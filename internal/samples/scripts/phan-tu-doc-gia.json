@@ -1,0 +1,38 @@
+{
+ "meta": {
+  "name": "Phần tử – đọc giá đang đổi",
+  "description": "Đọc phần tử chứa ₫ trên trang (qua Accessibility, không OCR) vào {{n2.output.text}} rồi đọc ô Email. Đúng: lời kết thúc ghi giá đang hiện + nam@example.com. Cần quyền Accessibility, cửa sổ trình duyệt đang hiện.",
+  "level": 1,
+  "app": "Phần tử",
+  "page": "element.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/element.html",
+    "delayAfter": 2000
+   },
+   {
+    "type": "elementRead",
+    "selectors": [
+     "text=₫"
+    ],
+    "timeoutMs": 10000
+   },
+   {
+    "type": "elementRead",
+    "selectors": [
+     "role=textbox[name=\"Email\"]"
+    ],
+    "timeoutMs": 5000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Giá {{n2.output.text}} · email {{n3.output.text}}"
+   }
+  ]
+ }
+}

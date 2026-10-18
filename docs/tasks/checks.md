@@ -3,6 +3,11 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 37 – Phần tử màn hình qua Accessibility · [phase3/37-phan-tu-man-hinh.md](phase3/37-phan-tu-man-hinh.md)
+
+- [ ] E2 Mẫu thử (Chrome thường làm trình duyệt mặc định, cấp quyền Accessibility cho app / terminal): **Phần tử – đọc giá đang đổi** → lời kết thúc ghi đúng giá đang hiện + nam@example.com; **Phần tử – bấm nút chỉ có icon** → trái tim tô đậm, thành công; **Phần tử – nút dưới cuối trang** → trang tự cuộn xuống, bấm trúng XÁC NHẬN ĐƠN, thành công. Lần đầu với một app có thể chậm ~0,5–2 s (app dựng cây). Thử lại khi Chrome ở desktop (Space) khác / thu nhỏ → chờ hết giờ, lỗi ghi *không có cửa sổ đang hiện*. Tắt quyền Accessibility → lỗi quyền ngay
+- [ ] E2 Inspector Đọc phần tử: thêm từ bảng (nhóm Chờ & điều kiện), gõ `css=.x` → báo đỏ chỉ dùng text= / aria= / role=; ô App nhận `{{biến}}`. Xem cả theme sáng + tối
+
 ## 35 – Node nâng cao · [phase3/35-node-nang-cao.md](phase3/35-node-nang-cao.md)
 
 - [ ] N8 mẫu: **Tìm và mở app trên máy** (Calculator mở lên; tắt bộ gõ tiếng Việt), **Mở Spotify và phát nhạc** (cần Spotify đăng nhập sẵn), **Săn sale – chờ đúng giờ mở bán** (nhập giờ ~1 phút sau: trang ghi đặt được sau giờ mở bán vài chục ms), **Chụp vùng rồi báo qua HTTP** (HTTP 200)

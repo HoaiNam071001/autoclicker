@@ -145,3 +145,30 @@ func TestFindElementOnce(t *testing.T) {
 		t.Errorf("thấy: %+v %v", res, err)
 	}
 }
+
+// Đọc phần tử: không cuộn, không di chuột; ô nhập đọc ra giá trị, kể cả phần tử ngoài khung nhìn.
+func TestElementRead(t *testing.T) {
+	nodes := append(page(elemBox(100, 200, 80, 30)),
+		element.Node{Role: "textbox", Raw: "AXTextField", Title: "Giá", Value: "1.242.000₫", Box: elemBox(100, 799, 200, 1), Depth: 1},
+		element.Node{Role: "textbox", Raw: "AXTextField", Title: "Ghi chú", Box: elemBox(100, 300, 200, 30), Depth: 1})
+	elems := &devicetest.FakeElements{Frames: [][]element.Node{nodes[:1], nodes}}
+	read := modeltest.Step(model.StepElementRead, func(s *model.Step) { s.Selectors, s.IntervalMs = []string{"role=textbox"}, 1 })
+	in, e, err := elementRun(t, elems, read)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := e.results[e.sc.Steps[0].ID].Output
+	if out["text"] != "1.242.000₫" || out["count"] != 2 || out["role"] != "textbox" || out["score"] != nil {
+		t.Errorf("output %v", out)
+	}
+	if len(in.Lines()) != 0 || len(elems.Scrolled) != 0 {
+		t.Errorf("không được di chuột / cuộn: %v, %v", in.Lines(), elems.Scrolled)
+	}
+	// ô trống: text vẫn có (rỗng)
+	elems = &devicetest.FakeElements{Frames: [][]element.Node{nodes}}
+	read.Occurrence = 2
+	_, e, err = elementRun(t, elems, read)
+	if out := e.results[e.sc.Steps[0].ID].Output; err != nil || out["text"] != "" {
+		t.Errorf("ô trống: %v %v", out, err)
+	}
+}

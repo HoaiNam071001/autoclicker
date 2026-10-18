@@ -1,0 +1,42 @@
+{
+ "meta": {
+  "name": "Phần tử – bấm nút chỉ có icon",
+  "description": "Click theo phần tử aria=Thêm vào yêu thích (nút ♡ không có chữ – ảnh mẫu / OCR khó bắt), rồi chờ phần tử ĐÃ THÍCH. Đúng: trái tim tô đậm, kết thúc thành công.",
+  "level": 2,
+  "app": "Phần tử",
+  "page": "element.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/element.html",
+    "delayAfter": 2000
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "element",
+    "selectors": [
+     "aria=Thêm vào yêu thích"
+    ],
+    "timeoutMs": 10000,
+    "delayAfter": 300
+   },
+   {
+    "type": "waitImage",
+    "findBy": "element",
+    "selectors": [
+     "text=\"ĐÃ THÍCH\""
+    ],
+    "timeoutMs": 5000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã bấm nút trái tim"
+   }
+  ]
+ }
+}

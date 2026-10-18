@@ -35,7 +35,7 @@
 
 | Loại | Cổng ra |
 |---|---|
-| hành động (click, double, hold, drag, wait, type, key, scroll, open, waitImage, clickImage, waitPixel, webWait, webClick, webType, webRead, webScroll) | `success`, `fail` |
+| hành động (click, double, hold, drag, wait, type, key, scroll, open, waitImage, clickImage, waitPixel, webWait, webClick, webType, webRead, webScroll, elementRead) | `success`, `fail` |
 | `if` | `true`, `false` |
 | `switch` / `switchScreen` | `case:<key>`… + `default` / `none` |
 | `counter` | `next`, `done` |
@@ -147,7 +147,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | Ô số nhận biến (F5c) | `Step.numVars`; trường được = `Pinnable` (`model.NumVarFieldsOf`); chạy `script.ApplyNumVars` (`numvars.go`) trong `execNode`; UI `NumField` nút {x} (`stepform/shared.tsx`), `flow/numvars.ts` |
 | Output node mới | `Outputs` trong `model/steptypes.go` + `flow/view.ts` `outputsOf`; output chung `CommonOutputs` điền ở `execNode` |
 | Thao tác giống người (34) | Công thức `internal/humanize`; engine `human.go` (mức mỗi node đặt trong `execNode`), `move` / `click` / `typeText` / `wheelEach` / `drag` (`actions.go`), `pressKeys`; model `Script.human` / `Step.human`; UI `components/HumanFields.tsx` (Cài đặt chạy + inspector), `flow/human.ts`; xem trước theo đường cong: `overlay/humanPath.ts` (cùng công thức `path.go`, test chung `testdata/human_path.json`) → `Simulation.tsx` `travel`; sân thử `human.html` |
-| Tìm phần tử màn hình (Accessibility, bước 37) | `engine/elementstep.go`, `internal/element` (`Find`), `internal/device/element_*.go` (đọc cây, `ScrollTo`); chữ hiển thị `flow/element.ts` |
+| Tìm phần tử màn hình (Accessibility, bước 37) | `engine/elementstep.go` (+ node Đọc phần tử `elementRead`), `internal/element` (`Find`), `internal/device/element_*.go` (đọc cây, `ScrollTo`); chữ hiển thị `flow/element.ts`; inspector `stepform/ElementFields` (`ElementQueryFields` dùng chung) |
 | Tìm ảnh / chữ / màu | `engine/imagestep.go`, `internal/vision` (`match.go` NCC, `ocr.go` tìm chữ), `internal/device` (`ocr_*.go` đọc chữ, `capture*.go` chụp); UI `imageSteps.ts`, `stepform/ImageFields` |
 | Toạ độ / neo / DPI | `script/anchor.go` ↔ `anchor.ts` (cùng công thức), `coordMap.ts` (overlay ↔ robotgo), `window.go` (màn hình) |
 | Toạ độ từ biến (F5b) | `script/coord.go` (`EvalCoord`, `PointOnScreen`), engine `pointAt` (`actions.go`), kiểm tra `checkVarField` (`flowcheck.go`); UI `stepform/PointSource` (Số / Biến) + `PointVarFields`, `setPointVar` (`store/points.ts`), `coordSources` (`flow/view.ts`) |

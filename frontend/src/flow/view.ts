@@ -164,6 +164,8 @@ function ownOutputs(s: Step): OutputField[] {
     case 'webClick': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...WEB_FOUND];
     case 'webType': return [{ key: 'text', desc: 'chữ đã gõ (sau khi thay biến)' }, { key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' },
       ...WEB_FOUND.filter((f) => f.key !== 'text')];
+    case 'elementRead': return [{ key: 'text', desc: 'chữ / giá trị đọc được' }, { key: 'count', desc: 'số phần tử khớp' }, { key: 'role', desc: 'vai trò phần tử' },
+      ...FOUND.slice(0, 4)];
     case 'webRead': return [{ key: 'text', desc: 'giá trị đọc được' }, { key: 'count', desc: 'số phần tử khớp' }, { key: 'selector', desc: 'cách tìm đã khớp' }];
     case 'webScroll': return [...WEB_FOUND, ...(s.scrollMode === 'until' ? [{ key: 'scrolls', desc: 'số lần đã lăn' }] : [])];
     case 'if': return [{ key: 'result', desc: 'true / false' }, ...FOUND.map((f) => ({ ...f, desc: `${f.desc} (điều kiện ảnh / chữ đúng)` }))];
