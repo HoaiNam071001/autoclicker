@@ -27,3 +27,4 @@
 - Toạ độ lưu theo **toạ độ màn hình thật (robotgo)**. Overlay tự đo độ lệch cửa sổ ↔ màn hình (so `clientX/Y` với `robotgo.Location` khi chuột đứng yên) thay vì tính từ vị trí cửa sổ – Wails macOS đặt cửa sổ dưới menu bar.
 - Cửa sổ luôn **frameless + nền trong suốt** (Wails v2 không đổi được lúc chạy); MainScreen tự vẽ thanh kéo và nút thu nhỏ / đóng.
 - Wails v2 chỉ có **một cửa sổ** → overlay và mini bar là các *chế độ* của cửa sổ chính (resize / fullscreen / trong suốt / always-on-top), không phải cửa sổ riêng.
+- **Phần tử màn hình qua Accessibility** (37, 2026-10-18): đọc / tìm phần tử ở Chrome thường + app khác qua cây accessibility hệ điều hành (macOS AX, Windows UIA) – không CDP. Thêm vào node Chờ / Click theo ảnh·chữ thành **Tìm theo: Phần tử** + node Đọc phần tử, không đụng node web 25d; bấm bằng chuột thật; cần cửa sổ đang hiện trên màn (cây đứng khi bị ẩn); dự phòng OCR cạnh nhãn + lọc mẫu gộp vào 37.
