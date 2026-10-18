@@ -249,7 +249,10 @@ func (e *Engine) waitPixel(ctx context.Context, s model.Step) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	p := script.ResolvePoint(s.Points[0], script.Bounds(e.sc, e.screen))
+	p, err := e.pointAt(s.Points[0])
+	if err != nil {
+		return "", err
+	}
 	var last string
 	_, err = e.waitLoop(ctx, s, "pixel", func() (bool, int, error) {
 		c, err := e.scr.Pixel(p.X, p.Y)

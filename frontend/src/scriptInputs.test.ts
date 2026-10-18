@@ -12,7 +12,7 @@ vi.mock('./store', () => ({
 }));
 
 const {
-  addInput, inputUsage, parseValue, pinField, pinnedInput, pinToInput, runSections, setPinnedValue, stepInputCount, unpinField, updateInput,
+  addInput, inputUsage, mapVarText, parseValue, pinField, pinnedInput, pinToInput, runSections, setPinnedValue, stepInputCount, unpinField, updateInput,
 } = await import('./scriptInputs');
 
 const base = (): Script => ({
@@ -119,4 +119,11 @@ it('biến trong URL của bước Mở: tính là dùng, đổi key đổi theo
   expect(inputUsage(store.script).get('bai_hat')?.map((s) => s.id)).toEqual(['o']);
   updateInput('bai_hat', { key: 'song' });
   expect(store.script.steps[3].target).toBe('youtube.com/results?search_query={{song}}');
+});
+
+it('mapVarText: toạ độ điểm dùng biến (F5b), điểm số giữ nguyên', () => {
+  const s = makeStep({ id: 'd', type: 'drag', points: [{ x: 1, y: 1, xVar: '{{x0}} + 5', yVar: '{{n1.output.y}}' }, { x: 2, y: 2 }] });
+  const out = mapVarText(s, (t) => t.replace('{{x0}}', '{{diem_x}}'));
+  expect(out.points).toEqual([{ x: 1, y: 1, xVar: '{{diem_x}} + 5', yVar: '{{n1.output.y}}' }, { x: 2, y: 2 }]);
+  expect(mapVarText(makeStep({ id: 't', type: 'type', text: 'a', points: [{ x: 1, y: 1, xVar: '{{k}}' }] }), () => 'z').points[0].xVar).toBe('{{k}}');
 });

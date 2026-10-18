@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeStep } from '../types';
 import { chain } from './edit';
-import { nodeVarOptions, nodeViews } from './view';
+import { coordSources, nodeVarOptions, nodeViews } from './view';
 
 describe('nodeViews', () => {
   const steps = [
@@ -33,6 +33,18 @@ describe('nodeVarOptions', () => {
     expect(keys[0]).toBe('n1.output.x');
     expect(keys).toContain('n1.status');
     expect(keys.some((k) => k.startsWith('n2.'))).toBe(false);
+  });
+});
+
+describe('coordSources', () => {
+  it('node có output x, y theo thứ tự flow – bỏ chính nó và node không có toạ độ', () => {
+    const steps = [
+      makeStep({ id: 'c', ref: 'n3', type: 'click', points: [{ x: 1, y: 1 }] }),
+      makeStep({ id: 'a', ref: 'n1', type: 'waitImage', findBy: 'text', findText: 'Gửi' }),
+      makeStep({ id: 't', ref: 'n2', type: 'type', text: 'x' }),
+    ];
+    const got = coordSources({ steps, start: 'a', edges: chain(['a', 't', 'c']) }, 'c');
+    expect(got).toEqual([{ ref: 'n1', label: 'n1 · Chờ chữ' }]);
   });
 });
 

@@ -13,13 +13,23 @@ type VarField struct {
 	Name string // tên trường (json) cho lời báo lỗi, vd "cond.conds[1].left"
 	Ptr  *string
 	URL  bool // ô URL: giá trị biến được mã hoá (launch.EscapeURLValue)
+	// Coord: ô toạ độ (Point.XVar / YVar, F5b) – biến phải ra số (output toạ độ của node), cả ô là số + / − px
+	Coord bool
 }
 
 // VarFields – các ô chữ nhận biến của s (input {{key}} ở resolveInputs, biến node ở resolveNodeVars, kiểm tra ở
 // validateFlow). Con trỏ trỏ vào s – muốn sửa thì gọi trên bản sao (cloneStep).
 func VarFields(s *model.Step) []VarField {
 	var out []VarField
-	add := func(name string, p *string, url bool) { out = append(out, VarField{name, p, url}) }
+	add := func(name string, p *string, url bool) { out = append(out, VarField{Name: name, Ptr: p, URL: url}) }
+	if hasPoints(s.Type) {
+		for i := range s.Points {
+			if p := &s.Points[i]; p.UsesVar() && !(i == 0 && s.Type == model.StepDrag && s.DragFromPrev) { // A "từ điểm trước" không dùng
+				out = append(out, VarField{Name: fmt.Sprintf("points[%d].xVar", i), Ptr: &p.XVar, Coord: true},
+					VarField{Name: fmt.Sprintf("points[%d].yVar", i), Ptr: &p.YVar, Coord: true})
+			}
+		}
+	}
 	switch s.Type {
 	case model.StepText:
 		add("text", &s.Text, false)
@@ -63,6 +73,15 @@ func VarFields(s *model.Step) []VarField {
 		add("value", &s.Value, false)
 	}
 	return out
+}
+
+// hasPoints – loại node có điểm trên màn hình nhận toạ độ từ biến (điểm trong điều kiện pixel chưa nhận).
+func hasPoints(t string) bool {
+	switch t {
+	case model.StepClick, model.StepDouble, model.StepHold, model.StepDrag, model.StepScroll, model.StepWaitPixel:
+		return true
+	}
+	return false
 }
 
 func condFields(c *model.Cond, name string, add func(string, *string, bool)) {

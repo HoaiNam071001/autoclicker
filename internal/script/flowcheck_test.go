@@ -57,3 +57,45 @@ func TestUnreachableNodes(t *testing.T) {
 		t.Errorf("%q", got)
 	}
 }
+
+// Ô toạ độ dùng biến (F5b): biến phải là output có thật của node nguồn, cả ô dạng số + / − px.
+func TestValidateFlowCoordVars(t *testing.T) {
+	flow := func(x, y string) model.Script {
+		return model.Script{Start: "a", Steps: []model.Step{
+			modeltest.Node("a", "n1", model.StepWaitImage, func(s *model.Step) { s.FindBy, s.FindText = model.FindByText, "Gửi" }),
+			modeltest.Node("t", "n2", model.StepText, func(s *model.Step) { s.Text = "x" }),
+			modeltest.Node("b", "n3", model.StepClick, func(s *model.Step) { s.Points = []model.Point{{XVar: x, YVar: y}} }),
+		}, Edges: []model.Edge{modeltest.Edge("a", model.PortSuccess, "b")}}
+	}
+	for _, ok := range [][2]string{{"{{n1.output.x}} + 20", "{{n1.output.y}}"}, {"{{vars.x}}", "{{last.output.y}} - 4"}, {"{{diem}}", "300"}} {
+		if err := validateFlow(flow(ok[0], ok[1])); err != nil {
+			t.Errorf("%q: %v", ok, err)
+		}
+	}
+	bad := map[string][2]string{
+		`không có output "x" – có: text`: {"{{n2.output.x}}", "1"},
+		"không phải số – toạ độ dùng":    {"{{n1.status}}", "1"},
+		"“{{n1.output.y}} +” sai dạng":   {"1", "{{n1.output.y}} +"},
+		"chưa nhập toạ độ Y":             {"{{n1.output.x}}", ""},
+		"không có trong kịch bản":        {"{{n9.output.x}}", "1"},
+	}
+	for want, xy := range bad {
+		if err := validateFlow(flow(xy[0], xy[1])); err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%q: muốn lỗi %q, có %v", xy, want, err)
+		}
+	}
+}
+
+func TestVarFieldsSkipUnusedDragA(t *testing.T) {
+	s := modeltest.Node("d", "n1", model.StepDrag, func(s *model.Step) {
+		s.DragFromPrev = true
+		s.Points = []model.Point{{XVar: "{{n9.output.x}}", YVar: "1"}, {XVar: "2", YVar: "3"}}
+	})
+	var names []string
+	for _, f := range VarFields(&s) {
+		names = append(names, f.Name)
+	}
+	if !reflect.DeepEqual(names, []string{"points[1].xVar", "points[1].yVar"}) {
+		t.Errorf("%q", names)
+	}
+}

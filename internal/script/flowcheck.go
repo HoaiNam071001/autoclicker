@@ -3,6 +3,8 @@ package script
 import (
 	"fmt"
 	"regexp"
+	"slices"
+	"strings"
 
 	"autoclicker/internal/model"
 )
@@ -71,12 +73,8 @@ func validateFlow(sc model.Script) error {
 			}
 		}
 		for _, f := range VarFields(&s) {
-			for _, m := range NodeVarRe.FindAllStringSubmatch(*f.Ptr, -1) {
-				if name := m[1]; name != "vars" && name != "last" {
-					if _, ok := refs[name]; !ok {
-						return stepErr(i, s, f.Name, "biến %s trỏ tới node %q không có trong kịch bản", m[0], name)
-					}
-				}
+			if err := checkVarField(f, refs, sc.Steps); err != nil {
+				return stepErr(i, s, f.Name, "%v", err)
 			}
 		}
 	}
@@ -99,4 +97,62 @@ func unreachableNodes(sc model.Script) []string {
 		}
 	}
 	return out
+}
+
+// checkVarField – biến node trong ô f trỏ node có thật (refs: ref → chỉ số trong steps); ô toạ độ còn phải ra số.
+func checkVarField(f VarField, refs map[string]int, steps []model.Step) error {
+	for _, m := range NodeVarRe.FindAllStringSubmatch(*f.Ptr, -1) {
+		if name := m[1]; name != "vars" && name != "last" {
+			j, ok := refs[name]
+			if !ok {
+				return fmt.Errorf("biến %s trỏ tới node %q không có trong kịch bản", m[0], name)
+			}
+			if f.Coord {
+				if err := coordVar(m[0], m[2], steps[j]); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	if !f.Coord {
+		return nil
+	}
+	if strings.TrimSpace(*f.Ptr) == "" {
+		axis := "X"
+		if strings.HasSuffix(f.Name, "yVar") {
+			axis = "Y"
+		}
+		return fmt.Errorf("chưa nhập toạ độ %s", axis)
+	}
+	if _, err := EvalCoord(withoutVars(*f.Ptr)); err != nil {
+		return fmt.Errorf("toạ độ “%s” sai dạng – cần số hoặc biến, cộng / trừ px (vd {{n2.output.x}} + 20)", *f.Ptr)
+	}
+	return nil
+}
+
+// coordVar – biến m (đường path) trong ô toạ độ phải là output của node src (vd x, y, w, h của Chờ ảnh / chữ).
+func coordVar(m, path string, src model.Step) error {
+	key, ok := strings.CutPrefix(path, "output.")
+	outs := model.OutputsOf(src.Type)
+	if !ok {
+		return fmt.Errorf("biến %s không phải số – toạ độ dùng output của node, vd {{%s.output.x}}", m, src.Ref)
+	}
+	if !slices.Contains(outs, key) {
+		if len(outs) == 0 {
+			return fmt.Errorf("biến %s: node %s không có output nào", m, src.Ref)
+		}
+		return fmt.Errorf("biến %s: node %s không có output %q – có: %s", m, src.Ref, key, strings.Join(outs, ", "))
+	}
+	return nil
+}
+
+// withoutVars thay mọi biến (node, input) bằng 0 – kiểm tra dạng "số + / − px" trước khi chạy.
+func withoutVars(t string) string {
+	t = NodeVarRe.ReplaceAllString(t, "0")
+	return varRe.ReplaceAllStringFunc(t, func(m string) string {
+		if m == `\{{` {
+			return m
+		}
+		return "0"
+	})
 }

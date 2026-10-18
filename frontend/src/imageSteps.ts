@@ -9,6 +9,7 @@ import { CondAt, condOf } from './flow/cond';
 import { errorText } from './engineStore';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
 import { Rect } from './types';
+import { usesVar } from './anchor';
 
 // fromRun: chỗ giống nhất của lần chạy hết giờ không thấy (engine:failed), không phải từ nút Thử tìm.
 // label: chữ trên khung overlay thay cho "khớp N%" (node web).
@@ -157,7 +158,7 @@ export async function pickCondColor(stepId: string, at: CondAt) {
 export async function pickColor(stepId: string) {
   const { script } = getEditor();
   const s = script.steps.find((x) => x.id === stepId);
-  if (!s?.points[0] || !inWails) return;
+  if (!s?.points[0] || usesVar(s.points[0]) || !inWails) return; // điểm từ biến: chỉ biết lúc chạy
   set({ busy: stepId, error: '' });
   try {
     const p = toScreen(s.points[0], script.region);

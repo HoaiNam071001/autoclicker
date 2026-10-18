@@ -57,4 +57,8 @@ export function fmtAxis(v: number, a: Anchor | undefined) {
   }
 }
 
-export const fmtPoint = (p: StepPoint) => `X ${fmtAxis(p.x, p.ax)}  Y ${fmtAxis(p.y, p.ay)}`;
+// Điểm lấy toạ độ từ biến (xVar / yVar, F5b) – không có chỗ cố định trên màn hình (overlay, xem trước bỏ qua).
+export const usesVar = (p: StepPoint) => !!(p.xVar || p.yVar);
+
+export const fmtPoint = (p: StepPoint) =>
+  usesVar(p) ? `X ${p.xVar || '?'}  Y ${p.yVar || '?'}` : `X ${fmtAxis(p.x, p.ax)}  Y ${fmtAxis(p.y, p.ay)}`;

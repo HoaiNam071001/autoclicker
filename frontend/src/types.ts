@@ -1,13 +1,14 @@
 import { model } from '../wailsjs/go/models';
-import { fmtAxis, fmtPoint } from './anchor';
+import { fmtAxis, fmtPoint, usesVar } from './anchor';
 import { fmtWebStep, isWebStep, type ReadFrom, type ScrollMode } from './flow/web';
 
 // Neo của một trục (anchor.ts, khớp internal/script/anchor.go): bỏ trống = start (cách cạnh trái / trên).
 export type Anchor = 'start' | 'center' | 'end' | 'ratio';
 // Toạ độ màn hình / cửa sổ.
 export type Point = { x: number; y: number };
-// Điểm lưu trong bước: neo theo cạnh vùng từng trục (khớp Point trong model.go).
-export type StepPoint = Point & { ax?: Anchor; ay?: Anchor };
+// Điểm lưu trong bước: neo theo cạnh vùng từng trục (khớp Point trong model.go). xVar / yVar (F5b): toạ độ màn hình từ biến
+// ("{{n2.output.x}} + 20") – có thì bỏ qua x / y + neo (anchor.ts usesVar).
+export type StepPoint = Point & { ax?: Anchor; ay?: Anchor; xVar?: string; yVar?: string };
 export type Rect = { x: number; y: number; w: number; h: number };
 // Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
 export type Retry = { count?: number; delayMs?: number };
@@ -273,12 +274,12 @@ export const fmtKey = (s: Step) => {
 
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);
 const fmtSigned = (v: number) => (v > 0 ? `+${v}` : `${v}`);
-const fmtPair = (p: StepPoint) => `${fmtAxis(p.x, p.ax)}, ${fmtAxis(p.y, p.ay)}`;
+const fmtPair = (p: StepPoint) => (usesVar(p) ? `${p.xVar}, ${p.yVar}` : `${fmtAxis(p.x, p.ax)}, ${fmtAxis(p.y, p.ay)}`);
 // refOf: id node → mã (n2) để ghi nguồn chỗ thấy của click theo ảnh.
 export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
   s.type === 'drag'
     ? `${s.dragFromPrev ? 'Từ điểm trước' : `A ${fmtPair(s.points[0])}`} → ${
-      s.dragRelative ? `Δ ${fmtSigned(s.points[1].x)},${fmtSigned(s.points[1].y)}` : `B ${fmtPair(s.points[1])}`}`
+      s.dragRelative ? `Δ ${usesVar(s.points[1]) ? fmtPair(s.points[1]) : `${fmtSigned(s.points[1].x)},${fmtSigned(s.points[1].y)}`}` : `B ${fmtPair(s.points[1])}`}`
     : s.type === 'type' ? `"${s.text}"`
     : s.type === 'key' ? fmtKey(s)
     : s.type === 'scroll' ? `${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount ?? 0} nấc ≈ ${(s.amount ?? 0) * SCROLL_NOTCH_PX} px ${s.points[0] ? `tại ${fmtPoint(s.points[0])}` : 'tại chuột'}`

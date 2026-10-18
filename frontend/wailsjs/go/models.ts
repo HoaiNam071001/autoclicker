@@ -291,6 +291,8 @@ export namespace model {
 	    y: number;
 	    ax?: string;
 	    ay?: string;
+	    xVar?: string;
+	    yVar?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Point(source);
@@ -302,6 +304,8 @@ export namespace model {
 	        this.y = source["y"];
 	        this.ax = source["ax"];
 	        this.ay = source["ay"];
+	        this.xVar = source["xVar"];
+	        this.yVar = source["yVar"];
 	    }
 	}
 	export class Cond {

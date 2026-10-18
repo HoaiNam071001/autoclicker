@@ -13,6 +13,8 @@ import { openOverlay } from '../../windowMode';
 import { nodeTitle } from '../../flow/view';
 import { Step } from '../../types';
 import { ButtonField, Field, fmtSec, hint, NumField, PickButton, selectBox, SetPoint, useNodeVars } from './shared';
+import PointSource from './PointSource';
+import { usesVar } from '../../anchor';
 
 export const isImageStep = (s: Step) => s.type === 'waitImage' || s.type === 'clickImage' || s.type === 'waitPixel';
 
@@ -218,11 +220,10 @@ export function WaitPixelFields({ step: s, setPoint }: { step: Step; setPoint: S
   return (
     <>
       {s.points[0] && (
-        <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-          <span>Điểm</span>
+        <PointSource step={s} index={0} setPoint={setPoint} label="Điểm">
           <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
             pick={<PickButton step={s} />} />
-        </div>
+        </PointSource>
       )}
       <Field label="Màu cần chờ" wide group>
         <div className="flex gap-2">
@@ -231,7 +232,7 @@ export function WaitPixelFields({ step: s, setPoint }: { step: Step; setPoint: S
             <input value={s.color ?? ''} onChange={(e) => updateStep(s.id, { color: e.target.value.trim() })} spellCheck={false}
               className="min-w-0 flex-1 bg-transparent font-mono text-[13px] text-ink outline-none" />
           </span>
-          <button onClick={() => pickColor(s.id)} disabled={busy === s.id}
+          <button onClick={() => pickColor(s.id)} disabled={busy === s.id || (!!s.points[0] && usesVar(s.points[0]))}
             title="Lấy màu đang hiện tại điểm này trên màn hình (app ẩn đi một chút) – mở sẵn màn hình có màu cần chờ"
             className="h-8 rounded-control border border-line px-2.5 text-[13px] whitespace-nowrap text-ink enabled:hover:bg-hover disabled:opacity-50">
             {busy === s.id ? 'Đang lấy…' : 'Lấy màu'}

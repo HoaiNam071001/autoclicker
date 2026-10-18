@@ -167,3 +167,14 @@ export function nodeVarOptions(sc: Pick<Script, 'steps' | 'start' | 'edges'>, se
     ];
   });
 }
+
+// Node có output x, y (chỗ thấy / chỗ chuột dừng) theo thứ tự flow, trừ self – nút chọn nhanh toạ độ từ biến (F5b).
+export function coordSources(sc: Pick<Script, 'steps' | 'start' | 'edges'>, self: string): { ref: string; label: string }[] {
+  const byId = new Map(sc.steps.map((s) => [s.id, s]));
+  return flowOrder(sc).flatMap((id) => {
+    const s = byId.get(id);
+    if (!s || id === self || !s.ref) return [];
+    const keys = outputsOf(s).map((o) => o.key);
+    return keys.includes('x') && keys.includes('y') ? [{ ref: s.ref, label: `${s.ref} · ${nodeTitle(s)}` }] : [];
+  });
+}

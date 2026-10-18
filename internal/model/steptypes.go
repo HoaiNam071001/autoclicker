@@ -36,6 +36,9 @@ const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự tron
 	`{{n2.error.code}} / {{n2.error.message}}, {{n2.output.<khoá>}} = kết quả lần chạy gần nhất của node có ref n2 trong vòng này; ` +
 	`{{last.…}} = node vừa chạy trước; {{vars.<tên>}} = biến node setVar đặt. Biến nhận được trong: text, target, findText, selectors, tab, ` +
 	`cond (findText, left, right), cases (match, cond), value, message. ` +
+	`Điểm trên màn hình (points của click, double, hold, drag, scroll, waitPixel) nhận toạ độ từ biến: {"xVar":"{{n2.output.x}} + 20","yVar":"{{n2.output.y}}"} – ` +
+	`có xVar / yVar thì bỏ qua x, y và neo; mỗi ô là số hoặc biến cộng / trừ px, biến node phải là output của node đó (vd x, y, w, h của waitImage); ` +
+	`kết quả là toạ độ màn hình (như output waitImage), không tính theo vùng; drag dragRelative: points[1] từ biến là độ lệch so với A. ` +
 	`Node điều khiển rẽ nhánh theo cổng: if (true / false), switch / switchScreen (case:<key> theo từng case, rồi default / none), ` +
 	`counter (next / done – dùng để giới hạn vòng lặp), end (không có cổng: kết thúc vòng, fail = dừng kịch bản báo lỗi), setVar (success). ` +
 	`Điều kiện cond: {kind: text | image | pixel | value | all | any, not}: text = thấy chữ findText (textExact, textNoAccent, occurrence, searchArea); ` +
@@ -148,6 +151,16 @@ type FlowGuideDoc struct {
 
 // StepTypeDocs – mô tả các loại bước app đang hỗ trợ.
 func StepTypeDocs() []StepTypeDoc { return stepTypeDocs }
+
+// OutputsOf – khoá output của loại node t (nil = loại không có trong bảng).
+func OutputsOf(t string) []string {
+	for _, d := range stepTypeDocs {
+		if d.Type == t {
+			return d.Outputs
+		}
+	}
+	return nil
+}
 
 // Guide – hướng dẫn cấu trúc flow, trường chung và kịch bản mẫu (cho AI / MCP, bước 31).
 func Guide() FlowGuideDoc {

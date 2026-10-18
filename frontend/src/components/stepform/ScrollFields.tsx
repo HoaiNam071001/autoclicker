@@ -8,6 +8,7 @@ import { pinnedInput, setPinnedValue } from '../../scriptInputs';
 import { insideBounds } from '../../anchor';
 import { SCROLL_NOTCH_PX, ScrollDirection, Step } from '../../types';
 import { DIRECTION_OPTIONS, Field, hint, NumField, PickButton, SetPoint } from './shared';
+import PointSource from './PointSource';
 
 export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetPoint }) {
   const script = useScript();
@@ -35,8 +36,8 @@ export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetP
             options={[{ id: 'mouse', label: 'Chuột' }, { id: 'point', label: 'Điểm' }]} />
         </Field>
         {s.points[0] ? (
-          <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-            <span>Đặt chuột tại <span className="text-xs">(phải nằm trên {region ? 'vùng' : 'màn hình'} – không phải chỗ cuộn tới)</span></span>
+          <PointSource step={s} index={0} setPoint={setPoint}
+            label={<>Đặt chuột tại <span className="text-xs">(không phải chỗ cuộn tới)</span></>}>
             <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
               pick={<PickButton step={s} />} />
             {!insideBounds(toScreen(s.points[0], region), boundsOf(region)) && (
@@ -45,7 +46,7 @@ export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetP
                 Muốn cuộn xa hơn thì tăng số nấc / quãng cuộn.
               </span>
             )}
-          </div>
+          </PointSource>
         ) : (
           <span className={`col-span-2 ${hint}`}>Cuộn ở chỗ chuột đang đứng – thường sau một bước click vào trang / danh sách cần cuộn.</span>
         )}

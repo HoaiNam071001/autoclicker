@@ -1,6 +1,6 @@
 // Toạ độ điểm của node: khung vùng / màn hình, đổi điểm lưu (neo) ↔ toạ độ màn hình, điểm đầu / cuối của bước chuột.
 // Hàm đọc state, không đổi state – dùng chung cho nodes / points / multi và overlay, xem trước.
-import { anchorPoint, insideBounds, nearestAnchor, resolvePoint } from '../anchor';
+import { anchorPoint, insideBounds, nearestAnchor, resolvePoint, usesVar } from '../anchor';
 import { flowOrder } from '../flow/model';
 import { Point, Rect, Script, Step, StepPoint } from '../types';
 import { getEditor } from './editor';
@@ -28,15 +28,16 @@ export const centerPoint = (region: Rect | null): StepPoint => {
 
 export const pointKey = (id: string, index: number) => `${id}:${index}`;
 
-// Điểm chọn được của một node: A "từ điểm trước" tự tính nên không chọn / biến đổi.
+// Điểm chọn được của một node: A "từ điểm trước" tự tính, điểm dùng biến (F5b) không có chỗ cố định – không chọn / biến đổi.
 export const selectableIndexes = (s: Step) =>
-  s.points.length === 0 || s.type === 'wait' || s.type === 'type' || s.type === 'key' || s.type === 'open' ? []
-    : s.type === 'drag' ? (s.dragFromPrev ? [1] : [0, 1]) : [0];
+  (s.points.length === 0 || s.type === 'wait' || s.type === 'type' || s.type === 'key' || s.type === 'open' ? []
+    : s.type === 'drag' ? (s.dragFromPrev ? [1] : [0, 1]) : [0]).filter((j) => s.points[j] && !usesVar(s.points[j]));
 
 export type Ends = { start: Point | null; end: Point | null; prevStep: string | null };
 
 // Toạ độ màn hình (danh nghĩa, chưa tính ngẫu nhiên) điểm đầu / cuối của các node chuột đang bật. "Điểm trước" = chỗ chuột
 // dừng ở node chuột gần nhất phía trước theo thứ tự hiển thị (flowOrder – nhánh chính); lúc chạy thật theo đường đi thực tế.
+// Điểm dùng biến (F5b) chỉ biết lúc chạy → null (không marker), node sau "từ điểm trước" cũng không biết.
 // prevStep: id node cung cấp điểm trước cho node kéo "từ điểm trước".
 export function endpoints(sc: Pick<Script, 'steps' | 'start' | 'edges'>, region: Rect | null): Map<string, Ends> {
   const out = new Map<string, Ends>();
@@ -46,23 +47,22 @@ export function endpoints(sc: Pick<Script, 'steps' | 'start' | 'edges'>, region:
   for (const id of flowOrder(sc)) {
     const s = byId.get(id)!;
     if (!s.enabled || !s.points.length) continue;
+    const at = (p: StepPoint) => (usesVar(p) ? null : toScreen(p, region));
     if (s.type === 'waitPixel') { // có điểm (marker) nhưng không di chuột
-      const p = toScreen(s.points[0], region);
+      const p = at(s.points[0]);
       out.set(s.id, { start: p, end: p, prevStep: null });
     } else if (s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'scroll') {
-      const p = toScreen(s.points[0], region);
+      const p = at(s.points[0]);
       out.set(s.id, { start: p, end: p, prevStep: null });
       last = p;
       lastStep = s.id;
     } else if (s.type === 'drag' && s.points.length >= 2) {
-      const start: Point | null = s.dragFromPrev ? last : toScreen(s.points[0], region);
+      const start: Point | null = s.dragFromPrev ? last : at(s.points[0]);
       const d = s.points[1];
-      const end: Point | null = s.dragRelative ? (start && { x: start.x + d.x, y: start.y + d.y }) : toScreen(d, region);
+      const end: Point | null = s.dragRelative ? (start && !usesVar(d) ? { x: start.x + d.x, y: start.y + d.y } : null) : at(d);
       out.set(s.id, { start, end, prevStep: s.dragFromPrev ? lastStep : null });
-      if (end) {
-        last = end;
-        lastStep = s.id;
-      }
+      last = end;
+      lastStep = s.id;
     }
   }
   return out;

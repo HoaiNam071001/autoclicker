@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"autoclicker/internal/device"
 	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
 	"autoclicker/internal/script"
@@ -30,6 +29,15 @@ func (e *Engine) click(button string, double bool) error {
 func (e *Engine) move(x, y int) error {
 	e.last, e.hasLast = model.Point{X: x, Y: y}, true
 	return e.in.Move(x, y)
+}
+
+// pointAt – toạ độ màn hình của điểm (neo theo vùng / màn hình, hoặc tính từ biến đã thay – F5b).
+func (e *Engine) pointAt(p model.Point) (model.Point, error) {
+	q, err := script.PointOnScreen(p, script.Bounds(e.sc, e.screen))
+	if err != nil {
+		return q, &invalidErr{err.Error()}
+	}
+	return q, nil
 }
 
 // runStep chạy hành động của node; output là giá trị node trả về cho node sau ({{nX.output.key}}).
@@ -77,10 +85,10 @@ func (e *Engine) runStep(ctx context.Context, s model.Step) (map[string]any, err
 // doStep – hành động của các node không tìm ảnh (chuột, phím, cuộn, mở).
 func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 	in := e.in
-	// pt: toạ độ màn hình của điểm i (theo neo), mỗi lần gọi lệch ngẫu nhiên ± JitterPx.
-	pt := func(i int) (int, int) {
-		p := script.ResolvePoint(s.Points[i], script.Bounds(e.sc, e.screen))
-		return e.jitter(p.X, s.JitterPx), e.jitter(p.Y, s.JitterPx)
+	// pt: toạ độ màn hình của điểm i (theo neo / biến), mỗi lần gọi lệch ngẫu nhiên ± JitterPx.
+	pt := func(i int) (int, int, error) {
+		p, err := e.pointAt(s.Points[i])
+		return e.jitter(p.X, s.JitterPx), e.jitter(p.Y, s.JitterPx), err
 	}
 
 	switch s.Type {
@@ -90,7 +98,10 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 			if err := e.gate.wait(ctx); err != nil {
 				return err
 			}
-			x, y := pt(0) // mỗi click lệch riêng
+			x, y, err := pt(0) // mỗi click lệch riêng
+			if err != nil {
+				return err
+			}
 			if err := e.move(x, y); err != nil {
 				return err
 			}
@@ -104,13 +115,19 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 			}
 		}
 	case model.StepDouble:
-		x, y := pt(0)
+		x, y, err := pt(0)
+		if err != nil {
+			return err
+		}
 		if err := e.move(x, y); err != nil {
 			return err
 		}
 		return e.click(s.Button, true)
 	case model.StepHold:
-		x, y := pt(0)
+		x, y, err := pt(0)
+		if err != nil {
+			return err
+		}
 		if err := e.move(x, y); err != nil {
 			return err
 		}
@@ -129,7 +146,10 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 		return pressKeys(ctx, in, s)
 	case model.StepScroll:
 		if len(s.Points) > 0 {
-			x, y := pt(0)
+			x, y, err := pt(0)
+			if err != nil {
+				return err
+			}
 			if err := e.move(x, y); err != nil {
 				return err
 			}
@@ -178,75 +198,31 @@ func (e *Engine) wheelEach(ctx context.Context, n int, notch func() error) error
 	return nil
 }
 
-// Thời gian giữ khi bấm phím: chord giữ cả tổ hợp keyHoldMs; sequence nhấn mỗi phím keyHoldMs,
-// cách phím sau keyGapMs.
-const keyHoldMs, keyGapMs = 50, 50
-
-// pressKeys bấm tổ hợp theo KeyMode; mọi phím đã nhấn luôn được nhả (ngược thứ tự), kể cả khi lỗi / bị huỷ.
-func pressKeys(ctx context.Context, in device.Input, s model.Step) error {
-	var held []string
-	defer func() {
-		for i := len(held) - 1; i >= 0; i-- {
-			in.KeyToggle(held[i], false, nil)
-		}
-	}()
-	press := func(k string, mods []string) error {
-		if err := in.KeyToggle(k, true, mods); err != nil {
-			return err
-		}
-		held = append(held, k)
-		return nil
-	}
-
-	for _, m := range s.Modifiers {
-		if err := press(m, nil); err != nil {
-			return err
-		}
-	}
-	if s.KeyMode == model.KeySequence {
-		for i, k := range s.Keys {
-			if err := press(k, s.Modifiers); err != nil {
-				return err
-			}
-			if err := Sleep(ctx, keyHoldMs); err != nil {
-				return err
-			}
-			held = held[:len(held)-1]
-			if err := in.KeyToggle(k, false, nil); err != nil {
-				return err
-			}
-			if i < len(s.Keys)-1 {
-				if err := Sleep(ctx, keyGapMs); err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	}
-	for _, k := range s.Keys {
-		if err := press(k, s.Modifiers); err != nil {
-			return err
-		}
-	}
-	return Sleep(ctx, keyHoldMs)
-}
-
 // drag giữ nút tại A, di dần tới B trong DragMs, rồi nhả.
 // A: points[0] hoặc chỗ chuột dừng ở bước trước (DragFromPrev);
-// B: points[1] hoặc A + points[1] (DragRelative) – cả hai đều lệch ngẫu nhiên ± JitterPx.
-func (e *Engine) drag(ctx context.Context, s model.Step, pt func(int) (int, int)) error {
+// B: points[1] hoặc A + points[1] (DragRelative – điểm dùng biến thì biến là độ lệch) – cả hai lệch ngẫu nhiên ± JitterPx.
+func (e *Engine) drag(ctx context.Context, s model.Step, pt func(int) (int, int, error)) error {
 	in := e.in
-	ax, ay := pt(0)
+	var ax, ay, bx, by int
+	var err error
 	if s.DragFromPrev {
 		if !e.hasLast { // đồ thị không biết trước node nào chạy trước – kiểm tra lúc chạy
 			return errors.New("kéo từ điểm trước đó nhưng chưa node nào đưa chuột tới đâu")
 		}
 		ax, ay = e.last.X, e.last.Y
+	} else if ax, ay, err = pt(0); err != nil {
+		return err
 	}
-	bx, by := pt(1)
 	if s.DragRelative {
 		d := s.Points[1]
+		if d.UsesVar() {
+			if d, err = script.PointOnScreen(d, model.Rect{}); err != nil { // độ lệch: không neo, khung không dùng
+				return &invalidErr{"điểm B: " + err.Error()}
+			}
+		}
 		bx, by = e.jitter(ax+d.X, s.JitterPx), e.jitter(ay+d.Y, s.JitterPx)
+	} else if bx, by, err = pt(1); err != nil {
+		return err
 	}
 	if err := e.move(ax, ay); err != nil {
 		return err

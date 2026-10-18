@@ -1,6 +1,6 @@
 // Node và cạnh của flow (bước 20): thêm / sửa / xoá / nhân bản node, nối / cắt cạnh, node bắt đầu, vị trí trên canvas.
 // Phép trên đồ thị là hàm thuần ở flow/edit.ts – ở đây chỉ ghép với state, hoàn tác và thông báo.
-import { anchorPoint } from '../anchor';
+import { anchorPoint, usesVar } from '../anchor';
 import {
   Clip, connect, copyNodes, disconnect, InsertAt, insertNode as insertInto, nextRef, pasteNodes, pruneEdges, removeEdge as dropEdge, removeNode,
 } from '../flow/edit';
@@ -150,8 +150,9 @@ export function changeStepType(id: string, type: StepType) {
   const need = type === 'drag' ? 2 : type === 'click' || type === 'double' || type === 'hold' || type === 'waitPixel' ? 1 : 0;
   if (need >= 1 && points.length === 0) points.push({ x: 0, y: 0 });
   if (need === 2 && points.length === 1) {
-    const a = toScreen(points[0], sc.region);
-    points.push(anchorPoint({ x: a.x + 100, y: a.y }, boundsOf(sc.region), points[0].ax, points[0].ay));
+    const a = points[0];
+    const b = toScreen(a, sc.region);
+    points.push(usesVar(a) ? { ...a, xVar: `${a.xVar} + 100` } : anchorPoint({ x: b.x + 100, y: b.y }, boundsOf(sc.region), a.ax, a.ay));
   }
   const next: Step = {
     ...s,

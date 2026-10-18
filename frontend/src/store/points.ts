@@ -2,7 +2,7 @@
 // cuộn tại điểm. Node mới tạo từ điểm đi qua nodes.insertNode (nối theo insertAt).
 import { EventsOn } from '../../wailsjs/runtime/runtime';
 import { anchorPoint, fmtPoint } from '../anchor';
-import { makeStep, Anchor, Point, Step, STEP_LABEL, StepType } from '../types';
+import { makeStep, Anchor, Point, Step, STEP_LABEL, StepPoint, StepType } from '../types';
 import { inWails, openOverlay, setWindowMode } from '../windowMode';
 import { getEditor, setEditor, setNotice } from './editor';
 import { boundsOf, centerPoint, endpoints, toRelative, toScreen } from './geometry';
@@ -34,6 +34,26 @@ export function setAnchor(id: string, index: number, ax: Anchor, ay: Anchor) {
   const p = s?.points[index];
   if (!s || !p) return;
   const q = anchorPoint(toScreen(p, region), boundsOf(region), ax, ay);
+  updateStep(id, { points: s.points.map((x, i) => (i === index ? q : x)) });
+}
+
+// Điểm thứ index lấy toạ độ từ biến (on, F5b) hay số + neo. Bật: điền sẵn toạ độ màn hình hiện tại (B "lệch so với A":
+// độ lệch) để sửa thành biến; tắt: ô đang là số nguyên thì giữ chỗ đó, không thì giữ điểm cũ.
+export function setPointVar(id: string, index: number, on: boolean) {
+  const { steps, region } = script();
+  const s = steps.find((x) => x.id === id);
+  const p = s?.points[index];
+  if (!s || !p) return;
+  const rel = s.type === 'drag' && index === 1 && s.dragRelative;
+  const { xVar: xs = '', yVar: ys = '', ...plain } = p;
+  let q: StepPoint = plain;
+  if (on) {
+    const at = rel ? p : toScreen(p, region);
+    q = { ...p, xVar: String(at.x), yVar: String(at.y) };
+  } else if (/^-?\d+$/.test(xs.trim()) && /^-?\d+$/.test(ys.trim())) {
+    const at = { x: Number(xs), y: Number(ys) };
+    q = rel ? { ...plain, ...at } : toRelative(at, region, plain) ?? plain;
+  }
   updateStep(id, { points: s.points.map((x, i) => (i === index ? q : x)) });
 }
 

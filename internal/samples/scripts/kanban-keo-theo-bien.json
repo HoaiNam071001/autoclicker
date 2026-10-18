@@ -1,0 +1,19 @@
+{
+ "meta": {
+  "name": "Kanban – kéo theo toạ độ từ biến",
+  "description": "Tìm chữ VIỆC 1 và tiêu đề cột HOÀN TẤT (chỗ thứ 2 – chỗ 1 là ô đếm trên đầu), kéo thẻ từ {{n2.output.x}}, {{n2.output.y}} tới {{n3.output.x}}, {{n3.output.y}} + 80 – không phụ thuộc zoom / khoảng cách cột. Đúng: HOÀN TẤT = 1.",
+  "app": "Kanban",
+  "level": 2,
+  "page": "kanban.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {"type": "open", "target": "{{sandbox}}/kanban.html", "delayAfter": 2500},
+   {"type": "waitImage", "findBy": "text", "findText": "VIEC 1", "textNoAccent": true, "textExact": true, "searchArea": "screen", "timeoutMs": 5000, "delayAfter": 0},
+   {"type": "waitImage", "findBy": "text", "findText": "HOAN TAT", "textNoAccent": true, "occurrence": 2, "searchArea": "screen", "timeoutMs": 5000, "delayAfter": 0},
+   {"type": "drag", "points": [{"x": 0, "y": 0, "xVar": "{{n2.output.x}}", "yVar": "{{n2.output.y}}"}, {"x": 0, "y": 0, "xVar": "{{n3.output.x}}", "yVar": "{{n3.output.y}} + 80"}], "dragMs": 600, "delayAfter": 400},
+   {"type": "end", "endStatus": "success", "message": "Đã kéo VIỆC 1 sang HOÀN TẤT"}
+  ]
+ }
+}

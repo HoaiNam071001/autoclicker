@@ -1,6 +1,7 @@
 // Input của kịch bản (bước 21b) – thao tác trên store: ghim trường, tạo / sửa / xoá input, tính bước nào dùng input.
 // Giá trị thật áp lúc chạy ở Go (script.ResolveInputs, internal/script/inputs.go). Trường đã ghim luôn giữ bằng giá trị mặc định của input,
 // nên Xem trước / overlay không cần resolve vẫn đúng với lần chạy dùng mặc định.
+import { usesVar } from './anchor';
 import { flowOrder } from './flow/model';
 import { getEditor, updateScript } from './store';
 import { Cond, InputType, InputValue, PinField, Script, ScriptInput, Step, stepLabel } from './types';
@@ -28,8 +29,17 @@ export const fieldKind = (f: PinField) => (f === 'enabled' ? 'bool' : 'int');
 const inputsOf = (sc: Script) => sc.inputs ?? [];
 
 // Ô chữ nhận {{biến}} của node – khớp VarFields (internal/script/varfields.go): gõ chữ, mở, chữ cần tìm, điều kiện / case / giá trị của
-// node điều khiển. mapVarText trả node mới với từng ô qua f (không sửa node cũ).
+// node điều khiển, toạ độ điểm dùng biến (F5b). mapVarText trả node mới với từng ô qua f (không sửa node cũ).
 export function mapVarText(s: Step, f: (t: string) => string): Step {
+  return POINT_TYPES.includes(s.type) && s.points.some(usesVar)
+    ? mapFieldText({ ...s, points: s.points.map((p, i) => (usesVar(p) && !(i === 0 && s.type === 'drag' && s.dragFromPrev) // A "từ điểm trước" không dùng
+      ? { ...p, xVar: f(p.xVar ?? ''), yVar: f(p.yVar ?? '') } : p)) }, f)
+    : mapFieldText(s, f);
+}
+// Loại node có điểm nhận toạ độ từ biến – khớp hasPoints (varfields.go).
+const POINT_TYPES: Step['type'][] = ['click', 'double', 'hold', 'drag', 'scroll', 'waitPixel'];
+
+function mapFieldText(s: Step, f: (t: string) => string): Step {
   const cond = (c: Cond): Cond =>
     c.kind === 'text' ? { ...c, findText: f(c.findText ?? '') }
       : c.kind === 'value' ? { ...c, left: f(c.left ?? ''), right: f(c.right ?? '') }
