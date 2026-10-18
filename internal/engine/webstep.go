@@ -99,7 +99,8 @@ func (e *Engine) webTryOnce(ctx context.Context, s model.Step, q web.Query, aim 
 // aimPoint – điểm bấm: tâm khung + Dx / Dy + lệch ngẫu nhiên.
 func (e *Engine) aimPoint(s model.Step, r model.Rect) model.Point {
 	c := hit{Box: r}.center()
-	return model.Point{X: e.jitter(c.X+s.Dx, s.JitterPx), Y: e.jitter(c.Y+s.Dy, s.JitterPx)}
+	c = e.aim(model.Point{X: c.X + s.Dx, Y: c.Y + s.Dy}, r, s.Dx, s.Dy)
+	return model.Point{X: e.jitter(c.X, s.JitterPx), Y: e.jitter(c.Y, s.JitterPx)}
 }
 
 func inRect(p model.Point, r model.Rect) bool {
@@ -176,10 +177,10 @@ func (e *Engine) webPress(ctx context.Context, s model.Step, at model.Point, but
 	if s.WebBackground {
 		return e.browser.BgClick(ctx, at.X, at.Y, button, nth)
 	}
-	if err := e.move(at.X, at.Y); err != nil {
+	if err := e.move(ctx, at.X, at.Y, 0); err != nil {
 		return err
 	}
-	return e.click(button, false)
+	return e.click(ctx, button, false)
 }
 
 // openInBrowser – node Mở với WebBrowser: mở bằng Chrome của app.

@@ -75,6 +75,9 @@ export type Modifier = 'cmd' | 'ctrl' | 'alt' | 'shift';
 // chord: nhấn giữ cùng lúc (Ctrl+C+T) · sequence: giữ phím kèm, gõ lần lượt từng phím chính
 export type KeyMode = 'chord' | 'sequence';
 
+// Mức thao tác giống người – khớp HumanLevels (model.go).
+export type HumanLevel = 'off' | 'low' | 'medium' | 'high';
+
 // Node của flow (bước 20) – khớp Step trong model.go.
 export interface Step {
   id: string;
@@ -133,6 +136,7 @@ export interface Step {
   occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu
   retry?: Retry; // thất bại thì thử lại; hết lượt → cổng fail (internal/engine/flowrun.go execNode)
   numVars?: NumVar[]; // trường số lấy từ biến (F5c) – giá trị lúc chạy thay cho trường đó
+  human?: HumanLevel; // mức giống người riêng của node – trống = theo kịch bản (bước 34)
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
   // node điều khiển (bước 20 F3)
@@ -168,6 +172,7 @@ export interface Script {
   edges: Edge[];
   anchorMode?: AnchorMode; // điểm mới đặt neo theo: bỏ trống = góc gần nhất, start = luôn trên trái
   inputs?: ScriptInput[]; // giá trị hỏi khi bấm Chạy (bước 21b, internal/script/inputs.go)
+  human?: HumanLevel; // thao tác giống người (bước 34, internal/humanize): trống / off = tắt
 }
 export type AnchorMode = 'start';
 const scriptMatchesGo: Same<keyof Script, keyof Fields<model.Script>> = true;

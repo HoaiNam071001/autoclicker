@@ -1,6 +1,7 @@
 // Node (Step) → dữ liệu hiển thị thẻ trên canvas (FlowNodeView): tên, dòng chi tiết, chip, cổng ra có nhãn, cảnh báo,
 // trạng thái chạy. Hàm thuần – FlowEditor (app) gọi với dữ liệu thật; test ở view.test.ts.
 import type { FlowNodeView, PortView, RunState } from '../components/flow/model';
+import { humanLabel, usesHuman } from './human';
 import { Cond, fmtMs, fmtPos, isControl, numVarOf, Script, Step, stepLabel } from '../types';
 import { reachable } from './edit';
 import { CASE_PREFIX, flowOrder, PORT_FAIL, PORT_SUCCESS, PortShape, portsOf } from './model';
@@ -49,7 +50,8 @@ export function nodeViews(sc: Pick<Script, 'steps' | 'start' | 'edges'>, opt: Vi
       detail: isControl(s.type) ? controlDetail(s) : `${fmtPos(s, refOf)} · ${numVarOf(s, 'delayAfter') ?? fmtMs(s.delayAfter)}`,
       ports: portViews(s),
       enabled: s.enabled,
-      chips: [...(n ? [`${n} input`] : []), ...(s.retry?.count ? [`thử lại ${s.retry.count}`] : [])],
+      chips: [...(n ? [`${n} input`] : []), ...(s.retry?.count ? [`thử lại ${s.retry.count}`] : []),
+        ...(s.human && usesHuman(s) ? [`giống người: ${humanLabel(s.human)}`] : [])],
       warn: warningOf(s, ok.has(s.id), refs),
       breakpoint: s.breakpoint,
       run: r?.run,

@@ -171,6 +171,7 @@ func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) (res mode
 			return res, 0
 		}
 		wait = e.jitterMs(rs.DelayAfter, rs.JitterMs)
+		e.setHuman(rs)
 		port, out := model.PortSuccess, map[string]any(nil)
 		if model.IsControl(s.Type) {
 			port, out, err = e.runControl(ctx, rs, logf)

@@ -13,7 +13,9 @@ import (
 
 // Input – thao tác chuột / bàn phím mà engine dùng. Tách interface để test engine bằng input giả.
 type Input interface {
-	Move(x, y int) error
+	Move(x, y int) error                // đưa chuột tới rồi chờ app nhận vị trí (moveSettle) – điểm cuối trước khi bấm
+	MoveStep(x, y int) error            // một bước trên đường di chuột giống người (bước 34) – không chờ
+	Location() (x, y int)               // vị trí chuột hiện tại
 	Drag(x, y int, button string) error // di chuột khi đang giữ nút
 	Toggle(button string, down bool) error
 	Click(button string, double bool) error
@@ -39,6 +41,10 @@ func (RobotgoInput) Move(x, y int) error {
 
 // Drag dùng robotgo.Drag (đã deprecated) vì trên macOS Move chỉ gửi sự kiện "di chuột" kể cả khi
 // đang giữ nút – nhiều app không nhận là kéo; Drag gửi đúng sự kiện "kéo". Windows/Linux: như Move.
+func (RobotgoInput) MoveStep(x, y int) error { return robotgo.Move(x, y) }
+
+func (RobotgoInput) Location() (int, int) { return robotgo.Location() }
+
 func (RobotgoInput) Drag(x, y int, button string) error { return robotgo.Drag(x, y, button) }
 
 func (RobotgoInput) Toggle(button string, down bool) error {

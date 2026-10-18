@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  #pad { flex: 1; margin: 0 20px 12px; border: 3px dashed var(--line); border-radius: 16px; background: var(--surface);
+    position: relative; min-height: 340px; user-select: none; }
+  #trail { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  #pad .btn { position: absolute; transform: translate(-50%, -50%); }
+  #title { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #cbd5e1; pointer-events: none; }
+  .row { display: flex; align-items: center; gap: 12px; margin: 0 20px 12px; }
+  .row b { font-size: 22px; }
+  #box { flex: 1; font: 22px/1.4 ui-monospace, Menlo, Consolas, monospace; padding: 8px 12px; border: 2px solid var(--line); border-radius: 10px; }
+</style></head>
+<body>
+<div class="stats"></div>
+<div id="pad">
+  <canvas id="trail"></canvas>
+  <div id="title" class="big">VỆT CHUỘT</div>
+  <button class="btn" style="left:15%;top:22%">ĐIỂM A</button>
+  <button class="btn ok" style="left:82%;top:30%">ĐIỂM B</button>
+  <button class="btn danger" style="left:40%;top:80%">ĐIỂM C</button>
+</div>
+<div class="row"><label for="box"><b>Ô GÕ</b></label><input id="box" autocomplete="off" spellcheck="false"></div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Vệt chuột + nhịp gõ (bước 34): so thao tác giống người bật / tắt. Chuột nhảy thẳng = 1–2 điểm mỗi lần di, cong = 0 px;
+  // giống người = nhiều điểm, đường cong, giữ nút 60–150 ms, nhịp gõ lệch nhiều.
+  sb.header('Vệt chuột & nhịp gõ');
+  const setClicks = sb.stat('Lần click'), setPts = sb.stat('Điểm chuột / lần di', '–'), setBend = sb.stat('Độ cong (px)', '–');
+  const setHold = sb.stat('Giữ nút (ms)', '–'), setGap = sb.stat('Nhịp gõ TB (ms)', '–'), setSd = sb.stat('Lệch nhịp gõ (ms)', '–');
+  const setBack = sb.stat('Xoá lùi');
+  const pad = document.getElementById('pad'), cv = document.getElementById('trail'), ctx = cv.getContext('2d');
+  const colors = ['#2563eb', '#f59e0b', '#16a34a', '#dc2626', '#7c3aed'];
+  let seg = [], segN = 0, clicks = 0, downAt = 0, back = 0, lastKey = 0;
+  const gaps = [];
+  const fit = () => { cv.width = pad.clientWidth; cv.height = pad.clientHeight; };
+  fit();
+  addEventListener('resize', fit);
+  // Độ cong: khoảng cách lớn nhất từ các điểm tới đoạn thẳng đầu – cuối.
+  function bend(pts) {
+    if (pts.length < 3) return 0;
+    const [a, b] = [pts[0], pts[pts.length - 1]], len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+    return Math.round(Math.max(...pts.map((p) => Math.abs((b.x - a.x) * (a.y - p.y) - (a.x - p.x) * (b.y - a.y)) / len)));
+  }
+  document.addEventListener('mousemove', (e) => {
+    const r = pad.getBoundingClientRect(), p = { x: e.clientX - r.left, y: e.clientY - r.top };
+    if (seg.length) {
+      const q = seg[seg.length - 1];
+      ctx.strokeStyle = colors[segN % colors.length];
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+    }
+    ctx.fillStyle = colors[segN % colors.length];
+    ctx.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
+    seg.push(p);
+  });
+  document.addEventListener('mousedown', () => { downAt = performance.now(); });
+  document.addEventListener('mouseup', (e) => {
+    const hold = Math.round(performance.now() - downAt);
+    setClicks(++clicks); setHold(hold); setPts(seg.length); setBend(bend(seg));
+    sb.log(`click (${e.screenX}, ${e.screenY}) – ${seg.length} điểm chuột, cong ${bend(seg)} px, giữ ${hold} ms`);
+    seg = seg.slice(-1); segN++;
+  });
+  document.getElementById('box').addEventListener('keydown', (e) => {
+    const now = performance.now();
+    if (e.key === 'Backspace') setBack(++back);
+    if (lastKey && now - lastKey < 3000) {
+      gaps.push(now - lastKey);
+      const avg = gaps.reduce((s, g) => s + g, 0) / gaps.length;
+      setGap(Math.round(avg));
+      setSd(Math.round(Math.sqrt(gaps.reduce((s, g) => s + (g - avg) ** 2, 0) / gaps.length)));
+    }
+    lastKey = now;
+  });
+</script>
+</body></html>

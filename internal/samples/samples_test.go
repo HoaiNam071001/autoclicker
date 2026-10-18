@@ -85,7 +85,7 @@ func TestWriteSandbox(t *testing.T) {
 func TestFileURL(t *testing.T) {
 	cases := map[string]string{
 		"/Users/a/Library/Application Support/autoclicker/sandbox": "file:///Users/a/Library/Application%20Support/autoclicker/sandbox",
-		`C:\Users\a\AppData\Roaming\autoclicker\sandbox`:          "file:///C:/Users/a/AppData/Roaming/autoclicker/sandbox",
+		`C:\Users\a\AppData\Roaming\autoclicker\sandbox`:           "file:///C:/Users/a/AppData/Roaming/autoclicker/sandbox",
 	}
 	for in, want := range cases {
 		if filepath.Separator == '/' && strings.Contains(in, `\`) {

@@ -17,6 +17,8 @@ import { isWebStep } from '../flow/web';
 import FlowSections from './stepform/FlowSections';
 import ControlSection from './stepform/ControlSection';
 import InputsTab from './stepform/InputsTab';
+import { HumanNodeField } from './HumanFields';
+import { usesHuman } from '../flow/human';
 
 // Loại node hành động đổi qua lại được trong ô Hành động (node điều khiển có trường riêng, không đổi loại)
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'webWait', 'webClick',
@@ -88,6 +90,7 @@ export default function StepForm({ step: s }: { step: Step }) {
 
 // Trường riêng theo loại node (trong lưới 2 cột).
 function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: Partial<StepPoint>) => void }): ReactNode {
+  const script = useScript();
   return (
     <>
       {isMouse(s) && <MouseFields step={s} setPoint={setPoint} />}
@@ -101,6 +104,8 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'type' && <TypeFields step={s} />}
       {s.type === 'key' && <KeyFields step={s} />}
       {isMouse(s) && <JitterField step={s} />}
+      {usesHuman(s) && <HumanNodeField value={s.human} scriptLevel={script.human} className="col-span-2"
+        onChange={(human) => updateStep(s.id, { human })} />}
     </>
   );
 }

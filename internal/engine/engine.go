@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"autoclicker/internal/device"
+	"autoclicker/internal/humanize"
 	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
@@ -66,6 +67,9 @@ type Engine struct {
 	last    model.Point // chỗ engine vừa đưa chuột tới – cho bước kéo "từ điểm trước đó"
 	hasLast bool
 
+	rng   *rand.Rand        // ngẫu nhiên của thao tác giống người (human.go) – test đặt seed
+	human *humanize.Profile // mức giống người của node đang chạy (setHuman); nil = tắt
+
 	mu       sync.Mutex
 	prog     Progress
 	start    time.Time
@@ -73,7 +77,8 @@ type Engine struct {
 }
 
 func newEngine(in device.Input, sc model.Script, onProgress func(Progress)) *Engine {
-	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}}
+	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{},
+		rng: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))}
 }
 
 // jitter trả v lệch ngẫu nhiên đều trong [v-j, v+j]; j ≤ 0 → v. Dùng cho toạ độ (có thể âm ở màn phụ).

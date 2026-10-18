@@ -22,6 +22,9 @@ func checkScript(sc *model.Script) error {
 	if sc.AnchorMode != model.AnchorNearest && sc.AnchorMode != model.AnchorTopLeft {
 		return fmt.Errorf("cách neo điểm không hợp lệ: %q", sc.AnchorMode)
 	}
+	if sc.Human != "" && !slices.Contains(model.HumanLevels, sc.Human) {
+		return fmt.Errorf("mức giống người không hợp lệ: %q (off | low | medium | high)", sc.Human)
+	}
 	if sc.Steps == nil {
 		sc.Steps = []model.Step{}
 	}
@@ -121,6 +124,9 @@ func checkStep(s *model.Step) error {
 		}
 	default:
 		return fmt.Errorf("loại bước không hợp lệ: %q", s.Type)
+	}
+	if s.Human != "" && !slices.Contains(model.HumanLevels, s.Human) {
+		return fmt.Errorf("mức giống người không hợp lệ: %q (trống = theo kịch bản | off | low | medium | high)", s.Human)
 	}
 	if err := checkNumVars(s); err != nil {
 		return err

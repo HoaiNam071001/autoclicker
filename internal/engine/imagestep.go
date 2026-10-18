@@ -213,12 +213,13 @@ func readHint(read []string) string {
 func (e *Engine) clickImage(ctx context.Context, s model.Step) (map[string]any, error) {
 	var out map[string]any
 	var p model.Point
+	var box model.Rect // cỡ chỗ thấy – điểm bấm giống người + thời gian di chuột
 	if s.ImageSource == model.ImageFromSearch {
 		h, err := e.findImage(ctx, s)
 		if err != nil {
 			return nil, err
 		}
-		out, p = h.output(), h.center()
+		out, p, box = h.output(), h.center(), h.Box
 	} else {
 		r := e.results[s.ImageFrom]
 		ref := e.byID[s.ImageFrom].Ref
@@ -230,13 +231,16 @@ func (e *Engine) clickImage(ctx context.Context, s model.Step) (map[string]any, 
 		if !okX || !okY {
 			return nil, fmt.Errorf("node %s không có chỗ thấy (output x / y)", ref)
 		}
-		out, p = map[string]any{}, model.Point{X: x, Y: y}
+		w, _ := r.Output["w"].(int)
+		h, _ := r.Output["h"].(int)
+		out, p, box = map[string]any{}, model.Point{X: x, Y: y}, model.Rect{W: w, H: h}
 	}
-	x, y := e.jitter(p.X+s.Dx, s.JitterPx), e.jitter(p.Y+s.Dy, s.JitterPx)
-	if err := e.move(x, y); err != nil {
+	at := e.aim(model.Point{X: p.X + s.Dx, Y: p.Y + s.Dy}, box, s.Dx, s.Dy)
+	x, y := e.jitter(at.X, s.JitterPx), e.jitter(at.Y, s.JitterPx)
+	if err := e.move(ctx, x, y, min(box.W, box.H)); err != nil {
 		return nil, err
 	}
-	if err := e.click(s.Button, false); err != nil {
+	if err := e.click(ctx, s.Button, false); err != nil {
 		return nil, err
 	}
 	out["clickX"], out["clickY"] = x, y

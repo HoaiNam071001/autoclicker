@@ -9,8 +9,9 @@ import (
 
 // FakeInput ghi lại các lệnh dưới dạng chuỗi thay vì điều khiển chuột thật; Lines() trả lại để so.
 type FakeInput struct {
-	mu  sync.Mutex
-	log []string
+	mu   sync.Mutex
+	log  []string
+	x, y int // vị trí chuột giả (Location)
 }
 
 func (f *FakeInput) add(format string, a ...any) error {
@@ -20,9 +21,27 @@ func (f *FakeInput) add(format string, a ...any) error {
 	return nil
 }
 
-func (f *FakeInput) Move(x, y int) error { return f.add("move %d,%d", x, y) }
+func (f *FakeInput) Move(x, y int) error { f.at(x, y); return f.add("move %d,%d", x, y) }
 
-func (f *FakeInput) Drag(x, y int, b string) error { return f.add("drag %d,%d %s", x, y, b) }
+// MoveStep ghi "step x,y" – test đường di chuột giống người đếm / bỏ qua các dòng này.
+func (f *FakeInput) MoveStep(x, y int) error { f.at(x, y); return f.add("step %d,%d", x, y) }
+
+func (f *FakeInput) Location() (int, int) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.x, f.y
+}
+
+func (f *FakeInput) at(x, y int) {
+	f.mu.Lock()
+	f.x, f.y = x, y
+	f.mu.Unlock()
+}
+
+func (f *FakeInput) Drag(x, y int, b string) error {
+	f.at(x, y)
+	return f.add("drag %d,%d %s", x, y, b)
+}
 
 func (f *FakeInput) Toggle(b string, down bool) error { return f.add("toggle %s %v", b, down) }
 

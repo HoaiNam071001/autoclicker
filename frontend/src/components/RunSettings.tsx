@@ -5,6 +5,7 @@ import Segmented from './Segmented';
 import { setCountdown, updateScript, useEditor } from '../store';
 import { Script } from '../types';
 import { ScheduleRow } from './ScheduleDialog';
+import { HumanScriptField } from './HumanFields';
 
 type Mode = 'loops' | 'infinite' | 'time';
 const MODES: { id: Mode; label: string }[] = [
@@ -60,6 +61,9 @@ export default function RunSettings() {
         <Segmented value={script.anchorMode ?? 'nearest'} label="Neo điểm mới đặt" full
           options={[{ id: 'nearest', label: 'Góc gần nhất' }, { id: 'start', label: 'Luôn trên trái' }]}
           onChange={(m) => updateScript({ anchorMode: m === 'start' ? 'start' : undefined })} />
+      </div>
+      <div className="border-t border-line pt-3">
+        <HumanScriptField value={script.human} onChange={(human) => updateScript({ human })} />
       </div>
       <label className="flex items-center justify-between border-t border-line pt-3">
         Đếm ngược 3 giây trước khi chạy

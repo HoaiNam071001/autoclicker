@@ -72,6 +72,11 @@ func (t *TrackingInput) Move(x, y int) error {
 	return t.Input.Move(x, y)
 }
 
+func (t *TrackingInput) MoveStep(x, y int) error {
+	t.record(x, y)
+	return t.Input.MoveStep(x, y)
+}
+
 func (t *TrackingInput) Drag(x, y int, button string) error {
 	t.record(x, y)
 	return t.Input.Drag(x, y, button)

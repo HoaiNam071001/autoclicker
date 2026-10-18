@@ -54,6 +54,17 @@ const (
 	ImageFromSearch = "search" // tự tìm ảnh mẫu riêng của bước
 )
 
+// Mức thao tác giống người (Script.Human, Step.Human – bước 34, internal/humanize). Kịch bản "" = tắt; node "" = theo
+// kịch bản. Kịch bản mới (NewScript) bật sẵn mức vừa.
+const (
+	HumanOff    = "off"
+	HumanLow    = "low"
+	HumanMedium = "medium"
+	HumanHigh   = "high"
+)
+
+var HumanLevels = []string{HumanOff, HumanLow, HumanMedium, HumanHigh}
+
 // Hướng cuộn (Step.Direction).
 var ScrollDirections = []string{"up", "down", "left", "right"}
 
@@ -147,6 +158,7 @@ type Step struct {
 	TextNoAccent  bool    `json:"textNoAccent,omitempty"` // FindBy text: bỏ qua dấu
 	Occurrence    int     `json:"occurrence,omitempty"`   // FindBy text: chỗ thứ mấy (trên → dưới, trái → phải); 0 = chỗ đầu
 	Retry         *Retry  `json:"retry,omitempty"`        // thất bại thì thử lại; hết lượt vẫn lỗi → cổng fail
+	Human         string  `json:"human,omitempty"`        // mức giống người của node: "" = theo kịch bản | off | low | medium | high
 	// Ô số lấy từ biến (F5c): mỗi trường số trong NumVarFieldsOf một dòng – giá trị lúc chạy thay cho trường đó.
 	NumVars   []NumVar `json:"numVars,omitempty"`
 	Color     string   `json:"color,omitempty"`     // waitPixel: #RRGGBB
@@ -273,4 +285,5 @@ type Script struct {
 	Edges      []Edge        `json:"edges"`
 	AnchorMode string        `json:"anchorMode,omitempty"` // "" = góc gần nhất | start = luôn trên trái
 	Inputs     []ScriptInput `json:"inputs,omitempty"`     // giá trị hỏi khi bấm Chạy (script/inputs.go)
+	Human      string        `json:"human,omitempty"`      // thao tác giống người: "" / off = tắt | low | medium | high
 }

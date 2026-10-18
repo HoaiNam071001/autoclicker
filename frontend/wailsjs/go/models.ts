@@ -803,6 +803,7 @@ export namespace model {
 	    textNoAccent?: boolean;
 	    occurrence?: number;
 	    retry?: Retry;
+	    human?: string;
 	    numVars?: NumVar[];
 	    color?: string;
 	    tolerance?: number;
@@ -874,6 +875,7 @@ export namespace model {
 	        this.textNoAccent = source["textNoAccent"];
 	        this.occurrence = source["occurrence"];
 	        this.retry = this.convertValues(source["retry"], Retry);
+	        this.human = source["human"];
 	        this.numVars = this.convertValues(source["numVars"], NumVar);
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
@@ -916,6 +918,7 @@ export namespace model {
 	    edges: Edge[];
 	    anchorMode?: string;
 	    inputs?: ScriptInput[];
+	    human?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Script(source);
@@ -933,6 +936,7 @@ export namespace model {
 	        this.edges = this.convertValues(source["edges"], Edge);
 	        this.anchorMode = source["anchorMode"];
 	        this.inputs = this.convertValues(source["inputs"], ScriptInput);
+	        this.human = source["human"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

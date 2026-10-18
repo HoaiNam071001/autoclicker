@@ -53,10 +53,10 @@ func (e *Engine) webKeys(ctx context.Context, s model.Step) error {
 	}
 	if s.WebClear {
 		selectAll := model.Step{Keys: []string{"a"}, Modifiers: []string{selectAllMod()}, KeyMode: model.KeyChord}
-		if err := pressKeys(ctx, e.in, selectAll); err != nil {
+		if err := e.pressKeys(ctx, selectAll); err != nil {
 			return err
 		}
-		if err := pressKeys(ctx, e.in, model.Step{Keys: []string{"backspace"}}); err != nil {
+		if err := e.pressKeys(ctx, model.Step{Keys: []string{"backspace"}}); err != nil {
 			return err
 		}
 	}
@@ -64,7 +64,7 @@ func (e *Engine) webKeys(ctx context.Context, s model.Step) error {
 		return err
 	}
 	if s.WebEnter {
-		return pressKeys(ctx, e.in, model.Step{Keys: []string{"enter"}})
+		return e.pressKeys(ctx, model.Step{Keys: []string{"enter"}})
 	}
 	return nil
 }
@@ -179,7 +179,7 @@ func (e *Engine) webWheel(ctx context.Context, s model.Step, at model.Point) err
 	if s.WebBackground {
 		return e.wheelEach(ctx, s.Amount, func() error { return e.browser.BgWheel(ctx, at.X, at.Y, s.Direction) })
 	}
-	if err := e.move(at.X, at.Y); err != nil {
+	if err := e.move(ctx, at.X, at.Y, 0); err != nil {
 		return err
 	}
 	return e.wheel(ctx, s.Direction, s.Amount)

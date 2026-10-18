@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"autoclicker/internal/humanize"
 	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
 	"autoclicker/internal/script"
@@ -17,16 +18,27 @@ const dragStepMs = 10
 // scrollGapMs – nghỉ giữa các nấc cuộn (app kịp nhận từng nấc; dừng được giữa chừng).
 const scrollGapMs = 30
 
-func (e *Engine) click(button string, double bool) error {
-	if err := e.in.Click(button, double); err != nil {
+// click bấm tại chỗ chuột đang đứng; giống người thì nhấn giữ ClickHold rồi nhả (double click giữ cách của hệ điều hành
+// – tự gửi 2 lần nhấn / nhả không được nhận là double click trên macOS).
+func (e *Engine) click(ctx context.Context, button string, double bool) error {
+	var err error
+	if e.human != nil && !double {
+		err = e.humanClick(ctx, button)
+	} else {
+		err = e.in.Click(button, double)
+	}
+	if err != nil {
 		return err
 	}
 	e.update(false, func(p *Progress) { p.Clicks++ })
 	return nil
 }
 
-// move đưa chuột tới (x, y) và nhớ lại vị trí đó.
-func (e *Engine) move(x, y int) error {
+// move đưa chuột tới (x, y) và nhớ lại vị trí đó; giống người thì đi theo đường cong (size = cỡ đích, 0 = không rõ).
+func (e *Engine) move(ctx context.Context, x, y, size int) error {
+	if e.human != nil {
+		return e.glide(ctx, x, y, size)
+	}
 	e.last, e.hasLast = model.Point{X: x, Y: y}, true
 	return e.in.Move(x, y)
 }
@@ -95,10 +107,10 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 			if err != nil {
 				return err
 			}
-			if err := e.move(x, y); err != nil {
+			if err := e.move(ctx, x, y, 0); err != nil {
 				return err
 			}
-			if err := e.click(s.Button, false); err != nil {
+			if err := e.click(ctx, s.Button, false); err != nil {
 				return err
 			}
 			if i < n-1 {
@@ -112,16 +124,16 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 		if err != nil {
 			return err
 		}
-		if err := e.move(x, y); err != nil {
+		if err := e.move(ctx, x, y, 0); err != nil {
 			return err
 		}
-		return e.click(s.Button, true)
+		return e.click(ctx, s.Button, true)
 	case model.StepHold:
 		x, y, err := pt(0)
 		if err != nil {
 			return err
 		}
-		if err := e.move(x, y); err != nil {
+		if err := e.move(ctx, x, y, 0); err != nil {
 			return err
 		}
 		if err := in.Toggle(s.Button, true); err != nil {
@@ -136,14 +148,14 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 	case model.StepText:
 		return e.typeText(ctx, s.Text)
 	case model.StepKey:
-		return pressKeys(ctx, in, s)
+		return e.pressKeys(ctx, s)
 	case model.StepScroll:
 		if len(s.Points) > 0 {
 			x, y, err := pt(0)
 			if err != nil {
 				return err
 			}
-			if err := e.move(x, y); err != nil {
+			if err := e.move(ctx, x, y, 0); err != nil {
 				return err
 			}
 		}
@@ -157,13 +169,31 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 	return nil
 }
 
-// typeText gõ từng ký tự để dừng / tạm dừng được giữa chừng với chuỗi dài.
+// typeText gõ từng ký tự để dừng / tạm dừng được giữa chừng với chuỗi dài; giống người thì theo nhịp humanize.Typing
+// (nhịp không đều, ngừng, gõ nhầm rồi xoá).
 func (e *Engine) typeText(ctx context.Context, text string) error {
-	for _, r := range text {
+	var keys []humanize.Key
+	if e.human != nil {
+		keys = humanize.Typing(e.rng, *e.human, text)
+	} else {
+		for _, r := range text {
+			keys = append(keys, humanize.Key{Text: string(r)})
+		}
+	}
+	for _, k := range keys {
+		if err := Sleep(ctx, k.WaitMs); err != nil {
+			return err
+		}
 		if err := e.gate.wait(ctx); err != nil {
 			return err
 		}
-		if err := e.in.TypeStr(string(r)); err != nil {
+		if k.Text == humanize.Backspace {
+			if err := e.pressKeys(ctx, model.Step{Keys: []string{"backspace"}}); err != nil {
+				return err
+			}
+			continue
+		}
+		if err := e.in.TypeStr(k.Text); err != nil {
 			return err
 		}
 	}
@@ -175,17 +205,27 @@ func (e *Engine) wheel(ctx context.Context, dir string, n int) error {
 	return e.wheelEach(ctx, n, func() error { return e.in.Scroll(dir) })
 }
 
-// wheelEach lăn n nấc bằng notch, cách nhau scrollGapMs, dừng / tạm dừng được giữa các nấc.
+// wheelEach lăn n nấc bằng notch, cách nhau scrollGapMs (giống người: nhịp không đều, đôi khi ngừng), dừng / tạm dừng
+// được giữa các nấc.
 func (e *Engine) wheelEach(ctx context.Context, n int, notch func() error) error {
+	gaps := make([]int, n)
+	if e.human != nil {
+		gaps = humanize.Gaps(e.rng, *e.human, e.human.ScrollGap, n)
+	}
 	for i := 0; i < n; i++ {
+		if err := Sleep(ctx, gaps[i]); err != nil {
+			return err
+		}
 		if err := e.gate.wait(ctx); err != nil {
 			return err
 		}
 		if err := notch(); err != nil {
 			return err
 		}
-		if err := Sleep(ctx, scrollGapMs); err != nil {
-			return err
+		if e.human == nil {
+			if err := Sleep(ctx, scrollGapMs); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -217,7 +257,7 @@ func (e *Engine) drag(ctx context.Context, s model.Step, pt func(int) (int, int,
 	} else if bx, by, err = pt(1); err != nil {
 		return err
 	}
-	if err := e.move(ax, ay); err != nil {
+	if err := e.move(ctx, ax, ay, 0); err != nil {
 		return err
 	}
 	if err := in.Toggle(s.Button, true); err != nil {
@@ -225,6 +265,15 @@ func (e *Engine) drag(ctx context.Context, s model.Step, pt func(int) (int, int,
 	}
 	defer in.Toggle(s.Button, false)
 
+	if e.human != nil { // kéo theo đường cong trong DragMs, khựng chút trước khi nhả
+		drag := func(x, y int) error { return in.Drag(x, y, s.Button) }
+		path := humanize.Path(e.rng, *e.human, model.Point{X: ax, Y: ay}, model.Point{X: bx, Y: by},
+			humanize.Target{DurMs: max(s.DragMs, 100)}, e.moveBounds())
+		if err := e.follow(ctx, path, drag, drag); err != nil {
+			return err
+		}
+		return Sleep(ctx, humanize.Between(e.rng, e.human.ClickHold))
+	}
 	n := max(s.DragMs/dragStepMs, 1)
 	for i := 1; i <= n; i++ {
 		if err := Sleep(ctx, s.DragMs/n); err != nil {

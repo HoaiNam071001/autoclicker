@@ -3,7 +3,6 @@ package engine
 import (
 	"context"
 
-	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 )
 
@@ -14,7 +13,10 @@ import (
 const keyHoldMs, keyGapMs = 50, 50
 
 // pressKeys bấm tổ hợp theo KeyMode; mọi phím đã nhấn luôn được nhả (ngược thứ tự), kể cả khi lỗi / bị huỷ.
-func pressKeys(ctx context.Context, in device.Input, s model.Step) error {
+// Thời gian giữ / nghỉ theo mức giống người của node (keyTiming).
+func (e *Engine) pressKeys(ctx context.Context, s model.Step) error {
+	in := e.in
+	hold, gap := e.keyTiming()
 	var held []string
 	defer func() {
 		for i := len(held) - 1; i >= 0; i-- {
@@ -39,7 +41,7 @@ func pressKeys(ctx context.Context, in device.Input, s model.Step) error {
 			if err := press(k, s.Modifiers); err != nil {
 				return err
 			}
-			if err := Sleep(ctx, keyHoldMs); err != nil {
+			if err := Sleep(ctx, hold()); err != nil {
 				return err
 			}
 			held = held[:len(held)-1]
@@ -47,7 +49,7 @@ func pressKeys(ctx context.Context, in device.Input, s model.Step) error {
 				return err
 			}
 			if i < len(s.Keys)-1 {
-				if err := Sleep(ctx, keyGapMs); err != nil {
+				if err := Sleep(ctx, gap()); err != nil {
 					return err
 				}
 			}
@@ -59,5 +61,5 @@ func pressKeys(ctx context.Context, in device.Input, s model.Step) error {
 			return err
 		}
 	}
-	return Sleep(ctx, keyHoldMs)
+	return Sleep(ctx, hold())
 }

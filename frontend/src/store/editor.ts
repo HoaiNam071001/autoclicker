@@ -29,7 +29,8 @@ const browserScript = (): Script => ({
   version: 4, name: 'Kịch bản 1', region: null, loops: 10, maxMinutes: 0,
   steps: browserSteps, start: browserSteps[0].id, edges: chain(browserSteps.map((s) => s.id)),
 });
-export const emptyScript = (): Script => ({ version: 4, name: 'Kịch bản 1', region: null, loops: 1, maxMinutes: 0, steps: [], start: '', edges: [] });
+// Kịch bản mới bật sẵn thao tác giống người mức vừa (bước 34, khớp model.NewScript).
+export const emptyScript = (): Script => ({ version: 4, name: 'Kịch bản 1', region: null, loops: 1, maxMinutes: 0, steps: [], start: '', edges: [], human: 'medium' });
 
 let state: EditorState = {
   // app thật: kịch bản trống cho tới khi scriptFile.ts nạp bản nháp

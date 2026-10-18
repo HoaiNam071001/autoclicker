@@ -27,13 +27,18 @@ func init() {
 const commonFieldsDoc = `id (ổn định – cạnh, start, imageFrom trỏ theo id), ref (mã ngắn duy nhất, vd "n2" – node sau đọc kết quả bằng {{n2.output.x}}), ` +
 	`type, name (tên hiện trên thẻ, tuỳ chọn), enabled (false = bỏ qua, đi tiếp cổng success), delayAfter (ms chờ sau khi thành công), ` +
 	`jitterMs (± ms ngẫu nhiên), pos {x, y} (vị trí thẻ trên canvas, tuỳ chọn). ` +
-	`retry {count, delayMs}: thất bại thì thử lại thêm count lần (0–100), nghỉ delayMs giữa các lần; hết lượt vẫn lỗi → cổng "fail".`
+	`retry {count, delayMs}: thất bại thì thử lại thêm count lần (0–100), nghỉ delayMs giữa các lần; hết lượt vẫn lỗi → cổng "fail". ` +
+	`human: mức thao tác giống người riêng của node ("" = theo kịch bản | off | low | medium | high).`
 
 // flowDoc – cấu trúc kịch bản dạng flow (bước 20).
 const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự trong mảng không quyết định thứ tự chạy), start = id node chạy đầu, ` +
 	`edges = [{id, from, port, to}]: node from chạy xong đi ra cổng port thì chạy node to; mỗi cổng tối đa một cạnh, không nối node vào chính nó. ` +
 	`Node hành động có cổng "success" / "fail". Cổng fail không nối = lỗi thì dừng kịch bản và báo lỗi; cổng khác không nối = kết thúc vòng. ` +
 	`Vòng lặp = cạnh quay lại node trước (tối đa 10000 lần chạy node mỗi vòng). ` +
+	`Script.human (off | low | medium | high, trống = tắt; kịch bản mới: medium): thao tác giống người – chuột đi đường cong có ` +
+	`tăng / giảm tốc (lâu hơn khi xa / đích nhỏ, đôi khi đi lố rồi chỉnh), click nhấn – giữ – nhả, điểm bấm lệch quanh tâm chỗ thấy, ` +
+	`gõ / phím / cuộn nhịp không đều (high: đôi khi gõ nhầm rồi xoá); chậm hơn nhưng giảm nguy cơ bị nhận là bot (không đảm bảo). ` +
+
 	`Biến trong ô chữ (text, target, findText): {{key}} = input của kịch bản; {{n2.status}} (success | fail | skipped), {{n2.port}}, ` +
 	`{{n2.error.code}} / {{n2.error.message}}, {{n2.output.<khoá>}} = kết quả lần chạy gần nhất của node có ref n2 trong vòng này ` +
 	`(khoá theo outputs của loại node, cộng startedAt / durationMs mọi node đều có); ` +

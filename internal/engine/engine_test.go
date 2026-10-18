@@ -166,7 +166,7 @@ func TestKeyCancelReleasesAll(t *testing.T) {
 	s := modeltest.Step(model.StepKey, func(s *model.Step) { s.Keys = []string{"c", "t"}; s.Modifiers = []string{"ctrl"} })
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // huỷ trước: lần chờ giữ phím trả lỗi ngay
-	if err := pressKeys(ctx, in, s); !errors.Is(err, context.Canceled) {
+	if err := newEngine(in, model.Script{}, nil).pressKeys(ctx, s); !errors.Is(err, context.Canceled) {
 		t.Fatalf("err = %v", err)
 	}
 	want := []string{"down ctrl []", "down c [ctrl]", "down t [ctrl]", "up t", "up c", "up ctrl"}

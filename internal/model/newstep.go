@@ -85,5 +85,5 @@ func NewStep(stepType string) (Step, error) {
 
 // NewScript trả kịch bản rỗng mặc định.
 func NewScript() Script {
-	return Script{Version: ScriptVersion, Name: "Kịch bản 1", Loops: 1, Steps: []Step{}, Edges: []Edge{}}
+	return Script{Version: ScriptVersion, Name: "Kịch bản 1", Loops: 1, Steps: []Step{}, Edges: []Edge{}, Human: HumanMedium}
 }

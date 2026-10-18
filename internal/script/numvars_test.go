@@ -27,9 +27,9 @@ func TestValidateNumVars(t *testing.T) {
 	}
 	bad := map[string]string{
 		`không có output "x" – có: text, count`: "{{n1.output.x}}",
-		"không phải số – ô số dùng":            "{{n1.status}}",
-		"sai dạng":                             "{{n1.output.count}} *",
-		"chưa nhập giá trị":                    " ",
+		"không phải số – ô số dùng":             "{{n1.status}}",
+		"sai dạng":                              "{{n1.output.count}} *",
+		"chưa nhập giá trị":                     " ",
 	}
 	for want, expr := range bad {
 		if err := ValidateScript(numVarsFlow(model.NumVar{Field: "amount", Expr: expr}), model.Rect{}); err == nil || !strings.Contains(err.Error(), want) {
@@ -48,7 +48,7 @@ func TestValidateNumVars(t *testing.T) {
 func TestCheckNumVars(t *testing.T) {
 	for want, nv := range map[string][]model.NumVar{
 		`"holdMs" của node scroll không nhận biến`: {{Field: "holdMs", Expr: "1"}},
-		`"amount" lặp lại`:                        {{Field: "amount", Expr: "1"}, {Field: "amount", Expr: "2"}},
+		`"amount" lặp lại`:                         {{Field: "amount", Expr: "1"}, {Field: "amount", Expr: "2"}},
 	} {
 		s := numVarsFlow(nv...).Steps[1]
 		if err := checkStep(&s); err == nil || !strings.Contains(err.Error(), want) {
