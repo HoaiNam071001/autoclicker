@@ -4,6 +4,7 @@ Desktop app tự động click theo kịch bản (chọn vùng, chọn điểm, 
 
 ## Bắt đầu mỗi session
 
+0. Cần hiểu hệ thống (luồng soạn / chạy, API Go ↔ frontend, event, *muốn làm X → sửa ở đâu*) → đọc **`docs/ARCHITECTURE.md`** trước khi mở code.
 1. Đọc **`docs/tasks/README.md`**: *Trạng thái hiện tại* (đang làm bước nào), bảng thứ tự các bước + link file từng bước. Chỉ mở file của bước đang làm (`docs/tasks/phase3/<số>-<tên>.md`); `decisions.md` là quyết định đã chốt (không bàn lại), `checks.md` là việc chờ người dùng kiểm tra tay, `log.md` là nhật ký, `overview.md` là stack / data model. Thiết kế UI v2 (token, thành phần, icon, artboard) ở **`design/DESIGN.md`** + `design/theme.css`.
 2. Xong một bước (hoặc chuyển sang bước mới) → cập nhật **trước khi commit / kết thúc session**: tick `[x]` trong file của bước, sửa *Trạng thái hiện tại* ở `README.md`, thêm 1 dòng vào `log.md` (ngày tuyệt đối, kết quả kiểm tra). Quy ước:
    - Mục con làm xong là tick ngay; việc mới phát sinh (sửa theo người dùng báo, việc để sau) thêm thành mục con `[ ]` / `[x]` trong file của bước, không chỉ ghi ở chat.
@@ -11,7 +12,10 @@ Desktop app tự động click theo kịch bản (chọn vùng, chọn điểm, 
    - Bước mới → file mới `docs/tasks/phase3/<số>-<tên>.md` + một dòng trong bảng ở `README.md`. File quá dài (~200 dòng) thì tách theo phần con.
    - Trước khi kết thúc, rà lại các mục cha có mọi mục con code đã `[x]` mà chưa tick.
    - Tính năng đổi trạng thái (xong code, kiểm tra tay xong, thêm tính năng mới) → sửa bảng *Tính năng của hệ thống* ở đầu `README.md` (viết tay, theo nhóm).
+   - Đổi luồng chạy / soạn, thêm method `App` hoặc event, thêm file lõi → sửa `docs/ARCHITECTURE.md` cùng commit.
    - Tick / thêm bước / sửa `checks.md` xong → chạy `python3 scripts/tasks-index.py` để cập nhật bảng *Tổng quan* trong `README.md` (bảng tự sinh, không sửa tay).
+   - Trước commit chạy `python3 scripts/check-docs.py` (method `App` / event thiếu trong `ARCHITECTURE.md`, loại node thiếu nhãn / icon / mô tả; cảnh báo file > 400 dòng) – phải 0 lỗi.
+4. **Skill dự án** (`.claude/skills/`) – dùng đúng việc: `implement-step` (làm bước / mục con theo plan), `add-node-type` (thêm loại node / trường node – đủ chỗ Go + TS), `fix-bug` (nguyên nhân gốc, test đỏ trước), `new-request` (yêu cầu mới / đổi yêu cầu → ghi vào plan, hỏi chốt trước khi code), `senior-review` (tự review diff trước commit), `wrap-up` (đồng bộ tài liệu + kiểm tra + commit).
 3. Người dùng trao đổi bằng **tiếng Việt** – trả lời, comment UI và tài liệu bằng tiếng Việt; tên biến/hàm bằng tiếng Anh.
 
 ## Lệnh
