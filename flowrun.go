@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 )
 
@@ -200,7 +201,7 @@ func errCode(err error) string {
 		return model.ErrEnd
 	case errors.As(err, &bad):
 		return model.ErrInvalidInput
-	case errors.Is(err, errNoPermission):
+	case errors.Is(err, device.ErrNoPermission):
 		return model.ErrPermission
 	}
 	return model.ErrInternal

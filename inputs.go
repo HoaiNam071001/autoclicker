@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"os"
-	"path/filepath"
 	"regexp"
 	"slices"
 	"strconv"
 	"strings"
 
+	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
+	"autoclicker/internal/store"
 )
 
 // Input của kịch bản (bước 21b): giá trị người soạn cho phép đổi khi bấm Chạy.
@@ -173,7 +173,7 @@ func resolveInputs(sc model.Script, values map[string]any) (model.Script, error)
 				}
 				used[key] = true
 				if f.url { // URL: mã hoá giá trị (dấu cách, tiếng Việt, &) để không làm hỏng URL
-					return escapeURLValue(valueString(vals[key])), true
+					return launch.EscapeURLValue(valueString(vals[key])), true
 				}
 				return valueString(vals[key]), true
 			})
@@ -343,52 +343,10 @@ func setStepField(s *model.Step, field string, v any) error {
 
 // ---- Giá trị lần trước + bộ giá trị (preset) – lưu trên máy theo từng kịch bản, không ghi vào file kịch bản ----
 
-const inputMemoryFile = "inputs.json"
-
-type InputPreset struct {
-	Name   string         `json:"name"`
-	Values map[string]any `json:"values"`
-}
-
-type InputMemory struct {
-	Last       map[string]any `json:"last,omitempty"`       // giá trị lần chạy trước
-	LastPreset string         `json:"lastPreset,omitempty"` // bộ giá trị đã chọn lần trước ("" = tự điền)
-	Presets    []InputPreset  `json:"presets,omitempty"`
-	AutoRun    bool           `json:"autoRun,omitempty"` // "Lần sau chạy luôn với giá trị này" – bấm Chạy không hỏi
-}
-
-func loadInputMemory(dir string) map[string]InputMemory {
-	all := map[string]InputMemory{}
-	if b, err := os.ReadFile(filepath.Join(dir, inputMemoryFile)); err == nil {
-		_ = json.Unmarshal(b, &all) // hỏng thì coi như chưa có
-	}
-	return all
-}
-
 // GetInputMemory trả giá trị lần trước / preset của kịch bản id (đường dẫn file, hoặc tên khi chưa lưu).
-func (a *App) GetInputMemory(id string) InputMemory {
-	dir, err := configDir()
-	if err != nil {
-		return InputMemory{}
-	}
-	settingsMu.Lock()
-	defer settingsMu.Unlock()
-	return loadInputMemory(dir)[id]
-}
+func (a *App) GetInputMemory(id string) store.InputMemory { return store.InputMemoryFor(id) }
 
 // SaveInputMemory ghi giá trị lần trước / preset của kịch bản id.
-func (a *App) SaveInputMemory(id string, m InputMemory) error {
-	dir, err := configDir()
-	if err != nil {
-		return err
-	}
-	settingsMu.Lock()
-	defer settingsMu.Unlock()
-	all := loadInputMemory(dir)
-	all[id] = m
-	b, err := json.MarshalIndent(all, "", "  ")
-	if err != nil {
-		return err
-	}
-	return writeFileAtomic(filepath.Join(dir, inputMemoryFile), b)
+func (a *App) SaveInputMemory(id string, m store.InputMemory) error {
+	return store.SaveInputMemory(id, m)
 }

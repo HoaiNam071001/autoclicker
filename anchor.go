@@ -3,8 +3,8 @@ package main
 import (
 	"math"
 
+	"autoclicker/internal/device"
 	"autoclicker/internal/model"
-	"github.com/go-vgo/robotgo"
 )
 
 // Neo của một trục toạ độ (Point.Ax / Point.Ay) – mỗi trục neo riêng vào cạnh của vùng.
@@ -46,14 +46,5 @@ func bounds(sc model.Script, screen model.Rect) model.Rect {
 	return screen
 }
 
-// mainScreen – khung màn hình chính theo toạ độ robotgo; "toàn màn hình" (Region = nil) neo theo khung này.
-func mainScreen() model.Rect {
-	if d := displays(); len(d) > 0 {
-		return d[0]
-	}
-	w, h := robotgo.GetScreenSize()
-	return model.Rect{W: w, H: h}
-}
-
 // ScreenBounds trả khung màn hình chính – frontend dùng để tính điểm neo khi chọn toàn màn hình.
-func (a *App) ScreenBounds() model.Rect { return mainScreen() }
+func (a *App) ScreenBounds() model.Rect { return device.MainScreen() }

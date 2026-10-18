@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 	"github.com/go-vgo/robotgo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -94,7 +95,7 @@ type DisplayInfo struct {
 func (a *App) Displays() []DisplayInfo {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	ds := displays()
+	ds := device.Displays()
 	cur := a.winDisp
 	if a.mode == ModeMain || cur < 0 || cur >= len(ds) {
 		cur = a.detectDisplay()
@@ -111,7 +112,7 @@ func (a *App) Displays() []DisplayInfo {
 func (a *App) OverlayDisplayFor(r model.Rect) int {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if i := displayAt(displays(), model.Point{X: r.X + r.W/2, Y: r.Y + r.H/2}); i >= 0 {
+	if i := displayAt(device.Displays(), model.Point{X: r.X + r.W/2, Y: r.Y + r.H/2}); i >= 0 {
 		a.ovDisp = i
 		return i
 	}
@@ -132,7 +133,7 @@ func displayAt(ds []model.Rect, p model.Point) int {
 func (a *App) SetOverlayDisplay(i int) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if i < 0 || i >= len(displays()) {
+	if i < 0 || i >= len(device.Displays()) {
 		return fmt.Errorf("không có màn hình %d", i+1)
 	}
 	a.ovDisp = i
@@ -152,7 +153,7 @@ func (a *App) SetOverlayDisplay(i int) error {
 // Wails chỉ đặt được vị trí tương đối theo màn hiện tại → cộng độ lệch giữa 2 màn. Thu nhỏ cửa sổ trước
 // để nó nằm gọn trong màn đích (Wails lấy "màn hiện tại" là màn chứa phần lớn cửa sổ); người gọi tự đặt lại cỡ.
 func (a *App) moveToDisplay(i int) bool {
-	ds := rawDisplays()
+	ds := device.RawDisplays()
 	cur := a.winDisp
 	if i < 0 || i >= len(ds) || cur < 0 || cur >= len(ds) || cur == i {
 		return false
@@ -166,13 +167,13 @@ func (a *App) moveToDisplay(i int) bool {
 // detectDisplay đoán màn đang chứa cửa sổ: Wails chỉ cho biết cỡ màn hiện tại (không có vị trí) → so cỡ;
 // nhiều màn cùng cỡ (hoặc cỡ không khớp – Windows scale) thì lấy màn có chuột (vừa bấm nút trong cửa sổ).
 func (a *App) detectDisplay() int {
-	ds := rawDisplays()
+	ds := device.RawDisplays()
 	if len(ds) <= 1 {
 		return 0
 	}
 	w, h, _ := a.currentScreenSize()
 	mx, my := robotgo.Location()
-	return pickDisplay(ds, displays(), w, h, model.Point{X: mx, Y: my})
+	return pickDisplay(ds, device.Displays(), w, h, model.Point{X: mx, Y: my})
 }
 
 // pickDisplay: raw – khung màn theo đơn vị cửa sổ, scaled – theo toạ độ chuột robotgo (cùng thứ tự).

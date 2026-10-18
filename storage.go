@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	"autoclicker/internal/model"
+	"autoclicker/internal/store"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -20,13 +20,9 @@ import (
 
 const (
 	draftFile  = "draft.json"
-	maxRecent  = 5
 	scriptExt  = ".json"
 	dialogName = "Kịch bản Auto Clicker"
 )
-
-// settingsMu: đọc – sửa – ghi settings.json (theme, mở gần đây) từ nhiều lời gọi Wails cùng lúc.
-var settingsMu sync.Mutex
 
 // ScriptFile – kịch bản vừa mở và đường dẫn file của nó. Path "" = người dùng huỷ hộp thoại.
 type ScriptFile struct {
@@ -249,43 +245,7 @@ func writeScriptFile(path string, sc model.Script) error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(path, b)
-}
-
-// pushRecent đưa path lên đầu danh sách (không trùng, tối đa maxRecent).
-func pushRecent(list []string, path string) []string {
-	out := []string{path}
-	for _, p := range list {
-		if p != path && len(out) < maxRecent {
-			out = append(out, p)
-		}
-	}
-	return out
-}
-
-func removeRecent(list []string, path string) []string {
-	out := []string{}
-	for _, p := range list {
-		if p != path {
-			out = append(out, p)
-		}
-	}
-	return out
-}
-
-// editRecent sửa danh sách mở gần đây trong settings.json; lỗi chỉ ghi log – không chặn lưu / mở.
-func editRecent(f func([]string) []string) {
-	settingsMu.Lock()
-	defer settingsMu.Unlock()
-	dir, err := configDir()
-	if err != nil {
-		return
-	}
-	s := loadSettings(dir)
-	s.Recent = f(s.Recent)
-	if err := saveSettings(dir, s); err != nil {
-		fmt.Println("không lưu được danh sách mở gần đây:", err)
-	}
+	return store.WriteFileAtomic(path, b)
 }
 
 // ---- Gọi từ frontend ----
@@ -302,7 +262,7 @@ func (a *App) SaveScript(sc model.Script, path string) (ScriptFile, error) {
 	if err := writeScriptFile(path, sc); err != nil {
 		return ScriptFile{}, fmt.Errorf("không lưu được %s: %w", filepath.Base(path), err)
 	}
-	editRecent(func(l []string) []string { return pushRecent(l, path) })
+	store.EditRecent(func(l []string) []string { return store.PushRecent(l, path) })
 	return ScriptFile{Script: sc, Path: path}, nil
 }
 
@@ -343,30 +303,21 @@ func (a *App) OpenScriptPath(path string) (ScriptFile, error) {
 	sc, err := readScriptFile(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			editRecent(func(l []string) []string { return removeRecent(l, path) })
+			store.EditRecent(func(l []string) []string { return store.RemoveRecent(l, path) })
 			return ScriptFile{}, fmt.Errorf("không tìm thấy file %s", path)
 		}
 		return ScriptFile{}, fmt.Errorf("không mở được %s: %w", filepath.Base(path), err)
 	}
-	editRecent(func(l []string) []string { return pushRecent(l, path) })
+	store.EditRecent(func(l []string) []string { return store.PushRecent(l, path) })
 	return ScriptFile{Script: sc, Path: path}, nil
 }
 
 // RecentScripts trả danh sách file mở / lưu gần đây, mới nhất trước.
-func (a *App) RecentScripts() []string {
-	dir, err := configDir()
-	if err != nil {
-		return []string{}
-	}
-	if r := loadSettings(dir).Recent; r != nil {
-		return r
-	}
-	return []string{}
-}
+func (a *App) RecentScripts() []string { return store.RecentScripts() }
 
 // SaveDraft ghi bản nháp tự lưu (frontend gọi sau mỗi lần sửa, có giãn cách).
 func (a *App) SaveDraft(d Draft) error {
-	dir, err := configDir()
+	dir, err := store.ConfigDir()
 	if err != nil {
 		return err
 	}
@@ -375,7 +326,7 @@ func (a *App) SaveDraft(d Draft) error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(filepath.Join(dir, draftFile), b)
+	return store.WriteFileAtomic(filepath.Join(dir, draftFile), b)
 }
 
 func encodeDraft(d Draft) ([]byte, error) {
@@ -385,7 +336,7 @@ func encodeDraft(d Draft) ([]byte, error) {
 
 // LoadDraft trả bản nháp lần trước; nil nếu chưa có hoặc hỏng (bỏ qua, mở kịch bản trống).
 func (a *App) LoadDraft() *Draft {
-	dir, err := configDir()
+	dir, err := store.ConfigDir()
 	if err != nil {
 		return nil
 	}
@@ -416,7 +367,7 @@ func loadDraft(dir string) *Draft {
 
 // ClearDraft xoá bản nháp (đóng app chọn "Không lưu").
 func (a *App) ClearDraft() error {
-	dir, err := configDir()
+	dir, err := store.ConfigDir()
 	if err != nil {
 		return err
 	}

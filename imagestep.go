@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
 )
@@ -45,7 +46,7 @@ func (e *engine) template(s model.Step) (vision.Gray, error) {
 	if g, ok := e.tpls[s.ID]; ok {
 		return g, nil
 	}
-	img, err := decodePNG(s.Template)
+	img, err := vision.DecodePNG(s.Template)
 	if err != nil {
 		return vision.Gray{}, err
 	}
@@ -112,7 +113,7 @@ func (h hit) output() map[string]any {
 // findImage chờ tới khi thấy ảnh mẫu (hoặc chữ, FindBy text); trả chỗ thấy.
 func (e *engine) findImage(ctx context.Context, s model.Step) (hit, error) {
 	area := e.searchArea(s)
-	if err := captureArea(area, e.displays); err != nil {
+	if err := device.CaptureArea(area, e.displays); err != nil {
 		return hit{}, err
 	}
 	if s.FindBy == model.FindByText {
@@ -178,7 +179,7 @@ func (e *engine) findTextStep(ctx context.Context, s model.Step, area model.Rect
 }
 
 // locateText chụp vùng, đọc chữ, tìm theo s; hit theo toạ độ robotgo. Không thấy → trả các dòng đọc được.
-func locateText(scr Screen, ocr TextReader, area model.Rect, s model.Step) (hit model.Rect, read []string, ok bool, err error) {
+func locateText(scr device.Screen, ocr device.TextReader, area model.Rect, s model.Step) (hit model.Rect, read []string, ok bool, err error) {
 	img, err := scr.Capture(area)
 	if err != nil {
 		return model.Rect{}, nil, false, err
@@ -243,7 +244,7 @@ func (e *engine) clickImage(ctx context.Context, s model.Step) (map[string]any, 
 
 // waitPixel chờ tới khi điểm Points[0] có màu Color (mỗi kênh lệch ≤ Tolerance); trả màu đọc được.
 func (e *engine) waitPixel(ctx context.Context, s model.Step) (string, error) {
-	want, err := parseColor(s.Color)
+	want, err := vision.ParseColor(s.Color)
 	if err != nil {
 		return "", err
 	}
@@ -254,8 +255,8 @@ func (e *engine) waitPixel(ctx context.Context, s model.Step) (string, error) {
 		if err != nil {
 			return false, 0, err
 		}
-		last = hexColor(c)
-		d := colorDiff(c, want)
+		last = vision.HexColor(c)
+		d := vision.ColorDiff(c, want)
 		return d <= s.Tolerance, 100 - d*100/255, nil
 	})
 	if errors.Is(err, errTimeout) {

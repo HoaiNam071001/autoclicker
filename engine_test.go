@@ -10,40 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
 )
-
-// fakeInput ghi lại các lệnh dưới dạng chuỗi thay vì điều khiển chuột thật.
-type fakeInput struct {
-	mu  sync.Mutex
-	log []string
-}
-
-func (f *fakeInput) add(format string, a ...any) error {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	f.log = append(f.log, fmt.Sprintf(format, a...))
-	return nil
-}
-
-func (f *fakeInput) Move(x, y int) error               { return f.add("move %d,%d", x, y) }
-func (f *fakeInput) Drag(x, y int, b string) error     { return f.add("drag %d,%d %s", x, y, b) }
-func (f *fakeInput) Toggle(b string, down bool) error  { return f.add("toggle %s %v", b, down) }
-func (f *fakeInput) Click(b string, double bool) error { return f.add("click %s %v", b, double) }
-func (f *fakeInput) TypeStr(s string) error            { return f.add("type %s", s) }
-func (f *fakeInput) Scroll(d string) error             { return f.add("scroll %s", d) }
-func (f *fakeInput) KeyToggle(k string, down bool, mods []string) error {
-	if !down {
-		return f.add("up %s", k)
-	}
-	return f.add("down %s [%s]", k, strings.Join(mods, "+"))
-}
-
-func (f *fakeInput) lines() []string {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	return append([]string(nil), f.log...)
-}
 
 func step(t string, mod func(*model.Step)) model.Step {
 	s, err := model.NewStep(t)
@@ -58,7 +27,7 @@ func step(t string, mod func(*model.Step)) model.Step {
 }
 
 func TestRunClickLoopsAndRegion(t *testing.T) {
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	sc := model.Script{
 		Loops:  2,
 		Region: &model.Rect{X: 100, Y: 50},
@@ -73,20 +42,20 @@ func TestRunClickLoopsAndRegion(t *testing.T) {
 	}
 	one := []string{"move 110,70", "click left false", "move 110,70", "click left false", "move 101,52", "click right true"}
 	want := append(append([]string{}, one...), one...)
-	if got := in.lines(); !reflect.DeepEqual(got, want) {
+	if got := in.Lines(); !reflect.DeepEqual(got, want) {
 		t.Errorf("got %q\nwant %q", got, want)
 	}
 }
 
 func TestRunDrag(t *testing.T) {
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	sc := model.Script{Loops: 1, Steps: []model.Step{
 		step(model.StepDrag, func(s *model.Step) { s.Points = []model.Point{{X: 0, Y: 0}, {X: 100, Y: 40}}; s.DragMs = 40 }),
 	}}
 	if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	got := in.lines()
+	got := in.Lines()
 	want := []string{"move 0,0", "toggle left true", "drag 25,10 left", "drag 50,20 left", "drag 75,30 left", "drag 100,40 left", "toggle left false"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %q\nwant %q", got, want)
@@ -94,7 +63,7 @@ func TestRunDrag(t *testing.T) {
 }
 
 func TestRunTypeAndKey(t *testing.T) {
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	sc := model.Script{Loops: 1, Steps: []model.Step{
 		step(model.StepText, func(s *model.Step) { s.Text = "Gõ" }),
 		step(model.StepKey, func(s *model.Step) { s.Keys = []string{"v"}; s.Modifiers = []string{"cmd", "shift"} }),
@@ -104,13 +73,13 @@ func TestRunTypeAndKey(t *testing.T) {
 	}
 	want := []string{"type G", "type õ",
 		"down cmd []", "down shift []", "down v [cmd+shift]", "up v", "up shift", "up cmd"}
-	if got := in.lines(); !reflect.DeepEqual(got, want) {
+	if got := in.Lines(); !reflect.DeepEqual(got, want) {
 		t.Errorf("got %q\nwant %q", got, want)
 	}
 }
 
 func TestStopInfiniteLoopReleasesButton(t *testing.T) {
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	sc := model.Script{Loops: 0, Steps: []model.Step{
 		step(model.StepHold, func(s *model.Step) { s.HoldMs = 10_000 }),
 	}}
@@ -128,7 +97,7 @@ func TestStopInfiniteLoopReleasesButton(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("không dừng sau khi huỷ")
 	}
-	got := in.lines()
+	got := in.Lines()
 	if got[len(got)-1] != "toggle left false" {
 		t.Errorf("chưa nhả chuột khi bị huỷ: %q", got)
 	}
@@ -151,7 +120,7 @@ func TestValidateScript(t *testing.T) {
 }
 
 func TestPauseResumeAndProgress(t *testing.T) {
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	sc := model.Script{Loops: 2, Steps: []model.Step{
 		step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{{X: 1, Y: 1}}; s.Clicks = 3; s.ClickInterval = 20 }),
 		step(model.StepWait, func(s *model.Step) { s.DelayAfter = 10 }),
@@ -167,9 +136,9 @@ func TestPauseResumeAndProgress(t *testing.T) {
 		t.Fatal("Pause lần 1 phải true, lần 2 false")
 	}
 	time.Sleep(20 * time.Millisecond) // chờ lần click đang dở (nếu có) xong
-	n := len(in.lines())
+	n := len(in.Lines())
 	time.Sleep(100 * time.Millisecond)
-	if got := len(in.lines()); got != n {
+	if got := len(in.Lines()); got != n {
 		t.Fatalf("vẫn chạy khi tạm dừng: %d → %d lệnh", n, got)
 	}
 	if p := eng.Snapshot(); !p.Paused || p.ElapsedMs > 80 {
@@ -203,7 +172,7 @@ func TestKeyChordAndSequence(t *testing.T) {
 		model.KeySequence: {"down ctrl []", "down c [ctrl]", "up c", "down t [ctrl]", "up t", "up ctrl"},
 	}
 	for mode, want := range cases {
-		in := &fakeInput{}
+		in := &devicetest.FakeInput{}
 		sc := model.Script{Loops: 1, Steps: []model.Step{step(model.StepKey, func(s *model.Step) {
 			s.Keys = []string{"c", "t"}
 			s.Modifiers = []string{"ctrl"}
@@ -212,14 +181,14 @@ func TestKeyChordAndSequence(t *testing.T) {
 		if err := newEngine(in, linear(sc), nil).run(context.Background()); err != nil {
 			t.Fatal(err)
 		}
-		if got := in.lines(); !reflect.DeepEqual(got, want) {
+		if got := in.Lines(); !reflect.DeepEqual(got, want) {
 			t.Errorf("%s: got %q\nwant %q", mode, got, want)
 		}
 	}
 }
 
 func TestKeyCancelReleasesAll(t *testing.T) {
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	s := step(model.StepKey, func(s *model.Step) { s.Keys = []string{"c", "t"}; s.Modifiers = []string{"ctrl"} })
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // huỷ trước: lần chờ giữ phím trả lỗi ngay
@@ -227,13 +196,13 @@ func TestKeyCancelReleasesAll(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 	want := []string{"down ctrl []", "down c [ctrl]", "down t [ctrl]", "up t", "up c", "up ctrl"}
-	if got := in.lines(); !reflect.DeepEqual(got, want) {
+	if got := in.Lines(); !reflect.DeepEqual(got, want) {
 		t.Errorf("got %q\nwant %q", got, want)
 	}
 }
 
 func TestJitter(t *testing.T) {
-	e := newEngine(&fakeInput{}, linear(model.Script{}), nil)
+	e := newEngine(&devicetest.FakeInput{}, linear(model.Script{}), nil)
 	e.intN = func(n int) int { return 0 } // lệch nhỏ nhất
 	if got := e.jitter(100, 5); got != 95 {
 		t.Errorf("jitter min = %d, muốn 95", got)
@@ -254,7 +223,7 @@ func TestJitter(t *testing.T) {
 }
 
 func TestRunJitterPositionsInBounds(t *testing.T) {
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	sc := model.Script{Loops: 1, Steps: []model.Step{
 		step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{{X: 500, Y: 300}}; s.Clicks = 200; s.JitterPx = 4 }),
 	}}
@@ -262,7 +231,7 @@ func TestRunJitterPositionsInBounds(t *testing.T) {
 		t.Fatal(err)
 	}
 	seen := map[string]bool{}
-	for _, l := range in.lines() {
+	for _, l := range in.Lines() {
 		var x, y int
 		if _, err := fmt.Sscanf(l, "move %d,%d", &x, &y); err != nil {
 			continue
@@ -278,7 +247,7 @@ func TestRunJitterPositionsInBounds(t *testing.T) {
 }
 
 func TestDragFromPrevAndRelative(t *testing.T) {
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	sc := model.Script{Loops: 1, Region: &model.Rect{X: 1000, Y: 0}, Steps: []model.Step{
 		step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{{X: 100, Y: 100}} }),
 		// kéo từ chỗ vừa click, sang phải 40, lên 20
@@ -300,7 +269,7 @@ func TestDragFromPrevAndRelative(t *testing.T) {
 		"move 1100,100", "toggle left true", "drag 1120,90 left", "drag 1140,80 left", "toggle left false",
 		"move 1140,80", "toggle left true", "drag 1010,10 left", "toggle left false",
 	}
-	if got := in.lines(); !reflect.DeepEqual(got, want) {
+	if got := in.Lines(); !reflect.DeepEqual(got, want) {
 		t.Errorf("got %q\nwant %q", got, want)
 	}
 }
@@ -310,7 +279,7 @@ func TestDragFromPrevNeedsPrevPoint(t *testing.T) {
 		step(model.StepKey, nil),
 		step(model.StepDrag, func(s *model.Step) { s.DragFromPrev = true }),
 	}}
-	err := newEngine(&fakeInput{}, linear(sc), nil).run(context.Background())
+	err := newEngine(&devicetest.FakeInput{}, linear(sc), nil).run(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "n2: kéo từ điểm trước đó") {
 		t.Errorf("muốn lỗi thiếu điểm trước, nhận %v", err)
 	}

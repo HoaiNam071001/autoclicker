@@ -1,4 +1,4 @@
-package main
+package device
 
 import (
 	"context"
@@ -15,9 +15,9 @@ const (
 	failsafeEvery = 50 * time.Millisecond // chu kỳ đọc vị trí chuột
 )
 
-// hardCorners trả các góc màn hình mà chuột bị chặn lại – bỏ góc tiếp giáp màn khác (chuột đi xuyên
+// HardCorners trả các góc màn hình mà chuột bị chặn lại – bỏ góc tiếp giáp màn khác (chuột đi xuyên
 // qua được, tính vào sẽ dừng nhầm khi rê chuột giữa 2 màn).
-func hardCorners(displays []model.Rect) []model.Point {
+func HardCorners(displays []model.Rect) []model.Point {
 	inAny := func(x, y int) bool {
 		for _, d := range displays {
 			if x >= d.X && x < d.X+d.W && y >= d.Y && y < d.Y+d.H {
@@ -51,9 +51,9 @@ func inCorner(x, y int, corners []model.Point) bool {
 	return false
 }
 
-// trackingInput bọc Input, ghi lại điểm engine vừa đưa chuột tới – để kịch bản có điểm ở góc
+// TrackingInput bọc Input, ghi lại điểm engine vừa đưa chuột tới – để kịch bản có điểm ở góc
 // màn hình không tự kích hoạt dừng khẩn cấp.
-type trackingInput struct {
+type TrackingInput struct {
 	Input
 	mu      sync.Mutex
 	lastX   int
@@ -61,24 +61,24 @@ type trackingInput struct {
 	hasLast bool
 }
 
-func (t *trackingInput) record(x, y int) {
+func (t *TrackingInput) record(x, y int) {
 	t.mu.Lock()
 	t.lastX, t.lastY, t.hasLast = x, y, true
 	t.mu.Unlock()
 }
 
-func (t *trackingInput) Move(x, y int) error {
+func (t *TrackingInput) Move(x, y int) error {
 	t.record(x, y)
 	return t.Input.Move(x, y)
 }
 
-func (t *trackingInput) Drag(x, y int, button string) error {
+func (t *TrackingInput) Drag(x, y int, button string) error {
 	t.record(x, y)
 	return t.Input.Drag(x, y, button)
 }
 
 // movedByEngine – (x, y) có phải điểm engine vừa đưa chuột tới không.
-func (t *trackingInput) movedByEngine(x, y int) bool {
+func (t *TrackingInput) movedByEngine(x, y int) bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	return t.hasLast && abs(x-t.lastX) <= engineMoveTol && abs(y-t.lastY) <= engineMoveTol
@@ -91,9 +91,9 @@ func abs(n int) int {
 	return n
 }
 
-// watchCorners đọc vị trí chuột định kỳ tới khi ctx bị huỷ; gọi onHit (một lần) khi chuột
+// WatchCorners đọc vị trí chuột định kỳ tới khi ctx bị huỷ; gọi onHit (một lần) khi chuột
 // ở một trong các góc corners mà không phải do engine đưa tới.
-func watchCorners(ctx context.Context, location func() (int, int), corners []model.Point, t *trackingInput, onHit func()) {
+func WatchCorners(ctx context.Context, location func() (int, int), corners []model.Point, t *TrackingInput, onHit func()) {
 	tick := time.NewTicker(failsafeEvery)
 	defer tick.Stop()
 	for {

@@ -1,6 +1,6 @@
 //go:build darwin
 
-package main
+package device
 
 /*
 #cgo CFLAGS: -x objective-c -fobjc-arc
@@ -78,13 +78,13 @@ import (
 
 // macOS: chụp màn hình cần quyền Screen Recording (System Settings → Privacy & Security → Screen Recording).
 // Thiếu quyền thì ảnh chụp chỉ có hình nền, không có cửa sổ – báo lỗi rõ thay vì tìm mãi không thấy.
-func screenCaptureAllowed() bool { return C.preflight() == 1 }
+func ScreenCaptureAllowed() bool { return C.preflight() == 1 }
 
-func requestScreenCapture() bool { return C.request() == 1 }
+func RequestScreenCapture() bool { return C.request() == 1 }
 
 func screenCaptureCheck() error {
-	if !screenCaptureAllowed() {
-		return errNoPermission
+	if !ScreenCaptureAllowed() {
+		return ErrNoPermission
 	}
 	return nil
 }
@@ -107,8 +107,8 @@ func captureNoSelf(r model.Rect) (img image.Image, ok bool, err error) {
 	return out, true, nil
 }
 
-// excludeSelfFromCapture: macOS chụp bằng captureNoSelf nên không cần làm gì thêm.
-func excludeSelfFromCapture() {}
+// ExcludeSelfFromCapture: macOS chụp bằng captureNoSelf nên không cần làm gì thêm.
+func ExcludeSelfFromCapture() {}
 
-// canCaptureWithoutSelf: chụp được mà không dính cửa sổ app (khỏi ẩn app khi khoanh ảnh / thử tìm).
-func canCaptureWithoutSelf() bool { return C.has_sck() == 1 }
+// CanCaptureWithoutSelf: chụp được mà không dính cửa sổ app (khỏi ẩn app khi khoanh ảnh / thử tìm).
+func CanCaptureWithoutSelf() bool { return C.has_sck() == 1 }

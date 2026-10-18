@@ -1,4 +1,5 @@
-package main
+// Package launch – mở URL / file / app theo hệ điều hành (node Mở).
+package launch
 
 import (
 	"net/url"
@@ -24,19 +25,19 @@ var (
 
 // Kiểu target.
 const (
-	targetURL  = "url"
-	targetPath = "path"
-	targetApp  = "app"
+	TargetURL  = "url"
+	TargetPath = "path"
+	TargetApp  = "app"
 )
 
-func targetKind(t string) string {
+func TargetKind(t string) string {
 	switch {
 	case winPath.MatchString(t), strings.HasPrefix(t, "/"), strings.HasPrefix(t, "~"), strings.HasPrefix(t, `\\`):
-		return targetPath
+		return TargetPath
 	case schemeRe.MatchString(t), domainRe.MatchString(t):
-		return targetURL
+		return TargetURL
 	}
-	return targetApp
+	return TargetApp
 }
 
 // normalizeURL thêm https:// cho dạng tên miền.
@@ -47,8 +48,8 @@ func normalizeURL(t string) string {
 	return "https://" + t
 }
 
-// escapeURLValue mã hoá giá trị biến chèn vào URL (dấu cách, tiếng Việt, &, ?…): "Tinh Hà" → "Tinh%20H%C3%A0".
-func escapeURLValue(v string) string {
+// EscapeURLValue mã hoá giá trị biến chèn vào URL (dấu cách, tiếng Việt, &, ?…): "Tinh Hà" → "Tinh%20H%C3%A0".
+func EscapeURLValue(v string) string {
 	return strings.ReplaceAll(url.QueryEscape(v), "+", "%20")
 }
 
@@ -64,8 +65,8 @@ var windowsApps = map[string]string{
 
 // openCommand trả lệnh mở target bằng app trên hệ điều hành goos (tách riêng để test, không chạy gì).
 func openCommand(goos, target, app string) (string, []string) {
-	kind := targetKind(target)
-	if kind == targetURL {
+	kind := TargetKind(target)
+	if kind == TargetURL {
 		target = normalizeURL(target)
 	}
 	switch goos {
@@ -73,7 +74,7 @@ func openCommand(goos, target, app string) (string, []string) {
 		switch {
 		case app != "":
 			return "open", []string{"-a", app, target}
-		case kind == targetApp:
+		case kind == TargetApp:
 			return "open", []string{"-a", target}
 		}
 		return "open", []string{target}
@@ -97,8 +98,8 @@ func openCommand(goos, target, app string) (string, []string) {
 // psQuote: chuỗi PowerShell trong nháy đơn (' viết thành ”).
 func psQuote(s string) string { return "'" + strings.ReplaceAll(s, "'", "''") + "'" }
 
-// openTarget mở target thật (không chờ app mở xong – bước sau nên có thời gian chờ).
-func openTarget(target, app string) error {
+// OpenTarget mở target thật (không chờ app mở xong – bước sau nên có thời gian chờ).
+func OpenTarget(target, app string) error {
 	if strings.HasPrefix(target, "~/") || strings.HasPrefix(target, `~\`) {
 		if home, err := os.UserHomeDir(); err == nil {
 			target = filepath.Join(home, target[2:])

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 )
 
@@ -36,7 +37,7 @@ func (a *App) TestNode(sc model.Script, stepID string) (NodeTest, error) {
 		return NodeTest{}, err
 	}
 	e := newEngine(nil, sc, nil)
-	e.screen, e.displays = mainScreen(), displays()
+	e.screen, e.displays = device.MainScreen(), device.Displays()
 	var res NodeTest
 	run := func() error {
 		start := time.Now()

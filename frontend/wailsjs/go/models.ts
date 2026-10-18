@@ -164,57 +164,6 @@ export namespace main {
 		    return a;
 		}
 	}
-	export class InputPreset {
-	    name: string;
-	    values: Record<string, any>;
-	
-	    static createFrom(source: any = {}) {
-	        return new InputPreset(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.name = source["name"];
-	        this.values = source["values"];
-	    }
-	}
-	export class InputMemory {
-	    last?: Record<string, any>;
-	    lastPreset?: string;
-	    presets?: InputPreset[];
-	    autoRun?: boolean;
-	
-	    static createFrom(source: any = {}) {
-	        return new InputMemory(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.last = source["last"];
-	        this.lastPreset = source["lastPreset"];
-	        this.presets = this.convertValues(source["presets"], InputPreset);
-	        this.autoRun = source["autoRun"];
-	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
-	}
-	
 	export class NodeTest {
 	    port: string;
 	    known: boolean;
@@ -273,106 +222,6 @@ export namespace main {
 	        this.step = source["step"];
 	    }
 	}
-	export class RunRecord {
-	    id: string;
-	    script: string;
-	    source: string;
-	    // Go type: time
-	    startedAt: any;
-	    durationMs: number;
-	    status: string;
-	    error?: string;
-	    message?: string;
-	    nodes: number;
-	    inputs?: Record<string, any>;
-	    results: model.StepResult[];
-	    truncated?: number;
-	
-	    static createFrom(source: any = {}) {
-	        return new RunRecord(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
-	        this.script = source["script"];
-	        this.source = source["source"];
-	        this.startedAt = this.convertValues(source["startedAt"], null);
-	        this.durationMs = source["durationMs"];
-	        this.status = source["status"];
-	        this.error = source["error"];
-	        this.message = source["message"];
-	        this.nodes = source["nodes"];
-	        this.inputs = source["inputs"];
-	        this.results = this.convertValues(source["results"], model.StepResult);
-	        this.truncated = source["truncated"];
-	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
-	}
-	export class RunSummary {
-	    id: string;
-	    script: string;
-	    source: string;
-	    // Go type: time
-	    startedAt: any;
-	    durationMs: number;
-	    status: string;
-	    error?: string;
-	    message?: string;
-	    nodes: number;
-	
-	    static createFrom(source: any = {}) {
-	        return new RunSummary(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
-	        this.script = source["script"];
-	        this.source = source["source"];
-	        this.startedAt = this.convertValues(source["startedAt"], null);
-	        this.durationMs = source["durationMs"];
-	        this.status = source["status"];
-	        this.error = source["error"];
-	        this.message = source["message"];
-	        this.nodes = source["nodes"];
-	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
-	}
 	export class ScriptFile {
 	    script: model.Script;
 	    path: string;
@@ -404,20 +253,6 @@ export namespace main {
 		    }
 		    return a;
 		}
-	}
-	export class Settings {
-	    theme: string;
-	    recent?: string[];
-	
-	    static createFrom(source: any = {}) {
-	        return new Settings(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.theme = source["theme"];
-	        this.recent = source["recent"];
-	    }
 	}
 	export class TemplateShot {
 	    png: string;
@@ -672,6 +507,173 @@ export namespace model {
 	        this.delayMs = source["delayMs"];
 	    }
 	}
+	export class StepError {
+	    code: string;
+	    message: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new StepError(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.code = source["code"];
+	        this.message = source["message"];
+	    }
+	}
+	export class StepResult {
+	    nodeId: string;
+	    ref: string;
+	    status: string;
+	    port?: string;
+	    output?: Record<string, any>;
+	    error?: StepError;
+	    logs?: LogLine[];
+	    attempts: number;
+	    loop: number;
+	    shot?: string;
+	    // Go type: time
+	    startedAt: any;
+	    durationMs: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new StepResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nodeId = source["nodeId"];
+	        this.ref = source["ref"];
+	        this.status = source["status"];
+	        this.port = source["port"];
+	        this.output = source["output"];
+	        this.error = this.convertValues(source["error"], StepError);
+	        this.logs = this.convertValues(source["logs"], LogLine);
+	        this.attempts = source["attempts"];
+	        this.loop = source["loop"];
+	        this.shot = source["shot"];
+	        this.startedAt = this.convertValues(source["startedAt"], null);
+	        this.durationMs = source["durationMs"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class RunRecord {
+	    id: string;
+	    script: string;
+	    source: string;
+	    // Go type: time
+	    startedAt: any;
+	    durationMs: number;
+	    status: string;
+	    error?: string;
+	    message?: string;
+	    nodes: number;
+	    inputs?: Record<string, any>;
+	    results: StepResult[];
+	    truncated?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new RunRecord(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.script = source["script"];
+	        this.source = source["source"];
+	        this.startedAt = this.convertValues(source["startedAt"], null);
+	        this.durationMs = source["durationMs"];
+	        this.status = source["status"];
+	        this.error = source["error"];
+	        this.message = source["message"];
+	        this.nodes = source["nodes"];
+	        this.inputs = source["inputs"];
+	        this.results = this.convertValues(source["results"], StepResult);
+	        this.truncated = source["truncated"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class RunSummary {
+	    id: string;
+	    script: string;
+	    source: string;
+	    // Go type: time
+	    startedAt: any;
+	    durationMs: number;
+	    status: string;
+	    error?: string;
+	    message?: string;
+	    nodes: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new RunSummary(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.script = source["script"];
+	        this.source = source["source"];
+	        this.startedAt = this.convertValues(source["startedAt"], null);
+	        this.durationMs = source["durationMs"];
+	        this.status = source["status"];
+	        this.error = source["error"];
+	        this.message = source["message"];
+	        this.nodes = source["nodes"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class ScriptInput {
 	    key: string;
 	    label: string;
@@ -902,73 +904,8 @@ export namespace model {
 	}
 	
 	
-	export class StepError {
-	    code: string;
-	    message: string;
 	
-	    static createFrom(source: any = {}) {
-	        return new StepError(source);
-	    }
 	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.code = source["code"];
-	        this.message = source["message"];
-	    }
-	}
-	export class StepResult {
-	    nodeId: string;
-	    ref: string;
-	    status: string;
-	    port?: string;
-	    output?: Record<string, any>;
-	    error?: StepError;
-	    logs?: LogLine[];
-	    attempts: number;
-	    loop: number;
-	    shot?: string;
-	    // Go type: time
-	    startedAt: any;
-	    durationMs: number;
-	
-	    static createFrom(source: any = {}) {
-	        return new StepResult(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.nodeId = source["nodeId"];
-	        this.ref = source["ref"];
-	        this.status = source["status"];
-	        this.port = source["port"];
-	        this.output = source["output"];
-	        this.error = this.convertValues(source["error"], StepError);
-	        this.logs = this.convertValues(source["logs"], LogLine);
-	        this.attempts = source["attempts"];
-	        this.loop = source["loop"];
-	        this.shot = source["shot"];
-	        this.startedAt = this.convertValues(source["startedAt"], null);
-	        this.durationMs = source["durationMs"];
-	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
-	}
 	export class StepTypeDoc {
 	    type: string;
 	    label: string;
@@ -993,6 +930,76 @@ export namespace model {
 	        this.example = source["example"];
 	        this.outputs = source["outputs"];
 	        this.ports = source["ports"];
+	    }
+	}
+
+}
+
+export namespace store {
+	
+	export class InputPreset {
+	    name: string;
+	    values: Record<string, any>;
+	
+	    static createFrom(source: any = {}) {
+	        return new InputPreset(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.values = source["values"];
+	    }
+	}
+	export class InputMemory {
+	    last?: Record<string, any>;
+	    lastPreset?: string;
+	    presets?: InputPreset[];
+	    autoRun?: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new InputMemory(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.last = source["last"];
+	        this.lastPreset = source["lastPreset"];
+	        this.presets = this.convertValues(source["presets"], InputPreset);
+	        this.autoRun = source["autoRun"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class Settings {
+	    theme: string;
+	    recent?: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Settings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.theme = source["theme"];
+	        this.recent = source["recent"];
 	    }
 	}
 

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"autoclicker/internal/device"
+	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
 )
@@ -15,9 +17,9 @@ import (
 // Test node điều khiển (bước 20 F3): Nếu, Switch, Switch theo màn hình, Đếm, Kết thúc, Đặt biến.
 
 // typed – chữ đã gõ (fakeInput ghi từng ký tự).
-func typed(in *fakeInput) string {
+func typed(in *devicetest.FakeInput) string {
 	var b strings.Builder
-	for _, l := range in.lines() {
+	for _, l := range in.Lines() {
 		if t, ok := strings.CutPrefix(l, "type "); ok {
 			b.WriteString(t)
 		}
@@ -36,14 +38,14 @@ func (o *ocrSeq) ReadText(image.Image) ([]vision.TextLine, error) {
 	return o.frames[min(o.reads-1, len(o.frames)-1)], nil
 }
 
-func ctlEngine(sc model.Script, ocr TextReader) (*engine, *fakeInput) {
+func ctlEngine(sc model.Script, ocr device.TextReader) (*engine, *devicetest.FakeInput) {
 	if sc.Loops == 0 {
 		sc.Loops = 1
 	}
 	if sc.Region == nil {
 		sc.Region = &model.Rect{X: 100, Y: 50, W: 400, H: 300}
 	}
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	e := newEngine(in, sc, nil)
 	e.scr, e.ocr = &fakeScreen{frames: []image.Image{image.NewRGBA(image.Rect(0, 0, 400, 300))}}, ocr
 	return e, in
@@ -73,7 +75,7 @@ func TestCounterEndFail(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "n4: không thấy sau 3 lần") || e.failed != "x" {
 		t.Fatalf("lỗi %v, failed %q", err, e.failed)
 	}
-	if n := strings.Count(strings.Join(in.lines(), "|"), "scroll"); n != 2 {
+	if n := strings.Count(strings.Join(in.Lines(), "|"), "scroll"); n != 2 {
 		t.Errorf("cuộn %d lần, muốn 2", n)
 	}
 	want := []string{"n1>fail", "n3>next", "n2>success", "n1>fail", "n3>next", "n2>success", "n1>fail", "n3>done", "n4>fail"}
@@ -104,7 +106,7 @@ func TestEndSuccessNextLoop(t *testing.T) {
 
 // Nếu: thấy chữ → true, output chỗ thấy để Click theo ảnh dùng; không thấy (xem một lần) → false.
 func TestIfTextAndClickFromIf(t *testing.T) {
-	flow := func(lines []vision.TextLine) (*engine, *fakeInput) {
+	flow := func(lines []vision.TextLine) (*engine, *devicetest.FakeInput) {
 		sc := model.Script{Start: "i", Steps: []model.Step{
 			node("i", "n1", model.StepIf, func(s *model.Step) { s.Cond = textCond("Gửi") }),
 			node("c", "n2", model.StepClickImage, func(s *model.Step) { s.ImageFrom = "i" }),
@@ -116,8 +118,8 @@ func TestIfTextAndClickFromIf(t *testing.T) {
 	if err := e.run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if want := []string{"move 220,160", "click left false"}; !reflect.DeepEqual(in.lines(), want) {
-		t.Errorf("lệnh %q", in.lines())
+	if want := []string{"move 220,160", "click left false"}; !reflect.DeepEqual(in.Lines(), want) {
+		t.Errorf("lệnh %q", in.Lines())
 	}
 	if r := e.results["i"]; r.Output["result"] != true || r.Output["text"] != "Gửi" || len(r.Logs) == 0 {
 		t.Errorf("output Nếu: %+v, log %v", r.Output, r.Logs)
@@ -217,8 +219,8 @@ func TestSwitchScreen(t *testing.T) {
 	if r := e.results["s"]; r.Port != "case:send" || r.Output["case"] != "send" || len(scr.shots) != 2 || ocr.reads != 2 {
 		t.Errorf("cổng %q, output %v, chụp %d, đọc %d", r.Port, r.Output, len(scr.shots), ocr.reads)
 	}
-	if want := []string{"move 220,160", "click left false"}; !reflect.DeepEqual(in.lines(), want) {
-		t.Errorf("lệnh %q", in.lines())
+	if want := []string{"move 220,160", "click left false"}; !reflect.DeepEqual(in.Lines(), want) {
+		t.Errorf("lệnh %q", in.Lines())
 	}
 
 	e, _ = ctlEngine(model.Script{Start: "s", Steps: []model.Step{

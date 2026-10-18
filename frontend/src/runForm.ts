@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { GetInputMemory, SaveInputMemory, ValidateScript } from '../wailsjs/go/main/App';
-import { main, model } from '../wailsjs/go/models';
+import { model, store } from '../wailsjs/go/models';
 import { getEditor } from './store';
 import { Debug, errorText, runScript } from './engineStore';
 import { parseValue } from './scriptInputs';
@@ -60,7 +60,7 @@ export async function loadMemory(): Promise<Memory> {
 
 async function saveMemory(m: Memory) {
   set({ memory: m, memoryId: idOf() });
-  if (inWails) await SaveInputMemory(idOf(), main.InputMemory.createFrom(m)).catch(() => {});
+  if (inWails) await SaveInputMemory(idOf(), store.InputMemory.createFrom(m)).catch(() => {});
 }
 
 let busy = false; // từ lúc bấm Chạy tới khi chạy xong – F8 (phím toàn cục) tới trễ không chạy lần nữa

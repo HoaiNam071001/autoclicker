@@ -6,7 +6,9 @@ import (
 	"image"
 	"time"
 
+	"autoclicker/internal/device"
 	"autoclicker/internal/model"
+	"autoclicker/internal/store"
 	"github.com/go-vgo/robotgo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -28,7 +30,7 @@ func (a *App) ValidateScript(sc model.Script, values map[string]any) error {
 	if err != nil {
 		return err
 	}
-	return validateScript(out, mainScreen())
+	return validateScript(out, device.MainScreen())
 }
 
 // RunScript áp giá trị input (resolveInputs) vào bản sao kịch bản, đếm ngược opt.Countdown giây rồi chạy; chỉ trả về khi chạy xong / bị dừng
@@ -37,7 +39,7 @@ func (a *App) ValidateScript(sc model.Script, values map[string]any) error {
 // "engine:progress" (Progress) và "engine:node" (StepResult mỗi node xong) trong lúc chạy, "engine:done" (RunSummary)
 // khi chạy xong – lần chạy lưu vào lịch sử (runlog.go).
 func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) error {
-	screen := mainScreen()
+	screen := device.MainScreen()
 	if opt.From != "" {
 		sc.Start, sc.Loops = opt.From, 1 // chạy từ node: một vòng, node trước đó không chạy (biến của chúng trống)
 	}
@@ -54,23 +56,23 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 		return errors.New("kịch bản đang chạy")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	in := &trackingInput{Input: robotgoInput{}}
+	in := &device.TrackingInput{Input: device.RobotgoInput{}}
 	eng := newEngine(in, sc, func(p Progress) {
 		runtime.EventsEmit(a.ctx, "engine:progress", p)
 	})
 	if opt.Source == "" {
 		opt.Source = SourceUser
 	}
-	rec := RunRecord{RunSummary: RunSummary{Script: sc.Name, Source: opt.Source}, Inputs: values, Results: []model.StepResult{}}
+	rec := model.RunRecord{RunSummary: model.RunSummary{Script: sc.Name, Source: opt.Source}, Inputs: values, Results: []model.StepResult{}}
 	eng.shots = map[string]image.Image{}
 	eng.debug = opt.Source == SourceUser
 	eng.step.Store(opt.Step)
 	eng.onNode = func(r model.StepResult) {
-		rec.add(r, eng.byID[r.NodeID].Type)
+		rec.Add(r, eng.byID[r.NodeID].Type)
 		runtime.EventsEmit(a.ctx, "engine:node", r)
 	}
 	eng.screen = screen
-	eng.displays = displays()
+	eng.displays = device.Displays()
 	h := &runHandle{cancel: cancel, eng: eng}
 	a.run = h
 	a.mu.Unlock()
@@ -94,10 +96,10 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 	}
 	runtime.EventsEmit(a.ctx, "engine:countdown", 0)
 
-	go watchCorners(ctx, robotgo.Location, hardCorners(displays()), in, func() { a.stopWith(StopByCorner) })
+	go device.WatchCorners(ctx, robotgo.Location, device.HardCorners(device.Displays()), in, func() { a.stopWith(StopByCorner) })
 
 	rec.StartedAt = time.Now()
-	rec.ID = newRunID(rec.StartedAt)
+	rec.ID = store.NewRunID(rec.StartedAt)
 	err = eng.run(ctx)
 	a.finishRun(&rec, eng, opt, err)
 	if errors.Is(err, context.Canceled) {
@@ -111,18 +113,18 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 }
 
 // finishRun ghi kết quả cuối vào lịch sử chạy rồi emit "engine:done". Lưu lỗi thì vẫn báo xong (lịch sử chỉ là phụ).
-func (a *App) finishRun(rec *RunRecord, eng *engine, opt RunOptions, err error) {
+func (a *App) finishRun(rec *model.RunRecord, eng *engine, opt RunOptions, err error) {
 	rec.DurationMs = time.Since(rec.StartedAt).Milliseconds()
 	switch {
 	case errors.Is(err, context.Canceled):
-		rec.Status = RunStopped
+		rec.Status = model.RunStopped
 	case err != nil:
-		rec.Status, rec.Error = RunFail, err.Error()
+		rec.Status, rec.Error = model.RunFail, err.Error()
 	default:
-		rec.Status = RunSuccess
+		rec.Status = model.RunSuccess
 	}
-	if base, e := configDir(); e == nil {
-		if e = saveRun(runsDir(base, rec.Script, opt.Path), *rec, eng.shots); e != nil {
+	if base, e := store.ConfigDir(); e == nil {
+		if e = store.SaveRun(store.RunsDir(base, rec.Script, opt.Path), *rec, eng.shots); e != nil {
 			runtime.LogErrorf(a.ctx, "lưu lịch sử chạy: %v", e)
 		}
 	}

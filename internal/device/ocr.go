@@ -1,4 +1,4 @@
-package main
+package device
 
 import (
 	"image"
@@ -14,6 +14,6 @@ type TextReader interface {
 	ReadText(img image.Image) ([]vision.TextLine, error)
 }
 
-type systemOCR struct{}
+type SystemOCR struct{}
 
-func (systemOCR) ReadText(img image.Image) ([]vision.TextLine, error) { return readText(img) }
+func (SystemOCR) ReadText(img image.Image) ([]vision.TextLine, error) { return readText(img) }

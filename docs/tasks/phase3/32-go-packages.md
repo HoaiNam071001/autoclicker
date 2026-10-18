@@ -16,10 +16,16 @@
     - `vision`: `match.go` (+ `MatchScaled`, `ImageScale`) và phần thuần của `ocr.go` (`TextLine`, `FindText`…); `TextReader` + `systemOCR` để đợt 2 vào `device` → `device` phụ thuộc `vision` (kiểu `TextLine`), vẫn một chiều
     - Helper test dùng ở nhiều package → `vision/visiontest` (ảnh giả); `line()` 3 dòng giữ riêng mỗi package test (visiontest import vision sẽ vòng với test nội bộ của vision)
     - Công cụ: chuyển bằng `go/types` (thêm tiền tố package, export tên bị gọi chéo), bản `_other.go` sửa tay + type-check `GOOS=windows` (chỉ còn lỗi robotgo cgo vốn có)
-  - [ ] Đợt 2: `device` + `launch` + `store`
+  - [x] Đợt 2: `device` + `launch` + `store` *(2026-10-18)*
+    - `vision` nhận thêm hàm ảnh thuần (`image.go`: PNG base64, màu, `Shrink`); `model` nhận `RunRecord` / `RunSummary` (`run.go`) → `store` chỉ phụ thuộc `model`
+    - `device`: Input / Screen / TextReader + bản robotgo / cgo, `Displays`, `MainScreen`, failsafe; `devicetest.FakeInput` dùng chung cho test engine + failsafe
+    - `launch`: `open.go` (test engine của node Mở ở lại root, sang `engine` ở đợt 4)
+    - `store`: settings, mở gần đây, input đã nhớ, lịch sử chạy; thân method App (GetSettings, SetTheme, GetInputMemory, SaveInputMemory, RecentScripts, ListRuns, GetRun, RunShot) chuyển xuống hàm của `store`
+    - Để lại đợt 3: nháp (`Draft`, `loadDraft`) và đọc / ghi file kịch bản cần `decodeScript` → cùng `script` (hoặc `store` import `script`, vẫn một chiều); `RunOptions` + `Source*` sang `engine` ở đợt 4
+    - Sơ đồ §1 ARCHITECTURE vẽ lại một lần ở đợt 4
   - [ ] Đợt 3: `script`
   - [ ] Đợt 4: `engine` (export `New`, `TestNode`, `FindOnce`… cho `imageapi.go` / `nodetest`), làm mỏng `main`
-  - [ ] Frontend (làm theo từng đợt; đợt 1 xong `model.*`): `wails generate module` đổi namespace `main.Step` → `model.Step`, `engine.Progress`… – sửa import ở `types.ts`, `engineStore.ts`, `scriptFile.ts`, `runForm.ts`, `windowMode.ts` (tsc báo đủ chỗ)
+  - [ ] Frontend (làm theo từng đợt; đợt 1–2 xong `model.*`, `store.*`): `wails generate module` đổi namespace `main.Step` → `model.Step`, `engine.Progress`… – sửa import ở `types.ts`, `engineStore.ts`, `scriptFile.ts`, `runForm.ts`, `windowMode.ts` (tsc báo đủ chỗ)
   - [ ] Tài liệu + công cụ (làm theo từng đợt; đợt 1 xong `check-docs.py` đọc `internal/`, ARCHITECTURE §2 §6 §8, CLAUDE.md, skill add-node-type / implement-step / senior-review): `scripts/check-docs.py` (đang đọc `*.go` ở root, `model.go`, `steptypes.go`), `ARCHITECTURE.md` (bản đồ file, ~29 chỗ nhắc `.go`), skill `add-node-type` / `fix-bug`, quy tắc Go trong `CLAUDE.md`, `testdata/` (đường dẫn trong test)
   - Nhân lúc chuyển: tách 3 file > 400 dòng mà `check-docs.py` đang cảnh báo – `engine.go` (600), `storage.go` (473), `inputs.go` (441)
   - Mỗi đợt một commit; sau mỗi đợt `go vet ./... && go test ./...` + `cd frontend && npm run build` xanh

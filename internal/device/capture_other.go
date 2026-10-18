@@ -1,6 +1,6 @@
 //go:build !darwin
 
-package main
+package device
 
 import (
 	"image"
@@ -12,18 +12,18 @@ import (
 	"github.com/go-vgo/robotgo"
 )
 
-func screenCaptureAllowed() bool { return true }
+func ScreenCaptureAllowed() bool { return true }
 
-func requestScreenCapture() bool { return true }
+func RequestScreenCapture() bool { return true }
 
 func screenCaptureCheck() error { return nil }
 
-// selfExcluded: Windows đã đặt cửa sổ app không lọt vào ảnh chụp (excludeSelfFromCapture).
+// selfExcluded: Windows đã đặt cửa sổ app không lọt vào ảnh chụp (ExcludeSelfFromCapture).
 var selfExcluded bool
 
-// excludeSelfFromCapture (gọi lúc khởi động): Windows 10 2004+ – cửa sổ app (thanh mini, overlay) không lọt vào
+// ExcludeSelfFromCapture (gọi lúc khởi động): Windows 10 2004+ – cửa sổ app (thanh mini, overlay) không lọt vào
 // ảnh chụp; robotgo chụp bằng BitBlt không có con trỏ chuột.
-func excludeSelfFromCapture() {
+func ExcludeSelfFromCapture() {
 	if goruntime.GOOS == "windows" {
 		selfExcluded = winexclude.ExcludeOwnWindows() > 0
 	}
@@ -38,4 +38,4 @@ func captureNoSelf(r model.Rect) (image.Image, bool, error) {
 	return img, true, err
 }
 
-func canCaptureWithoutSelf() bool { return selfExcluded }
+func CanCaptureWithoutSelf() bool { return selfExcluded }

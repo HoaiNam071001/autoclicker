@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"autoclicker/internal/model"
+	"autoclicker/internal/vision"
 )
 
 // Kịch bản flow mẫu cho AI đọc được và chạy qua kiểm tra đầy đủ (input lấy mặc định).
@@ -36,7 +37,7 @@ func TestStepTypeDocs(t *testing.T) {
 			t.Errorf("%s: ví dụ không hợp lệ: %v (type %q)", d.Type, err, s.Type)
 		}
 		if s.Template != "" {
-			if _, err := decodePNG(s.Template); err != nil {
+			if _, err := vision.DecodePNG(s.Template); err != nil {
 				t.Errorf("%s: ảnh mẫu trong ví dụ hỏng: %v", d.Type, err)
 			}
 		}

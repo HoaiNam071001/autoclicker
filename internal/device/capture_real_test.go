@@ -1,4 +1,4 @@
-package main
+package device
 
 import (
 	"image"
@@ -15,8 +15,8 @@ func TestRealCaptureAndFind(t *testing.T) {
 	if os.Getenv("AUTOCLICKER_REAL") != "1" {
 		t.Skip("đặt AUTOCLICKER_REAL=1 để chạy trên màn hình thật")
 	}
-	t.Logf("quyền ghi màn hình: %v", screenCaptureAllowed())
-	scr, main := robotgoScreen{}, mainScreen()
+	t.Logf("quyền ghi màn hình: %v", ScreenCaptureAllowed())
+	scr, main := RobotgoScreen{}, MainScreen()
 	start := time.Now()
 	full, err := scr.Capture(main)
 	if err != nil {

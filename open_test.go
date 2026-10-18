@@ -6,44 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
 )
-
-func TestOpenCommand(t *testing.T) {
-	cases := []struct {
-		goos, target, app string
-		name              string
-		args              []string
-	}{
-		{"darwin", "youtube.com/watch?v=1", "", "open", []string{"https://youtube.com/watch?v=1"}},
-		{"darwin", "https://a.vn", "Google Chrome", "open", []string{"-a", "Google Chrome", "https://a.vn"}},
-		{"darwin", "Spotify", "", "open", []string{"-a", "Spotify"}},
-		{"darwin", "spotify:search:tinh", "", "open", []string{"spotify:search:tinh"}},
-		{"darwin", "/Applications/Zalo.app", "", "open", []string{"/Applications/Zalo.app"}},
-		{"windows", "https://a.vn/?q=1&p=2", "", "powershell", []string{"-NoProfile", "-NonInteractive", "-Command", "Start-Process -FilePath 'https://a.vn/?q=1&p=2'"}},
-		{"windows", "a.vn", "Google Chrome", "powershell", []string{"-NoProfile", "-NonInteractive", "-Command", `Start-Process -FilePath 'chrome' -ArgumentList '"https://a.vn"'`}},
-		{"windows", `C:\Program Files\O'Brien\x.exe`, "", "powershell", []string{"-NoProfile", "-NonInteractive", "-Command", `Start-Process -FilePath 'C:\Program Files\O''Brien\x.exe'`}},
-		{"linux", "a.vn", "", "xdg-open", []string{"https://a.vn"}},
-	}
-	for _, c := range cases {
-		name, args := openCommand(c.goos, c.target, c.app)
-		if name != c.name || !reflect.DeepEqual(args, c.args) {
-			t.Errorf("%s %q %q: có %s %q, muốn %s %q", c.goos, c.target, c.app, name, args, c.name, c.args)
-		}
-	}
-}
-
-func TestTargetKind(t *testing.T) {
-	for target, want := range map[string]string{
-		"facebook.com/abc": targetURL, "https://x": targetURL, "mailto:a@b.c": targetURL, "localhost:3000": targetURL,
-		"/Users/a/x.pdf": targetPath, `C:\x.exe`: targetPath, "~/x.pdf": targetPath,
-		"Spotify": targetApp, "Visual Studio Code": targetApp,
-	} {
-		if got := targetKind(target); got != want {
-			t.Errorf("%q: %s, muốn %s", target, got, want)
-		}
-	}
-}
 
 // Biến trong URL được mã hoá, trong tên app / văn bản thì giữ nguyên.
 func TestResolveOpenTarget(t *testing.T) {
@@ -67,7 +32,7 @@ func TestResolveOpenTarget(t *testing.T) {
 }
 
 func TestRunScrollAndOpen(t *testing.T) {
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	sc := model.Script{Loops: 1, Steps: []model.Step{
 		step(model.StepOpen, func(s *model.Step) { s.Target = "a.vn"; s.App = "Firefox" }),
 		step(model.StepScroll, func(s *model.Step) { s.Amount = 2 }),
@@ -82,8 +47,8 @@ func TestRunScrollAndOpen(t *testing.T) {
 	if err := e.run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if want := []string{"scroll down", "scroll down", "move 10,20", "scroll up"}; !reflect.DeepEqual(in.lines(), want) {
-		t.Errorf("có %q, muốn %q", in.lines(), want)
+	if want := []string{"scroll down", "scroll down", "move 10,20", "scroll up"}; !reflect.DeepEqual(in.Lines(), want) {
+		t.Errorf("có %q, muốn %q", in.Lines(), want)
 	}
 	if !reflect.DeepEqual(opened, []string{"a.vn | Firefox"}) {
 		t.Errorf("mở: %q", opened)

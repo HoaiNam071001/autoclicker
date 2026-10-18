@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
 )
 
@@ -38,7 +39,7 @@ func TestAnchorsFollowRegionResize(t *testing.T) {
 		{X: 300, Y: 300, Ax: AnchorEnd, Ay: AnchorEnd},
 	}
 	run := func(r model.Rect) []string {
-		in := &fakeInput{}
+		in := &devicetest.FakeInput{}
 		sc := model.Script{Loops: 1, Region: &r}
 		for _, p := range pts {
 			sc.Steps = append(sc.Steps, step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{p} }))
@@ -47,7 +48,7 @@ func TestAnchorsFollowRegionResize(t *testing.T) {
 			t.Fatal(err)
 		}
 		var moves []string
-		for _, l := range in.lines() {
+		for _, l := range in.Lines() {
 			if strings.HasPrefix(l, "move") {
 				moves = append(moves, l)
 			}
@@ -64,7 +65,7 @@ func TestAnchorsFollowRegionResize(t *testing.T) {
 
 // Toàn màn hình (Region = nil) neo theo khung màn hình engine được đặt.
 func TestAnchorFullScreen(t *testing.T) {
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	sc := model.Script{Loops: 1, Steps: []model.Step{
 		step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{{X: 10, Y: 10, Ax: AnchorEnd, Ay: AnchorEnd}} }),
 	}}
@@ -73,7 +74,7 @@ func TestAnchorFullScreen(t *testing.T) {
 	if err := e.run(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if got := in.lines()[0]; got != "move 1430,890" {
+	if got := in.Lines()[0]; got != "move 1430,890" {
 		t.Errorf("got %q", got)
 	}
 }

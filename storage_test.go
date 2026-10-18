@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"testing"
 
 	"autoclicker/internal/model"
@@ -122,19 +121,6 @@ func TestDraftRoundTrip(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, draftFile), []byte(`{"script":{"version":4,"steps":[{"type":"?"}]}}`), 0o644)
 	if loadDraft(dir) != nil {
 		t.Fatal("nháp hỏng phải bỏ qua")
-	}
-}
-
-func TestRecentList(t *testing.T) {
-	var l []string
-	for _, p := range []string{"a", "b", "c", "d", "e", "f", "c"} {
-		l = pushRecent(l, p)
-	}
-	if want := []string{"c", "f", "e", "d", "b"}; !reflect.DeepEqual(l, want) {
-		t.Fatalf("pushRecent = %v, muốn %v", l, want)
-	}
-	if got := removeRecent(l, "e"); strings.Join(got, "") != "cfdb" {
-		t.Fatalf("removeRecent = %v", got)
 	}
 }
 

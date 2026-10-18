@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -40,7 +41,7 @@ type FindResult struct {
 
 // withHidden ẩn cửa sổ app, chạy f, rồi hiện lại – chỉ khi không chụp được mà bỏ qua cửa sổ app (macOS < 14, Linux…).
 func (a *App) withHidden(f func() error) error {
-	if a.ctx != nil && !canCaptureWithoutSelf() {
+	if a.ctx != nil && !device.CanCaptureWithoutSelf() {
 		runtime.WindowHide(a.ctx)
 		defer runtime.WindowShow(a.ctx)
 		time.Sleep(hideDelay)
@@ -50,7 +51,7 @@ func (a *App) withHidden(f func() error) error {
 
 // CaptureTemplate chụp vùng r (toạ độ robotgo, nằm trong một màn hình) làm ảnh mẫu.
 func (a *App) CaptureTemplate(r model.Rect) (TemplateShot, error) {
-	if err := captureArea(r, displays()); err != nil {
+	if err := device.CaptureArea(r, device.Displays()); err != nil {
 		return TemplateShot{}, err
 	}
 	if r.W < 4 || r.H < 4 {
@@ -58,11 +59,11 @@ func (a *App) CaptureTemplate(r model.Rect) (TemplateShot, error) {
 	}
 	var shot TemplateShot
 	err := a.withHidden(func() error {
-		img, err := robotgoScreen{}.Capture(r)
+		img, err := device.RobotgoScreen{}.Capture(r)
 		if err != nil {
 			return err
 		}
-		png, err := encodePNG(img)
+		png, err := vision.EncodePNG(img)
 		shot = TemplateShot{Png: png, Scale: vision.ImageScale(img, r), W: r.W, H: r.H}
 		return err
 	})
@@ -86,19 +87,19 @@ func (a *App) FindImage(sc model.Script, stepID string) (FindResult, error) {
 	if s.Template == "" {
 		return FindResult{}, errors.New("bước chưa có ảnh mẫu")
 	}
-	img, err := decodePNG(s.Template)
+	img, err := vision.DecodePNG(s.Template)
 	if err != nil {
 		return FindResult{}, err
 	}
 	e := newEngine(nil, sc, nil)
-	e.screen, e.displays = mainScreen(), displays()
+	e.screen, e.displays = device.MainScreen(), device.Displays()
 	area := e.searchArea(*s)
-	if err := captureArea(area, e.displays); err != nil {
+	if err := device.CaptureArea(area, e.displays); err != nil {
 		return FindResult{}, err
 	}
 	var res FindResult
 	err = a.withHidden(func() error {
-		shot, err := robotgoScreen{}.Capture(area)
+		shot, err := device.RobotgoScreen{}.Capture(area)
 		if err != nil {
 			return err
 		}
@@ -124,15 +125,15 @@ func (a *App) findTextOnce(sc model.Script, s model.Step) (FindResult, error) {
 		return FindResult{}, err
 	}
 	e := newEngine(nil, sc, nil)
-	e.screen, e.displays = mainScreen(), displays()
+	e.screen, e.displays = device.MainScreen(), device.Displays()
 	area := e.searchArea(s)
-	if err := captureArea(area, e.displays); err != nil {
+	if err := device.CaptureArea(area, e.displays); err != nil {
 		return FindResult{}, err
 	}
 	var res FindResult
 	err = a.withHidden(func() error {
 		start := time.Now()
-		hit, read, ok, err := locateText(robotgoScreen{}, systemOCR{}, area, s)
+		hit, read, ok, err := locateText(device.RobotgoScreen{}, device.SystemOCR{}, area, s)
 		if err != nil {
 			return err
 		}
@@ -149,15 +150,15 @@ func (a *App) findTextOnce(sc model.Script, s model.Step) (FindResult, error) {
 func (a *App) PixelColorAt(x, y int) (string, error) {
 	var hex string
 	err := a.withHidden(func() error {
-		c, err := robotgoScreen{}.Pixel(x, y)
-		hex = hexColor(c)
+		c, err := device.RobotgoScreen{}.Pixel(x, y)
+		hex = vision.HexColor(c)
 		return err
 	})
 	return hex, err
 }
 
 // ScreenCaptureAllowed: đã có quyền chụp màn hình chưa (macOS Screen Recording; hệ khác luôn true).
-func (a *App) ScreenCaptureAllowed() bool { return screenCaptureAllowed() }
+func (a *App) ScreenCaptureAllowed() bool { return device.ScreenCaptureAllowed() }
 
 // RequestScreenCapture mở hộp thoại xin quyền chụp màn hình của macOS (cấp xong thường phải mở lại app).
-func (a *App) RequestScreenCapture() bool { return requestScreenCapture() }
+func (a *App) RequestScreenCapture() bool { return device.RequestScreenCapture() }

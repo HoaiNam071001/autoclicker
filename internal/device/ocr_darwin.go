@@ -1,6 +1,6 @@
 //go:build darwin
 
-package main
+package device
 
 /*
 #cgo CFLAGS: -x objective-c -fobjc-arc

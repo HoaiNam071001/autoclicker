@@ -51,7 +51,7 @@ Theo **design v2** – chi tiết token, thành phần, icon trong `design/DESIG
 - Tailwind **v4**: token trong `style.css` (chép từ `design/theme.css` – sửa token thì sửa cả hai), không tạo `tailwind.config.js`. Body không tô nền (overlay / mini bar cần trong suốt) – mỗi màn tự tô `bg-bg` / `bg-surface`.
 - Token: `bg` nền, `chrome` thanh tiêu đề / status bar, `side` thanh bên, `surface` thẻ / inspector / popup, `field` ô nhập, `soft` / `hover` nền pha nhẹ, `line` / `line-strong` viền, `ink` / `muted` chữ, `accent` / `accent-soft` / `accent-text` (chỉ cho trạng thái), `warn`, `ok`, `danger*`; `hud*` / `dim` cho overlay (luôn tối).
 - Theme tối = bảng **Slate** (`design/newdarkmode.md`; lớp càng cao càng sáng: `bg` → `surface` → `field` / `soft` → `raised`). Chữ trên nền `accent` dùng `text-on-accent`, không `text-white`.
-- Theme: `data-theme="light|dark"` trên `<html>` (`theme.ts`, lưu qua `settings.go`), không đặt = theo hệ điều hành; overlay đặt `data-theme="dark"` riêng.
+- Theme: `data-theme="light|dark"` trên `<html>` (`theme.ts`, lưu qua `internal/store/settings.go`), không đặt = theo hệ điều hành; overlay đặt `data-theme="dark"` riêng.
 - Gradient chỉ ở 4 chỗ: `btn-primary`, `ring-selected`, `ring-focus`, vòng tiến độ thanh mini. Nút Dừng `btn-danger-soft`.
 - Font `font-sans` (Segoe UI Variable → Plus Jakarta Sans) cho chữ, `font-mono` (Cascadia Mono → JetBrains Mono) cho số / toạ độ / thời gian. Font local qua `@fontsource`, không Google Fonts.
 

@@ -11,6 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"autoclicker/internal/device"
+	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
 )
@@ -66,7 +68,7 @@ func validateScript(sc model.Script, screen model.Rect) error {
 			}
 		case model.StepWaitPixel:
 			need = 1
-			if _, err := parseColor(s.Color); err != nil {
+			if _, err := vision.ParseColor(s.Color); err != nil {
 				return stepErr(i, s, "color", "%v", err)
 			}
 			if s.Tolerance < 0 || s.Tolerance > 255 {
@@ -133,7 +135,7 @@ const progressEvery = 100 * time.Millisecond
 
 // engine chạy một kịch bản. Tạo mới cho mỗi lần chạy.
 type engine struct {
-	in         Input
+	in         device.Input
 	sc         model.Script
 	gate       pauseGate
 	screen     model.Rect                     // khung màn hình khi Region = nil (runner đặt = mainScreen); zero = gốc (0, 0)
@@ -141,8 +143,8 @@ type engine struct {
 	onProgress func(Progress)                 // có thể nil
 	intN       func(n int) int                // số ngẫu nhiên [0, n) – test thay bằng hàm cố định
 	open       func(target, app string) error // bước Mở – test thay bằng hàm ghi lại
-	scr        Screen                         // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
-	ocr        TextReader                     // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
+	scr        device.Screen                  // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
+	ocr        device.TextReader              // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
 
 	onNode  func(model.StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
 	shots   map[string]image.Image       // ảnh màn hình lúc node thất bại theo tên file (nil = không chụp – runlog.go)
@@ -166,8 +168,8 @@ type engine struct {
 	lastEmit time.Time
 }
 
-func newEngine(in Input, sc model.Script, onProgress func(Progress)) *engine {
-	return &engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: openTarget, scr: robotgoScreen{}, ocr: systemOCR{}}
+func newEngine(in device.Input, sc model.Script, onProgress func(Progress)) *engine {
+	return &engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}}
 }
 
 // jitter trả v lệch ngẫu nhiên đều trong [v-j, v+j]; j ≤ 0 → v. Dùng cho toạ độ (có thể âm ở màn phụ).
@@ -391,7 +393,7 @@ func (e *engine) doStep(ctx context.Context, s model.Step) error {
 const keyHoldMs, keyGapMs = 50, 50
 
 // pressKeys bấm tổ hợp theo KeyMode; mọi phím đã nhấn luôn được nhả (ngược thứ tự), kể cả khi lỗi / bị huỷ.
-func pressKeys(ctx context.Context, in Input, s model.Step) error {
+func pressKeys(ctx context.Context, in device.Input, s model.Step) error {
 	var held []string
 	defer func() {
 		for i := len(held) - 1; i >= 0; i-- {
@@ -586,7 +588,7 @@ func checkImageStep(i int, s model.Step) error {
 	if s.Template == "" {
 		return stepErr(i, s, "template", "chưa có ảnh mẫu – bấm “Khoanh ảnh mẫu”")
 	}
-	img, err := decodePNG(s.Template)
+	img, err := vision.DecodePNG(s.Template)
 	if err != nil {
 		return stepErr(i, s, "template", "%v", err)
 	}

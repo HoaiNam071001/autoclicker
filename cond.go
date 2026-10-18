@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
 )
@@ -49,13 +50,13 @@ func (p CondPart) output() map[string]any {
 
 // snapshot – một lần xét: chụp mỗi vùng một lần, đọc chữ mỗi ảnh một lần, dù nhiều điều kiện cùng vùng.
 type snapshot struct {
-	scr   Screen
-	ocr   TextReader
+	scr   device.Screen
+	ocr   device.TextReader
 	shots map[model.Rect]image.Image
 	texts map[image.Image][]vision.TextLine
 }
 
-func newSnapshot(scr Screen, ocr TextReader) *snapshot {
+func newSnapshot(scr device.Screen, ocr device.TextReader) *snapshot {
 	return &snapshot{scr: scr, ocr: ocr, shots: map[model.Rect]image.Image{}, texts: map[image.Image][]vision.TextLine{}}
 }
 
@@ -140,7 +141,7 @@ func (e *engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, 
 	case model.CondText:
 		probe := c.Probe(key)
 		area := e.searchArea(probe)
-		if err := captureArea(area, e.displays); err != nil {
+		if err := device.CaptureArea(area, e.displays); err != nil {
 			return part, err
 		}
 		box, read, found, err := locateText(snap, snap, area, probe)
@@ -161,7 +162,7 @@ func (e *engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, 
 			return part, err
 		}
 		area := e.searchArea(probe)
-		if err := captureArea(area, e.displays); err != nil {
+		if err := device.CaptureArea(area, e.displays); err != nil {
 			return part, err
 		}
 		img, err := snap.Capture(area)
@@ -176,7 +177,7 @@ func (e *engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, 
 		part.Detail = fmt.Sprintf("%s tại X %d Y %d · khớp %d%% (cần %d%%)", map[bool]string{true: "thấy ảnh", false: "giống nhất"}[ok],
 			box.X+box.W/2, box.Y+box.H/2, score, c.Threshold)
 	case model.CondPixel:
-		want, err := parseColor(c.Color)
+		want, err := vision.ParseColor(c.Color)
 		if err != nil {
 			return part, err
 		}
@@ -188,10 +189,10 @@ func (e *engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, 
 		if err != nil {
 			return part, err
 		}
-		d := colorDiff(got, want)
+		d := vision.ColorDiff(got, want)
 		ok = d <= c.Tolerance
 		part.Hit = &model.Rect{X: p.X, Y: p.Y}
-		part.Detail = fmt.Sprintf("X %d Y %d màu %s (cần %s ± %d, lệch %d)", p.X, p.Y, hexColor(got), strings.ToUpper(c.Color), c.Tolerance, d)
+		part.Detail = fmt.Sprintf("X %d Y %d màu %s (cần %s ± %d, lệch %d)", p.X, p.Y, vision.HexColor(got), strings.ToUpper(c.Color), c.Tolerance, d)
 	default:
 		return part, fmt.Errorf("loại điều kiện không hợp lệ %q", c.Kind)
 	}
@@ -296,7 +297,7 @@ func validateCond(c model.Cond, inside func(model.Point) bool) error {
 		if c.Template == "" {
 			return errors.New("điều kiện chưa có ảnh mẫu")
 		}
-		if _, err := decodePNG(c.Template); err != nil {
+		if _, err := vision.DecodePNG(c.Template); err != nil {
 			return fmt.Errorf("ảnh mẫu của điều kiện hỏng: %v", err)
 		}
 		if c.Threshold < 1 || c.Threshold > 100 {
@@ -309,7 +310,7 @@ func validateCond(c model.Cond, inside func(model.Point) bool) error {
 		if !inside(c.Points[0]) {
 			return errors.New("điểm của điều kiện màu nằm ngoài vùng")
 		}
-		if _, err := parseColor(c.Color); err != nil {
+		if _, err := vision.ParseColor(c.Color); err != nil {
 			return err
 		}
 	case model.CondValue:

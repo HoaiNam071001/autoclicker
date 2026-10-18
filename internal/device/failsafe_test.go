@@ -1,4 +1,4 @@
-package main
+package device
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
 )
 
@@ -13,7 +14,7 @@ func TestHardCorners(t *testing.T) {
 	// A 1440×900 bên trái, B 1920×1080 bên phải, mép trên thẳng hàng.
 	ds := []model.Rect{{X: 0, Y: 0, W: 1440, H: 900}, {X: 1440, Y: 0, W: 1920, H: 1080}}
 	got := map[model.Point]bool{}
-	for _, c := range hardCorners(ds) {
+	for _, c := range HardCorners(ds) {
 		got[c] = true
 	}
 	want := []model.Point{{X: 0, Y: 0}, {X: 0, Y: 899}, {X: 3359, Y: 0}, {X: 3359, Y: 1079}, {X: 1440, Y: 1079}}
@@ -34,7 +35,7 @@ func TestHardCorners(t *testing.T) {
 }
 
 func TestInCorner(t *testing.T) {
-	corners := hardCorners([]model.Rect{{X: 0, Y: 0, W: 1440, H: 900}})
+	corners := HardCorners([]model.Rect{{X: 0, Y: 0, W: 1440, H: 900}})
 	cases := []struct {
 		x, y int
 		want bool
@@ -56,6 +57,7 @@ type fakeMouse struct {
 }
 
 func (m *fakeMouse) set(x, y int) { m.mu.Lock(); m.x, m.y = x, y; m.mu.Unlock() }
+
 func (m *fakeMouse) loc() (int, int) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -66,9 +68,9 @@ func TestWatchCorners(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	mouse := &fakeMouse{x: 500, y: 500}
-	tin := &trackingInput{Input: &fakeInput{}}
+	tin := &TrackingInput{Input: &devicetest.FakeInput{}}
 	hit := make(chan struct{}, 1)
-	go watchCorners(ctx, mouse.loc, hardCorners([]model.Rect{{X: 0, Y: 0, W: 1440, H: 900}}), tin, func() { hit <- struct{}{} })
+	go WatchCorners(ctx, mouse.loc, HardCorners([]model.Rect{{X: 0, Y: 0, W: 1440, H: 900}}), tin, func() { hit <- struct{}{} })
 
 	// Engine tự đưa chuột tới góc (điểm của kịch bản) → không dừng.
 	tin.Move(0, 0)

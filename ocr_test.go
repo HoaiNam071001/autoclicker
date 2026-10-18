@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
 )
@@ -39,7 +40,7 @@ func TestWaitTextThenClick(t *testing.T) {
 		{line("Đang tải…", 0, 0, 100, 20)},
 		{line("Gửi", 200, 100, 60, 40), line("Gửi", 200, 300, 60, 40)},
 	}}
-	in := &fakeInput{}
+	in := &devicetest.FakeInput{}
 	sc := textScript("gửi", step(model.StepClickImage, func(s *model.Step) { s.Dx = 5 }))
 	sc.Steps[0].Occurrence = 2
 	e := newEngine(in, linear(sc), nil)
@@ -48,13 +49,13 @@ func TestWaitTextThenClick(t *testing.T) {
 		t.Fatal(err)
 	}
 	// chỗ thứ 2: px (200, 300) 60×40 → toạ độ 100 + 100 + 15, 50 + 150 + 10
-	if want := []string{"move 220,210", "click left false"}; !reflect.DeepEqual(in.lines(), want) {
-		t.Errorf("có %q, muốn %q", in.lines(), want)
+	if want := []string{"move 220,210", "click left false"}; !reflect.DeepEqual(in.Lines(), want) {
+		t.Errorf("có %q, muốn %q", in.Lines(), want)
 	}
 }
 
 func TestWaitTextTimeout(t *testing.T) {
-	e := newEngine(&fakeInput{}, linear(textScript("Xem lịch sử")), nil)
+	e := newEngine(&devicetest.FakeInput{}, linear(textScript("Xem lịch sử")), nil)
 	e.sc.Steps[0].TimeoutMs = 5
 	e.scr, e.ocr = &fakeScreen{frames: []image.Image{image.NewRGBA(image.Rect(0, 0, 400, 300))}},
 		&fakeOCR{reads: [][]vision.TextLine{{line("Xem lich su", 0, 0, 100, 20)}}}

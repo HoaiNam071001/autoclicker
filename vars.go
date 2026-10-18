@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
 )
 
@@ -37,7 +38,7 @@ func resolveNodeVars(s model.Step, rv runVars) (model.Step, error) {
 				return m
 			}
 			if f.url {
-				return escapeURLValue(v)
+				return launch.EscapeURLValue(v)
 			}
 			return v
 		})
@@ -65,7 +66,7 @@ func varFields(s *model.Step) []varField {
 			add("findText", &s.FindText, false)
 		}
 	case model.StepOpen:
-		add("target", &s.Target, targetKind(s.Target) == targetURL)
+		add("target", &s.Target, launch.TargetKind(s.Target) == launch.TargetURL)
 	case model.StepIf:
 		if s.Cond != nil {
 			condFields(s.Cond, "cond", add)
