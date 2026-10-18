@@ -53,6 +53,10 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 	if err := script.ValidateScript(sc, screen); err != nil {
 		return err
 	}
+	canDelete, err := allowDelete(sc, opt.Path, opt.ConfirmDelete)
+	if err != nil {
+		return err
+	}
 	profile, err := store.BrowserProfile()
 	if err != nil {
 		return err
@@ -75,7 +79,7 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 	br := web.NewChrome(profile, in.Move) // nối lười – kịch bản không có node web thì không đụng trình duyệt
 	defer br.Close()
 	eng := engine.New(in, sc, engine.Options{
-		Screen: screen, Displays: device.Displays(), Debug: opt.Source == SourceUser, StepMode: opt.Step, KeepShots: true, Browser: br,
+		Screen: screen, Displays: device.Displays(), Debug: opt.Source == SourceUser, StepMode: opt.Step, KeepShots: true, Browser: br, AllowDelete: canDelete,
 		OnProgress: func(p engine.Progress) { runtime.EventsEmit(a.ctx, "engine:progress", p) },
 		OnNode: func(r model.StepResult) {
 			rec.Add(r, types[r.NodeID])
@@ -213,6 +217,8 @@ type RunOptions struct {
 	Source    string `json:"source,omitempty"` // user (mặc định) | schedule | cli | ai
 	From      string `json:"from,omitempty"`   // debug: chạy một vòng bắt đầu từ node này thay cho start
 	Step      bool   `json:"step,omitempty"`   // debug: dừng trước mỗi node, Tiếp / F10 chạy node kế
+	// dấu vân tay thao tác xoá người dùng vừa đồng ý (DeleteCheck) – chạy được và ghi nhớ; trống = chỉ chạy khi đã đồng ý trước đó
+	ConfirmDelete string `json:"confirmDelete,omitempty"`
 }
 
 // ListRuns – lịch sử chạy của kịch bản (tên + đường dẫn file như lúc chạy), mới nhất trước.

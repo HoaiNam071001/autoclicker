@@ -49,6 +49,12 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
   switch (s.type) {
     case 'type': return { ...s, text: f(s.text) };
     case 'open': return { ...s, target: f(s.target ?? '') };
+    case 'file': return s.fileOp === 'emptyTrash' ? s : {
+      ...s, filePath: f(s.filePath ?? ''),
+      ...(s.fileOp === 'row' ? { cells: s.cells?.map(f), sheet: s.sheet && f(s.sheet) } : {}),
+      ...(s.fileOp === 'trash' ? { filePattern: f(s.filePattern ?? '') } : {}),
+      ...(!s.fileOp ? { text: f(s.text) } : {}),
+    };
     case 'http': {
       const kv = (rows?: KV[]) => rows?.map((r) => ({ ...r, value: f(r.value) }));
       return { ...s, url: f(s.url ?? ''), query: kv(s.query), headers: kv(s.headers), form: s.bodyType === 'form' ? kv(s.form) : s.form,

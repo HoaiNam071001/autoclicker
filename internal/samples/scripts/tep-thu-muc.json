@@ -1,0 +1,26 @@
+{
+ "meta": {
+  "name": "Tệp / thư mục – ghi nhật ký, thêm dòng Excel, dọn file tạm",
+  "description": "Tạo thư mục ~/Documents/autoclicker-mau-thu, ghi thêm một dòng vào nhat-ky.txt, thêm dòng đơn hàng vào don-hang.csv và don-hang.xlsx (tên từ input), tạo 2 file tam-*.txt rồi chuyển chúng vào Thùng rác. Đúng: thư mục có 3 file, chạy lại thì csv / xlsx thêm dòng; lời kết thúc ghi số dòng + số file đã xoá (2). Lần chạy đầu app hỏi xác nhận thao tác xoá.",
+  "app": "Tệp",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Không cần trình duyệt. Mẫu chỉ xoá file tam-*.txt trong thư mục của nó."
+ },
+ "script": {
+  "steps": [
+   { "type": "file", "fileOp": "mkdir", "filePath": "~/Documents/autoclicker-mau-thu" },
+   { "type": "file", "filePath": "~/Documents/autoclicker-mau-thu/nhat-ky.txt", "fileAppend": true, "text": "Chạy lúc {{n1.output.startedAt}} – khách {{ten}}\n" },
+   { "type": "file", "fileOp": "row", "filePath": "~/Documents/autoclicker-mau-thu/don-hang.csv", "cells": ["{{ten}}", "2", "{{n1.output.startedAt}}"] },
+   { "type": "file", "fileOp": "row", "filePath": "~/Documents/autoclicker-mau-thu/don-hang.xlsx", "sheet": "Đơn hàng", "cells": ["{{ten}}", "2", "{{n1.output.startedAt}}"] },
+   { "type": "file", "filePath": "~/Documents/autoclicker-mau-thu/tam-1.txt", "text": "file tạm" },
+   { "type": "file", "filePath": "~/Documents/autoclicker-mau-thu/tam-2.txt", "text": "file tạm" },
+   { "type": "file", "fileOp": "trash", "filePath": "~/Documents/autoclicker-mau-thu", "filePattern": "tam-*.txt" },
+   { "type": "end", "endStatus": "success", "message": "CSV {{n3.output.rows}} dòng, Excel {{n4.output.rows}} dòng; đã chuyển {{n7.output.count}} file vào Thùng rác ({{n7.output.files}})" }
+  ],
+  "inputs": [
+   { "key": "ten", "label": "Tên khách", "type": "text", "default": "Lan, Hà" }
+  ]
+ }
+}

@@ -40,19 +40,21 @@ const progressEvery = 100 * time.Millisecond
 
 // engine chạy một kịch bản. Tạo mới cho mỗi lần chạy.
 type Engine struct {
-	in         device.Input
-	sc         model.Script
-	gate       pauseGate
-	screen     model.Rect                     // khung màn hình khi Region = nil (runner đặt = mainScreen); zero = gốc (0, 0)
-	displays   []model.Rect                   // khung các màn (tìm ảnh "cả màn", kiểm tra vùng chụp); nil = không kiểm tra
-	onProgress func(Progress)                 // có thể nil
-	intN       func(n int) int                // số ngẫu nhiên [0, n) – test thay bằng hàm cố định
-	open       func(target, app string) error // bước Mở – test thay bằng hàm ghi lại
-	scr        device.Screen                  // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
-	ocr        device.TextReader              // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
-	clip       device.Clipboard               // clipboard (chụp màn hình chép ảnh – shot.go) – test thay bằng bản giả
-	httpc      *http.Client                   // node HTTP (http.go) – thời gian chờ theo TimeoutMs của node
-	browser    web.Browser                    // node web (webstep.go) – nil = không điều khiển trình duyệt
+	in          device.Input
+	sc          model.Script
+	gate        pauseGate
+	screen      model.Rect                     // khung màn hình khi Region = nil (runner đặt = mainScreen); zero = gốc (0, 0)
+	displays    []model.Rect                   // khung các màn (tìm ảnh "cả màn", kiểm tra vùng chụp); nil = không kiểm tra
+	onProgress  func(Progress)                 // có thể nil
+	intN        func(n int) int                // số ngẫu nhiên [0, n) – test thay bằng hàm cố định
+	open        func(target, app string) error // bước Mở – test thay bằng hàm ghi lại
+	scr         device.Screen                  // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
+	ocr         device.TextReader              // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
+	clip        device.Clipboard               // clipboard (chụp màn hình chép ảnh – shot.go) – test thay bằng bản giả
+	httpc       *http.Client                   // node HTTP (http.go) – thời gian chờ theo TimeoutMs của node
+	trash       device.Trash                   // node Tệp / thư mục xoá vào Thùng rác (file.go) – test thay bằng bản giả
+	allowDelete bool                           // người dùng đã xác nhận thao tác xoá của kịch bản (Options.AllowDelete)
+	browser     web.Browser                    // node web (webstep.go) – nil = không điều khiển trình duyệt
 
 	onNode  func(model.StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
 	shots   map[string]image.Image       // ảnh màn hình lúc node thất bại theo tên file (nil = không chụp – runlog.go)
@@ -80,7 +82,7 @@ type Engine struct {
 }
 
 func newEngine(in device.Input, sc model.Script, onProgress func(Progress)) *Engine {
-	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, clip: device.SystemClipboard{}, httpc: &http.Client{},
+	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{},
 		rng: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))}
 }
 

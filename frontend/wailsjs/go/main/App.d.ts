@@ -17,6 +17,8 @@ export function ClearDraft():Promise<void>;
 
 export function ConfirmQuit():Promise<void>;
 
+export function DeleteCheck(arg1:model.Script,arg2:Record<string, any>,arg3:string):Promise<main.DeleteCheck>;
+
 export function Displays():Promise<Array<main.DisplayInfo>>;
 
 export function FindElement(arg1:model.Script,arg2:string):Promise<engine.WebFindResult>;

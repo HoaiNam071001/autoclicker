@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
-import { RunScript, ValidateScript } from '../wailsjs/go/main/App';
+import { DeleteCheck, RunScript, ValidateScript } from '../wailsjs/go/main/App';
+import { askDelete } from './deleteConfirm';
 import { main, model } from '../wailsjs/go/models';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { Script } from './types';
@@ -72,15 +73,21 @@ export async function runScript(script: Script, countdown: boolean, values: Reco
   if (state.running || !inWails) return;
   const sc = model.Script.createFrom(debug.from ? { ...script, start: debug.from } : script);
   set({ preset });
+  let confirmDelete = ''; // kịch bản có thao tác xoá chưa đồng ý → hỏi (deleteConfirm.ts), Go ghi nhớ khi chạy
   try {
     await ValidateScript(sc, values);
+    const chk = await DeleteCheck(sc, values, path);
+    if (chk.ops?.length && !chk.confirmed) {
+      if (!(await askDelete(chk.ops))) return;
+      confirmDelete = chk.fingerprint;
+    }
   } catch (e) {
     set({ lastError: errorText(e), stopReason: '' });
     return;
   }
   await setWindowMode('minibar');
   try {
-    await RunScript(sc, values, main.RunOptions.createFrom({ countdown: countdown ? COUNTDOWN_SEC : 0, path, source: 'user', ...debug }));
+    await RunScript(sc, values, main.RunOptions.createFrom({ countdown: countdown ? COUNTDOWN_SEC : 0, path, source: 'user', confirmDelete, ...debug }));
   } catch (e) {
     set({ lastError: errorText(e) });
   }

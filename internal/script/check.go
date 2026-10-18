@@ -127,6 +127,10 @@ func checkStep(s *model.Step) error {
 		if !slices.Contains(model.BodyTypes, s.BodyType) {
 			return fmt.Errorf("kiểu body không hợp lệ: %q (trống | json | form | text)", s.BodyType)
 		}
+	case model.StepFile:
+		if !slices.Contains(model.FileOps, s.FileOp) {
+			return fmt.Errorf("thao tác tệp không hợp lệ: %q (trống = ghi chữ | row | mkdir | trash | emptyTrash)", s.FileOp)
+		}
 	case model.StepClipboard:
 		if !slices.Contains(model.ClipOps, s.ClipOp) {
 			return fmt.Errorf("phép clipboard không hợp lệ: %q (trống = đọc | write | image)", s.ClipOp)

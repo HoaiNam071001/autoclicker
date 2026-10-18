@@ -73,6 +73,21 @@ func VarFields(s *model.Step) []VarField {
 		case model.BodyForm:
 			kv("form", s.Form)
 		}
+	case model.StepFile:
+		if s.FileOp != model.FileEmptyTrash {
+			add("filePath", &s.FilePath, false)
+		}
+		switch s.FileOp {
+		case model.FileWrite:
+			add("text", &s.Text, false)
+		case model.FileRow:
+			for i := range s.Cells {
+				add(fmt.Sprintf("cells[%d]", i), &s.Cells[i], false)
+			}
+			add("sheet", &s.Sheet, false)
+		case model.FileTrash:
+			add("filePattern", &s.FilePattern, false)
+		}
 	case model.StepClipboard:
 		switch s.ClipOp {
 		case model.ClipWrite:
@@ -150,6 +165,7 @@ func CloneStep(s model.Step) model.Step {
 	s.ScrollIn = slices.Clone(s.ScrollIn)
 	s.NumVars = slices.Clone(s.NumVars)
 	s.Query, s.Headers, s.Form = slices.Clone(s.Query), slices.Clone(s.Headers), slices.Clone(s.Form)
+	s.Cells = slices.Clone(s.Cells)
 	s.Cond = cloneCond(s.Cond)
 	if s.Cases != nil {
 		cs := make([]model.Case, len(s.Cases))

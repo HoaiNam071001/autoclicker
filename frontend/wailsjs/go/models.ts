@@ -175,6 +175,40 @@ export namespace engine {
 
 export namespace main {
 	
+	export class DeleteCheck {
+	    ops: script.DeleteOp[];
+	    fingerprint: string;
+	    confirmed: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeleteCheck(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ops = this.convertValues(source["ops"], script.DeleteOp);
+	        this.fingerprint = source["fingerprint"];
+	        this.confirmed = source["confirmed"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class DisplayInfo {
 	    index: number;
 	    rect: model.Rect;
@@ -217,6 +251,7 @@ export namespace main {
 	    source?: string;
 	    from?: string;
 	    step?: boolean;
+	    confirmDelete?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new RunOptions(source);
@@ -229,6 +264,7 @@ export namespace main {
 	        this.source = source["source"];
 	        this.from = source["from"];
 	        this.step = source["step"];
+	        this.confirmDelete = source["confirmDelete"];
 	    }
 	}
 	export class ScriptFile {
@@ -834,6 +870,11 @@ export namespace model {
 	    bodyType?: string;
 	    body?: string;
 	    form?: KV[];
+	    fileOp?: string;
+	    fileAppend?: boolean;
+	    cells?: string[];
+	    sheet?: string;
+	    filePattern?: string;
 	    color?: string;
 	    tolerance?: number;
 	    cond?: Cond;
@@ -921,6 +962,11 @@ export namespace model {
 	        this.bodyType = source["bodyType"];
 	        this.body = source["body"];
 	        this.form = this.convertValues(source["form"], KV);
+	        this.fileOp = source["fileOp"];
+	        this.fileAppend = source["fileAppend"];
+	        this.cells = source["cells"];
+	        this.sheet = source["sheet"];
+	        this.filePattern = source["filePattern"];
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	        this.cond = this.convertValues(source["cond"], Cond);
@@ -1062,6 +1108,29 @@ export namespace samples {
 	        this.real = source["real"];
 	        this.prep = source["prep"];
 	        this.steps = source["steps"];
+	    }
+	}
+
+}
+
+export namespace script {
+	
+	export class DeleteOp {
+	    ref: string;
+	    op: string;
+	    folder: string;
+	    pattern: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeleteOp(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ref = source["ref"];
+	        this.op = source["op"];
+	        this.folder = source["folder"];
+	        this.pattern = source["pattern"];
 	    }
 	}
 

@@ -229,7 +229,7 @@ func errCode(err error) string {
 		return model.ErrHTTPStatus
 	case errors.As(err, &network):
 		return model.ErrNetwork
-	case errors.Is(err, device.ErrNoPermission):
+	case errors.Is(err, device.ErrNoPermission), errors.Is(err, errDeleteNotAllowed):
 		return model.ErrPermission
 	}
 	return model.ErrInternal

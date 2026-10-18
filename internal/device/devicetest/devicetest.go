@@ -95,3 +95,29 @@ func (c *FakeClipboard) WriteImage(p string) error {
 	}
 	return c.Err
 }
+
+// FakeTrash – Thùng rác giả: ghi lại file được "xoá" (không đụng file thật), số lần dọn.
+type FakeTrash struct {
+	mu      sync.Mutex
+	Trashed []string
+	Emptied int
+	Err     error
+}
+
+func (t *FakeTrash) MoveToTrash(paths []string) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.Err == nil {
+		t.Trashed = append(t.Trashed, paths...)
+	}
+	return t.Err
+}
+
+func (t *FakeTrash) EmptyTrash() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.Err == nil {
+		t.Emptied++
+	}
+	return t.Err
+}

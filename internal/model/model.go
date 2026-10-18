@@ -22,6 +22,7 @@ const (
 	StepScreenshot = "screenshot" // chụp vùng ShotArea, lưu PNG vào SaveDir / FileName, tuỳ chọn chép vào clipboard (engine/shot.go)
 	StepClipboard  = "clipboard"  // ClipOp: đọc chữ vào output / ghi Text / ghi ảnh PNG từ FilePath (engine/clip.go)
 	StepHTTP       = "http"       // gọi API: Method URL + Query / Headers / Body; 2xx → success, khác → fail (engine/http.go)
+	StepFile       = "file"       // FileOp: ghi file / thêm dòng csv · xlsx / tạo thư mục / xoá vào Thùng rác / dọn Thùng rác (engine/file.go)
 
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
 	StepWebWait   = "webWait"   // chờ tới khi phần tử hiện (WebGone: mất)
@@ -41,7 +42,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
@@ -149,17 +150,23 @@ type Step struct {
 	ToClipboard bool   `json:"toClipboard,omitempty"` // chép ảnh vào clipboard
 	// Clipboard (bước 35 N2)
 	ClipOp   string `json:"clipOp,omitempty"`   // ClipOps: "" = đọc chữ | write = ghi Text | image = ghi ảnh từ FilePath
-	FilePath string `json:"filePath,omitempty"` // clipboard image: file PNG (~ / tương đối = từ thư mục người dùng); nhận {{biến}}
+	FilePath string `json:"filePath,omitempty"` // clipboard image: file PNG / file: file hoặc thư mục (~ / tương đối = từ thư mục người dùng); nhận {{biến}}
 	// HTTP (bước 35 N3, http.go) – mọi ô chữ nhận {{biến}}; header / tham số tên bí mật (IsSecretKey) che trong nhật ký
-	Method    string `json:"method,omitempty"`    // HTTPMethods ("" = GET)
-	URL       string `json:"url,omitempty"`       // http(s)://… – biến chèn nguyên văn (giá trị cần mã hoá thì đặt trong Query)
-	Query     []KV   `json:"query,omitempty"`     // tham số thêm vào URL (tự mã hoá)
-	Headers   []KV   `json:"headers,omitempty"`   // header gửi kèm
-	BodyType  string `json:"bodyType,omitempty"`  // BodyTypes: "" = không body | json | form | text
-	Body      string `json:"body,omitempty"`      // bodyType json / text
-	Form      []KV   `json:"form,omitempty"`      // bodyType form
-	Color     string `json:"color,omitempty"`     // waitPixel: #RRGGBB
-	Tolerance int    `json:"tolerance,omitempty"` // waitPixel: sai số mỗi kênh màu (0–255)
+	Method   string `json:"method,omitempty"`   // HTTPMethods ("" = GET)
+	URL      string `json:"url,omitempty"`      // http(s)://… – biến chèn nguyên văn (giá trị cần mã hoá thì đặt trong Query)
+	Query    []KV   `json:"query,omitempty"`    // tham số thêm vào URL (tự mã hoá)
+	Headers  []KV   `json:"headers,omitempty"`  // header gửi kèm
+	BodyType string `json:"bodyType,omitempty"` // BodyTypes: "" = không body | json | form | text
+	Body     string `json:"body,omitempty"`     // bodyType json / text
+	Form     []KV   `json:"form,omitempty"`     // bodyType form
+	// Tệp / thư mục (bước 35 N4, file.go) – FilePath + Text (ghi) dùng chung với clipboard / gõ chữ
+	FileOp      string   `json:"fileOp,omitempty"`      // FileOps: "" = ghi chữ | row = thêm dòng csv / xlsx | mkdir | trash | emptyTrash
+	FileAppend  bool     `json:"fileAppend,omitempty"`  // ghi chữ: thêm vào cuối thay vì ghi đè
+	Cells       []string `json:"cells,omitempty"`       // row: các ô của dòng mới; nhận {{biến}}
+	Sheet       string   `json:"sheet,omitempty"`       // row xlsx: tên sheet ("" = sheet đầu tiên); nhận {{biến}}
+	FilePattern string   `json:"filePattern,omitempty"` // trash: mẫu tên file trong thư mục FilePath, vd *.png; nhận {{biến}}
+	Color       string   `json:"color,omitempty"`       // waitPixel: #RRGGBB
+	Tolerance   int      `json:"tolerance,omitempty"`   // waitPixel: sai số mỗi kênh màu (0–255)
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>

@@ -146,6 +146,9 @@ function ownOutputs(s: Step): OutputField[] {
     case 'waitImage': return FOUND;
     case 'clickImage': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...(s.imageSource === 'search' ? FOUND : [])];
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
+    case 'file': return s.fileOp === 'trash' ? [{ key: 'count', desc: 'số file đã xoá' }, { key: 'files', desc: 'tên các file đã xoá' }]
+      : s.fileOp === 'emptyTrash' ? [] : s.fileOp === 'row' ? [{ key: 'path', desc: 'đường dẫn file' }, { key: 'rows', desc: 'số dòng sau khi thêm' }]
+      : s.fileOp === 'mkdir' ? [{ key: 'path', desc: 'đường dẫn thư mục' }] : [{ key: 'path', desc: 'đường dẫn file' }, { key: 'bytes', desc: 'số byte đã ghi' }];
     case 'http': return [{ key: 'status', desc: 'mã HTTP, vd 200' }, { key: 'json', desc: 'JSON trả về – đọc sâu json.data.id' }, { key: 'body', desc: 'phản hồi dạng chữ' }, { key: 'headers', desc: 'header trả về (tên chữ thường)' }];
     case 'clipboard': return s.clipOp === 'image' ? [{ key: 'path', desc: 'file ảnh đã chép' }] : [{ key: 'text', desc: s.clipOp === 'write' ? 'chữ đã ghi' : 'chữ đọc được' }];
     case 'screenshot': return [{ key: 'path', desc: 'đường dẫn file ảnh' }, { key: 'x', desc: 'vùng đã chụp – X trái' }, { key: 'y', desc: 'vùng đã chụp – Y trên' },

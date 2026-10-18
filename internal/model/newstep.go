@@ -51,7 +51,7 @@ func NewStep(stepType string) (Step, error) {
 	case StepWaitPixel:
 		s.Points = []Point{{}}
 		s.Color, s.Tolerance, s.TimeoutMs, s.IntervalMs, s.DelayAfter = "#000000", 10, 5000, 100, 300
-	case StepScreenshot, StepClipboard:
+	case StepScreenshot, StepClipboard, StepFile:
 		s.DelayAfter = 300
 	case StepHTTP:
 		s.Method, s.URL, s.TimeoutMs, s.DelayAfter = "GET", "https://", 15000, 0

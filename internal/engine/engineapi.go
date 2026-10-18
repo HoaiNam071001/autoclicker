@@ -17,20 +17,21 @@ import (
 
 // Options – cấu hình một engine. Giá trị 0 = không dùng (Thử node / Thử tìm chỉ cần Screen + Displays).
 type Options struct {
-	Screen     model.Rect   // khung màn hình chính: kịch bản không có vùng thì neo theo khung này
-	Displays   []model.Rect // khung các màn (tìm "cả màn", kiểm tra vùng chụp); nil = không kiểm tra
-	OnProgress func(Progress)
-	OnNode     func(model.StepResult) // mỗi node chạy xong
-	Debug      bool                   // dừng ở node có Breakpoint (chạy từ app)
-	StepMode   bool                   // dừng trước mỗi node (chạy từng node)
-	KeepShots  bool                   // chụp màn hình lúc node thất bại (lịch sử chạy)
-	Browser    web.Browser            // node web + node Mở bằng Chrome của app; nil = không có (node web lỗi code browser)
+	Screen      model.Rect   // khung màn hình chính: kịch bản không có vùng thì neo theo khung này
+	Displays    []model.Rect // khung các màn (tìm "cả màn", kiểm tra vùng chụp); nil = không kiểm tra
+	OnProgress  func(Progress)
+	OnNode      func(model.StepResult) // mỗi node chạy xong
+	Debug       bool                   // dừng ở node có Breakpoint (chạy từ app)
+	StepMode    bool                   // dừng trước mỗi node (chạy từng node)
+	KeepShots   bool                   // chụp màn hình lúc node thất bại (lịch sử chạy)
+	Browser     web.Browser            // node web + node Mở bằng Chrome của app; nil = không có (node web lỗi code browser)
+	AllowDelete bool                   // cho node Tệp / thư mục xoá vào / dọn Thùng rác – runner đặt khi người dùng đã xác nhận (script.DeleteOps)
 }
 
 // New – engine cho một lần chạy kịch bản sc. in = nil khi không thao tác chuột / phím (Thử node, Thử tìm).
 func New(in device.Input, sc model.Script, o Options) *Engine {
 	e := newEngine(in, sc, o.OnProgress)
-	e.screen, e.displays, e.onNode, e.debug, e.browser = o.Screen, o.Displays, o.OnNode, o.Debug, o.Browser
+	e.screen, e.displays, e.onNode, e.debug, e.browser, e.allowDelete = o.Screen, o.Displays, o.OnNode, o.Debug, o.Browser, o.AllowDelete
 	e.step.Store(o.StepMode)
 	if o.KeepShots {
 		e.shots = map[string]image.Image{}

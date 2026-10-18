@@ -46,3 +46,15 @@ const (
 )
 
 var ClipOps = []string{ClipRead, ClipWrite, ClipImage}
+
+// Thao tác của node Tệp / thư mục (Step.FileOp). trash / emptyTrash là thao tác xoá – chạy phải được người dùng xác nhận
+// trước (script.DeleteOps, RunOptions.ConfirmDelete).
+const (
+	FileWrite      = ""           // ghi Text vào FilePath (FileAppend: thêm vào cuối)
+	FileRow        = "row"        // thêm một dòng Cells vào file .csv / .xlsx (chưa có thì tạo)
+	FileMkdir      = "mkdir"      // tạo thư mục FilePath (cả thư mục cha)
+	FileTrash      = "trash"      // chuyển file khớp FilePattern trong thư mục FilePath vào Thùng rác
+	FileEmptyTrash = "emptyTrash" // dọn Thùng rác (xoá hẳn)
+)
+
+var FileOps = []string{FileWrite, FileRow, FileMkdir, FileTrash, FileEmptyTrash}

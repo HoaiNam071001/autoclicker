@@ -39,6 +39,7 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'screenshot', label: 'Chụp màn hình', info: NODE_INFO.screenshot, keywords: 'screenshot chup anh man hinh luu png clipboard bang chung', run: () => addStep('screenshot') },
       { icon: 'clipboard', label: 'Clipboard', info: NODE_INFO.clipboard, keywords: 'clipboard copy paste dan chep bo nho tam doc ghi', run: () => addStep('clipboard') },
       { icon: 'http', label: 'HTTP / API', info: NODE_INFO.http, keywords: 'http api rest get post put delete webhook json goi server request', run: () => addStep('http') },
+      { icon: 'file', label: 'Tệp / thư mục', info: NODE_INFO.file, keywords: 'file tep thu muc folder ghi luu csv excel xlsx xoa thung rac don dep', run: () => addStep('file') },
     ],
   },
   {

@@ -54,6 +54,10 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if err := checkHTTPStep(i, s); err != nil {
 				return err
 			}
+		case model.StepFile:
+			if err := checkFileStep(i, s); err != nil {
+				return err
+			}
 		case model.StepClipboard:
 			if s.ClipOp == model.ClipImage && strings.TrimSpace(s.FilePath) == "" {
 				return stepErr(i, s, "filePath", "chưa nhập file ảnh cần chép")
