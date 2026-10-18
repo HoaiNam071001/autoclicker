@@ -121,3 +121,35 @@ func (t *FakeTrash) EmptyTrash() error {
 	}
 	return t.Err
 }
+
+// FakeAudio – âm lượng giả (không đổi loa thật).
+type FakeAudio struct {
+	mu    sync.Mutex
+	Level int
+	Muted bool
+	Err   error
+}
+
+func (a *FakeAudio) Volume() (int, bool, error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.Level, a.Muted, a.Err
+}
+
+func (a *FakeAudio) SetVolume(l int) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.Err == nil {
+		a.Level, a.Muted = l, false
+	}
+	return a.Err
+}
+
+func (a *FakeAudio) SetMuted(m bool) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.Err == nil {
+		a.Muted = m
+	}
+	return a.Err
+}

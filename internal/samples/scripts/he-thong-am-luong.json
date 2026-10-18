@@ -1,0 +1,18 @@
+{
+ "meta": {
+  "name": "Hệ thống – giảm rồi tăng âm lượng",
+  "description": "Giảm âm lượng loa 10 %, chờ 1 s, tăng lại 10 % – máy về đúng mức cũ (trừ khi đang ở sát 0 / 100 %). Đúng: lời kết thúc ghi mức lúc giảm và mức sau khi tăng lại; thanh âm lượng của hệ điều hành nhảy theo.",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Không cần trình duyệt. Đang tắt tiếng thì mẫu bật tiếng lại."
+ },
+ "script": {
+  "steps": [
+   { "type": "system", "sysOp": "volumeDown", "volume": 10, "delayAfter": 1000 },
+   { "type": "system", "sysOp": "volumeUp", "volume": 10 },
+   { "type": "end", "endStatus": "success", "message": "Giảm còn {{n1.output.volume}} %, tăng lại {{n2.output.volume}} % (tắt tiếng: {{n2.output.muted}})" }
+  ]
+ }
+}

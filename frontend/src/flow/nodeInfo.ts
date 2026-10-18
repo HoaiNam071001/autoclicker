@@ -27,6 +27,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   clipboard: { desc: 'Đọc chữ đang có trong clipboard vào biến, ghi chữ (nhận {{biến}}) hoặc ghi ảnh PNG từ file.', use: 'Copy / paste: ghép với Phím tắt Cmd/Ctrl+C, Cmd/Ctrl+V; chép ảnh vừa chụp để dán vào chat.' },
   http: { desc: 'Gọi API (GET / POST / PUT / PATCH / DELETE) kèm tham số, header, thân JSON / form; đọc kết quả JSON vào biến.', use: 'Lấy dữ liệu từ server, gửi đơn / tin nhắn qua API, báo kết quả chạy về Telegram / webhook.' },
   file: { desc: 'Ghi chữ vào file, thêm dòng vào bảng .csv / .xlsx, tạo thư mục, xoá file vào Thùng rác hoặc dọn Thùng rác.', use: 'Lưu nhật ký / kết quả từng vòng vào Excel, dọn ảnh chụp cũ trong thư mục.' },
+  system: { desc: 'Chỉnh âm lượng loa của máy: đặt mức, tăng / giảm, tắt / bật tiếng.', use: 'Bật nhạc nền vừa đủ nghe, tắt tiếng trước khi họp, giảm âm lượng ban đêm.' },
   webWait: { desc: 'Chờ phần tử trong trang web (theo chữ, nhãn, CSS…) hiện ra hoặc biến mất.', use: 'Đợi trang tải xong, đợi kết quả tìm kiếm – nhanh và chắc hơn chờ ảnh.' },
   webClick: { desc: 'Tìm phần tử trong trang web theo chữ / nhãn rồi bấm vào bằng chuột.', use: 'Trang hay đổi bố cục / theme khiến ảnh mẫu không còn khớp.' },
   webType: { desc: 'Tìm ô nhập trong trang web, bấm vào rồi gõ chữ (xoá chữ cũ nếu muốn).', use: 'Điền form đăng ký, ô tìm kiếm, bình luận.' },

@@ -1,0 +1,33 @@
+// Node Hệ thống (bước 35 N5): âm lượng loa – đặt mức / tăng / giảm, tắt / bật tiếng.
+import NumInput from '../NumInput';
+import { updateStep } from '../../store';
+import { SYS_OPS, sysHasLevel, type SysOp } from '../../flow/system';
+import { Step } from '../../types';
+import { Field, hint, selectBox } from './shared';
+
+export function SystemFields({ step: s }: { step: Step }) {
+  const set = (patch: Partial<Step>) => updateStep(s.id, patch);
+  const op = s.sysOp ?? 'volume';
+  const level = op === 'volume';
+  const v = s.volume ?? 0;
+  return (
+    <>
+      <Field label="Làm gì" wide>
+        <select value={op} onChange={(e) => set({ sysOp: e.target.value as SysOp, ...(e.target.value === 'volume' && !s.volume ? { volume: 50 } : {}) })} className={selectBox}>
+          {SYS_OPS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+        </select>
+      </Field>
+      {sysHasLevel(op) && (
+        <div className="col-span-2 flex flex-col gap-1.5 text-muted">{level ? 'Mức âm lượng' : 'Mỗi lần'}
+          <div className="flex items-center gap-3">
+            <input type="range" min={level ? 0 : 1} max={level ? 100 : 50} value={level ? v : v || 10} aria-label={level ? 'Mức âm lượng' : 'Mỗi lần'}
+              onChange={(e) => set({ volume: Number(e.target.value) })} className="min-w-0 flex-1 accent-[var(--c-accent)]" />
+            <NumInput value={level ? v : v || 10} min={level ? 0 : 1} unit="%" onChange={(n) => set({ volume: Math.min(n, 100) })} className="w-[92px] flex-none" />
+          </div>
+          <span className={hint}>{level ? 'Đặt mức cũng bật tiếng lại nếu đang tắt.' : 'Giữ trong 0–100 %; đang tắt tiếng thì bật lại.'}</span>
+        </div>
+      )}
+      <span className={`col-span-2 ${hint}`}>Loa mặc định của máy · node sau đọc <span className="font-mono">{`{{${s.ref}.output.volume}}`}</span>, <span className="font-mono">muted</span>.</span>
+    </>
+  );
+}

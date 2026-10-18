@@ -127,6 +127,13 @@ func checkStep(s *model.Step) error {
 		if !slices.Contains(model.BodyTypes, s.BodyType) {
 			return fmt.Errorf("kiểu body không hợp lệ: %q (trống | json | form | text)", s.BodyType)
 		}
+	case model.StepSystem:
+		if !slices.Contains(model.SysOps, s.SysOp) {
+			return fmt.Errorf("thao tác hệ thống không hợp lệ: %q (volume | volumeUp | volumeDown | mute | unmute)", s.SysOp)
+		}
+		if s.Volume < 0 || s.Volume > 100 {
+			return errors.New("âm lượng phải trong 0–100 %")
+		}
 	case model.StepFile:
 		if !slices.Contains(model.FileOps, s.FileOp) {
 			return fmt.Errorf("thao tác tệp không hợp lệ: %q (trống = ghi chữ | row | mkdir | trash | emptyTrash)", s.FileOp)

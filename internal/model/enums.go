@@ -58,3 +58,14 @@ const (
 )
 
 var FileOps = []string{FileWrite, FileRow, FileMkdir, FileTrash, FileEmptyTrash}
+
+// Thao tác của node Hệ thống (Step.SysOp).
+const (
+	SysVolume     = "volume"     // đặt âm lượng = Volume %
+	SysVolumeUp   = "volumeUp"   // tăng Volume % (0 = 10)
+	SysVolumeDown = "volumeDown" // giảm Volume % (0 = 10)
+	SysMute       = "mute"
+	SysUnmute     = "unmute"
+)
+
+var SysOps = []string{SysVolume, SysVolumeUp, SysVolumeDown, SysMute, SysUnmute}

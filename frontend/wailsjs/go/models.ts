@@ -875,6 +875,8 @@ export namespace model {
 	    cells?: string[];
 	    sheet?: string;
 	    filePattern?: string;
+	    sysOp?: string;
+	    volume?: number;
 	    color?: string;
 	    tolerance?: number;
 	    cond?: Cond;
@@ -967,6 +969,8 @@ export namespace model {
 	        this.cells = source["cells"];
 	        this.sheet = source["sheet"];
 	        this.filePattern = source["filePattern"];
+	        this.sysOp = source["sysOp"];
+	        this.volume = source["volume"];
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	        this.cond = this.convertValues(source["cond"], Cond);

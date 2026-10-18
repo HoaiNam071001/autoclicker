@@ -54,6 +54,7 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if err := checkHTTPStep(i, s); err != nil {
 				return err
 			}
+		case model.StepSystem: // check.go đã kiểm thao tác + mức 0–100
 		case model.StepFile:
 			if err := checkFileStep(i, s); err != nil {
 				return err

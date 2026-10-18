@@ -86,6 +86,7 @@ export const STEP_ICON = {
   waitImage: 'M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0',
   clickImage: 'M4 8V5h3M17 5h3v3M7 19H4v-3M10 9l9 5-4 1-2 4z',
   waitPixel: 'M4 4h7v7H4zM13 13h7v7h-7zM13 4h7v7h-7z',
+  system: 'M4 9h4l5-4v14l-5-4H4zM16.5 9a4 4 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11', // loa
   file: 'M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6', // tờ giấy
   http: 'M4 12h11M11 8l4 4-4 4M19 5v14', // mũi tên gửi đi
   clipboard: 'M9 3h6v4H9zM8 5H5v16h14V5h-3M8 12h8M8 16h5', // bảng kẹp giấy

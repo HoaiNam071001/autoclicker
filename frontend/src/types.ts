@@ -4,6 +4,7 @@ import type { ShotArea } from './flow/shot';
 import type { ClipOp } from './flow/clipboard';
 import type { BodyType, HttpMethod } from './flow/http';
 import type { FileOp } from './flow/file';
+import type { SysOp } from './flow/system';
 
 // Neo của một trục (anchor.ts, khớp internal/script/anchor.go): bỏ trống = start (cách cạnh trái / trên).
 export type Anchor = 'start' | 'center' | 'end' | 'ratio';
@@ -18,7 +19,7 @@ export type KV = { key: string; value: string };
 // Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
 export type Retry = { count?: number; delayMs?: number };
 // Node hay "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại (thử lại)
-export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'screenshot', 'clipboard', 'http', 'file', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'open'];
+export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'screenshot', 'clipboard', 'http', 'file', 'system', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'open'];
 
 // ---- Flow (bước 20, flow.go) ----
 // Cạnh: node from đi ra cổng port thì chạy node to. Mỗi cổng tối đa một cạnh. Khớp Edge trong model.go.
@@ -44,7 +45,7 @@ const edgeMatchesGo: Same<keyof Edge, keyof Fields<model.Edge>> = true;
 const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = true;
 void edgeMatchesGo, resultMatchesGo;
 
-export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file'
+export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system'
   | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'end' | 'setVar';
@@ -165,6 +166,9 @@ export interface Step {
   cells?: string[]; // row: ô của dòng mới; nhận {{biến}}
   sheet?: string; // row xlsx: tên sheet, trống = sheet đầu
   filePattern?: string; // trash: mẫu tên file, vd *.png
+  // hệ thống (bước 35 N5, internal/engine/system.go)
+  sysOp?: SysOp;
+  volume?: number; // volume: mức 0–100; volumeUp / volumeDown: mỗi lần (0 = 10)
   color?: string; // waitPixel: #RRGGBB
   tolerance?: number; // waitPixel: sai số mỗi kênh màu
   // node điều khiển (bước 20 F3)
@@ -263,6 +267,7 @@ export const STEP_LABEL: Record<StepType, string> = {
   clipboard: 'Clipboard',
   http: 'HTTP',
   file: 'Tệp / thư mục',
+  system: 'Hệ thống',
   webWait: 'Chờ phần tử web',
   webClick: 'Click phần tử web',
   webType: 'Gõ vào ô web',

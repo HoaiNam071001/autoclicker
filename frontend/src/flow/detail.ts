@@ -5,6 +5,7 @@ import { fmtShot } from './shot';
 import { fmtClip } from './clipboard';
 import { fmtHTTP } from './http';
 import { fmtFile } from './file';
+import { fmtSystem } from './system';
 import { fmtWebStep, isWebStep } from './web';
 import { fmtMs, numVarOf, SCROLL_ARROW, SCROLL_NOTCH_PX, type Step, type StepPoint } from '../types';
 
@@ -25,6 +26,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'clipboard' ? fmtClip(s)
     : s.type === 'http' ? fmtHTTP(s)
     : s.type === 'file' ? fmtFile(s)
+    : s.type === 'system' ? fmtSystem(s)
     : s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search')
       ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.findBy === 'text'
         ? (s.findText?.trim() ? `chữ “${s.findText}”${(s.occurrence ?? 0) > 1 ? ` (chỗ thứ ${s.occurrence})` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa nhập chữ cần tìm')

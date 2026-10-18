@@ -22,6 +22,7 @@ const (
 	StepScreenshot = "screenshot" // chụp vùng ShotArea, lưu PNG vào SaveDir / FileName, tuỳ chọn chép vào clipboard (engine/shot.go)
 	StepClipboard  = "clipboard"  // ClipOp: đọc chữ vào output / ghi Text / ghi ảnh PNG từ FilePath (engine/clip.go)
 	StepHTTP       = "http"       // gọi API: Method URL + Query / Headers / Body; 2xx → success, khác → fail (engine/http.go)
+	StepSystem     = "system"     // SysOp: âm lượng đặt / tăng / giảm, tắt / bật tiếng (engine/system.go)
 	StepFile       = "file"       // FileOp: ghi file / thêm dòng csv · xlsx / tạo thư mục / xoá vào Thùng rác / dọn Thùng rác (engine/file.go)
 
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
@@ -42,7 +43,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
@@ -165,8 +166,11 @@ type Step struct {
 	Cells       []string `json:"cells,omitempty"`       // row: các ô của dòng mới; nhận {{biến}}
 	Sheet       string   `json:"sheet,omitempty"`       // row xlsx: tên sheet ("" = sheet đầu tiên); nhận {{biến}}
 	FilePattern string   `json:"filePattern,omitempty"` // trash: mẫu tên file trong thư mục FilePath, vd *.png; nhận {{biến}}
-	Color       string   `json:"color,omitempty"`       // waitPixel: #RRGGBB
-	Tolerance   int      `json:"tolerance,omitempty"`   // waitPixel: sai số mỗi kênh màu (0–255)
+	// Hệ thống (bước 35 N5, system.go)
+	SysOp     string `json:"sysOp,omitempty"`     // SysOps: volume = đặt mức | volumeUp | volumeDown | mute | unmute
+	Volume    int    `json:"volume,omitempty"`    // volume: mức 0–100 %; volumeUp / volumeDown: mỗi lần bao nhiêu % (0 = 10)
+	Color     string `json:"color,omitempty"`     // waitPixel: #RRGGBB
+	Tolerance int    `json:"tolerance,omitempty"` // waitPixel: sai số mỗi kênh màu (0–255)
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>

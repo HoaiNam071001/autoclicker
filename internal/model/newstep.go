@@ -53,6 +53,8 @@ func NewStep(stepType string) (Step, error) {
 		s.Color, s.Tolerance, s.TimeoutMs, s.IntervalMs, s.DelayAfter = "#000000", 10, 5000, 100, 300
 	case StepScreenshot, StepClipboard, StepFile:
 		s.DelayAfter = 300
+	case StepSystem:
+		s.SysOp, s.Volume, s.DelayAfter = SysVolume, 50, 300
 	case StepHTTP:
 		s.Method, s.URL, s.TimeoutMs, s.DelayAfter = "GET", "https://", 15000, 0
 	case StepWebWait:

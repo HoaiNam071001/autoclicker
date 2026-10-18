@@ -82,6 +82,8 @@ func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[strin
 		return e.httpCall(ctx, s)
 	case model.StepFile:
 		return e.fileStep(ctx, s)
+	case model.StepSystem:
+		return e.systemStep(ctx, s)
 	case model.StepWaitPixel:
 		c, err := e.waitPixel(ctx, s)
 		if err != nil {
