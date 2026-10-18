@@ -49,38 +49,7 @@
     }
     throw new Error('cách tìm không hợp lệ: ' + sel.by);
   };
-  // document chính trước, rồi các iframe cùng nguồn (lồng nhau) theo thứ tự trong trang
-  const docs = [];
-  const walk = doc => { docs.push(doc); for (const c of childDocs(doc)) walk(c.doc); };
-  walk(document);
-  const shown = el => {
-    const r = el.getBoundingClientRect();
-    return r.width >= 1 && r.height >= 1 && el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
-  };
-  // Tâm (x, y – toạ độ client của frame chứa el) bị khung cuộn tổ tiên (overflow khác visible) cắt mất – vd cột trong
-  // dải cuộn ngang: elementFromPoint ra chính khung nên không bắt được là bị che.
-  const clipped = (el, x, y) => {
-    const win = el.ownerDocument.defaultView;
-    for (let p = el.parentElement; p && p !== el.ownerDocument.body && p !== el.ownerDocument.documentElement; p = p.parentElement) {
-      const cs = win.getComputedStyle(p);
-      if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
-      const r = p.getBoundingClientRect();
-      if (x < r.left || y < r.top || x >= r.right || y >= r.bottom) return true;
-    }
-    return false;
-  };
-  // Khung theo toạ độ trang chính + có nằm trong vùng nhìn thấy (viewport chính và vùng nội dung mọi frame chứa nó).
-  const place = el => {
-    const r = el.getBoundingClientRect(), off = frameOffset(el.ownerDocument.defaultView);
-    const box = { x: r.left + off.x, y: r.top + off.y, w: r.width, h: r.height };
-    const cx = box.x + box.w / 2, cy = box.y + box.h / 2;
-    let inView = cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight && !clipped(el, cx - off.x, cy - off.y);
-    for (let f = el.ownerDocument.defaultView.frameElement; f && inView; f = f.ownerDocument.defaultView.frameElement) {
-      const c = frameContent(f), o = frameOffset(f.ownerDocument.defaultView);
-      inView = cx >= c.x + o.x && cy >= c.y + o.y && cx < c.x + o.x + c.w && cy < c.y + o.y + c.h;
-    }
-    return { box, cx, cy, inView };
-  };
+  const docs = allDocs();
   // Phần tử che tâm: xét từ trang chính xuống, mỗi tầng điểm đó phải rơi vào frame chứa đích (tầng cuối: chính đích).
   const coverOf = (el, cx, cy) => {
     const chain = [el];

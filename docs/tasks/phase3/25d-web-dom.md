@@ -1,12 +1,12 @@
 # 25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật
 
-- [ ] **25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật** *(người dùng yêu cầu, 2026-10-17; tách từ 28)* – Tìm phần tử trên trang theo chữ / selector (vd nút "Xem lịch sử"), tính toạ độ màn hình của nó rồi click / cuộn bằng robotgo như bước thường. Bền hơn ảnh mẫu (không phụ thuộc theme, zoom, hover), nhanh hơn (vài ms), đọc được trạng thái phần tử; AI (31) đọc DOM chính xác hơn nhìn ảnh chụp.
+- [x] **25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật** *(người dùng yêu cầu, 2026-10-17; tách từ 28)* – Tìm phần tử trên trang theo chữ / selector (vd nút "Xem lịch sử"), tính toạ độ màn hình của nó rồi click / cuộn bằng robotgo như bước thường. Bền hơn ảnh mẫu (không phụ thuộc theme, zoom, hover), nhanh hơn (vài ms), đọc được trạng thái phần tử; AI (31) đọc DOM chính xác hơn nhìn ảnh chụp.
   - Cách làm: **DOM để tìm, robotgo để bấm** → event thật của hệ điều hành (`isTrusted = true`, khó bị coi là bot), dùng lại engine / xem trước / thanh mini. Dự phòng *chạy nền* (cửa sổ thu nhỏ / bị che): `Input.dispatchMouseEvent` của CDP – người dùng chọn "chuột thật / chạy nền"
   - **Ưu tiên chạy chính xác** (người dùng chốt 2026-10-18 – làm ngay sau 32, trước 20 F5b–F7 + 26). Làm theo rủi ro, phần khó nhất trước:
-    - D0 → D1 → D2 → D3 → D4 (D0–D3 + D4a + D4b xong) (D0 chưa đạt sai số 0–2 px thì chưa làm UI)
+    - D0 → D1 → D2 → D3 → D4 (D0–D4 xong code) (D0 chưa đạt sai số 0–2 px thì chưa làm UI)
     - D1: kết nối CDP + `webWait` / `webClick` (chữ / aria) + engine `Browser` + test; D2: cuộn tới phần tử + không bị che + dự phòng selector; D3: UI (Thử tìm, Chọn phần tử); D4: `webScroll`, `webType`, `webRead`, chạy nền, MCP
   - Phần đã xong (D0–D3, D4a, yêu cầu gốc): [25d-web-dom-xong.md](25d-web-dom-xong.md)
-  - [ ] **D4. `webType`, `webRead`, `webScroll`, chạy nền, MCP** – chia 3 phần (người dùng chốt 2026-10-18):
+  - [x] **D4. `webType`, `webRead`, `webScroll`, chạy nền, MCP** – chia 3 phần (người dùng chốt 2026-10-18):
     - [x] **D4a. 3 node mới** `webType` / `webRead` / `webScroll` (2026-10-18) – chi tiết ở file xong
     - [x] **D4b. Chạy nền** (2026-10-18) – người dùng chốt: chọn **theo từng node**, **không đưa tab lên trước**
       - [x] Model `webBackground` (webWait / webClick / webType / webScroll; webRead vốn không đụng chuột) + steptypes
@@ -15,7 +15,11 @@
       - [x] Engine: không thử hover khi chạy nền; `webPress` / `webKeys` / `webWheel` chọn chuột thật hay CDP; Thử tìm của node chạy nền vẫn lấy toạ độ màn hình (overlay). Test trình duyệt giả `webbackground_test.go`
       - [x] Inspector: *Điều khiển* Chuột thật / Chạy nền (`WebModeField`), dòng chi tiết thẻ “· chạy nền”; mẫu `web-chay-nen`
       - **Kết quả 2026-10-18** (MacBook Retina, Chrome): `TestRealBackground` (`AUTOCLICKER_REAL=1`) – cửa sổ Chrome **thu nhỏ**: click vào ô nhận focus, xoá chữ cũ + chèn “Xin chào {1}” + Enter gửi form, click + double-click (`isTrusted` = true), lăn 3 nấc = 300 px, chuột thật không động lần nào; mẫu `web-chay-nen` qua (11,6 s) + 3 mẫu web cũ vẫn qua. Zoom ≠ 100% và Windows chưa thử → [checks.md](../checks.md)
-    - [ ] **D4c. `PageOutline()`** (cây accessibility rút gọn cho AI, 31) – hàm Go độc lập UI
-  - [ ] Chuẩn bị cho MCP (31): `FindElement(selector) → {rect màn hình, chữ, hiện / bị che}` và `PageOutline()` (cây accessibility rút gọn cho AI) là hàm Go độc lập UI – Thử tìm, Xem trên màn hình, MCP dùng chung *(`FindElement` xong ở D3, `PageOutline` → D4c)*
+    - [x] **D4c. `PageOutline()`** (cây accessibility rút gọn cho AI, 31) – hàm Go độc lập UI (2026-10-18)
+      - [x] `web/outline.go` + `outline.js`: `Chrome.PageOutline(ctx, tab)` → `Outline` (URL, tiêu đề, khung nhìn, đã cuộn, `Items`, `Total`, số iframe khác nguồn). Chỉ phần tử **đang hiện**: tương tác (button / link / textbox / checkbox / combobox / tab / menuitem…), tiêu đề, ảnh có alt, vùng (nav / main / form / dialog / table…) – không liệt kê `<option>` của `<select>`, cắt ở 300 dòng. Không đụng chuột / phím, không đưa tab lên trước; khung theo toạ độ trang (CSS px) – MCP cần toạ độ màn hình thì gọi `FindElement` với selector của dòng
+      - [x] Mỗi dòng kèm **selector đã kiểm** (find.js tìm ra đúng phần tử đó): `role=R[name="…"]` khi không phần tử cùng vai trò nào đứng trước có tên chứa tên này → `css=#id` / `data-testid` / `name` → `role=R` (phần tử đầu) → đường CSS. Trạng thái: đã chọn / mở / tắt / focus / ngoài khung nhìn, giá trị ô (ô mật khẩu không đọc), cấp tiêu đề, độ sâu theo vùng. Vùng chỉ lấy tên ghi rõ (aria / title), không lấy chữ bên trong
+      - [x] `Outline.Text()` – bản chữ thụt lề cho AI (rẻ token). Helper chung của find / pick / outline dời vào `common.js` (`roleOf`, `cssPath`, `shown`, `place`, `allDocs`…)
+      - [x] Test: `TestOutlineText`; `TestRealPageOutline` (`AUTOCLICKER_REAL=1`, Chrome thật – 2026-10-18 qua): bỏ nút ẩn, không lộ mật khẩu, hai nút trùng tên, nút trong iframe, nút cuối trang ngoài khung nhìn, **mọi selector tìm lại đúng phần tử**; `TestRealPick` + 7 mẫu web thật vẫn qua sau khi dời helper
+  - [x] Chuẩn bị cho MCP (31): `FindElement(selector) → {rect màn hình, chữ, hiện / bị che}` và `PageOutline()` (cây accessibility rút gọn cho AI) là hàm Go độc lập UI – Thử tìm, Xem trên màn hình, MCP dùng chung *(`FindElement` xong ở D3, `PageOutline` xong ở D4c; MCP bọc ở 31 – `describe_screen`)*
   - [x] Kịch bản mẫu (bước 33): mỗi loại `webWait` / `webClick` / `webScroll` / `webType` / `webRead` ≥ 1 mẫu trong `internal/samples/` chạy trên trang sân thử (vd form đăng nhập, feed, bảng dữ liệu bằng DOM thay vì OCR) – `TestEveryStepTypeHasSample` bắt buộc
   - [ ] Kiểm tra tay: trang có nút "Xem lịch sử" nằm dưới màn hình → bước chờ + click chạy đúng khi dời cửa sổ, zoom 125%, mở DevTools, có popup che

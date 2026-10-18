@@ -11,32 +11,13 @@
   // Phần tử đáng chọn: phần tử tương tác gần nhất chứa điểm bấm (span trong nút → nút).
   const ACTIVE = 'a[href], button, input, select, textarea, summary, label, [role], [onclick], [tabindex]';
   const targetOf = el => (el.closest && el.closest(ACTIVE)) || el;
-  const q = s => s.replace(/\s+/g, ' ').trim();
-  const usable = s => s && s.length <= 60 && !s.includes('"') && !s.includes('{{');
-  // id / giá trị do framework sinh (":r1:", "x1n2onr6", "ember123") – đổi mỗi lần dựng trang, không dùng
-  const autoLike = s => /[:]|\d{3,}|^[a-z]{1,3}\d|[a-z0-9]{8,}/.test(s) && !/^[a-z]+(-[a-z]+)*$/.test(s);
-  const roleOf = el => {
-    const r = (el.getAttribute('role') || '').trim().split(/\s+/)[0].toLowerCase();
-    if (r) return r;
-    return Object.keys(IMPLICIT).find(k => el.matches(IMPLICIT[k])) || '';
-  };
-  const cssPath = el => {
-    const parts = [];
-    for (let e = el; e && e.nodeType === Node.ELEMENT_NODE && tag(e) !== 'HTML'; e = e.parentElement) {
-      if (e.id && !autoLike(e.id)) { parts.unshift('#' + CSS.escape(e.id)); break; }
-      const same = Array.from(e.parentElement ? e.parentElement.children : []).filter(c => tag(c) === tag(e));
-      const t = tag(e).toLowerCase();
-      parts.unshift(same.length > 1 ? `${t}:nth-of-type(${same.indexOf(e) + 1})` : t);
-    }
-    return parts.join(' > ');
-  };
   const candidates = el => {
     const out = [];
-    const text = q(ownText(el) || '');
+    const text = clean(ownText(el) || '');
     if (usable(text)) out.push('text=' + text, 'text="' + text + '"');
-    const aria = q(ariaLabel(el));
+    const aria = clean(ariaLabel(el));
     if (usable(aria)) out.push('aria=' + aria);
-    const role = roleOf(el), name = q(accName(el));
+    const role = roleOf(el), name = clean(accName(el));
     if (role) out.push(usable(name) ? `role=${role}[name="${name}"]` : 'role=' + role);
     if (el.id && !autoLike(el.id)) out.push('css=#' + CSS.escape(el.id));
     for (const a of ['data-testid', 'data-test', 'data-qa', 'name']) {

@@ -25,7 +25,7 @@ type Browser interface {
 	// Chạy nền (D4b, Query.Background): thao tác qua CDP trên tab của lần Find (Scroll) gần nhất, (x, y) theo toạ độ
 	// trong trang như Found.Rect – không đụng chuột / phím thật, không đưa tab lên trước.
 	BgClick(ctx context.Context, x, y int, button string, count int) error // count = lần bấm thứ mấy (2 = double-click)
-	BgWheel(ctx context.Context, x, y int, dir string) error              // lăn một nấc theo dir (up | down | left | right)
+	BgWheel(ctx context.Context, x, y int, dir string) error               // lăn một nấc theo dir (up | down | left | right)
 	BgType(ctx context.Context, text string, clear, enter bool) error      // vào ô đang focus: xoá chữ cũ, chèn text, Enter
 	Close()
 }
