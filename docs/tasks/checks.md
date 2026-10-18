@@ -3,6 +3,10 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 35 – Node nâng cao · [phase3/35-node-nang-cao.md](phase3/35-node-nang-cao.md)
+
+- [ ] N0 mô tả node: Ctrl/Cmd+K → rê chuột / phím mũi tên qua các mục, khung dưới đổi mô tả theo mục, bảng không giật; inspector có thẻ mô tả dưới tab Node, × ẩn → mở node khác vẫn ẩn, ⓘ hiện lại, tắt app mở lại vẫn nhớ – xem cả theme sáng + tối
+
 ## 25d – Ghi chú node web · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
 
 - [ ] Ctrl/Cmd+K: nhóm *Web (trình duyệt)* nằm cuối, dưới tên nhóm có dòng *Chỉ dùng cho trang web cơ bản…*; inspector node web và node Mở chọn *Chrome của app* hiện cùng ghi chú; node web vẫn thêm / chạy như cũ – xem cả theme sáng + tối

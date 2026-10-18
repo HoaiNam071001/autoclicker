@@ -1,7 +1,7 @@
 // Inspector – cấu hình node đang chọn (design v2, cột phải), sửa trực tiếp vào store.
 // Khung: đầu (loại, tên, mã node, bật / tắt), tab Node / Input; trường theo loại nằm ở components/stepform/.
 import { ReactNode, useState } from 'react';
-import { Eye, StepIcon } from './icons';
+import { Eye, Info, StepIcon } from './icons';
 import { Switch } from './RunSettings';
 import { openOverlay } from '../windowMode';
 import { changeStepType, toggleStep, updateStep, useScript } from '../store';
@@ -19,6 +19,8 @@ import ControlSection from './stepform/ControlSection';
 import InputsTab from './stepform/InputsTab';
 import { HumanNodeField } from './HumanFields';
 import { usesHuman } from '../flow/human';
+import { nodeInfo } from '../flow/nodeInfo';
+import { NodeInfoCard, useNodeInfoShown } from './stepform/NodeInfoCard';
 
 // Loại node hành động đổi qua lại được trong ô Hành động (node điều khiển có trường riêng, không đổi loại)
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'webWait', 'webClick',
@@ -28,6 +30,7 @@ const REF_RE = /^[A-Za-z][A-Za-z0-9_]{0,31}$/; // khớp validRef (flow.go)
 export default function StepForm({ step: s }: { step: Step }) {
   const script = useScript();
   const [tab, setTab] = useState<'step' | 'inputs'>('step');
+  const [infoShown, toggleInfo] = useNodeInfoShown();
   const setPoint = (i: number, p: Partial<StepPoint>) => updateStep(s.id, { points: s.points.map((q, j) => (j === i ? { ...q, ...p } : q)) });
   const atPoint = isMouse(s) || s.type === 'waitPixel' || (s.type === 'scroll' && s.points.length > 0); // có vị trí trên màn hình
 
@@ -41,6 +44,8 @@ export default function StepForm({ step: s }: { step: Step }) {
             className="w-full truncate bg-transparent text-[15px] font-semibold outline-none placeholder:text-ink" />
           <RefInput step={s} />
         </div>
+        <button onClick={toggleInfo} aria-label="Mô tả loại node" aria-pressed={infoShown} title={infoShown ? 'Ẩn mô tả loại node' : 'Hiện mô tả loại node'}
+          className={`grid h-8 w-8 flex-none place-items-center rounded-control border border-line hover:bg-hover hover:text-ink ${infoShown ? 'bg-soft text-ink' : 'text-muted'}`}><Info /></button>
         {atPoint && (
           <button onClick={() => openOverlay('point', s.id)} aria-label="Xem trên màn hình"
             title="Xem / sửa vị trí riêng node này trên màn hình – các node khác mờ đi"
@@ -55,6 +60,9 @@ export default function StepForm({ step: s }: { step: Step }) {
           Input {!!script.inputs?.length && <span className="rounded-full bg-accent-soft px-1.5 text-[11px] font-semibold text-accent-text">{script.inputs.length}</span>}
         </TabBtn>
       </div>
+
+      {/* mô tả loại node ngay dưới tab, trên các trường */}
+      {infoShown && tab === 'step' && <NodeInfoCard info={nodeInfo(s)} onHide={toggleInfo} />}
 
       {tab === 'inputs' ? <InputsTab /> : isControl(s.type) ? <>
         <ControlSection step={s} />

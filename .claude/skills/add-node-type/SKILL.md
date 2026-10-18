@@ -28,7 +28,8 @@ description: Thêm một loại node mới vào flow (vd focus cửa sổ, web D
 - [ ] `flow/view.ts`: dòng chi tiết, nhãn cổng, `outputsOf` + test.
 - [ ] `scriptInputs.ts` `mapVarText`: ô chữ nhận biến (khớp `script.VarFields`).
 - [ ] `store/nodes.ts` `addStep` hoặc `store/control.ts` `addControl`.
-- [ ] Bảng thêm node (`AddStepPalette`): mục mới, nhóm đúng, từ khoá tìm không dấu.
+- [ ] `flow/nodeInfo.ts` `NODE_INFO`: mô tả *làm gì* + *dùng khi* cho người dùng (test bắt thiếu loại).
+- [ ] Bảng thêm node (`AddStepPalette`): mục mới, nhóm đúng, từ khoá tìm không dấu, `info: NODE_INFO.<loại>`.
 - [ ] Inspector: hành động → `components/stepform/<Nhóm>Fields.tsx` (+ đăng ký trong `StepForm.tsx`); điều khiển → `components/flow/nodes/`. Dùng `Field` / `NumField` / `PickButton` / `VarTextInput`.
 - [ ] Node cần điểm trên màn hình → overlay (`store/points`, `OverlayScreen`), `Simulation` (xem trước).
 - [ ] Bỏ phần *Sắp có* tương ứng trong `components/steps/` nếu có.

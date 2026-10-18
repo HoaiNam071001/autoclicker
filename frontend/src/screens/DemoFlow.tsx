@@ -6,7 +6,8 @@ import TitleBar from '../components/TitleBar';
 import { LibraryView } from '../components/Library';
 import { StatusBar, Toolbar } from '../components/AppChrome';
 import Segmented from '../components/Segmented';
-import { PaletteGroup, PaletteView } from '../components/AddStepPalette';
+import { PaletteGroup, PaletteView } from '../components/PaletteView';
+import { InfoKey, NODE_INFO } from '../flow/nodeInfo';
 import FlowCanvas from '../components/flow/FlowCanvas';
 import RunLog from '../components/flow/RunLog';
 import { FlowNodeView } from '../components/flow/model';
@@ -168,7 +169,7 @@ export default function DemoFlow() {
 
 function paletteGroups(add: (t: Parameters<typeof newDemoNode>[0]) => void): PaletteGroup[] {
   const it = (icon: Parameters<typeof newDemoNode>[0], label: string, keywords: string) =>
-    ({ icon: icon as never, label, keywords, run: () => add(icon) });
+    ({ icon: icon as never, label, keywords, info: NODE_INFO[icon as InfoKey], run: () => add(icon) });
   return [
     { name: 'Chuột', items: [it('click', 'Click', 'bam chuot'), it('scroll', 'Cuộn', 'scroll'), it('clickImage', 'Click theo ảnh', 'image anh')] },
     { name: 'Bàn phím', items: [it('type', 'Gõ chữ', 'type text'), it('key', 'Phím tắt', 'key enter')] },
