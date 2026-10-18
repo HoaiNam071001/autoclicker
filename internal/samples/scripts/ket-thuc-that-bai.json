@@ -1,0 +1,54 @@
+{
+ "meta": {
+  "name": "Kết thúc thất bại có lời nhắn",
+  "description": "Chờ 3 s một nút không có trên Bảng click → hết giờ đi cổng fail → node Kết thúc thất bại. Đúng: thanh trạng thái báo lỗi kèm lời nhắn.",
+  "app": "Điều khiển",
+  "level": 1,
+  "page": "click.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/click.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "NUT KHONG TON TAI",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 3000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Không mong đợi: đã thấy nút"
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Hết 3 giây không thấy NÚT KHÔNG TỒN TẠI (đúng như mong đợi)"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s2",
+    "port": "fail",
+    "to": "s4"
+   }
+  ]
+ }
+}

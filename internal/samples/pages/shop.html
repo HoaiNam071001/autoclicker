@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 16px; padding: 0 20px 20px; }
+  .item { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+  .item .emoji { font-size: 56px; line-height: 1; }
+  .item .name { font-size: 24px; font-weight: 800; }
+  .item .price { color: var(--muted); font-size: 18px; }
+  .item .btn { font-size: 18px; padding: 10px 18px; }
+  #cart { margin: 0 20px 12px; padding: 14px 18px; border-radius: 12px; background: var(--ink); color: #fff; font-size: 22px; font-weight: 800; display: flex; gap: 30px; }
+</style></head>
+<body>
+<div id="cart"><span id="count">GIỎ: 0 MÓN</span><span id="total">TỔNG: 0 Đ</span><span id="lines" style="font-weight:400;font-size:16px;align-self:center"></span></div>
+<div class="grid" id="grid"></div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Mỗi món có nút riêng "MUA <TÊN>" (chữ khác nhau để tìm theo chữ không nhầm món).
+  sb.header('Cửa hàng');
+  const items = [['🍎', 'TÁO', 15000], ['🍊', 'CAM', 12000], ['🥭', 'XOÀI', 30000], ['🍌', 'CHUỐI', 8000], ['🍉', 'DƯA HẤU', 45000], ['🍇', 'NHO', 60000]];
+  const cart = {};
+  const fmt = (n) => n.toLocaleString('vi-VN') + ' Đ';
+  document.getElementById('grid').innerHTML = items.map(([e, n, p], i) =>
+    `<div class="card item"><div class="emoji">${e}</div><div class="name">${n}</div><div class="price">${fmt(p)} / kg</div><button class="btn" data-i="${i}">MUA ${n}</button></div>`).join('');
+  document.getElementById('grid').addEventListener('click', (e) => {
+    const i = e.target.dataset.i;
+    if (i === undefined) return;
+    const [, n, p] = items[i];
+    cart[n] = (cart[n] || 0) + 1;
+    const count = Object.values(cart).reduce((a, b) => a + b, 0);
+    const total = items.reduce((s, [, n2, p2]) => s + (cart[n2] || 0) * p2, 0);
+    document.getElementById('count').textContent = `GIỎ: ${count} MÓN`;
+    document.getElementById('total').textContent = `TỔNG: ${fmt(total)}`;
+    document.getElementById('lines').textContent = Object.entries(cart).map(([k, v]) => `${k} ×${v}`).join(' · ');
+    sb.log(`thêm ${n} (${fmt(p)})`);
+  });
+</script>
+</body></html>

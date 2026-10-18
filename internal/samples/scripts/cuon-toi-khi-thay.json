@@ -1,0 +1,103 @@
+{
+ "meta": {
+  "name": "Cuộn tới khi thấy chữ",
+  "description": "Nếu chưa thấy MỤC 15 thì cuộn 3 nấc rồi xét lại, tối đa 30 lần. Đúng: dừng khi MỤC 15 hiện trên màn hình.",
+  "app": "Điều khiển",
+  "level": 2,
+  "page": "long.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/long.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "MUC 1",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "text",
+     "findText": "MUC 15",
+     "textNoAccent": true,
+     "searchArea": "screen",
+     "textExact": true
+    }
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã thấy MỤC 15"
+   },
+   {
+    "type": "scroll",
+    "points": [
+     {
+      "x": 0,
+      "y": 60,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "direction": "down",
+    "amount": 3,
+    "delayAfter": 600
+   },
+   {
+    "type": "counter",
+    "max": 30
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Cuộn 30 lần vẫn chưa thấy MỤC 15"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "true",
+    "to": "s4"
+   },
+   {
+    "from": "s3",
+    "port": "false",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "next",
+    "to": "s3"
+   },
+   {
+    "from": "s6",
+    "port": "done",
+    "to": "s7"
+   }
+  ]
+ }
+}

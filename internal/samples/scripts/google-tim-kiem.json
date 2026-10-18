@@ -1,0 +1,55 @@
+{
+ "meta": {
+  "name": "Google – tìm kiếm qua URL",
+  "description": "Mở trang kết quả Google với từ khoá trong URL (biến tự mã hoá), chờ thấy từ khoá, cuộn xem kết quả.",
+  "app": "Web thật",
+  "level": 1,
+  "page": "https://www.google.com",
+  "real": true,
+  "prep": "Cần mạng. Google có thể hiện hộp đồng ý cookie / captcha lần đầu."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "https://www.google.com/search?q={{tu_khoa}}",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "{{tu_khoa}}",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "scroll",
+    "points": [
+     {
+      "x": 0,
+      "y": 60,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "direction": "down",
+    "amount": 8,
+    "delayAfter": 800
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã tìm {{tu_khoa}}"
+   }
+  ],
+  "inputs": [
+   {
+    "key": "tu_khoa",
+    "label": "Từ khoá",
+    "type": "text",
+    "default": "auto clicker"
+   }
+  ]
+ }
+}

@@ -1,0 +1,25 @@
+/* Sân thử Auto Clicker – kiểu chung. Chữ to, tương phản cao để OCR đọc được; không tải gì từ mạng. */
+:root {
+  --bg: #f6f7f9; --surface: #fff; --ink: #111827; --muted: #4b5563; --line: #d1d5db;
+  --accent: #2563eb; --ok: #16a34a; --danger: #dc2626; --warn: #f59e0b;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.4 -apple-system, "Segoe UI", system-ui, sans-serif; }
+header.sb {
+  position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 16px;
+  padding: 10px 20px; background: var(--ink); color: #fff;
+}
+header.sb h1 { margin: 0; font-size: 20px; }
+header.sb a { color: #cbd5e1; text-decoration: none; font-size: 14px; }
+header.sb .sp { flex: 1; }
+header.sb button { font: inherit; font-size: 14px; padding: 4px 12px; border-radius: 6px; border: 1px solid #475569; background: #1f2937; color: #fff; cursor: pointer; }
+.stats { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 20px; }
+.stat { min-width: 150px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.stat b { display: block; font-size: 30px; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 14px; }
+.log { font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); padding: 0 20px 12px; max-height: 160px; overflow: auto; }
+.big { font-size: 56px; font-weight: 800; letter-spacing: 1px; }
+.btn { font: inherit; font-size: 22px; font-weight: 700; padding: 14px 28px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; cursor: pointer; }
+.btn.ok { background: var(--ok); } .btn.danger { background: var(--danger); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; }

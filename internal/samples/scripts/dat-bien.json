@@ -1,0 +1,115 @@
+{
+ "meta": {
+  "name": "Đặt biến + Nếu so giá trị",
+  "description": "Biến dem = 0; mỗi lần click cộng 1; còn nhỏ hơn số lần nhập thì lặp. Đúng: Click trái = số lần đã nhập.",
+  "app": "Điều khiển",
+  "level": 2,
+  "page": "click.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/click.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "BANG CLICK",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "setVar",
+    "varName": "dem",
+    "varOp": "set",
+    "value": "0",
+    "delayAfter": 0
+   },
+   {
+    "type": "click",
+    "points": [
+     {
+      "x": 0,
+      "y": 40,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "delayAfter": 250
+   },
+   {
+    "type": "setVar",
+    "varName": "dem",
+    "varOp": "add",
+    "value": "1",
+    "delayAfter": 0
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "value",
+     "left": "{{vars.dem}}",
+     "op": "lt",
+     "right": "{{so_lan}}"
+    }
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã click {{vars.dem}} lần"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "true",
+    "to": "s4"
+   },
+   {
+    "from": "s6",
+    "port": "false",
+    "to": "s7"
+   }
+  ],
+  "inputs": [
+   {
+    "key": "so_lan",
+    "label": "Số lần click",
+    "type": "number",
+    "default": 7,
+    "min": 1,
+    "max": 50
+   }
+  ]
+ }
+}

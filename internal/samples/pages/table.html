@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  table { margin: 0 20px 16px; border-collapse: collapse; background: var(--surface); font-size: 18px; }
+  th, td { border: 1px solid var(--line); height: 44px; }
+  th { background: #e5e7eb; padding: 0 12px; font-size: 18px; }
+  th.row { width: 48px; color: var(--muted); }
+  td { width: 200px; padding: 0; }
+  td input { width: 100%; height: 100%; padding: 0 10px; border: 0; font: inherit; background: transparent; }
+  td input:focus { outline: 3px solid var(--accent); outline-offset: -3px; background: #eff6ff; }
+</style></head>
+<body>
+<div class="stats"></div>
+<table id="t"></table>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Bảng như bảng tính: mỗi ô là ô nhập; Tab sang phải (hết hàng xuống đầu hàng sau), Enter xuống dòng cùng cột.
+  // Hàng 1 ngay dưới tiêu đề cột (cao 44 px) – kịch bản tìm chữ tiêu đề rồi click lệch xuống 44 px.
+  sb.header('Bảng dữ liệu');
+  const cols = ['HỌ TÊN', 'TUỔI', 'THÀNH PHỐ', 'GHI CHÚ'], ROWS = 8;
+  const setFilled = sb.stat('Ô đã điền'), setRows = sb.stat('Hàng đủ dữ liệu');
+  const t = document.getElementById('t');
+  t.innerHTML = `<tr><th class="row">#</th>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>` +
+    Array.from({ length: ROWS }, (_, r) => `<tr><th class="row">${r + 1}</th>${cols.map((_, c) => `<td><input data-r="${r}" data-c="${c}"></td>`).join('')}</tr>`).join('');
+  const cell = (r, c) => t.querySelector(`input[data-r="${r}"][data-c="${c}"]`);
+  const recount = () => {
+    const all = [...t.querySelectorAll('input')];
+    setFilled(all.filter((i) => i.value.trim()).length);
+    setRows(Array.from({ length: ROWS }, (_, r) => cols.every((_, c) => cell(r, c).value.trim())).filter(Boolean).length);
+  };
+  t.addEventListener('input', recount);
+  t.addEventListener('keydown', (e) => {
+    const r = +e.target.dataset.r, c = +e.target.dataset.c;
+    if (e.key === 'Enter') { e.preventDefault(); cell(Math.min(r + 1, ROWS - 1), c).focus(); }
+    if (e.key === 'Tab' && !e.shiftKey && c === cols.length - 1) { e.preventDefault(); cell(Math.min(r + 1, ROWS - 1), 0).focus(); }
+  });
+  t.addEventListener('change', (e) => sb.log(`ô ${cols[e.target.dataset.c]} hàng ${+e.target.dataset.r + 1} = “${e.target.value}”`));
+</script>
+</body></html>

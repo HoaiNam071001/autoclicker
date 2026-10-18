@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  #box { flex: 1; margin: 0 20px 12px; min-height: 260px; padding: 20px; font: 28px/1.5 inherit; font-family: inherit;
+    border: 3px solid var(--line); border-radius: 16px; resize: none; outline: none; }
+  #box:focus { border-color: var(--accent); }
+  #keys { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 20px 12px; min-height: 40px; }
+  kbd { padding: 4px 10px; border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 6px; background: var(--surface); font: 15px ui-monospace, Menlo, monospace; }
+</style></head>
+<body>
+<div class="stats"></div>
+<textarea id="box" placeholder="Ô GÕ CHỮ – click vào đây rồi gõ" autofocus></textarea>
+<div id="keys"></div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Ghi mọi phím bấm (kèm phím giữ) để kiểm tra bước Gõ chữ / Phím tắt.
+  sb.header('Ô gõ chữ');
+  const setChars = sb.stat('Số ký tự'), setLines = sb.stat('Số dòng', 1), setKeys = sb.stat('Số phím đã bấm'), setLast = sb.stat('Tổ hợp cuối', '–');
+  const box = document.getElementById('box'), keys = document.getElementById('keys');
+  let pressed = 0;
+  const mods = (e) => [e.metaKey && (navigator.platform.startsWith('Mac') ? 'Cmd' : 'Win'), e.ctrlKey && 'Ctrl', e.altKey && 'Alt', e.shiftKey && 'Shift'].filter(Boolean);
+  box.addEventListener('input', () => { setChars(box.value.length); setLines(box.value.split('\n').length); });
+  box.addEventListener('keydown', (e) => {
+    if (['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) return;
+    const name = e.key === ' ' ? 'Space' : e.key.length === 1 ? e.key.toUpperCase() : e.key;
+    const combo = [...mods(e), name].join('+');
+    setKeys(++pressed);
+    if (mods(e).length) setLast(combo);
+    const k = document.createElement('kbd');
+    k.textContent = combo;
+    keys.prepend(k);
+    while (keys.children.length > 30) keys.lastChild.remove();
+    sb.log('phím ' + combo);
+  });
+</script>
+</body></html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  /* Cột rộng cố định 320 px + khe 20 px: kéo thẻ lệch +340 px (zoom 100%) là sang cột bên phải. */
+  #board { display: flex; gap: 20px; padding: 0 20px 20px; align-items: flex-start; }
+  .col { width: 320px; flex: none; min-height: 420px; padding: 12px; border-radius: 14px; background: #e5e7eb; }
+  .col.over { outline: 3px dashed var(--accent); }
+  .col h2 { margin: 4px 4px 12px; font-size: 22px; }
+  .task { padding: 16px; margin-bottom: 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: 22px; font-weight: 800; cursor: grab; user-select: none; }
+  .task.dragging { opacity: .85; position: fixed; z-index: 30; pointer-events: none; width: 296px; box-shadow: 0 12px 30px rgba(0,0,0,.25); }
+</style></head>
+<body>
+<div class="stats"></div>
+<div id="board"></div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Kéo thả bằng mousedown / mousemove / mouseup (không dùng HTML5 drag) – chuột thật của robotgo kéo được.
+  sb.header('Kanban');
+  const cols = ['CẦN LÀM', 'ĐANG LÀM', 'HOÀN TẤT'];
+  const setters = cols.map((c) => sb.stat(c));
+  const board = document.getElementById('board');
+  board.innerHTML = cols.map((c, i) => `<div class="col" data-c="${i}"><h2>${c}</h2></div>`).join('');
+  const colEls = [...board.children];
+  ['VIỆC 1', 'VIỆC 2', 'VIỆC 3', 'VIỆC 4'].forEach((t) => {
+    const d = document.createElement('div');
+    d.className = 'task';
+    d.textContent = t;
+    colEls[0].appendChild(d);
+  });
+  const count = () => colEls.forEach((c, i) => setters[i](c.querySelectorAll('.task').length));
+  count();
+  let drag = null;
+  const colAt = (x, y) => colEls.find((c) => { const r = c.getBoundingClientRect(); return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom + 400; });
+  board.addEventListener('mousedown', (e) => {
+    const t = e.target.closest('.task');
+    if (!t) return;
+    e.preventDefault();
+    const r = t.getBoundingClientRect();
+    drag = { t, from: t.parentElement, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    t.classList.add('dragging');
+    t.style.left = r.left + 'px'; t.style.top = r.top + 'px';
+  });
+  addEventListener('mousemove', (e) => {
+    if (!drag) return;
+    drag.t.style.left = e.clientX - drag.dx + 'px'; drag.t.style.top = e.clientY - drag.dy + 'px';
+    colEls.forEach((c) => c.classList.toggle('over', c === colAt(e.clientX, e.clientY)));
+  });
+  addEventListener('mouseup', (e) => {
+    if (!drag) return;
+    const to = colAt(e.clientX, e.clientY) || drag.from;
+    drag.t.classList.remove('dragging');
+    drag.t.style.left = drag.t.style.top = '';
+    to.appendChild(drag.t);
+    colEls.forEach((c) => c.classList.remove('over'));
+    if (to !== drag.from) sb.log(`${drag.t.textContent}: ${cols[drag.from.dataset.c]} → ${cols[to.dataset.c]}`);
+    drag = null;
+    count();
+  });
+</script>
+</body></html>

@@ -1,0 +1,52 @@
+{
+ "meta": {
+  "name": "Giữ chuột",
+  "description": "Giữ chuột 1,5 s rồi 3 s. Đúng: Giữ lâu nhất ≈ 3000 ms, nhật ký có 2 dòng giữ ~1500 / ~3000 ms.",
+  "app": "Cơ bản",
+  "level": 1,
+  "page": "click.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/click.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "BANG CLICK",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "hold",
+    "points": [
+     {
+      "x": -100,
+      "y": 40,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "holdMs": 1500
+   },
+   {
+    "type": "hold",
+    "points": [
+     {
+      "x": 100,
+      "y": 40,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "holdMs": 3000
+   }
+  ]
+ }
+}

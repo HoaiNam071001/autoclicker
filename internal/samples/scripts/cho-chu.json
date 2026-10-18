@@ -1,0 +1,32 @@
+{
+ "meta": {
+  "name": "Chờ chữ xuất hiện",
+  "description": "Trang Tín hiệu hiện ĐÃ XONG sau 2–6 s ngẫu nhiên; node Chờ ảnh (theo chữ) chờ tới khi thấy. Đúng: kết thúc thành công ngay khi chữ hiện.",
+  "app": "Chờ / tìm",
+  "level": 1,
+  "page": "signal.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/signal.html",
+    "delayAfter": 500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "DA XONG",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 15000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Thấy chữ ĐÃ XONG"
+   }
+  ]
+ }
+}

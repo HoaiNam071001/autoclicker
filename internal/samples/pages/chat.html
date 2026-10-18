@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  #msgs { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .m { max-width: 60%; padding: 10px 14px; border-radius: 14px; font-size: 20px; }
+  .me { align-self: flex-end; background: var(--accent); color: #fff; }
+  .bot { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); }
+  #bar { display: flex; gap: 10px; padding: 12px 20px; border-top: 1px solid var(--line); background: var(--surface); }
+  #in { flex: 1; padding: 14px; font-size: 20px; border: 2px solid var(--line); border-radius: 12px; }
+  #in:focus { border-color: var(--accent); outline: none; }
+</style></head>
+<body>
+<div class="stats"></div>
+<div id="msgs"><div class="m bot">Xin chào! Gửi tin để thử – bot trả lời sau 1 giây.</div></div>
+<form id="bar"><input id="in" placeholder="NHẬP TIN NHẮN Ở ĐÂY" autocomplete="off"><button class="btn">GỬI</button></form>
+<script src="sandbox.js"></script>
+<script>
+  // Bot trả lời "ĐÃ NHẬN TIN SỐ n" sau 1 s – kịch bản chờ đúng câu trả lời của tin vừa gửi.
+  sb.header('Chat');
+  const setSent = sb.stat('Đã gửi'), setReply = sb.stat('Bot đã trả lời');
+  let sent = 0, replied = 0;
+  const msgs = document.getElementById('msgs'), input = document.getElementById('in');
+  const add = (cls, text) => {
+    const d = document.createElement('div');
+    d.className = 'm ' + cls;
+    d.textContent = text;
+    msgs.appendChild(d);
+    msgs.scrollTop = msgs.scrollHeight;
+  };
+  document.getElementById('bar').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const t = input.value.trim();
+    if (!t) return;
+    input.value = '';
+    const n = ++sent;
+    setSent(n);
+    add('me', t);
+    setTimeout(() => { add('bot', `ĐÃ NHẬN TIN SỐ ${n}: “${t}”`); setReply(++replied); }, 1000);
+  });
+</script>
+</body></html>

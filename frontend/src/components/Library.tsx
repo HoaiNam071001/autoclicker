@@ -1,12 +1,13 @@
 // Thanh bên thư viện kịch bản (artboard Main): tìm, danh sách kịch bản (chấm "chưa lưu", giờ hẹn), mở gần đây,
 // lịch sử chạy, Kịch bản mới / Mở / Lưu. Thu gọn / mở rộng bằng nút ở đầu cột hoặc Ctrl/Cmd+B (nhớ bằng localStorage).
 // Giao diện dựng ở bước 27b; lưu / mở nối ở bước 21 (scriptFile.ts); lịch sử chạy ở 20 F5 (runStore.ts); hẹn giờ ở 22.
-import { ReactNode, useEffect, useState } from 'react';
+import { ComponentType, ReactNode, useEffect, useState } from 'react';
 import { useEditor } from '../store';
 import { fileName, newScript, openRecent, openScript, save, useFile } from '../scriptFile';
 import { inWails } from '../windowMode';
 import { openRun, useRunLog } from '../runStore';
 import { SidebarToggle } from './icons';
+import Samples from './samples/Samples';
 
 export type LibraryScript = { name: string; unsaved?: boolean; schedule?: string };
 export type LibraryRun = { id?: string; script: string; when: string; result: string; ok: boolean; muted?: boolean; active?: boolean };
@@ -21,6 +22,7 @@ export type LibraryProps = {
   onSave?: () => void;
   onRecent?: (path: string) => void;
   onHistory?: (id: string) => void; // mở lần chạy trong lịch sử – nhật ký + tô đường đã đi
+  SamplesPanel?: ComponentType<{ onClose: () => void }>; // hộp thoại Mẫu thử (bước 33) – app thật / dữ liệu giả
 };
 
 const KEY = 'library-collapsed';
@@ -48,7 +50,8 @@ export default function Library() {
   }));
   return (
     <LibraryView scripts={[{ name: script.name, unsaved: dirty }]} active={0} recent={recent.filter((r) => r !== path)} history={history}
-      ready={inWails} onNew={newScript} onOpen={openScript} onSave={() => save()} onRecent={openRecent} onHistory={openRun} />
+      ready={inWails} onNew={newScript} onOpen={openScript} onSave={() => save()} onRecent={openRecent} onHistory={openRun}
+      SamplesPanel={Samples} />
   );
 }
 
@@ -62,8 +65,9 @@ const whenOf = (iso: string) => {
   return d.toDateString() === new Date().toDateString() ? t : `${t} ${two(d.getDate())}/${two(d.getMonth() + 1)}`;
 };
 
-export function LibraryView({ scripts, active, recent, history, ready, onNew, onOpen, onSave, onRecent, onHistory }: LibraryProps) {
+export function LibraryView({ scripts, active, recent, history, ready, onNew, onOpen, onSave, onRecent, onHistory, SamplesPanel }: LibraryProps) {
   const [collapsed, setCollapsed] = useState(loadCollapsed);
+  const [samples, setSamples] = useState(false);
   const [q, setQ] = useState('');
   const [allRuns, setAllRuns] = useState(false);
   useEffect(() => {
@@ -158,6 +162,10 @@ export function LibraryView({ scripts, active, recent, history, ready, onNew, on
       </Section>
 
       <div className="mt-auto flex flex-col gap-1 px-1">
+        {SamplesPanel && (
+          <button onClick={() => setSamples(true)} title="Kịch bản mẫu để test từng loại bước"
+            className="h-[34px] rounded-md text-muted hover:bg-hover hover:text-ink">Mẫu thử…</button>
+        )}
         <button disabled={!ready} onClick={onNew} title={off} className="h-9 rounded-control border border-line bg-surface enabled:hover:bg-hover disabled:opacity-60">
           + Kịch bản mới <span className="font-mono text-[11px] text-muted">{mod}N</span>
         </button>
@@ -168,6 +176,7 @@ export function LibraryView({ scripts, active, recent, history, ready, onNew, on
           </button>
         </div>
       </div>
+      {samples && SamplesPanel && <SamplesPanel onClose={() => setSamples(false)} />}
     </nav>
   );
 }

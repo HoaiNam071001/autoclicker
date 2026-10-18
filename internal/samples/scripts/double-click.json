@@ -1,0 +1,61 @@
+{
+ "meta": {
+  "name": "Double click",
+  "description": "Double click ở 3 chỗ khác nhau. Đúng: ô Double click = 3, 3 cặp chấm xanh.",
+  "app": "Cơ bản",
+  "level": 1,
+  "page": "click.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/click.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "BANG CLICK",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "double",
+    "points": [
+     {
+      "x": -200,
+      "y": 0,
+      "ax": "center",
+      "ay": "center"
+     }
+    ]
+   },
+   {
+    "type": "double",
+    "points": [
+     {
+      "x": 0,
+      "y": 80,
+      "ax": "center",
+      "ay": "center"
+     }
+    ]
+   },
+   {
+    "type": "double",
+    "points": [
+     {
+      "x": 200,
+      "y": 0,
+      "ax": "center",
+      "ay": "center"
+     }
+    ]
+   }
+  ]
+ }
+}

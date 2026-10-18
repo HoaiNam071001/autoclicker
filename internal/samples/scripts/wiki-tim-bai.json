@@ -1,0 +1,71 @@
+{
+ "meta": {
+  "name": "Wikipedia – tìm bài",
+  "description": "Mở Wikipedia tiếng Việt, click ô Tìm kiếm (theo chữ), gõ từ khoá, Enter, chờ thấy từ khoá trên trang kết quả.",
+  "app": "Web thật",
+  "level": 2,
+  "page": "https://vi.wikipedia.org",
+  "real": true,
+  "prep": "Cần mạng. Giao diện Wikipedia đổi thì sửa chữ ở node Click theo chữ."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "https://vi.wikipedia.org",
+    "delayAfter": 3000
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "Wikipedia",
+    "textNoAccent": false,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "Tìm kiếm",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 400
+   },
+   {
+    "type": "type",
+    "text": "{{tu_khoa}}",
+    "delayAfter": 300
+   },
+   {
+    "type": "key",
+    "keys": [
+     "enter"
+    ],
+    "delayAfter": 1500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "{{tu_khoa}}",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã mở bài {{tu_khoa}}"
+   }
+  ],
+  "inputs": [
+   {
+    "key": "tu_khoa",
+    "label": "Từ khoá",
+    "type": "text",
+    "default": "Vịnh Hạ Long"
+   }
+  ]
+ }
+}

@@ -70,7 +70,8 @@ component ──gọi──► store/nodes|control|points|multi ──► flow/e
 
 - File `.json` (`ScriptVersion` = 4; cũ hơn từ chối, không chuyển đổi). Mở: `store.ReadScriptFile` → `script.DecodeScript` → `checkScript` (chỉ sửa cấu trúc: ref trùng, cạnh hỏng…) – **không** `validateScript` (bản soạn dở vẫn mở được).
 - Nháp `draft.json` (kịch bản + path + dirty) – mở app nạp lại. Đóng app khi dirty: `beforeClose` chặn → event `app:confirmClose` → `SaveChangesDialog` → `ConfirmQuit`.
-- Thư mục cấu hình `os.UserConfigDir()/autoclicker/`: `settings.json` (theme, mở gần đây), `draft.json`, `inputs.json` (giá trị input lần trước / preset theo kịch bản), `runs/<tên>-<hash path>/` (lịch sử chạy).
+- Thư mục cấu hình `os.UserConfigDir()/autoclicker/`: `settings.json` (theme, mở gần đây), `draft.json`, `inputs.json` (giá trị input lần trước / preset theo kịch bản), `runs/<tên>-<hash path>/` (lịch sử chạy), `sandbox/` (trang sân thử của Mẫu thử, ghi đè mỗi lần mở mẫu).
+- Mẫu thử (bước 33): `OpenSample` → `samples.Open` (qua `DecodeScript` như file) → `scriptFile.openSample` mở như kịch bản mới chưa có file (hỏi lưu nếu đang dirty).
 
 ## 4. Luồng chạy
 
@@ -117,6 +118,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | Ảnh / màn hình | `CaptureTemplate`, `FindImage`, `PixelColorAt`, `ScreenCaptureAllowed`, `RequestScreenCapture`, `ScreenBounds`, `MousePos` |
 | Cửa sổ | `SetWindowMode`, `Displays`, `OverlayDisplayFor`, `SetOverlayDisplay` |
 | Cấu hình | `GetSettings`, `SetTheme` |
+| Mẫu thử | `Samples`, `OpenSample(id)` (ghi sân thử ra `ConfigDir/sandbox`, trả kịch bản), `OpenSandboxPage(page)` |
 
 | Event (Go → frontend) | Payload | Nghe ở |
 |---|---|---|
@@ -146,6 +148,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | Định dạng file | `model.ScriptVersion`, `script` (`codec.go`, `check.go`), `store/scriptfile.go` |
 | UI chưa có logic | `components/steps/`, `AppChrome.tsx`, dữ liệu giả `src/demo/` (màn `#demo*`) |
 | Mô tả cho AI / MCP | `internal/model/steptypes.go` (có test bắt đủ loại node) |
+| Kịch bản mẫu / trang sân thử | `internal/samples/scripts/*.json` (JSON gọn `{meta, script}`), `pages/*.html`; test bắt mỗi loại node ≥ 1 mẫu; UI `components/samples/`, lọc `samples/filter.ts` |
 
 ## 7. Test
 
@@ -168,6 +171,8 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 `cmd/d0probe` – code thử bước 25d D0 (build tag `probe`, ngoài build thường): đo toạ độ trang → màn hình qua CDP + robotgo; xoá khi D1 có test thật.
 
+`internal/samples` – kịch bản mẫu để test (bước 33): `samples.go` (`List`, `Open` – điền mặc định `NewStep`, nối cạnh theo thứ tự, thay `{{sandbox}}` / ảnh mẫu `@file`), `sandbox.go` (`WriteSandbox`, `FileURL`), `scripts/*.json`, `pages/` (trang sân thử HTML offline + `logo.png`). `samples_real_test.go` – chạy mẫu bằng engine trên máy thật (`AUTOCLICKER_REAL=1`).
+
 `internal/launch` – `open.go`: mở URL / file / app (`OpenTarget`, `openCommand` theo hệ điều hành).
 
 `internal/script` – kịch bản như dữ liệu (không thiết bị, không đĩa): `codec.go` (`EncodeScript` / `DecodeScript`, `SafeFileName`), `check.go` (kiểm tra lúc mở: `checkScript`, `checkStep`, `FixRefs`), `validate.go` (`ValidateScript` – đủ dữ liệu để chạy), `flowcheck.go` (`validateFlow`, `UnreachableNodes`), `control.go` (kiểm tra node điều khiển + điều kiện), `inputs.go` / `inputvalue.go` (`ResolveInputs`, ép kiểu, ghim trường), `varfields.go` (`VarFields` – mọi ô chữ nhận `{{biến}}`), `anchor.go` (`ResolvePoint`, `Bounds`), `errors.go` (`stepErr` → `model.ScriptError`).
@@ -181,7 +186,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 **Root (package main)** – chỉ Wails: method `App` bind sang frontend, mỗi method vài dòng gọi xuống `internal/`.
 
 - `main.go`, `app.go` – Wails app, `App`; method mỏng: `NewStep` / `NewScript`, mô tả loại node, theme, input đã nhớ (`frontend/wailsjs/` tự sinh – không sửa tay, không cần đọc; namespace TS theo package Go: `model.Step`, `store.Settings`, `engine.FindResult`, `main.RunOptions`).
-- `runner.go` – `RunScript` / Stop / Pause / Resume / Step, `RunOptions`, lưu lịch sử chạy, method xem lịch sử. `imageapi.go` – chụp ảnh mẫu, Thử tìm, Thử node, lấy màu, quyền chụp (ẩn cửa sổ lúc chụp – `withHidden`).
+- `runner.go` – `RunScript` / Stop / Pause / Resume / Step, `RunOptions`, lưu lịch sử chạy, method xem lịch sử. `samplesapi.go` – Mẫu thử (`Samples`, `OpenSample`, `OpenSandboxPage`). `imageapi.go` – chụp ảnh mẫu, Thử tìm, Thử node, lấy màu, quyền chụp (ẩn cửa sổ lúc chụp – `withHidden`).
 - `storage.go` – hộp thoại lưu / mở, nháp, hỏi lưu khi đóng. `window.go` – chế độ cửa sổ, màn hình, `ScreenBounds`. `hotkey.go` – F6 / F8 / F10 (gohook).
 
 **Frontend (`frontend/src/`)**
@@ -189,11 +194,12 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 - `App.tsx` chọn màn theo hash; `screens/` – `MainScreen`, `OverlayScreen` (state + chuột / phím; vẽ ở `components/overlay/`), `MiniBar`, `PreviewScreen`, màn mẫu `Demo*`.
 - Overlay: `overlay/` (thuần, có test) – `geometry` (marker, đường neo, mũi tên cuộn, chỗ đặt nút khoanh ảnh), `hint` (chữ gợi ý theo công cụ); `components/overlay/` (chỉ props) – `OverlayToolbar`, `Hud` (gợi ý, crosshair, ô toạ độ), `MarkerLayer` (đường nối, ô ngẫu nhiên, marker), `Shapes` (vùng, khung Thử tìm, khung khoanh ảnh), `hooks` (`useRefState`, thanh tự ẩn, chọn màn hình, `useCapture` khoanh ảnh).
 - `types.ts` – model TS (khớp `internal/model/model.go`, tsc kiểm), nhãn loại node `STEP_LABEL`.
-- Logic thuần (có test): `flow/` – `model` (cổng, `flowOrder`, `orderedSteps`), `edit` (nối / cắt cạnh, chèn / xoá node, `nextRef`, `pruneEdges`), `layout` (elkjs, `placeNode`), `view` (thẻ node, nhãn cổng, `outputsOf`), `cond` (điều kiện lồng nhau `CondAt`), `run` (kết quả chạy → trạng thái thẻ, nhật ký); `anchor.ts`; `transform.ts` (biến đổi nhiều điểm); `overlay/` (hình học + gợi ý overlay); `scriptInputs.ts` (ghim trường, input, `mapVarText`).
+- Logic thuần (có test): `flow/` – `model` (cổng, `flowOrder`, `orderedSteps`), `edit` (nối / cắt cạnh, chèn / xoá node, `nextRef`, `pruneEdges`), `layout` (elkjs, `placeNode`), `view` (thẻ node, nhãn cổng, `outputsOf`), `cond` (điều kiện lồng nhau `CondAt`), `run` (kết quả chạy → trạng thái thẻ, nhật ký); `anchor.ts`; `transform.ts` (biến đổi nhiều điểm); `overlay/` (hình học + gợi ý overlay); `scriptInputs.ts` (ghim trường, input, `mapVarText`); `samples/filter.ts` (lọc Mẫu thử); `fold.ts` (so khớp không dấu).
 - `store/` (import qua `store/index.ts`): `editor` (state, hoàn tác, `updateScript`, `replaceScript`), `geometry` (khung, neo ↔ màn hình), `nodes` (thêm / sửa / xoá / nhân bản, nối cạnh, `insertAt`), `control` (node điều khiển, điều kiện), `points` (điểm trên overlay, F6, kéo thả), `multi` (chọn nhiều + biến đổi, phím công cụ Chọn nhiều `selectToolKey`, đổi vùng).
 - Store khác: `engineStore.ts` (trạng thái engine, `runScript`), `runStore.ts` (nhật ký lần chạy + lịch sử), `runForm.ts` (Chạy / F8 → form Chạy, preset), `scriptFile.ts` (lưu / mở / nháp / cờ chưa lưu), `imageSteps.ts` (khoanh ảnh mẫu, thử tìm, lấy màu, quyền chụp), `coordMap.ts` (overlay ↔ robotgo), `windowMode.ts` (`setWindowMode`, `openOverlay`), `theme.ts`.
 - `components/`: `TitleBar`, `Library` (thư viện + lịch sử), `AddStepPalette` (Ctrl/Cmd+K, `PaletteView`), `StepForm` (inspector) + `stepform/` (`shared`, `MouseFields`, `ScrollFields`, `KeyFields`, `TextFields`, `ImageFields`, `FlowSections`, `ControlSection`, `InputsTab`), `RunSettings` (lặp / đếm ngược, `Switch`), `Simulation` (xem trước con trỏ giả), `MockPage`, `TransformTool`, `SaveChangesDialog`, `NumInput`, `Segmented`, `icons` (`StepIcon`), `StepCard`.
 - `components/flow/` (chỉ props, app + màn mẫu dùng chung): `FlowCanvas` (`@xyflow/react`), `NodeCard`, `FlowEdge`, `PortField`, `RunLog`, `model.ts` (cỡ thẻ), `nodes/ControlFields` + `CondEditor` + `NodeTestPanel`; `FlowEditor` = bản nối store.
+- `components/samples/` – hộp thoại Mẫu thử: `SamplesDialog` + `SampleCard` (chỉ props), `Samples` (nối Go + `scriptFile.openSample`).
 - `components/inputs/` – ghim, ô chữ `{{biến}}` (`VarTextInput`), tab Input, form Chạy (`RunDialog`).
 - UI dựng sẵn chưa có logic (bước 27b, *Sắp có*): `components/steps/` (kiểu tạm `steps/model.ts`), `ScheduleDialog`, `AppChrome` (`Toolbar`, `StatusBar`). Dữ liệu giả: `demo/` (màn `#demo*`, `?sel=<id>`, `?mode=running|failed`).
 - `style.css` – Tailwind v4 + token (`@theme`, chép từ `design/theme.css`).

@@ -1,0 +1,60 @@
+{
+ "meta": {
+  "name": "Click theo chữ",
+  "description": "Tìm nút BẤM VÀO TÔI (vị trí ngẫu nhiên) bằng chữ rồi click, 5 lần. Đúng: Trúng nút = 5.",
+  "app": "Chờ / tìm",
+  "level": 1,
+  "page": "image.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/image.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "BAM VAO TOI",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 600
+   },
+   {
+    "type": "counter",
+    "max": 4
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã bấm nút 5 lần"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "next",
+    "to": "s2"
+   },
+   {
+    "from": "s3",
+    "port": "done",
+    "to": "s4"
+   }
+  ]
+ }
+}

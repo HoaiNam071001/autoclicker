@@ -4,6 +4,7 @@ import {model} from '../models';
 import {main} from '../models';
 import {engine} from '../models';
 import {store} from '../models';
+import {samples} from '../models';
 
 export function CaptureTemplate(arg1:model.Rect):Promise<main.TemplateShot>;
 
@@ -33,6 +34,10 @@ export function NewScript():Promise<model.Script>;
 
 export function NewStep(arg1:string):Promise<model.Step>;
 
+export function OpenSample(arg1:string):Promise<model.Script>;
+
+export function OpenSandboxPage(arg1:string):Promise<void>;
+
 export function OpenScript():Promise<main.ScriptFile>;
 
 export function OpenScriptPath(arg1:string):Promise<main.ScriptFile>;
@@ -52,6 +57,8 @@ export function ResumeScript():Promise<boolean>;
 export function RunScript(arg1:model.Script,arg2:Record<string, any>,arg3:main.RunOptions):Promise<void>;
 
 export function RunShot(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
+
+export function Samples():Promise<Array<samples.Info>>;
 
 export function SaveDraft(arg1:store.Draft):Promise<void>;
 

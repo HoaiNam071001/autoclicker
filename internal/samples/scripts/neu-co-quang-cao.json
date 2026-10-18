@@ -1,0 +1,71 @@
+{
+ "meta": {
+  "name": "Nếu có quảng cáo thì đóng",
+  "description": "Trang Popup hiện ngẫu nhiên quảng cáo / đăng nhập / trang chủ. Nếu thấy QUẢNG CÁO trong 3 s → bấm ĐÓNG QUẢNG CÁO; không thì bỏ qua. Chạy vài lần để thấy cả 2 nhánh.",
+  "app": "Điều khiển",
+  "level": 2,
+  "page": "popup.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/popup.html",
+    "delayAfter": 1500
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "text",
+     "findText": "QUANG CAO",
+     "textNoAccent": true,
+     "searchArea": "screen"
+    },
+    "timeoutMs": 3000
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "DONG QUANG CAO",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 600
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã đóng quảng cáo"
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Không có quảng cáo"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "true",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s2",
+    "port": "false",
+    "to": "s5"
+   }
+  ]
+ }
+}

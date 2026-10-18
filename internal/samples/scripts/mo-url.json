@@ -1,0 +1,40 @@
+{
+ "meta": {
+  "name": "Mở URL / trang",
+  "description": "Mở danh sách sân thử, chờ thấy tiêu đề rồi mở tiếp Bảng click (tab mới). Đúng: trình duyệt có 2 tab sân thử.",
+  "app": "Cơ bản",
+  "level": 1,
+  "page": "index.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/index.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "SAN THU AUTO CLICKER",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "open",
+    "target": "{{sandbox}}/click.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "BANG CLICK",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   }
+  ]
+ }
+}

@@ -6,6 +6,7 @@ import { StepIcon, StepIconName } from './icons';
 import { addControl, addPointStep, addStep, getEditor, insertTarget } from '../store';
 import { portView } from '../flow/view';
 import { addImageStep, addTextStep } from '../imageSteps';
+import { fold } from '../fold';
 
 export type PaletteItem = { icon: StepIconName; label: string; keywords: string; run?: () => unknown; soon?: string };
 export type PaletteGroup = { name: string; items: PaletteItem[] };
@@ -56,8 +57,6 @@ const GROUPS: PaletteGroup[] = [
 ];
 const COLS = 3;
 
-// So khớp không dấu: "cuon" tìm được "Cuộn".
-const fold = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 
 // onCancel: đóng mà không chọn (Esc, bấm ra ngoài) – bỏ chỗ nối đã đặt (store insertAt).
 export default function AddStepPalette({ onClose, onCancel }: { onClose: () => void; onCancel?: () => void }) {

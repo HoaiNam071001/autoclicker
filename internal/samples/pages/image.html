@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  #field { flex: 1; position: relative; margin: 0 20px 12px; min-height: 360px; border: 3px dashed var(--line); border-radius: 16px; background: var(--surface); }
+  #logo { position: absolute; width: 60px; height: 60px; image-rendering: pixelated; cursor: pointer; }
+  #go { position: absolute; }
+</style></head>
+<body>
+<div class="stats"></div>
+<div id="field"><img id="logo" src="logo.png" alt="logo" draggable="false"><button id="go" class="btn">BẤM VÀO TÔI</button></div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Logo (ảnh mẫu của kịch bản, 120 px vẽ ở 60 px – Retina khớp từng điểm ảnh) và nút ở vị trí ngẫu nhiên mỗi lần mở / sau mỗi lần trúng.
+  sb.header('Tìm ảnh');
+  const setLogo = sb.stat('Trúng logo'), setBtn = sb.stat('Trúng nút'), setMiss = sb.stat('Bấm trượt');
+  const field = document.getElementById('field'), logo = document.getElementById('logo'), btn = document.getElementById('go');
+  const n = { logo: 0, btn: 0, miss: 0 };
+  // logo ở nửa trái, nút ở nửa phải (hoặc ngược lại) – không bao giờ chồng nhau
+  const place = () => {
+    const w = field.clientWidth, h = field.clientHeight, left = Math.random() < 0.5;
+    const spot = (el, half) => {
+      const ew = el.offsetWidth, eh = el.offsetHeight;
+      el.style.left = Math.round(half * w / 2 + sb.rand(20, w / 2 - ew - 20)) + 'px';
+      el.style.top = Math.round(sb.rand(20, h - eh - 20)) + 'px';
+    };
+    spot(logo, left ? 0 : 1);
+    spot(btn, left ? 1 : 0);
+  };
+  place();
+  logo.addEventListener('click', (e) => { e.stopPropagation(); setLogo(++n.logo); sb.log('trúng logo'); place(); });
+  btn.addEventListener('click', (e) => { e.stopPropagation(); setBtn(++n.btn); sb.log('trúng nút BẤM VÀO TÔI'); place(); });
+  field.addEventListener('click', () => { setMiss(++n.miss); sb.log('bấm trượt'); });
+</script>
+</body></html>

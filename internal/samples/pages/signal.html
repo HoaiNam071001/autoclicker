@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; background: #dc2626; transition: none; }
+  body.done { background: #16a34a; }
+  main { flex: 1; display: grid; place-items: center; text-align: center; color: #fff; }
+  #msg { font-size: 72px; font-weight: 900; }
+  #sub { font-size: 20px; opacity: .9; }
+</style></head>
+<body>
+<main><div><div id="msg">ĐANG CHỜ…</div><div id="sub"></div></div></main>
+<script src="sandbox.js"></script>
+<script>
+  // Sau 2–6 s ngẫu nhiên (hoặc ?ms=…): cả nền đỏ #dc2626 → xanh #16a34a, chữ ĐANG CHỜ… → ĐÃ XONG.
+  // Nền đổi cả trang nên bước Chờ màu pixel đặt điểm ở đâu trong trang cũng được.
+  sb.header('Tín hiệu');
+  const q = new URLSearchParams(location.search);
+  const ms = Number(q.get('ms')) || Math.round(sb.rand(2000, 6000));
+  const msg = document.getElementById('msg'), sub = document.getElementById('sub');
+  const t0 = performance.now();
+  const tick = setInterval(() => { sub.textContent = `Sẽ xong sau ${Math.max(0, (ms - (performance.now() - t0)) / 1000).toFixed(1)} s`; }, 100);
+  setTimeout(() => {
+    clearInterval(tick);
+    document.body.classList.add('done');
+    msg.textContent = 'ĐÃ XONG';
+    sub.textContent = `Sau ${(ms / 1000).toFixed(1)} s – nền xanh #16a34a`;
+  }, ms);
+</script>
+</body></html>

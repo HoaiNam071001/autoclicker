@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  main { max-width: 960px; margin: 0 auto; padding: 24px 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .grid a { display: block; color: inherit; text-decoration: none; }
+  .grid a:hover .card { border-color: var(--accent); }
+  .card h2 { margin: 0 0 6px; font-size: 19px; }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .tag { display: inline-block; margin-top: 8px; font-size: 12px; color: var(--accent); }
+</style></head>
+<body>
+<main>
+  <p style="color:var(--muted)">Trang giả lập offline cho kịch bản mẫu của Auto Clicker. Mỗi trang tự hiện kết quả để biết bước chạy đúng chưa. Mở trình duyệt to gần toàn màn hình khi chạy mẫu.</p>
+  <div class="grid" id="list"></div>
+</main>
+<script src="sandbox.js"></script>
+<script>
+  sb.header('Sân thử Auto Clicker');
+  // Danh sách trang – thêm trang mới thì thêm dòng ở đây.
+  const pages = [
+    ['click.html', 'Bảng click', 'Đếm click trái / phải / double, đo thời gian giữ chuột, nhịp giữa các click', 'click · double · giữ chuột · chờ'],
+    ['draw.html', 'Bảng vẽ', 'Vẽ vệt kéo thả, ghi điểm đầu / cuối, độ dài, thời gian', 'kéo thả'],
+    ['type.html', 'Ô gõ chữ', 'Hiện chữ đã gõ và nhật ký phím / tổ hợp phím', 'gõ chữ · phím tắt'],
+    ['long.html', 'Trang dài', '40 mục đánh số lớn, hiện mục đang xem', 'cuộn · chờ chữ'],
+    ['signal.html', 'Tín hiệu', 'Nền đỏ → xanh và chữ ĐÃ XONG sau vài giây ngẫu nhiên', 'chờ màu · chờ chữ · nếu'],
+    ['image.html', 'Tìm ảnh', 'Logo và nút Bấm vào tôi ở vị trí ngẫu nhiên, đếm số lần trúng', 'chờ ảnh · click theo ảnh'],
+    ['popup.html', 'Popup ngẫu nhiên', 'Mỗi lần mở hiện một trong 3 màn: quảng cáo, đăng nhập, trang chủ', 'switch theo màn hình · nếu'],
+    ['login.html', 'Form đăng nhập', 'Nhãn bấm được, đúng → XIN CHÀO, sai → SAI THÔNG TIN', 'click theo chữ · gõ chữ · switch theo màn hình'],
+    ['shop.html', 'Cửa hàng', '6 món, mỗi món nút MUA riêng, thanh giỏ hàng + tổng tiền', 'click theo chữ · đặt biến · nếu'],
+    ['chat.html', 'Chat', 'Gửi tin, bot trả lời ĐÃ NHẬN TIN SỐ n sau 1 giây', 'gõ chữ · phím · chờ chữ'],
+    ['kanban.html', 'Kanban', 'Kéo thẻ VIỆC giữa 3 cột rộng cố định', 'kéo thả · click theo chữ'],
+    ['game.html', 'Game bấm nhanh', 'Nút BẮT TÔI nhảy chỗ, đủ 10 điểm là CHIẾN THẮNG', 'click theo chữ · nếu · đếm'],
+    ['feed.html', 'Feed mạng xã hội', 'Cuộn vô hạn, bài ĐẶC BIỆT ở vị trí ngẫu nhiên', 'cuộn · nếu · đếm'],
+    ['quiz.html', 'Quiz', '3 câu hỏi thứ tự ngẫu nhiên, đáp án xáo trộn', 'switch theo màn hình · click theo chữ'],
+    ['table.html', 'Bảng dữ liệu', 'Ô nhập như bảng tính, Tab / Enter di chuyển', 'click lệch · gõ chữ · tab'],
+  ];
+  document.getElementById('list').innerHTML = pages.map(([href, name, desc, tag]) =>
+    `<a href="${href}"><div class="card"><h2>${name}</h2><p>${desc}</p><span class="tag">${tag}</span></div></a>`).join('');
+</script>
+</body></html>

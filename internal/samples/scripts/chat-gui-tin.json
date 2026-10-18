@@ -1,0 +1,140 @@
+{
+ "meta": {
+  "name": "Chat – gửi nhiều tin",
+  "description": "Click ô nhập (tìm theo chữ gợi ý), gõ tin có số thứ tự, Enter, chờ bot trả lời đúng tin đó rồi gửi tin tiếp.",
+  "app": "Chat",
+  "level": 2,
+  "page": "chat.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/chat.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "setVar",
+    "varName": "i",
+    "varOp": "set",
+    "value": "0",
+    "delayAfter": 0
+   },
+   {
+    "type": "setVar",
+    "varName": "i",
+    "varOp": "add",
+    "value": "1",
+    "delayAfter": 0
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "NHAP TIN NHAN O DAY",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 200
+   },
+   {
+    "type": "type",
+    "text": "{{loi_nhan}} (lần {{vars.i}})",
+    "delayAfter": 150
+   },
+   {
+    "type": "key",
+    "keys": [
+     "enter"
+    ],
+    "delayAfter": 200
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "DA NHAN TIN SO {{vars.i}}",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "value",
+     "left": "{{vars.i}}",
+     "op": "lt",
+     "right": "{{so_lan}}"
+    }
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã gửi {{vars.i}} tin, bot trả lời đủ"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "success",
+    "to": "s7"
+   },
+   {
+    "from": "s7",
+    "port": "success",
+    "to": "s8"
+   },
+   {
+    "from": "s8",
+    "port": "true",
+    "to": "s3"
+   },
+   {
+    "from": "s8",
+    "port": "false",
+    "to": "s9"
+   }
+  ],
+  "inputs": [
+   {
+    "key": "loi_nhan",
+    "label": "Lời nhắn",
+    "type": "text",
+    "default": "Chào bot"
+   },
+   {
+    "key": "so_lan",
+    "label": "Số tin",
+    "type": "number",
+    "default": 3,
+    "min": 1,
+    "max": 9
+   }
+  ]
+ }
+}

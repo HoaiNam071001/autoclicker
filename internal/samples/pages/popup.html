@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  main { flex: 1; display: grid; place-items: center; padding: 20px; }
+  .screen { display: none; text-align: center; }
+  .screen.on { display: block; }
+  #ad { position: fixed; inset: 0; z-index: 20; background: rgba(15, 23, 42, .75); place-items: center; }
+  #ad.on { display: grid; }
+  #ad .card { background: #fde68a; border-color: #f59e0b; max-width: 520px; }
+  input { display: block; width: 320px; margin: 10px auto; padding: 12px; font-size: 20px; border: 2px solid var(--line); border-radius: 10px; }
+</style></head>
+<body>
+<main>
+  <div id="home" class="screen"><div class="big">TRANG CHỦ</div><p style="font-size:20px;color:var(--muted)">Nội dung chính – không có gì che</p></div>
+  <div id="login" class="screen card"><div class="big" style="font-size:44px">ĐĂNG NHẬP</div>
+    <input placeholder="Tên tài khoản"><input type="password" placeholder="Mật khẩu"><button class="btn" id="cont">TIẾP TỤC</button></div>
+</main>
+<div id="ad" class="screen"><div class="card"><div class="big" style="font-size:48px">QUẢNG CÁO</div>
+  <p style="font-size:20px">Giảm giá 90% – chỉ hôm nay!</p><button class="btn danger" id="close">ĐÓNG QUẢNG CÁO</button></div></div>
+<script src="sandbox.js"></script>
+<script>
+  // Mỗi lần mở hiện ngẫu nhiên một màn (hoặc ?show=ad|login|home) – chữ mỗi màn không lẫn sang màn khác
+  // để node Switch theo màn hình phân biệt được. Đóng quảng cáo / Tiếp tục → TRANG CHỦ.
+  sb.header('Popup ngẫu nhiên');
+  const pick = new URLSearchParams(location.search).get('show') || ['ad', 'login', 'home'][Math.floor(Math.random() * 3)];
+  // quảng cáo hiện một mình (không lộ chữ TRANG CHỦ phía sau) – OCR mỗi lúc chỉ thấy chữ của một màn
+  const show = (id) => document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('on', s.id === id));
+  show(pick);
+  document.getElementById('close').onclick = () => show('home');
+  document.getElementById('cont').onclick = () => show('home');
+</script>
+</body></html>

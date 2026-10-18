@@ -1,0 +1,113 @@
+{
+ "meta": {
+  "name": "Kanban – kéo thẻ sang cột",
+  "description": "Tìm thẻ VIỆC n theo chữ, kéo tiếp từ chỗ chuột (lệch +340 px = sang cột ĐANG LÀM), lặp cho VIỆC 1–3.",
+  "app": "Kanban",
+  "level": 2,
+  "page": "kanban.html",
+  "real": false,
+  "prep": "Trình duyệt để zoom 100% (khoảng cách giữa cột tính theo px)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/kanban.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "setVar",
+    "varName": "i",
+    "varOp": "set",
+    "value": "0",
+    "delayAfter": 0
+   },
+   {
+    "type": "setVar",
+    "varName": "i",
+    "varOp": "add",
+    "value": "1",
+    "delayAfter": 0
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "VIEC {{vars.i}}",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 200,
+    "textExact": true
+   },
+   {
+    "type": "drag",
+    "points": [
+     {
+      "x": 0,
+      "y": 0
+     },
+     {
+      "x": 340,
+      "y": 0
+     }
+    ],
+    "dragFromPrev": true,
+    "dragRelative": true,
+    "dragMs": 600,
+    "delayAfter": 400
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "value",
+     "left": "{{vars.i}}",
+     "op": "lt",
+     "right": "3"
+    }
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã kéo 3 thẻ sang ĐANG LÀM"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "true",
+    "to": "s3"
+   },
+   {
+    "from": "s6",
+    "port": "false",
+    "to": "s7"
+   }
+  ]
+ }
+}

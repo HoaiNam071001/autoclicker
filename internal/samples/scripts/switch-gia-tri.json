@@ -1,0 +1,138 @@
+{
+ "meta": {
+  "name": "Switch theo giá trị input",
+  "description": "Chọn hành động khi bấm Chạy (click / double / giữ); node Switch đi đúng nhánh. Đúng: Bảng click tăng đúng ô đã chọn.",
+  "app": "Điều khiển",
+  "level": 1,
+  "page": "click.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/click.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "BANG CLICK",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "switch",
+    "value": "{{hanh_dong}}",
+    "cases": [
+     {
+      "key": "click",
+      "label": "Click",
+      "op": "eq",
+      "match": "click"
+     },
+     {
+      "key": "double",
+      "label": "Double",
+      "op": "eq",
+      "match": "double"
+     },
+     {
+      "key": "hold",
+      "label": "Giữ",
+      "op": "eq",
+      "match": "giữ"
+     }
+    ]
+   },
+   {
+    "type": "click",
+    "points": [
+     {
+      "x": 0,
+      "y": 40,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "clicks": 3,
+    "clickInterval": 200
+   },
+   {
+    "type": "double",
+    "points": [
+     {
+      "x": 0,
+      "y": 40,
+      "ax": "center",
+      "ay": "center"
+     }
+    ]
+   },
+   {
+    "type": "hold",
+    "points": [
+     {
+      "x": 0,
+      "y": 40,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "holdMs": 2000
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Không có nhánh cho “{{hanh_dong}}”"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "case:click",
+    "to": "s4"
+   },
+   {
+    "from": "s3",
+    "port": "case:double",
+    "to": "s5"
+   },
+   {
+    "from": "s3",
+    "port": "case:hold",
+    "to": "s6"
+   },
+   {
+    "from": "s3",
+    "port": "default",
+    "to": "s7"
+   }
+  ],
+  "inputs": [
+   {
+    "key": "hanh_dong",
+    "label": "Hành động",
+    "type": "select",
+    "options": [
+     "click",
+     "double",
+     "giữ"
+    ],
+    "default": "click"
+   }
+  ]
+ }
+}

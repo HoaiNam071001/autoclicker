@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import {
-  ClearDraft, ConfirmQuit, LoadDraft, NewScript, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetDirty,
+  ClearDraft, ConfirmQuit, LoadDraft, NewScript, OpenSample, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetDirty,
 } from '../wailsjs/go/main/App';
 import { model, store } from '../wailsjs/go/models';
 import { getEditor, markSaved, replaceScript, subscribe } from './store';
@@ -13,7 +13,8 @@ import { Script } from './types';
 const DRAFT_DELAY_MS = 800;
 
 // Việc đang chờ người dùng trả lời "Lưu thay đổi?" – chạy sau khi Lưu / Không lưu.
-type Pending = { action: 'new' } | { action: 'open' } | { action: 'recent'; path: string } | { action: 'quit' };
+type Pending = { action: 'new' } | { action: 'open' } | { action: 'recent'; path: string } | { action: 'sample'; id: string; name: string }
+  | { action: 'quit' };
 
 type FileState = {
   recent: string[]; // mở gần đây, mới nhất trước
@@ -74,6 +75,8 @@ async function run(p: Pending, discard = false) {
       return ConfirmQuit();
     }
     if (p.action === 'new') return replaceScript(fromGo(await NewScript()), null, false, 'Kịch bản mới');
+    // mẫu thử (bước 33): bản sao chưa có file – Lưu sẽ hỏi chỗ lưu, mẫu gốc không đổi
+    if (p.action === 'sample') return replaceScript(fromGo(await OpenSample(p.id)), null, false, `Đã mở mẫu “${p.name}”`);
     const res = p.action === 'open' ? await OpenScript() : await OpenScriptPath(p.path);
     if (!res.path) return; // huỷ hộp thoại
     replaceScript(fromGo(res.script), res.path, false, `Đã mở ${fileName(res.path)}`);
@@ -94,6 +97,7 @@ function guard(p: Pending) {
 export const newScript = () => guard({ action: 'new' });
 export const openScript = () => guard({ action: 'open' });
 export const openRecent = (path: string) => guard({ action: 'recent', path });
+export const openSample = (id: string, name: string) => guard({ action: 'sample', id, name });
 
 // Trả lời hộp thoại hỏi lưu.
 export async function answerPending(choice: 'save' | 'discard' | 'cancel') {

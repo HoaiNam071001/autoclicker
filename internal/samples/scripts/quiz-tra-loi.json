@@ -1,0 +1,169 @@
+{
+ "meta": {
+  "name": "Quiz – trả lời theo câu hỏi",
+  "description": "3 câu hỏi thứ tự ngẫu nhiên: Switch theo màn hình nhận ra câu đang hiện rồi bấm đúng đáp án (Click theo chữ), tới khi HOÀN THÀNH QUIZ.",
+  "app": "Quiz",
+  "level": 3,
+  "page": "quiz.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/quiz.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "switchScreen",
+    "timeoutMs": 5000,
+    "cases": [
+     {
+      "key": "xong",
+      "label": "Xong",
+      "cond": {
+       "kind": "text",
+       "findText": "HOAN THANH QUIZ",
+       "textNoAccent": true,
+       "searchArea": "screen"
+      }
+     },
+     {
+      "key": "thudo",
+      "label": "Thủ đô",
+      "cond": {
+       "kind": "text",
+       "findText": "THU DO CUA VIET NAM",
+       "textNoAccent": true,
+       "searchArea": "screen"
+      }
+     },
+     {
+      "key": "cong",
+      "label": "Phép cộng",
+      "cond": {
+       "kind": "text",
+       "findText": "HAI CONG BA",
+       "textNoAccent": true,
+       "searchArea": "screen"
+      }
+     },
+     {
+      "key": "la",
+      "label": "Lá cây",
+      "cond": {
+       "kind": "text",
+       "findText": "LA CAY THUONG MAU GI",
+       "textNoAccent": true,
+       "searchArea": "screen"
+      }
+     }
+    ]
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "HA NOI",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 600,
+    "textExact": true
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "NAM",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 600,
+    "textExact": true
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "XANH LA",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 600,
+    "textExact": true
+   },
+   {
+    "type": "counter",
+    "max": 5
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã trả lời hết quiz"
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Không nhận ra câu hỏi"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "case:thudo",
+    "to": "s3"
+   },
+   {
+    "from": "s2",
+    "port": "case:cong",
+    "to": "s4"
+   },
+   {
+    "from": "s2",
+    "port": "case:la",
+    "to": "s5"
+   },
+   {
+    "from": "s2",
+    "port": "case:xong",
+    "to": "s7"
+   },
+   {
+    "from": "s2",
+    "port": "none",
+    "to": "s8"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "next",
+    "to": "s2"
+   },
+   {
+    "from": "s6",
+    "port": "done",
+    "to": "s8"
+   }
+  ]
+ }
+}

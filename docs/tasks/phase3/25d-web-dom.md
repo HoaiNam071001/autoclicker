@@ -35,4 +35,5 @@
   - [ ] Engine: interface `Browser` (như `Input` / `Screen`), test bằng trình duyệt giả (DOM giả + toạ độ); test thật `AUTOCLICKER_REAL=1` mở trang HTML cục bộ
   - [ ] UI: inspector (selector + dự phòng, tab, chuột thật / chạy nền), **Thử tìm** (khung phần tử trên overlay, toạ độ, chữ đọc được, ms); nút **Chọn phần tử trên trang** (inject script tô viền phần tử dưới chuột, click → tự sinh selector theo thứ tự ưu tiên ở trên); trạng thái kết nối trình duyệt
   - [ ] Chuẩn bị cho MCP (31): `FindElement(selector) → {rect màn hình, chữ, hiện / bị che}` và `PageOutline()` (cây accessibility rút gọn cho AI) là hàm Go độc lập UI – Thử tìm, Xem trên màn hình, MCP dùng chung
+  - [ ] Kịch bản mẫu (bước 33): mỗi loại `webWait` / `webClick` / `webScroll` / `webType` / `webRead` ≥ 1 mẫu trong `internal/samples/` chạy trên trang sân thử (vd form đăng nhập, feed, bảng dữ liệu bằng DOM thay vì OCR) – `TestEveryStepTypeHasSample` bắt buộc
   - [ ] Kiểm tra tay: trang có nút "Xem lịch sử" nằm dưới màn hình → bước chờ + click chạy đúng khi dời cửa sổ, zoom 125%, mở DevTools, có popup che

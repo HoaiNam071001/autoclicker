@@ -1,0 +1,70 @@
+{
+ "meta": {
+  "name": "Chờ ảnh + click theo ảnh",
+  "description": "Tìm logo (ảnh mẫu có sẵn) ở vị trí ngẫu nhiên, click vào nó; logo nhảy chỗ khác, lặp 3 lần. Đúng: Trúng logo = 3, Bấm trượt = 0.",
+  "app": "Chờ / tìm",
+  "level": 2,
+  "page": "image.html",
+  "real": false,
+  "prep": "Trình duyệt để zoom 100% (ảnh mẫu chụp ở 100%)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/image.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "template": "@logo.png",
+    "templateScale": 2,
+    "threshold": 85,
+    "searchArea": "screen",
+    "timeoutMs": 8000
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "node",
+    "imageFrom": "s2",
+    "delayAfter": 700
+   },
+   {
+    "type": "counter",
+    "max": 2
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã trúng logo 3 lần"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "next",
+    "to": "s2"
+   },
+   {
+    "from": "s4",
+    "port": "done",
+    "to": "s5"
+   }
+  ]
+ }
+}

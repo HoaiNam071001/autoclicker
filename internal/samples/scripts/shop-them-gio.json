@@ -1,0 +1,135 @@
+{
+ "meta": {
+  "name": "Cửa hàng – thêm vào giỏ",
+  "description": "Bấm MUA <món> đủ số lượng (Đặt biến đếm + Nếu so giá trị), rồi đọc thanh giỏ hàng để kiểm tra GIỎ: N MÓN.",
+  "app": "Shop",
+  "level": 2,
+  "page": "shop.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/shop.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "setVar",
+    "varName": "dem",
+    "varOp": "set",
+    "value": "0",
+    "delayAfter": 0
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "MUA {{mon}}",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 300
+   },
+   {
+    "type": "setVar",
+    "varName": "dem",
+    "varOp": "add",
+    "value": "1",
+    "delayAfter": 0
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "value",
+     "left": "{{vars.dem}}",
+     "op": "lt",
+     "right": "{{so_luong}}"
+    }
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "GIO: {{so_luong}} MON",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 3000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Giỏ có {{so_luong}} × {{mon}}"
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Thanh giỏ không hiện đúng {{so_luong}} món"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "true",
+    "to": "s3"
+   },
+   {
+    "from": "s5",
+    "port": "false",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "success",
+    "to": "s7"
+   },
+   {
+    "from": "s6",
+    "port": "fail",
+    "to": "s8"
+   }
+  ],
+  "inputs": [
+   {
+    "key": "mon",
+    "label": "Món",
+    "type": "select",
+    "options": [
+     "Táo",
+     "Cam",
+     "Xoài",
+     "Chuối",
+     "Nho"
+    ],
+    "default": "Táo"
+   },
+   {
+    "key": "so_luong",
+    "label": "Số lượng",
+    "type": "number",
+    "default": 3,
+    "min": 1,
+    "max": 9
+   }
+  ]
+ }
+}

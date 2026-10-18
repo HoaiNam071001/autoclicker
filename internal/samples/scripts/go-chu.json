@@ -1,0 +1,52 @@
+{
+ "meta": {
+  "name": "Gõ chữ có biến",
+  "description": "Click vào ô rồi gõ lời chào có tên lấy từ input (hỏi khi bấm Chạy). Đúng: ô hiện “Xin chào <tên>! Hôm nay chạy thử Auto Clicker.”",
+  "app": "Cơ bản",
+  "level": 1,
+  "page": "type.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/type.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "O GO CHU",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "click",
+    "points": [
+     {
+      "x": 0,
+      "y": 0,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "delayAfter": 300
+   },
+   {
+    "type": "type",
+    "text": "Xin chào {{ten}}! Hôm nay chạy thử Auto Clicker."
+   }
+  ],
+  "inputs": [
+   {
+    "key": "ten",
+    "label": "Tên",
+    "type": "text",
+    "default": "Lan"
+   }
+  ]
+ }
+}

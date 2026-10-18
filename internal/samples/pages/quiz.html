@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  main { display: grid; place-items: center; padding: 30px 20px; }
+  #q { width: 680px; max-width: 100%; text-align: center; }
+  #q .big { font-size: 40px; margin: 10px 0 26px; }
+  #answers { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  #answers .btn { background: var(--surface); color: var(--ink); border: 2px solid var(--line); }
+  #answers .btn:hover { border-color: var(--accent); }
+  #progress { color: var(--muted); font-size: 18px; }
+</style></head>
+<body>
+<main><div id="q" class="card"></div></main>
+<div class="stats"></div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // 3 câu hỏi thứ tự ngẫu nhiên, đáp án xáo trộn; chữ câu hỏi / đáp án không trùng nhau giữa các câu
+  // để Switch theo màn hình biết đang ở câu nào và Click theo chữ bấm đúng đáp án.
+  sb.header('Quiz');
+  const bank = [
+    ['THỦ ĐÔ CỦA VIỆT NAM?', 'HÀ NỘI', ['ĐÀ NẴNG', 'CẦN THƠ', 'HUẾ']],
+    ['HAI CỘNG BA BẰNG MẤY?', 'NĂM', ['BỐN', 'SÁU', 'BẢY']],
+    ['LÁ CÂY THƯỜNG MÀU GÌ?', 'XANH LÁ', ['TÍM', 'CAM', 'ĐEN']],
+  ].sort(() => Math.random() - 0.5);
+  const setRight = sb.stat('Đúng'), setWrong = sb.stat('Sai');
+  let i = 0, right = 0, wrong = 0;
+  const q = document.getElementById('q');
+  const show = () => {
+    if (i >= bank.length) {
+      q.innerHTML = `<div class="big">HOÀN THÀNH QUIZ</div><div id="progress">Đúng ${right} / ${bank.length}</div>`;
+      return;
+    }
+    const [text, ok, bad] = bank[i];
+    const opts = [ok, ...bad].sort(() => Math.random() - 0.5);
+    q.innerHTML = `<div id="progress">Câu ${i + 1} / ${bank.length}</div><div class="big">${text}</div>
+      <div id="answers">${opts.map((o) => `<button class="btn">${o}</button>`).join('')}</div>`;
+    q.querySelectorAll('#answers .btn').forEach((b) => b.onclick = () => {
+      const good = b.textContent === ok;
+      good ? setRight(++right) : setWrong(++wrong);
+      sb.log(`câu ${i + 1}: ${good ? 'đúng' : 'sai'}`); // không chép lại chữ câu hỏi / đáp án – OCR sẽ đọc nhầm
+      i++;
+      show();
+    });
+  };
+  show();
+</script>
+</body></html>

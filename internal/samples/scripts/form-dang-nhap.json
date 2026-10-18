@@ -1,0 +1,161 @@
+{
+ "meta": {
+  "name": "Form đăng nhập",
+  "description": "Click nhãn TÊN TÀI KHOẢN / MẬT KHẨU (tìm theo chữ), gõ từ input, Enter; Switch theo màn hình: XIN CHÀO → thành công, SAI THÔNG TIN → thất bại. Thử nhập sai mật khẩu để thấy nhánh lỗi.",
+  "app": "Form",
+  "level": 2,
+  "page": "login.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/login.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "TEN TAI KHOAN",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 200,
+    "textExact": true
+   },
+   {
+    "type": "type",
+    "text": "{{tai_khoan}}",
+    "delayAfter": 150
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "MAT KHAU",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 200,
+    "textExact": true
+   },
+   {
+    "type": "type",
+    "text": "{{mat_khau}}",
+    "delayAfter": 150
+   },
+   {
+    "type": "key",
+    "keys": [
+     "enter"
+    ],
+    "delayAfter": 500
+   },
+   {
+    "type": "switchScreen",
+    "timeoutMs": 4000,
+    "cases": [
+     {
+      "key": "ok",
+      "label": "Vào được",
+      "cond": {
+       "kind": "text",
+       "findText": "XIN CHAO",
+       "textNoAccent": true,
+       "searchArea": "screen"
+      }
+     },
+     {
+      "key": "bad",
+      "label": "Sai",
+      "cond": {
+       "kind": "text",
+       "findText": "SAI THONG TIN",
+       "textNoAccent": true,
+       "searchArea": "screen"
+      }
+     }
+    ]
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đăng nhập được bằng {{tai_khoan}}"
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Sai tài khoản / mật khẩu"
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Không thấy kết quả đăng nhập"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "success",
+    "to": "s7"
+   },
+   {
+    "from": "s7",
+    "port": "case:ok",
+    "to": "s8"
+   },
+   {
+    "from": "s7",
+    "port": "case:bad",
+    "to": "s9"
+   },
+   {
+    "from": "s7",
+    "port": "none",
+    "to": "s10"
+   }
+  ],
+  "inputs": [
+   {
+    "key": "tai_khoan",
+    "label": "Tài khoản",
+    "type": "text",
+    "default": "demo"
+   },
+   {
+    "key": "mat_khau",
+    "label": "Mật khẩu",
+    "type": "text",
+    "default": "123456",
+    "hint": "Đúng: 123456 – nhập khác để thử nhánh sai"
+   }
+  ]
+ }
+}

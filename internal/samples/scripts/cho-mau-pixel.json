@@ -1,0 +1,39 @@
+{
+ "meta": {
+  "name": "Chờ màu pixel",
+  "description": "Chờ điểm dưới giữa màn hình đổi sang xanh #16a34a (nền trang Tín hiệu đổi màu sau 2–6 s). Đúng: kết thúc thành công khi nền xanh.",
+  "app": "Chờ / tìm",
+  "level": 1,
+  "page": "signal.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/signal.html",
+    "delayAfter": 800
+   },
+   {
+    "type": "waitPixel",
+    "points": [
+     {
+      "x": 0,
+      "y": 250,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "color": "#16a34a",
+    "tolerance": 40,
+    "timeoutMs": 15000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Nền đã xanh"
+   }
+  ]
+ }
+}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  #now { position: fixed; right: 20px; bottom: 20px; z-index: 5; padding: 10px 16px; border-radius: 10px; background: var(--ink); color: #fff; font-size: 18px; font-variant-numeric: tabular-nums; }
+  section { height: 420px; margin: 0 20px 16px; border-radius: 16px; display: grid; place-items: center; }
+  section h2 { margin: 0; font-size: 64px; font-weight: 800; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.25); }
+  #hscroll { margin: 0 20px 16px; overflow-x: auto; white-space: nowrap; border: 3px dashed var(--line); border-radius: 16px; background: var(--surface); }
+  #hscroll div { display: inline-grid; place-items: center; width: 360px; height: 160px; font-size: 36px; font-weight: 800; color: var(--muted); border-right: 1px solid var(--line); }
+</style></head>
+<body>
+<div id="now"></div>
+<div id="hscroll"></div>
+<main id="list"></main>
+<script src="sandbox.js"></script>
+<script>
+  // 40 mục cao 420 px, chữ "MỤC n" to (OCR đọc được); dải ngang để thử cuộn trái / phải.
+  sb.header('Trang dài');
+  const hues = [215, 160, 30, 280, 0, 190];
+  document.getElementById('list').innerHTML = Array.from({ length: 40 }, (_, i) =>
+    `<section style="background:hsl(${hues[i % hues.length]} 70% 45%)"><h2>MỤC ${i + 1}</h2></section>`).join('');
+  document.getElementById('hscroll').innerHTML = Array.from({ length: 12 }, (_, i) => `<div>CỘT ${i + 1}</div>`).join('');
+  const now = document.getElementById('now'), hs = document.getElementById('hscroll');
+  const show = () => {
+    const secs = [...document.querySelectorAll('section')];
+    const mid = innerHeight / 2;
+    const cur = secs.findIndex((s) => { const r = s.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; });
+    now.textContent = `Đang xem: ${cur >= 0 ? 'Mục ' + (cur + 1) : '–'} · cuộn dọc ${Math.round(scrollY)} px · ngang ${Math.round(hs.scrollLeft)} px`;
+  };
+  addEventListener('scroll', show);
+  hs.addEventListener('scroll', show);
+  show();
+</script>
+</body></html>

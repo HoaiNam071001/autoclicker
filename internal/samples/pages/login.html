@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  main { display: grid; place-items: center; padding: 40px 20px; }
+  form { width: 420px; display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 18px; font-weight: 700; margin-top: 10px; cursor: text; }
+  input { padding: 12px; font-size: 20px; border: 2px solid var(--line); border-radius: 10px; }
+  input:focus { border-color: var(--accent); outline: none; }
+  #err { color: var(--danger); font-size: 22px; font-weight: 800; min-height: 32px; }
+  #ok { display: none; text-align: center; }
+  .hint { color: var(--muted); font-size: 14px; }
+</style></head>
+<body>
+<main>
+  <form id="f" class="card" autocomplete="off">
+    <div class="big" style="font-size:34px">ĐĂNG NHẬP HỆ THỐNG</div>
+    <label for="u">TÊN TÀI KHOẢN</label><input id="u">
+    <label for="p">MẬT KHẨU</label><input id="p" type="password">
+    <div id="err"></div>
+    <button class="btn" type="submit">VÀO HỆ THỐNG</button>
+    <div class="hint">Tài khoản đúng: demo / 123456. Enter trong ô cũng gửi form.</div>
+  </form>
+  <div id="ok" class="card"><div class="big">XIN CHÀO <span id="who"></span></div><p class="hint">Đăng nhập thành công lúc <span id="at"></span></p></div>
+</main>
+<div class="stats"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Bấm vào chữ nhãn (TÊN TÀI KHOẢN / MẬT KHẨU) là focus ô bên dưới – kịch bản tìm nhãn theo chữ rồi click.
+  // Sai → chữ đỏ SAI THÔNG TIN; đúng → màn XIN CHÀO DEMO.
+  sb.header('Form đăng nhập');
+  const setTry = sb.stat('Lần thử'), setFail = sb.stat('Lần sai');
+  let tries = 0, fails = 0;
+  document.getElementById('f').addEventListener('submit', (e) => {
+    e.preventDefault();
+    setTry(++tries);
+    const u = document.getElementById('u').value.trim(), p = document.getElementById('p').value;
+    if (u === 'demo' && p === '123456') {
+      document.getElementById('f').style.display = 'none';
+      document.getElementById('ok').style.display = 'block';
+      document.getElementById('who').textContent = u.toUpperCase();
+      document.getElementById('at').textContent = new Date().toLocaleTimeString();
+    } else {
+      setFail(++fails);
+      document.getElementById('err').textContent = 'SAI THÔNG TIN (' + fails + ')';
+      document.getElementById('p').value = '';
+    }
+  });
+</script>
+</body></html>

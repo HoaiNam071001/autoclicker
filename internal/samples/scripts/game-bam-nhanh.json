@@ -1,0 +1,84 @@
+{
+ "meta": {
+  "name": "Game – bấm nút chạy",
+  "description": "Nút BẮT TÔI nhảy chỗ sau mỗi lần trúng: tìm theo chữ, bấm, Nếu thấy CHIẾN THẮNG thì xong, tối đa 15 lần.",
+  "app": "Game",
+  "level": 1,
+  "page": "game.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/game.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "BAT TOI",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 150
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "text",
+     "findText": "CHIEN THANG",
+     "textNoAccent": true,
+     "searchArea": "screen"
+    }
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Thắng sau {{n5.output.count}} lần đếm"
+   },
+   {
+    "type": "counter",
+    "max": 15
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Bấm 15 lần chưa thắng"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "true",
+    "to": "s4"
+   },
+   {
+    "from": "s3",
+    "port": "false",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "next",
+    "to": "s2"
+   },
+   {
+    "from": "s5",
+    "port": "done",
+    "to": "s6"
+   }
+  ]
+ }
+}

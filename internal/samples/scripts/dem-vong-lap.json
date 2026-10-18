@@ -1,0 +1,76 @@
+{
+ "meta": {
+  "name": "Đếm vòng lặp",
+  "description": "Click rồi quay lại, node Đếm cho đi 5 lần rồi kết thúc. Đúng: Click trái = 6 (1 lần đầu + 5 lần lặp).",
+  "app": "Điều khiển",
+  "level": 1,
+  "page": "click.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/click.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "BANG CLICK",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "click",
+    "points": [
+     {
+      "x": 0,
+      "y": 40,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "delayAfter": 300
+   },
+   {
+    "type": "counter",
+    "max": 5
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Xong sau {{n4.output.count}} lần đếm"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "next",
+    "to": "s3"
+   },
+   {
+    "from": "s4",
+    "port": "done",
+    "to": "s5"
+   }
+  ]
+ }
+}

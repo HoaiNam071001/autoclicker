@@ -1,0 +1,117 @@
+{
+ "meta": {
+  "name": "Feed – cuộn tìm bài rồi thả tim",
+  "description": "Feed cuộn vô hạn, bài ĐẶC BIỆT ở vị trí ngẫu nhiên: chưa thấy nút THẢ TIM BÀI NÀY thì cuộn 4 nấc, tối đa 30 lần; thấy thì bấm.",
+  "app": "Mạng xã hội",
+  "level": 2,
+  "page": "feed.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/feed.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "FEED MANG XA HOI",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "text",
+     "findText": "THA TIM BAI NAY",
+     "textNoAccent": true,
+     "searchArea": "screen"
+    }
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "THA TIM BAI NAY",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 600
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã thả tim bài đặc biệt"
+   },
+   {
+    "type": "scroll",
+    "points": [
+     {
+      "x": 0,
+      "y": 60,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "direction": "down",
+    "amount": 4,
+    "delayAfter": 700
+   },
+   {
+    "type": "counter",
+    "max": 30
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Cuộn 30 lần chưa thấy bài đặc biệt"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "true",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s3",
+    "port": "false",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "success",
+    "to": "s7"
+   },
+   {
+    "from": "s7",
+    "port": "next",
+    "to": "s3"
+   },
+   {
+    "from": "s7",
+    "port": "done",
+    "to": "s8"
+   }
+  ]
+ }
+}

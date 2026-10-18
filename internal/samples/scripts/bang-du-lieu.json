@@ -1,0 +1,128 @@
+{
+ "meta": {
+  "name": "Bảng dữ liệu – điền 2 hàng",
+  "description": "Tìm tiêu đề cột HỌ TÊN rồi click lệch xuống 44 px (ô hàng 1), gõ từng ô, Tab sang ô kế (hết hàng tự xuống hàng sau).",
+  "app": "Bảng tính",
+  "level": 2,
+  "page": "table.html",
+  "real": false,
+  "prep": "Trình duyệt để zoom 100% (hàng cao 44 px)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/table.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "HO TEN",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 200,
+    "textExact": true,
+    "dy": 44
+   },
+   {
+    "type": "type",
+    "text": "Lan",
+    "delayAfter": 150
+   },
+   {
+    "type": "key",
+    "keys": [
+     "tab"
+    ],
+    "delayAfter": 150
+   },
+   {
+    "type": "type",
+    "text": "25",
+    "delayAfter": 150
+   },
+   {
+    "type": "key",
+    "keys": [
+     "tab"
+    ],
+    "delayAfter": 150
+   },
+   {
+    "type": "type",
+    "text": "Huế",
+    "delayAfter": 150
+   },
+   {
+    "type": "key",
+    "keys": [
+     "tab"
+    ],
+    "delayAfter": 150
+   },
+   {
+    "type": "type",
+    "text": "Khách quen",
+    "delayAfter": 150
+   },
+   {
+    "type": "key",
+    "keys": [
+     "tab"
+    ],
+    "delayAfter": 150
+   },
+   {
+    "type": "type",
+    "text": "Minh",
+    "delayAfter": 150
+   },
+   {
+    "type": "key",
+    "keys": [
+     "tab"
+    ],
+    "delayAfter": 150
+   },
+   {
+    "type": "type",
+    "text": "31",
+    "delayAfter": 150
+   },
+   {
+    "type": "key",
+    "keys": [
+     "tab"
+    ],
+    "delayAfter": 150
+   },
+   {
+    "type": "type",
+    "text": "Đà Nẵng",
+    "delayAfter": 150
+   },
+   {
+    "type": "key",
+    "keys": [
+     "tab"
+    ],
+    "delayAfter": 150
+   },
+   {
+    "type": "type",
+    "text": "Khách mới",
+    "delayAfter": 150
+   },
+   {
+    "type": "key",
+    "keys": [
+     "enter"
+    ],
+    "delayAfter": 150
+   }
+  ]
+ }
+}

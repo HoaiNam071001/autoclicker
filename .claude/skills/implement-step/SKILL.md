@@ -28,6 +28,8 @@ description: Làm một bước / mục con theo plan trong docs/tasks (vd "làm
 5. **Component** – phần chỉ hiển thị (props) tách khỏi phần nối store; dùng lại `NumInput`, `Segmented`, `Switch`, `Field`, `PortField`, `StepIcon`… UI theo `design/DESIGN.md` (token, không màu cứng, không `text-white`).
 6. Tính năng đang hiện *Sắp có* (bước 27b) → bỏ trạng thái tắt, chuyển kiểu từ `components/steps/model.ts` sang `types.ts` + `internal/model/model.go`, xoá dữ liệu giả không còn dùng.
 
+Tính năng mới người dùng thử được (loại bước, trường mới, hành vi mới của bước cũ) → thêm / sửa **kịch bản mẫu** trong `internal/samples/` (bước 33) để người dùng mở từ *Mẫu thử* và thử tay ngay.
+
 Trong lúc làm: mục con xong là tick `[x]` ngay; việc phát sinh thêm thành mục con.
 
 ## 4. Kiểm tra (bắt buộc, báo kết quả thật)

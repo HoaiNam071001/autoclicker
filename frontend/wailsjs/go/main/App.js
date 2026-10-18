@@ -58,6 +58,14 @@ export function NewStep(arg1) {
   return window['go']['main']['App']['NewStep'](arg1);
 }
 
+export function OpenSample(arg1) {
+  return window['go']['main']['App']['OpenSample'](arg1);
+}
+
+export function OpenSandboxPage(arg1) {
+  return window['go']['main']['App']['OpenSandboxPage'](arg1);
+}
+
 export function OpenScript() {
   return window['go']['main']['App']['OpenScript']();
 }
@@ -96,6 +104,10 @@ export function RunScript(arg1, arg2, arg3) {
 
 export function RunShot(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['RunShot'](arg1, arg2, arg3, arg4);
+}
+
+export function Samples() {
+  return window['go']['main']['App']['Samples']();
 }
 
 export function SaveDraft(arg1) {

@@ -1,0 +1,136 @@
+{
+ "meta": {
+  "name": "Switch theo màn hình",
+  "description": "Màn nào hiện trước thì đi nhánh đó: quảng cáo → đóng, đăng nhập → bấm TIẾP TỤC, rồi quay lại xét tiếp tới khi thấy TRANG CHỦ.",
+  "app": "Điều khiển",
+  "level": 2,
+  "page": "popup.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/popup.html",
+    "delayAfter": 1500
+   },
+   {
+    "type": "switchScreen",
+    "timeoutMs": 6000,
+    "cases": [
+     {
+      "key": "ad",
+      "label": "Quảng cáo",
+      "cond": {
+       "kind": "text",
+       "findText": "QUANG CAO",
+       "textNoAccent": true,
+       "searchArea": "screen"
+      }
+     },
+     {
+      "key": "login",
+      "label": "Đăng nhập",
+      "cond": {
+       "kind": "text",
+       "findText": "DANG NHAP",
+       "textNoAccent": true,
+       "searchArea": "screen"
+      }
+     },
+     {
+      "key": "home",
+      "label": "Trang chủ",
+      "cond": {
+       "kind": "text",
+       "findText": "TRANG CHU",
+       "textNoAccent": true,
+       "searchArea": "screen"
+      }
+     }
+    ]
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "DONG QUANG CAO",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 600
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "TIEP TUC",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 600
+   },
+   {
+    "type": "counter",
+    "max": 5
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã vào trang chủ"
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Không nhận ra màn nào trong 6 s"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "case:ad",
+    "to": "s3"
+   },
+   {
+    "from": "s2",
+    "port": "case:login",
+    "to": "s4"
+   },
+   {
+    "from": "s2",
+    "port": "case:home",
+    "to": "s6"
+   },
+   {
+    "from": "s2",
+    "port": "none",
+    "to": "s7"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "next",
+    "to": "s2"
+   },
+   {
+    "from": "s5",
+    "port": "done",
+    "to": "s7"
+   }
+  ]
+ }
+}

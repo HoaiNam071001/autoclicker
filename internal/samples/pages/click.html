@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  #pad { flex: 1; margin: 0 20px 12px; border: 3px dashed var(--line); border-radius: 16px; background: var(--surface);
+    position: relative; display: grid; place-items: center; user-select: none; cursor: crosshair; min-height: 300px; }
+  #pad .big { color: #cbd5e1; pointer-events: none; }
+  .dot { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; pointer-events: none; }
+</style></head>
+<body>
+<div class="stats"></div>
+<div id="pad"><div class="big">BẢNG CLICK</div></div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Vùng lớn nhận click ở đâu cũng được: bước theo toạ độ chạy được ở mọi vị trí cửa sổ.
+  sb.header('Bảng click');
+  const setLeft = sb.stat('Click trái'), setRight = sb.stat('Click phải'), setMid = sb.stat('Click giữa');
+  const setDouble = sb.stat('Double click'), setHold = sb.stat('Giữ lâu nhất (ms)'), setGap = sb.stat('Nhịp gần nhất (ms)', '–');
+  const n = { 0: 0, 1: 0, 2: 0, dbl: 0 };
+  let downAt = 0, lastUp = 0, maxHold = 0;
+  const pad = document.getElementById('pad');
+  const colors = ['#2563eb', '#f59e0b', '#dc2626'];
+  const names = ['trái', 'giữa', 'phải'];
+  pad.addEventListener('contextmenu', (e) => e.preventDefault());
+  pad.addEventListener('mousedown', (e) => { downAt = performance.now(); e.preventDefault(); });
+  pad.addEventListener('mouseup', (e) => {
+    const now = performance.now(), hold = Math.round(now - downAt);
+    n[e.button]++;
+    [setLeft, setMid, setRight][e.button](n[e.button]);
+    if (hold > maxHold) setHold(maxHold = hold);
+    const gap = lastUp ? Math.round(now - lastUp) : null;
+    if (gap !== null) setGap(gap);
+    lastUp = now;
+    const r = pad.getBoundingClientRect();
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.style.background = colors[e.button];
+    dot.style.left = e.clientX - r.left + 'px';
+    dot.style.top = e.clientY - r.top + 'px';
+    pad.appendChild(dot);
+    sb.log(`click ${names[e.button]} tại (${e.screenX}, ${e.screenY}) giữ ${hold} ms` + (gap !== null ? `, cách lần trước ${gap} ms` : ''));
+  });
+  pad.addEventListener('dblclick', () => { setDouble(++n.dbl); sb.log('double click'); });
+</script>
+</body></html>

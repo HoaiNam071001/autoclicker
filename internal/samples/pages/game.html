@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  #arena { flex: 1; position: relative; margin: 0 20px 12px; min-height: 400px; border-radius: 16px; background: #0f172a; overflow: hidden; }
+  #target { position: absolute; padding: 18px 26px; border: 0; border-radius: 999px; background: #facc15; color: #111827; font-size: 24px; font-weight: 900; cursor: pointer; }
+  #win { position: absolute; inset: 0; display: none; place-items: center; color: #4ade80; font-size: 72px; font-weight: 900; }
+</style></head>
+<body>
+<div class="stats"></div>
+<div id="arena"><button id="target">BẮT TÔI</button><div id="win">CHIẾN THẮNG</div></div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Nút BẮT TÔI nhảy chỗ mới sau mỗi lần trúng; đủ 10 điểm hiện CHIẾN THẮNG.
+  sb.header('Game bấm nhanh');
+  const GOAL = 10;
+  const setScore = sb.stat('Điểm'), setMiss = sb.stat('Trượt'), setTime = sb.stat('Thời gian (s)', '0.0');
+  const arena = document.getElementById('arena'), target = document.getElementById('target');
+  let score = 0, miss = 0, t0 = 0;
+  const jump = () => {
+    target.style.left = Math.round(sb.rand(20, arena.clientWidth - target.offsetWidth - 20)) + 'px';
+    target.style.top = Math.round(sb.rand(20, arena.clientHeight - target.offsetHeight - 20)) + 'px';
+  };
+  jump();
+  target.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!t0) t0 = performance.now();
+    setScore(++score);
+    setTime(((performance.now() - t0) / 1000).toFixed(1));
+    sb.log(`trúng – ${score} điểm`);
+    if (score >= GOAL) {
+      target.style.display = 'none';
+      document.getElementById('win').style.display = 'grid';
+      return;
+    }
+    jump();
+  });
+  arena.addEventListener('click', () => { if (score < GOAL) setMiss(++miss); });
+</script>
+</body></html>

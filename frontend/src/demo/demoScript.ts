@@ -2,6 +2,7 @@
 // KHÔNG dùng trong app thật và không thêm các loại này vào types.ts / model.go – mỗi loại sẽ vào model ở bước làm logic.
 import { StepIconName } from '../components/icons';
 import { LibraryProps } from '../components/Library';
+import DemoSamples from './DemoSamples';
 import type { InputView } from '../components/inputs/model';
 import type { Preset, RunSection } from '../components/inputs/RunDialog';
 
@@ -37,6 +38,7 @@ export const demoItems: DemoItem[] = [
 ];
 
 export const demoLibrary: LibraryProps = {
+  SamplesPanel: DemoSamples,
   scripts: [
     { name: 'Nhắn tin Facebook', unsaved: true },
     { name: 'Farm nhặt đồ', schedule: '08:00' },

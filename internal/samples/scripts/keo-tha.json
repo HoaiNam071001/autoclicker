@@ -1,0 +1,96 @@
+{
+ "meta": {
+  "name": "Kéo thả",
+  "description": "Vẽ hình vuông trên Bảng vẽ: kéo tuyệt đối, kéo tương đối (lệch dx, dy) và kéo tiếp từ chỗ chuột dừng. Đúng: 4 vệt nối thành hình vuông.",
+  "app": "Cơ bản",
+  "level": 1,
+  "page": "draw.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/draw.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "BANG VE",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "drag",
+    "points": [
+     {
+      "x": -150,
+      "y": -100,
+      "ax": "center",
+      "ay": "center"
+     },
+     {
+      "x": 150,
+      "y": -100,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "dragMs": 500
+   },
+   {
+    "type": "drag",
+    "points": [
+     {
+      "x": 150,
+      "y": -100,
+      "ax": "center",
+      "ay": "center"
+     },
+     {
+      "x": 0,
+      "y": 200
+     }
+    ],
+    "dragRelative": true,
+    "dragMs": 500
+   },
+   {
+    "type": "drag",
+    "points": [
+     {
+      "x": 0,
+      "y": 0
+     },
+     {
+      "x": -150,
+      "y": 100,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "dragFromPrev": true,
+    "dragMs": 500
+   },
+   {
+    "type": "drag",
+    "points": [
+     {
+      "x": 0,
+      "y": 0
+     },
+     {
+      "x": 0,
+      "y": -200
+     }
+    ],
+    "dragFromPrev": true,
+    "dragRelative": true,
+    "dragMs": 500
+   }
+  ]
+ }
+}
