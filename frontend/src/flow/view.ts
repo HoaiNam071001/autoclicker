@@ -145,6 +145,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'waitImage': return FOUND;
     case 'clickImage': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...(s.imageSource === 'search' ? FOUND : [])];
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
+    case 'clipboard': return s.clipOp === 'image' ? [{ key: 'path', desc: 'file ảnh đã chép' }] : [{ key: 'text', desc: s.clipOp === 'write' ? 'chữ đã ghi' : 'chữ đọc được' }];
     case 'screenshot': return [{ key: 'path', desc: 'đường dẫn file ảnh' }, { key: 'x', desc: 'vùng đã chụp – X trái' }, { key: 'y', desc: 'vùng đã chụp – Y trên' },
       { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' }];
     case 'webWait': return s.webGone ? [] : WEB_FOUND;

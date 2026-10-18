@@ -37,3 +37,12 @@ const (
 	KeyChord    = "chord"    // nhấn giữ phím kèm + mọi phím chính cùng lúc rồi nhả (vd Ctrl+C+T)
 	KeySequence = "sequence" // giữ phím kèm, gõ lần lượt từng phím chính rồi nhả phím kèm
 )
+
+// Phép của node Clipboard (Step.ClipOp).
+const (
+	ClipRead  = ""      // đọc chữ đang có vào output text
+	ClipWrite = "write" // ghi Text (rỗng = xoá clipboard)
+	ClipImage = "image" // ghi ảnh PNG từ FilePath
+)
+
+var ClipOps = []string{ClipRead, ClipWrite, ClipImage}

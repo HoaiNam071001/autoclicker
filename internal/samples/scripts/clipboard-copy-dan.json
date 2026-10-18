@@ -1,0 +1,79 @@
+{
+ "meta": {
+  "name": "Clipboard – ghi, dán, copy lại",
+  "description": "Ghi lời chào có tên (input) vào clipboard, click vào ô rồi Cmd+V dán, chọn hết + Cmd+C copy lại từ ô, đọc clipboard. Đúng: ô hiện “Dán từ clipboard: Xin chào <tên>!”, lời kết thúc ghi lại đúng chữ đó.",
+  "app": "Cơ bản",
+  "level": 1,
+  "page": "type.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình. Mẫu ghi đè clipboard đang có. Windows: đổi phím kèm Cmd thành Ctrl ở 3 node Phím tắt."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/type.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "O GO CHU",
+    "textNoAccent": true,
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "clipboard",
+    "clipOp": "write",
+    "text": "Dán từ clipboard: Xin chào {{ten}}!"
+   },
+   {
+    "type": "click",
+    "points": [
+     {
+      "x": 0,
+      "y": 0,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "delayAfter": 300
+   },
+   {
+    "type": "key",
+    "keys": ["v"],
+    "modifiers": ["cmd"],
+    "delayAfter": 500
+   },
+   {
+    "type": "key",
+    "keys": ["a"],
+    "modifiers": ["cmd"],
+    "delayAfter": 200
+   },
+   {
+    "type": "key",
+    "keys": ["c"],
+    "modifiers": ["cmd"],
+    "delayAfter": 300
+   },
+   {
+    "type": "clipboard"
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Clipboard đọc lại: {{n8.output.text}}"
+   }
+  ],
+  "inputs": [
+   {
+    "key": "ten",
+    "label": "Tên",
+    "type": "text",
+    "default": "Lan"
+   }
+  ]
+ }
+}

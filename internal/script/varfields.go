@@ -54,6 +54,13 @@ func VarFields(s *model.Step) []VarField {
 				add(fmt.Sprintf("scrollIn[%d]", i), &s.ScrollIn[i], false)
 			}
 		}
+	case model.StepClipboard:
+		switch s.ClipOp {
+		case model.ClipWrite:
+			add("text", &s.Text, false)
+		case model.ClipImage:
+			add("filePath", &s.FilePath, false)
+		}
 	case model.StepScreenshot:
 		add("saveDir", &s.SaveDir, false)
 		add("fileName", &s.FileName, false)

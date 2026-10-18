@@ -14,6 +14,7 @@ import { OpenFields, TypeFields } from './stepform/TextFields';
 import { CapturePermission, ClickImageFields, ImageSearchFields, isImageStep, WaitPixelFields } from './stepform/ImageFields';
 import { WebFields } from './stepform/WebFields';
 import { ShotFields } from './stepform/ShotFields';
+import { ClipFields } from './stepform/ClipFields';
 import { isWebStep } from '../flow/web';
 import FlowSections from './stepform/FlowSections';
 import ControlSection from './stepform/ControlSection';
@@ -24,7 +25,7 @@ import { nodeInfo } from '../flow/nodeInfo';
 import { NodeInfoCard, useNodeInfoShown } from './stepform/NodeInfoCard';
 
 // Loại node hành động đổi qua lại được trong ô Hành động (node điều khiển có trường riêng, không đổi loại)
-const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'screenshot', 'webWait', 'webClick',
+const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'screenshot', 'clipboard', 'webWait', 'webClick',
   'webType', 'webRead', 'webScroll'];
 const REF_RE = /^[A-Za-z][A-Za-z0-9_]{0,31}$/; // khớp validRef (flow.go)
 
@@ -109,6 +110,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'clickImage' && <ClickImageFields step={s} />}
       {s.type === 'waitPixel' && <WaitPixelFields step={s} setPoint={setPoint} />}
       {s.type === 'screenshot' && <ShotFields step={s} />}
+      {s.type === 'clipboard' && <ClipFields step={s} />}
       {isWebStep(s.type) && <WebFields step={s} />}
       {s.type === 'open' && <OpenFields step={s} />}
       {s.type === 'type' && <TypeFields step={s} />}

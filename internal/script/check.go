@@ -120,6 +120,10 @@ func checkStep(s *model.Step) error {
 		if s.Display < 0 {
 			return errors.New("số thứ tự màn hình không được âm")
 		}
+	case model.StepClipboard:
+		if !slices.Contains(model.ClipOps, s.ClipOp) {
+			return fmt.Errorf("phép clipboard không hợp lệ: %q (trống = đọc | write | image)", s.ClipOp)
+		}
 	case model.StepWait, model.StepText, model.StepKey, model.StepOpen, model.StepScroll, model.StepWaitImage, model.StepClickImage,
 		model.StepWebWait, model.StepWebClick, model.StepWebType, model.StepWebRead, model.StepWebScroll:
 		if err := checkWebFields(s); err != nil {

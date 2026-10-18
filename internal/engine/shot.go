@@ -87,21 +87,32 @@ func (e *Engine) nodeBox(id string) (model.Point, model.Rect, error) {
 	return model.Point{X: x, Y: y}, model.Rect{X: x - w/2, Y: y - h/2, W: w, H: h}, nil
 }
 
-// shotPath – đường dẫn file sẽ ghi: dir trống = Pictures/autoclicker, ~ / đường dẫn tương đối tính từ thư mục người
-// dùng; name trống = autoclicker-<ngày>-<giờ>; ký tự không hợp lệ trong tên → "-"; trùng file có sẵn thì thêm " (2)"…
-func shotPath(dir, name string, now time.Time) (string, error) {
+// userPath – đường dẫn người dùng gõ: ~ / đường dẫn tương đối tính từ thư mục người dùng (app không có thư mục làm việc
+// rõ ràng – chạy từ Finder / Start). Node Chụp màn hình, Clipboard (ảnh), sau này Tệp / thư mục.
+func userPath(p string) (string, error) {
+	p = strings.TrimSpace(p)
+	if filepath.IsAbs(p) {
+		return p, nil
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("không tìm thấy thư mục người dùng: %w", err)
 	}
-	dir = strings.TrimSpace(dir)
-	switch {
-	case dir == "":
-		dir = filepath.Join(home, "Pictures", "autoclicker")
-	case dir == "~" || strings.HasPrefix(dir, "~/") || strings.HasPrefix(dir, `~\`):
-		dir = filepath.Join(home, dir[1:])
-	case !filepath.IsAbs(dir):
-		dir = filepath.Join(home, dir)
+	if p == "~" || strings.HasPrefix(p, "~/") || strings.HasPrefix(p, `~\`) {
+		p = p[1:]
+	}
+	return filepath.Join(home, p), nil
+}
+
+// shotPath – đường dẫn file sẽ ghi: dir trống = Pictures/autoclicker, còn lại theo userPath; name trống =
+// autoclicker-<ngày>-<giờ>; ký tự không hợp lệ trong tên → "-"; trùng file có sẵn thì thêm " (2)"…
+func shotPath(dir, name string, now time.Time) (string, error) {
+	if strings.TrimSpace(dir) == "" {
+		dir = filepath.Join("Pictures", "autoclicker")
+	}
+	dir, err := userPath(dir)
+	if err != nil {
+		return "", err
 	}
 	name = strings.TrimSpace(name)
 	if name == "" {

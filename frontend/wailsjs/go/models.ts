@@ -811,6 +811,8 @@ export namespace model {
 	    saveDir?: string;
 	    fileName?: string;
 	    toClipboard?: boolean;
+	    clipOp?: string;
+	    filePath?: string;
 	    color?: string;
 	    tolerance?: number;
 	    cond?: Cond;
@@ -889,6 +891,8 @@ export namespace model {
 	        this.saveDir = source["saveDir"];
 	        this.fileName = source["fileName"];
 	        this.toClipboard = source["toClipboard"];
+	        this.clipOp = source["clipOp"];
+	        this.filePath = source["filePath"];
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	        this.cond = this.convertValues(source["cond"], Cond);

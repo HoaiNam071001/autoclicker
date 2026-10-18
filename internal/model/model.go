@@ -20,6 +20,7 @@ const (
 
 	// Node nâng cao (bước 35)
 	StepScreenshot = "screenshot" // chụp vùng ShotArea, lưu PNG vào SaveDir / FileName, tuỳ chọn chép vào clipboard (engine/shot.go)
+	StepClipboard  = "clipboard"  // ClipOp: đọc chữ vào output / ghi Text / ghi ảnh PNG từ FilePath (engine/clip.go)
 
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
 	StepWebWait   = "webWait"   // chờ tới khi phần tử hiện (WebGone: mất)
@@ -39,7 +40,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
@@ -145,8 +146,11 @@ type Step struct {
 	SaveDir     string `json:"saveDir,omitempty"`     // thư mục lưu ("" = Pictures/autoclicker, ~ = thư mục người dùng); nhận {{biến}}
 	FileName    string `json:"fileName,omitempty"`    // tên file ("" = autoclicker-<ngày>-<giờ>; tự thêm .png, trùng thì thêm số); nhận {{biến}}
 	ToClipboard bool   `json:"toClipboard,omitempty"` // chép ảnh vào clipboard
-	Color       string `json:"color,omitempty"`       // waitPixel: #RRGGBB
-	Tolerance   int    `json:"tolerance,omitempty"`   // waitPixel: sai số mỗi kênh màu (0–255)
+	// Clipboard (bước 35 N2)
+	ClipOp    string `json:"clipOp,omitempty"`    // ClipOps: "" = đọc chữ | write = ghi Text | image = ghi ảnh từ FilePath
+	FilePath  string `json:"filePath,omitempty"`  // clipboard image: file PNG (~ / tương đối = từ thư mục người dùng); nhận {{biến}}
+	Color     string `json:"color,omitempty"`     // waitPixel: #RRGGBB
+	Tolerance int    `json:"tolerance,omitempty"` // waitPixel: sai số mỗi kênh màu (0–255)
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>
