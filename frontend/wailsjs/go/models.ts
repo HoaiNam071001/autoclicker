@@ -355,6 +355,8 @@ export namespace model {
 	    textExact?: boolean;
 	    textNoAccent?: boolean;
 	    occurrence?: number;
+	    selectors?: string[];
+	    elementApp?: string;
 	    points?: Point[];
 	    color?: string;
 	    tolerance?: number;
@@ -379,6 +381,8 @@ export namespace model {
 	        this.textExact = source["textExact"];
 	        this.textNoAccent = source["textNoAccent"];
 	        this.occurrence = source["occurrence"];
+	        this.selectors = source["selectors"];
+	        this.elementApp = source["elementApp"];
 	        this.points = this.convertValues(source["points"], Point);
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
@@ -848,6 +852,7 @@ export namespace model {
 	    dx?: number;
 	    dy?: number;
 	    findBy?: string;
+	    elementApp?: string;
 	    findText?: string;
 	    textExact?: boolean;
 	    textNoAccent?: boolean;
@@ -949,6 +954,7 @@ export namespace model {
 	        this.dx = source["dx"];
 	        this.dy = source["dy"];
 	        this.findBy = source["findBy"];
+	        this.elementApp = source["elementApp"];
 	        this.findText = source["findText"];
 	        this.textExact = source["textExact"];
 	        this.textNoAccent = source["textNoAccent"];
