@@ -69,3 +69,12 @@ const (
 )
 
 var SysOps = []string{SysVolume, SysVolumeUp, SysVolumeDown, SysMute, SysUnmute}
+
+// Giờ hẹn đã qua lúc tới node Chờ đến giờ (Step.IfPassed).
+const (
+	PassedGo       = ""         // đi tiếp ngay (output lateMs > 0)
+	PassedTomorrow = "tomorrow" // chờ tới giờ đó ngày mai – giờ không ghi ngày
+	PassedFail     = "fail"     // node thất bại (code timeout)
+)
+
+var PassedModes = []string{PassedGo, PassedTomorrow, PassedFail}

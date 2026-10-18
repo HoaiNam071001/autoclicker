@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"autoclicker/internal/launch"
 	"autoclicker/internal/model"
@@ -53,6 +54,15 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 		case model.StepHTTP:
 			if err := checkHTTPStep(i, s); err != nil {
 				return err
+			}
+		case model.StepWaitUntil:
+			if strings.TrimSpace(s.At) == "" {
+				return stepErr(i, s, "at", "chưa nhập giờ cần chờ")
+			}
+			if !strings.Contains(s.At, "{{") {
+				if _, _, err := ParseAt(s.At, time.Now()); err != nil {
+					return stepErr(i, s, "at", "%v", err)
+				}
 			}
 		case model.StepSystem: // check.go đã kiểm thao tác + mức 0–100
 		case model.StepFile:

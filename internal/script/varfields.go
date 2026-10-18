@@ -73,6 +73,8 @@ func VarFields(s *model.Step) []VarField {
 		case model.BodyForm:
 			kv("form", s.Form)
 		}
+	case model.StepWaitUntil:
+		add("at", &s.At, false)
 	case model.StepFile:
 		if s.FileOp != model.FileEmptyTrash {
 			add("filePath", &s.FilePath, false)

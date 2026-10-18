@@ -49,6 +49,7 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
   switch (s.type) {
     case 'type': return { ...s, text: f(s.text) };
     case 'open': return { ...s, target: f(s.target ?? '') };
+    case 'waitUntil': return { ...s, at: f(s.at ?? '') };
     case 'file': return s.fileOp === 'emptyTrash' ? s : {
       ...s, filePath: f(s.filePath ?? ''),
       ...(s.fileOp === 'row' ? { cells: s.cells?.map(f), sheet: s.sheet && f(s.sheet) } : {}),

@@ -47,7 +47,7 @@ export function insertNode(step: Step, notice: (ref: string) => string) {
 
 // Thêm node không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở, chờ ảnh…) – giá trị mặc định giống NewStep (model.go).
 // patch: sửa thêm sau mặc định (vd node Mở bằng Chrome của app).
-export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | WebType>, patch: Partial<Step> = {}) {
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'waitUntil' | WebType>, patch: Partial<Step> = {}) {
   const defaults: Record<typeof type, Partial<Step>> = {
     wait: { clicks: 0, delayAfter: 1000 },
     type: { clicks: 0, delayAfter: 500 },
@@ -59,6 +59,7 @@ export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scrol
     waitPixel: { clicks: 0, points: [centerPoint(script().region)], color: '#000000', tolerance: 10, timeoutMs: 5000, intervalMs: 100, delayAfter: 300 },
     screenshot: { clicks: 0, delayAfter: 300 },
     clipboard: { clicks: 0, delayAfter: 300 },
+    waitUntil: { clicks: 0, at: '12:00:00', delayAfter: 0 },
     system: { clicks: 0, sysOp: 'volume', volume: 50, delayAfter: 300 },
     file: { clicks: 0, filePath: '~/Documents/autoclicker/nhat-ky.txt', delayAfter: 300 },
     http: { clicks: 0, method: 'GET', url: 'https://', timeoutMs: 15000, delayAfter: 0 },

@@ -134,6 +134,10 @@ func checkStep(s *model.Step) error {
 		if s.Volume < 0 || s.Volume > 100 {
 			return errors.New("âm lượng phải trong 0–100 %")
 		}
+	case model.StepWaitUntil:
+		if !slices.Contains(model.PassedModes, s.IfPassed) {
+			return fmt.Errorf("cách xử lý giờ đã qua không hợp lệ: %q (trống | tomorrow | fail)", s.IfPassed)
+		}
 	case model.StepFile:
 		if !slices.Contains(model.FileOps, s.FileOp) {
 			return fmt.Errorf("thao tác tệp không hợp lệ: %q (trống = ghi chữ | row | mkdir | trash | emptyTrash)", s.FileOp)

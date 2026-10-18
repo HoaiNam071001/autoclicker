@@ -216,6 +216,7 @@ func errCode(err error) string {
 	var badQuery *web.QueryError
 	var status *httpStatusErr
 	var network *networkErr
+	var late *lateErr
 	switch {
 	case errors.As(err, &nf):
 		return model.ErrNotFound
@@ -229,6 +230,8 @@ func errCode(err error) string {
 		return model.ErrHTTPStatus
 	case errors.As(err, &network):
 		return model.ErrNetwork
+	case errors.As(err, &late):
+		return model.ErrTimeout
 	case errors.Is(err, device.ErrNoPermission), errors.Is(err, errDeleteNotAllowed):
 		return model.ErrPermission
 	}

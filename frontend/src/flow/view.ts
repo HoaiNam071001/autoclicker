@@ -146,6 +146,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'waitImage': return FOUND;
     case 'clickImage': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...(s.imageSource === 'search' ? FOUND : [])];
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
+    case 'waitUntil': return [{ key: 'firedAt', desc: 'giờ chạy tiếp (có ms)' }, { key: 'target', desc: 'giờ hẹn' }, { key: 'lateMs', desc: 'trễ so với giờ hẹn (ms)' }, { key: 'ntpOffsetMs', desc: 'giờ chuẩn − giờ máy (ms)' }];
     case 'system': return [{ key: 'volume', desc: 'âm lượng sau khi chạy (%)' }, { key: 'muted', desc: 'đang tắt tiếng (true / false)' }];
     case 'file': return s.fileOp === 'trash' ? [{ key: 'count', desc: 'số file đã xoá' }, { key: 'files', desc: 'tên các file đã xoá' }]
       : s.fileOp === 'emptyTrash' ? [] : s.fileOp === 'row' ? [{ key: 'path', desc: 'đường dẫn file' }, { key: 'rows', desc: 'số dòng sau khi thêm' }]

@@ -30,6 +30,7 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'wait', label: 'Chờ', info: NODE_INFO.wait, keywords: 'wait delay nghi doi', run: () => addStep('wait') },
       { icon: 'waitImage', label: 'Chờ ảnh', info: NODE_INFO.waitImage, keywords: 'wait image anh mau xuat hien khoanh', run: () => addImageStep('waitImage') },
       { icon: 'waitImage', label: 'Chờ chữ', info: NODE_INFO.waitText, keywords: 'wait text chu ocr doc xuat hien', run: () => addTextStep('waitImage') },
+      { icon: 'waitUntil', label: 'Chờ đến giờ', info: NODE_INFO.waitUntil, keywords: 'cho den gio hen gio dong ho time schedule san sale flash ntp', run: () => addStep('waitUntil') },
       { icon: 'waitPixel', label: 'Chờ màu pixel', info: NODE_INFO.waitPixel, keywords: 'pixel mau color diem', run: () => addImageStep('waitPixel') },
     ],
   },

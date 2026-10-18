@@ -55,6 +55,8 @@ func NewStep(stepType string) (Step, error) {
 		s.DelayAfter = 300
 	case StepSystem:
 		s.SysOp, s.Volume, s.DelayAfter = SysVolume, 50, 300
+	case StepWaitUntil:
+		s.At, s.DelayAfter = "12:00:00", 0
 	case StepHTTP:
 		s.Method, s.URL, s.TimeoutMs, s.DelayAfter = "GET", "https://", 15000, 0
 	case StepWebWait:

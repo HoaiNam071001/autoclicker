@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  main { flex: 1; display: grid; place-items: center; text-align: center; }
+  #clock { font: 800 88px/1 ui-monospace, Menlo, monospace; letter-spacing: -2px; }
+  #buy { margin: 28px auto 0; display: block; width: 320px; height: 96px; border: 0; border-radius: 16px; background: #ee4d2d; color: #fff;
+    font-size: 30px; font-weight: 800; cursor: pointer; }
+  #log { margin-top: 22px; font: 600 22px/1.5 ui-monospace, Menlo, monospace; min-height: 66px; }
+</style></head>
+<body>
+<main><div>
+  <div id="clock">--:--:--.---</div>
+  <button id="buy">MUA NGAY</button>
+  <div id="log"></div>
+</div></main>
+<script src="sandbox.js"></script>
+<script>
+  // Đồng hồ máy tới ms + nút giữa màn hình: bấm thì ghi lại đúng giờ bấm – xem node Chờ đến giờ canh giờ chính xác cỡ nào
+  // (giờ bấm trễ so với giờ hẹn = thời gian di chuột + click). Không ghi giờ hẹn lên trang (node đọc chữ không ăn gian).
+  sb.header('Đồng hồ');
+  const two = (n, w = 2) => String(n).padStart(w, '0');
+  const fmt = (d) => `${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}.${two(d.getMilliseconds(), 3)}`;
+  const clock = document.getElementById('clock'), log = document.getElementById('log');
+  const tick = () => { clock.textContent = fmt(new Date()); requestAnimationFrame(tick); };
+  tick();
+  setInterval(() => { clock.textContent = fmt(new Date()); }, 7); // rAF không chạy khi tab không vẽ
+  let n = 0;
+  document.getElementById('buy').addEventListener('mousedown', () => {
+    n++;
+    log.textContent = `Lần ${n} bấm lúc ${fmt(new Date())}`;
+  });
+</script>
+</body></html>

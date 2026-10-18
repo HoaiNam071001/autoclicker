@@ -1,0 +1,22 @@
+{
+ "meta": {
+  "name": "Chờ đến giờ – bấm MUA NGAY đúng giờ",
+  "description": "Mở trang Đồng hồ, chờ tới giờ bạn nhập (form Chạy hỏi; canh giờ chuẩn internet) rồi bấm MUA NGAY. Đúng: trang ghi “bấm lúc …” sát giờ hẹn (trễ cỡ thời gian di chuột + click), lời kết thúc ghi giờ hẹn + trễ bao nhiêu ms. Giờ đã qua thì chạy tiếp ngay.",
+  "app": "Chờ / tìm",
+  "level": 2,
+  "page": "clock.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (nút neo giữa màn hình). Nhập giờ khoảng 1 phút sau lúc bấm Chạy, vd 20:15:00.000."
+ },
+ "script": {
+  "steps": [
+   { "type": "open", "target": "{{sandbox}}/clock.html", "delayAfter": 2500 },
+   { "type": "waitUntil", "at": "{{gio}}", "useNtp": true },
+   { "type": "click", "points": [{ "x": 0, "y": 0, "ax": "center", "ay": "center" }], "human": "off", "delayAfter": 800 },
+   { "type": "end", "endStatus": "success", "message": "Hẹn {{n2.output.target}} – chạy tiếp {{n2.output.firedAt}} (trễ {{n2.output.lateMs}} ms, giờ chuẩn lệch giờ máy {{n2.output.ntpOffsetMs}} ms)" }
+  ],
+  "inputs": [
+   { "key": "gio", "label": "Giờ bấm (HH:mm:ss.mmm)", "type": "text", "default": "00:00:00" }
+  ]
+ }
+}

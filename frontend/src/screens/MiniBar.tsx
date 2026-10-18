@@ -7,6 +7,7 @@ import { elapsedNow, fmtElapsed, Progress, useEngine } from '../engineStore';
 import { useScript } from '../store';
 import { stepLabel } from '../types';
 import { inWails, setWindowMode } from '../windowMode';
+import { fmtCountdown } from '../flow/waitUntil';
 
 // Số mẫu khi xem trên trình duyệt (#minibar)
 const sample: Progress = { loop: 4, loops: 10, step: 3, total: 6, clicks: 142, elapsedMs: 86_000, paused: false };
@@ -55,7 +56,8 @@ export default function MiniBar() {
         : `${p.break ? `Dừng trước ${BREAK_LABEL[p.break]} · ` : paused ? 'Tạm dừng · ' : ''}${p.ref ?? 'Node'} (${p.step} / ${p.total})${cur ? `: ${cur.name || stepLabel(cur)}` : ''}`}
       lines={[
         ...(p?.retry ? [`thử lại ${p.retry} / ${p.retries}`] : []),
-        ...(w ? [`${WAIT_LABEL[w.kind] ?? 'đang chờ'} ${(waitNow / 1000).toFixed(1)} / ${w.timeoutMs / 1000} s${w.kind === 'image' || w.kind === 'pixel' ? `   khớp nhất ${w.best}%` : ''}`] : []),
+        ...(w ? [w.kind === 'time' ? `chờ đến giờ – còn ${fmtCountdown(w.timeoutMs - waitNow)}`
+          : `${WAIT_LABEL[w.kind] ?? 'đang chờ'} ${(waitNow / 1000).toFixed(1)} / ${w.timeoutMs / 1000} s${w.kind === 'image' || w.kind === 'pixel' ? `   khớp nhất ${w.best}%` : ''}`] : []),
         `vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`,
         ...(engine.preset ? [`bộ giá trị: ${engine.preset}`] : [])]}
       canPause={running && !counting} onPause={() => (paused ? ResumeScript() : PauseScript())} onStop={stop}

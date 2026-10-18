@@ -877,6 +877,9 @@ export namespace model {
 	    filePattern?: string;
 	    sysOp?: string;
 	    volume?: number;
+	    at?: string;
+	    ifPassed?: string;
+	    useNtp?: boolean;
 	    color?: string;
 	    tolerance?: number;
 	    cond?: Cond;
@@ -971,6 +974,9 @@ export namespace model {
 	        this.filePattern = source["filePattern"];
 	        this.sysOp = source["sysOp"];
 	        this.volume = source["volume"];
+	        this.at = source["at"];
+	        this.ifPassed = source["ifPassed"];
+	        this.useNtp = source["useNtp"];
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
 	        this.cond = this.convertValues(source["cond"], Cond);
