@@ -42,6 +42,7 @@ type Found struct {
 	NoTab    bool       // không có tab nào khớp Query.Tab
 	Loading  bool       // trang đang tải – không thấy chưa có nghĩa là đã mất
 	Moving   bool       // sắp bấm nhưng khung còn đổi giữa 2 lần đọc (hiệu ứng, trang đang dàn lại) – OK = false
+	OffView  bool       // thấy nhưng tâm nằm ngoài vùng nhìn thấy của trang (chưa cuộn tới)
 }
 
 // Hover – kết quả thử hover trước khi bấm. OK = false → chưa bấm, tìm lại (Miss nói vì sao, để báo khi hết giờ).

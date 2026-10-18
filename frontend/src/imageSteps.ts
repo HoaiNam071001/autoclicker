@@ -10,8 +10,9 @@ import { errorText } from './engineStore';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
 import { Rect } from './types';
 
-// fromRun: chỗ giống nhất của lần chạy hết giờ không thấy (engine:failed), không phải từ nút Thử tìm
-export type FindResult = { found: boolean; score: number; x: number; y: number; w: number; h: number; area: Rect; ms: number; read?: string[]; fromRun?: boolean };
+// fromRun: chỗ giống nhất của lần chạy hết giờ không thấy (engine:failed), không phải từ nút Thử tìm.
+// label: chữ trên khung overlay thay cho "khớp N%" (node web).
+export type FindResult = { found: boolean; score: number; x: number; y: number; w: number; h: number; area: Rect; ms: number; read?: string[]; fromRun?: boolean; label?: string };
 
 // Kết quả "Thử node" (internal/engine/nodetest.go) – node Nếu / Switch / Switch theo màn hình
 export type CondPart = { path: number[]; case?: string; kind: string; ok: boolean; known: boolean; detail: string; hit?: Rect };
@@ -104,6 +105,12 @@ export async function testFind(stepId: string) {
   } catch (e) {
     set({ busy: '', error: errorText(e) });
   }
+}
+
+// Khung trên overlay của nơi khác (Thử tìm node web – webSteps.ts); null = bỏ khung.
+export function showFind(id: string, r: FindResult | null) {
+  const { [id]: _, ...finds } = state.finds;
+  set({ finds: r ? { ...finds, [id]: r } : finds });
 }
 
 const dropTest = (id: string) => {

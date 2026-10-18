@@ -12,7 +12,7 @@ import (
 
 // Node web (bước 25d): tìm phần tử qua web.Browser (DOM), bấm bằng chuột thật như node click.
 
-// errNoBrowserOpt – engine không có trình duyệt (Thử node / Thử tìm chưa hỗ trợ node web).
+// errNoBrowserOpt – engine không có trình duyệt (Options.Browser nil).
 var errNoBrowserOpt = &web.BrowserError{Msg: "lần chạy này không điều khiển trình duyệt"}
 
 // webQuery – selector đã thay biến (dòng trống bỏ qua; đã kiểm tra ở ValidateScript), kèm dòng gốc để báo lại.

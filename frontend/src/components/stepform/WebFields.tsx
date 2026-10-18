@@ -1,12 +1,16 @@
 // Node web (bước 25d): tìm phần tử bằng HTML qua Chrome của app. Mỗi dòng một cách tìm, dòng đầu ưu tiên.
-// Thử tìm / Chọn phần tử trên trang – D3.
+// Trạng thái Chrome của app, Chọn phần tử trên trang, Thử tìm – D3 (WebTools).
+import { useEffect } from 'react';
 import Segmented from '../Segmented';
 import NumInput from '../NumInput';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
 import { Step } from '../../types';
-import { parseSelector, SELECTOR_LABEL, selectorLines } from '../../flow/web';
+import { browserStatusText, parseSelector, SELECTOR_LABEL, selectorLines, webFindText } from '../../flow/web';
+import { cancelPick, openAppBrowser, pickElement, refreshBrowser, testWebFind, useWebState } from '../../webSteps';
+import { inWails, openOverlay } from '../../windowMode';
+import { WebTools } from './WebTools';
 import { ButtonField, Field, fmtSec, hint, NumField, useNodeVars } from './shared';
 
 export function WebFields({ step: s }: { step: Step }) {
@@ -17,8 +21,17 @@ export function WebFields({ step: s }: { step: Step }) {
   const parsed = lines.map(parseSelector);
   const bad = parsed.findIndex((p) => !p);
   const add = (key: string) => addInput({ key, label: key, type: 'text' });
+  const web = useWebState();
+  useEffect(() => { void refreshBrowser(); }, [s.id]);
+  const find = web.finds[s.id];
   return (
     <>
+      <WebTools status={inWails ? browserStatusText(web.status) : 'Chrome của app: chỉ dùng được trong app'} open={!!web.status?.open}
+        enabled={inWails} picking={web.picking === s.id} finding={web.busy === s.id} canFind={lines.length > 0 && bad < 0}
+        result={find ? { ...webFindText(find, s.tab), elText: find.found ? find.text : undefined } : null}
+        error={web.busy === '' && web.picking === '' ? web.error : ''}
+        onOpen={openAppBrowser} onRefresh={refreshBrowser} onPick={() => pickElement(s.id)} onCancelPick={cancelPick}
+        onFind={() => testWebFind(s.id)} onView={() => openOverlay('point', s.id)} />
       {s.type === 'webWait' && (
         <Field label="Chờ tới khi" wide group>
           <Segmented value={s.webGone ? 'gone' : 'shown'} onChange={(v) => set({ webGone: v === 'gone' || undefined })} full label="Chờ tới khi"

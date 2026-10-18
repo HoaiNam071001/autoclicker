@@ -42,3 +42,34 @@ export function fmtSelectors(selectors: string[] | undefined): string {
     : first.by === 'role' && first.name ? `${first.value} “${first.name}”` : first.value;
   return `${SELECTOR_LABEL[first.by]} ${what}${lines.length > 1 ? ` (+${lines.length - 1} dự phòng)` : ''}`;
 }
+
+// Kết quả "Thử tìm" node web (engine.WebFindResult – Go internal/engine/webfind.go).
+export interface WebFind {
+  found: boolean; x: number; y: number; w: number; h: number; text: string; selector: string;
+  covered: string; offView: boolean; hidden: number; tab: string; noTab: boolean; ms: number;
+}
+
+// Dòng kết quả Thử tìm: ok = thấy và click được ngay; warn = thấy nhưng còn vướng / không thấy.
+export function webFindText(r: WebFind, tab?: string): { ok: boolean; text: string } {
+  const ms = ` · ${r.ms} ms`;
+  if (r.noTab) return { ok: false, text: `Không có tab nào có URL / tiêu đề chứa “${tab ?? ''}”` };
+  if (!r.found) {
+    return { ok: false, text: (r.hidden > 0 ? `Có ${r.hidden} phần tử khớp nhưng đang ẩn` : 'Không thấy trên tab hiện tại') + ms };
+  }
+  const at = `“${r.selector}” tại X ${r.x + Math.round(r.w / 2)} Y ${r.y + Math.round(r.h / 2)}`;
+  if (r.covered) return { ok: false, text: `Thấy ${at} nhưng đang bị ${r.covered} che${ms}` };
+  if (r.offView) return { ok: true, text: `Thấy ${at} – ngoài khung nhìn, lúc click sẽ tự cuộn tới${ms}` };
+  return { ok: true, text: `Thấy ${at}${ms}` };
+}
+
+// Trạng thái Chrome của app (web.Status – Go internal/web/status.go).
+export interface BrowserState { open: boolean; tabs: { title: string; url: string }[] }
+
+// null = chưa hỏi.
+export function browserStatusText(st: BrowserState | null): string {
+  if (!st) return 'Chrome của app: đang kiểm tra…';
+  if (!st.open) return 'Chrome của app: chưa mở';
+  const top = st.tabs[0];
+  const name = top ? ` · tab đang dùng “${top.title || top.url}”` : '';
+  return `Chrome của app: đang mở, ${st.tabs.length} tab${name}`;
+}

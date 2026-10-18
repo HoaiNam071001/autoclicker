@@ -130,6 +130,42 @@ export namespace engine {
 		    return a;
 		}
 	}
+	export class WebFindResult {
+	    found: boolean;
+	    x: number;
+	    y: number;
+	    w: number;
+	    h: number;
+	    text: string;
+	    selector: string;
+	    covered: string;
+	    offView: boolean;
+	    hidden: number;
+	    tab: string;
+	    noTab: boolean;
+	    ms: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new WebFindResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.found = source["found"];
+	        this.x = source["x"];
+	        this.y = source["y"];
+	        this.w = source["w"];
+	        this.h = source["h"];
+	        this.text = source["text"];
+	        this.selector = source["selector"];
+	        this.covered = source["covered"];
+	        this.offView = source["offView"];
+	        this.hidden = source["hidden"];
+	        this.tab = source["tab"];
+	        this.noTab = source["noTab"];
+	        this.ms = source["ms"];
+	    }
+	}
 
 }
 
@@ -1047,6 +1083,73 @@ export namespace store {
 	        this.theme = source["theme"];
 	        this.recent = source["recent"];
 	    }
+	}
+
+}
+
+export namespace web {
+	
+	export class Picked {
+	    selectors: string[];
+	    text: string;
+	    tab: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Picked(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.selectors = source["selectors"];
+	        this.text = source["text"];
+	        this.tab = source["tab"];
+	    }
+	}
+	export class Tab {
+	    title: string;
+	    url: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Tab(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.title = source["title"];
+	        this.url = source["url"];
+	    }
+	}
+	export class Status {
+	    open: boolean;
+	    tabs: Tab[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Status(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.open = source["open"];
+	        this.tabs = this.convertValues(source["tabs"], Tab);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

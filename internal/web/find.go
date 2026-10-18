@@ -44,7 +44,7 @@ type findResult struct {
 
 // found – Found chưa có khung màn hình. Bị che / tâm ngoài viewport khi phải bấm → chưa coi là thấy.
 func (r findResult) found(tab string, q Query) Found {
-	f := Found{Selector: r.Sel, Hidden: r.Hidden, Tab: tab, Text: r.Text, Covered: r.Covered, Loading: r.Loading}
+	f := Found{Selector: r.Sel, Hidden: r.Hidden, Tab: tab, Text: r.Text, Covered: r.Covered, Loading: r.Loading, OffView: r.Sel >= 0 && !r.InView}
 	f.OK = r.Sel >= 0 && (q.CheckOnly || r.Covered == "" && (r.InView || !q.Scroll))
 	return f
 }

@@ -7,6 +7,7 @@ import (
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 	"autoclicker/internal/store"
+	"autoclicker/internal/web"
 )
 
 // App struct
@@ -23,6 +24,9 @@ type App struct {
 	ovDisp   int        // màn người dùng chọn cho overlay (-1 = màn chứa cửa sổ app)
 	dirty    bool       // kịch bản đang soạn có thay đổi chưa lưu (storage.go)
 	quitting bool       // đã hỏi xong, đóng thật
+
+	web        *web.Chrome        // Chrome của app cho giao diện (webapi.go) – tạo lười
+	pickCancel context.CancelFunc // huỷ lần Chọn phần tử đang chờ
 }
 
 // NewApp creates a new App application struct
@@ -41,6 +45,7 @@ func (a *App) startup(ctx context.Context) {
 // shutdown is called when the app is closing.
 func (a *App) shutdown(ctx context.Context) {
 	a.StopScript()
+	a.CancelPick()
 	a.stopHotkeys()
 }
 

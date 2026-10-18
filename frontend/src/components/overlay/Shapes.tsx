@@ -31,7 +31,7 @@ export function FindBoxes({ steps, finds, focus, toClient }: { steps: Step[]; fi
       <div key={`find${s.id}`} className={`pointer-events-none absolute rounded-sm border-2 border-dashed ${f.found ? 'border-ok bg-ok/15' : 'border-warn bg-warn/10'}`}
         style={{ left: a.x, top: a.y, width: b.x - a.x, height: b.y - a.y }}>
         <span className={`absolute -top-6 left-0 rounded px-1.5 py-px font-mono text-[11px] whitespace-nowrap text-black ${f.found ? 'bg-ok' : 'bg-warn'}`}>
-          {s.ref}: {f.found ? 'thấy' : 'giống nhất'} · khớp {f.score}%
+          {s.ref}: {f.label ?? <>{f.found ? 'thấy' : 'giống nhất'} · khớp {f.score}%</>}
         </span>
       </div>
     );

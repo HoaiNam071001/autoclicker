@@ -9,15 +9,8 @@
     const a = norm(got), b = norm(value);
     return a !== '' && (exact ? a === b : a.includes(b));
   };
-  // so tagName thay vì instanceof: phần tử trong iframe thuộc realm khác
-  const tag = el => el.tagName;
   const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'HEAD']);
   const all = doc => Array.from(doc.body ? doc.body.querySelectorAll('*') : []).filter(el => !SKIP.has(tag(el)));
-  const ownText = el => {
-    if (tag(el) === 'INPUT') return ['button', 'submit', 'reset'].includes(el.type) ? el.value : el.placeholder;
-    if (tag(el) === 'TEXTAREA') return el.placeholder;
-    return el.innerText;
-  };
   // Phần tử sâu nhất chứa chữ: bỏ phần tử có con cũng khớp (chữ trong <button><span>Gửi</span></button> → span).
   const deepest = list => { const set = new Set(list); return list.filter(el => !Array.from(el.children).some(c => set.has(c))); };
   const inDocOrder = list => Array.from(new Set(list)).sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
@@ -34,29 +27,7 @@
     if (hits.length) return inDocOrder(hits);
     return deepest(all(doc).filter(el => matches(el.textContent, sel.value, false) && matches(ownText(el), sel.value, sel.exact)));
   };
-  const ariaLabel = el => {
-    const ids = (el.getAttribute('aria-labelledby') || '').split(/\s+/).filter(Boolean);
-    if (ids.length) return ids.map(id => el.ownerDocument.getElementById(id)?.innerText || '').join(' ');
-    return el.getAttribute('aria-label') || '';
-  };
   const byAria = (sel, doc) => all(doc).filter(el => (el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby')) && matches(ariaLabel(el), sel.value, sel.exact));
-  // Vai trò ngầm định của thẻ (rút gọn theo HTML-ARIA; ô mật khẩu tính là textbox cho tiện viết form đăng nhập).
-  const IMPLICIT = {
-    button: 'button, input[type=button], input[type=submit], input[type=reset], input[type=image], summary',
-    link: 'a[href], area[href]',
-    textbox: 'input:not([type]), input[type=text], input[type=email], input[type=tel], input[type=url], input[type=password], textarea',
-    searchbox: 'input[type=search]', checkbox: 'input[type=checkbox]', radio: 'input[type=radio]', slider: 'input[type=range]',
-    spinbutton: 'input[type=number]', combobox: 'select', option: 'option', heading: 'h1, h2, h3, h4, h5, h6',
-    img: 'img[alt]:not([alt=""])', list: 'ul, ol', listitem: 'li', navigation: 'nav', main: 'main', dialog: 'dialog',
-    form: 'form', article: 'article', table: 'table', row: 'tr', cell: 'td', columnheader: 'th',
-  };
-  // Tên truy cập rút gọn: aria → nhãn <label> → alt / title / placeholder → chữ.
-  const accName = el => {
-    const a = ariaLabel(el);
-    if (a) return a;
-    if (el.labels && el.labels.length) return Array.from(el.labels).map(l => l.innerText).join(' ');
-    return el.getAttribute('alt') || el.getAttribute('title') || el.getAttribute('placeholder') || ownText(el) || '';
-  };
   const byRole = (sel, doc) => {
     const explicit = all(doc).filter(el => el.hasAttribute('role') && el.getAttribute('role').trim().split(/\s+/)[0].toLowerCase() === sel.value);
     const implicit = IMPLICIT[sel.value] ? Array.from(doc.querySelectorAll(IMPLICIT[sel.value])).filter(el => !el.hasAttribute('role')) : [];

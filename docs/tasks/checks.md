@@ -3,6 +3,13 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 25d D3 – Node web: Chọn phần tử, Thử tìm, trạng thái · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
+
+- [ ] Inspector node Chờ / Click phần tử web: dòng trạng thái “Chrome của app: chưa mở” → bấm Mở → Chrome riêng bật, trạng thái thành “đang mở, 1 tab”; xem cả theme sáng + tối
+- [ ] Mở trang sân thử web trong Chrome của app → **Chọn phần tử trên trang** → Chrome lên trước, viền cam theo chuột, bấm nút “Đồng ý” → app tự lên lại, ô cách tìm điền 2–3 dòng (`text=Đồng ý`, `role=button[name=…]`…), trang **không** nhận click đó; thử Esc / Huỷ chọn
+- [ ] Chọn ô đồng ý trong iframe (mẫu Web: thanh toán trong iframe) → ra `role=checkbox…`
+- [ ] **Thử tìm**: lần đầu chuột đi vào trang đo toạ độ rồi app lên lại, báo “Thấy … tại X Y · ms” + chữ; “xem trên màn hình” → khung xanh đúng chỗ phần tử; phần tử bị popup cookie che → báo bị che (khung vàng); phần tử dưới màn hình → “ngoài khung nhìn, lúc click sẽ tự cuộn tới”
+
 ## 25d D2 – Node web: trước khi bấm, iframe, role · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
 
 - [ ] Mẫu thử → **Web: thanh toán trong iframe** → Chạy: tick ô đồng ý, chờ nút Thanh toán trượt xong mới bấm, hiện ĐÃ THANH TOÁN, *Click thật* = 2
