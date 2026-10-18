@@ -166,6 +166,8 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 `internal/device` – thiết bị thật qua interface: `input.go` (`Input` + robotgo, `Displays`, `MainScreen`), `capture.go` / `capture_darwin.go` / `capture_other.go` (`Screen`, quyền Screen Recording, chụp không lẫn cửa sổ app), `ocr.go` / `ocr_darwin.go` / `ocr_other.go` (`TextReader`; Vision, Windows chưa có), `failsafe.go` (dừng khi chuột chạm góc, `TrackingInput`). `devicetest/` – `FakeInput` cho test.
 
+`cmd/d0probe` – code thử bước 25d D0 (build tag `probe`, ngoài build thường): đo toạ độ trang → màn hình qua CDP + robotgo; xoá khi D1 có test thật.
+
 `internal/launch` – `open.go`: mở URL / file / app (`OpenTarget`, `openCommand` theo hệ điều hành).
 
 `internal/script` – kịch bản như dữ liệu (không thiết bị, không đĩa): `codec.go` (`EncodeScript` / `DecodeScript`, `SafeFileName`), `check.go` (kiểm tra lúc mở: `checkScript`, `checkStep`, `FixRefs`), `validate.go` (`ValidateScript` – đủ dữ liệu để chạy), `flowcheck.go` (`validateFlow`, `UnreachableNodes`), `control.go` (kiểm tra node điều khiển + điều kiện), `inputs.go` / `inputvalue.go` (`ResolveInputs`, ép kiểu, ghim trường), `varfields.go` (`VarFields` – mọi ô chữ nhận `{{biến}}`), `anchor.go` (`ResolvePoint`, `Bounds`), `errors.go` (`stepErr` → `model.ScriptError`).

@@ -3,6 +3,8 @@ module autoclicker
 go 1.26.0
 
 require (
+	github.com/chromedp/cdproto v0.157.8
+	github.com/chromedp/chromedp v0.21.0
 	github.com/go-vgo/robotgo v1.3.5
 	github.com/robotn/gohook v0.50.0
 	github.com/wailsapp/wails/v2 v2.16.0
@@ -15,6 +17,7 @@ require (
 	github.com/dblohm7/wingoes v0.0.0-20260526185140-fb298caac7ca // indirect
 	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/gen2brain/shm v0.2.2 // indirect
+	github.com/go-json-experiment/json v0.0.0-20260213210345-44df1a37e875 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
