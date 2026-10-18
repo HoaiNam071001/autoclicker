@@ -3,6 +3,10 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 25d – Ghi chú node web · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)
+
+- [ ] Ctrl/Cmd+K: nhóm *Web (trình duyệt)* nằm cuối, dưới tên nhóm có dòng *Chỉ dùng cho trang web cơ bản…*; inspector node web và node Mở chọn *Chrome của app* hiện cùng ghi chú; node web vẫn thêm / chạy như cũ – xem cả theme sáng + tối
+
 ## 34 – Thao tác giống người · [phase3/34-giong-nguoi.md](phase3/34-giong-nguoi.md)
 
 - [ ] Mẫu thử → **Thao tác giống người – vệt chuột, nhịp gõ** → Chạy: vệt chuột trên trang cong, không nhảy; *Điểm chuột / lần di* hàng chục, *Giữ nút* 60–150 ms, nhịp gõ lệch. Cài đặt chạy → **Tắt** → chạy lại: 1–2 điểm mỗi lần di, cong 0 px

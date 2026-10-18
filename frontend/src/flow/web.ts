@@ -4,6 +4,8 @@ import { fmtMs, SCROLL_ARROW, type Step, type StepType } from '../types';
 export const WEB_TYPES = ['webWait', 'webClick', 'webType', 'webRead', 'webScroll'] as const;
 export type WebType = typeof WEB_TYPES[number];
 export const isWebStep = (t: StepType): t is WebType => (WEB_TYPES as readonly StepType[]).includes(t);
+// Ghi chú phạm vi – bảng thêm node, inspector node web và node Mở bằng Chrome của app dùng chung (quyết định 2026-10-18, bước 36).
+export const WEB_BASIC_NOTE = 'Chỉ dùng cho trang web cơ bản, không bắt đăng nhập / captcha – Google, Facebook… dùng Chrome thường + Click theo ảnh / chữ.';
 
 // Selector của node web – cùng công thức ParseSelector (internal/model/web.go), test chung testdata/selectors.json.
 // Một dòng Step.selectors = "<cách>=<giá trị>", không tiền tố = text; text / aria trong nháy kép = đúng cả chuỗi.

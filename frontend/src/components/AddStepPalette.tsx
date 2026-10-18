@@ -5,11 +5,13 @@ import { KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from '
 import { StepIcon, StepIconName } from './icons';
 import { addControl, addPointStep, addStep, getEditor, insertTarget } from '../store';
 import { portView } from '../flow/view';
+import { WEB_BASIC_NOTE } from '../flow/web';
 import { addImageStep, addTextStep } from '../imageSteps';
 import { fold } from '../fold';
 
 export type PaletteItem = { icon: StepIconName; label: string; keywords: string; run?: () => unknown; soon?: string };
-export type PaletteGroup = { name: string; items: PaletteItem[] };
+// note: dòng ghi chú dưới tên nhóm
+export type PaletteGroup = { name: string; note?: string; items: PaletteItem[] };
 type Item = PaletteItem;
 
 const GROUPS: PaletteGroup[] = [
@@ -39,17 +41,6 @@ const GROUPS: PaletteGroup[] = [
     ],
   },
   {
-    // bước 25d: tìm phần tử bằng HTML qua Chrome của app, bấm bằng chuột thật
-    name: 'Web (trình duyệt)', items: [
-      { icon: 'open', label: 'Mở trang (Chrome của app)', keywords: 'web url trinh duyet chrome dieu khien dom html', run: () => addStep('open', { webBrowser: true }) },
-      { icon: 'webWait', label: 'Chờ phần tử web', keywords: 'web dom html selector css xpath aria role cho xuat hien mat', run: () => addStep('webWait') },
-      { icon: 'webClick', label: 'Click phần tử web', keywords: 'web dom html selector css xpath aria role nut bam click', run: () => addStep('webClick') },
-      { icon: 'webType', label: 'Gõ vào ô web', keywords: 'web dom html o nhap input go chu dien form dang nhap', run: () => addStep('webType') },
-      { icon: 'webRead', label: 'Đọc phần tử web', keywords: 'web dom html doc chu gia tri thuoc tinh href bien lay du lieu', run: () => addStep('webRead') },
-      { icon: 'webScroll', label: 'Cuộn trang web', keywords: 'web dom html cuon lan scroll feed toi khi thay', run: () => addStep('webScroll') },
-    ],
-  },
-  {
     name: 'Ứng dụng & cấu trúc', items: [
       { icon: 'open', label: 'Mở URL / app', keywords: 'url web link trinh duyet ung dung open youtube', run: () => addStep('open') },
       { icon: 'focusWindow', label: 'Focus cửa sổ', keywords: 'window cua so ung dung', soon: 'bước 26' },
@@ -63,6 +54,17 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'counter', label: 'Đếm', keywords: 'counter lap loop dem gioi han so lan thu', run: () => addControl('counter') },
       { icon: 'end', label: 'Kết thúc', keywords: 'end stop dung ket thuc', run: () => addControl('end') },
       { icon: 'setVar', label: 'Đặt biến', keywords: 'set var bien gan', run: () => addControl('setVar') },
+    ],
+  },
+  {
+    // bước 25d: tìm phần tử bằng HTML qua Chrome của app, bấm bằng chuột thật – để cuối, chỉ cho trang cơ bản
+    name: 'Web (trình duyệt)', note: WEB_BASIC_NOTE, items: [
+      { icon: 'open', label: 'Mở trang (Chrome của app)', keywords: 'web url trinh duyet chrome dieu khien dom html', run: () => addStep('open', { webBrowser: true }) },
+      { icon: 'webWait', label: 'Chờ phần tử web', keywords: 'web dom html selector css xpath aria role cho xuat hien mat', run: () => addStep('webWait') },
+      { icon: 'webClick', label: 'Click phần tử web', keywords: 'web dom html selector css xpath aria role nut bam click', run: () => addStep('webClick') },
+      { icon: 'webType', label: 'Gõ vào ô web', keywords: 'web dom html o nhap input go chu dien form dang nhap', run: () => addStep('webType') },
+      { icon: 'webRead', label: 'Đọc phần tử web', keywords: 'web dom html doc chu gia tri thuoc tinh href bien lay du lieu', run: () => addStep('webRead') },
+      { icon: 'webScroll', label: 'Cuộn trang web', keywords: 'web dom html cuon lan scroll feed toi khi thay', run: () => addStep('webScroll') },
     ],
   },
 ];
@@ -143,6 +145,7 @@ export function PaletteView({ groups: all, onClose, onCancel, footer, context }:
           {groups.map((g) => (
             <section key={g.name} className="flex flex-col gap-1.5">
               <span className="px-1 text-xs font-semibold text-muted">{g.name}</span>
+              {g.note && <span className="-mt-1 px-1 text-xs text-muted">{g.note}</span>}
               <div className="grid grid-cols-3 gap-1.5">
                 {g.items.map((it) => {
                   const i = ++n;

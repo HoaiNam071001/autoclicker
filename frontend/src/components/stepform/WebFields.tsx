@@ -6,7 +6,7 @@ import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
 import { Step } from '../../types';
-import { browserStatusText, parseSelector, selectorLines, webFindText } from '../../flow/web';
+import { browserStatusText, parseSelector, selectorLines, WEB_BASIC_NOTE, webFindText } from '../../flow/web';
 import { cancelPick, openAppBrowser, pickElement, refreshBrowser, testWebFind, useWebState } from '../../webSteps';
 import { inWails, openOverlay } from '../../windowMode';
 import { WebTools } from './WebTools';
@@ -30,6 +30,7 @@ export function WebFields({ step: s }: { step: Step }) {
   const find = web.finds[s.id];
   return (
     <>
+      <span className={`col-span-2 ${hint}`}>{WEB_BASIC_NOTE}</span>
       <WebTools status={inWails ? browserStatusText(web.status) : 'Chrome của app: chỉ dùng được trong app'} open={!!web.status?.open}
         enabled={inWails} picking={web.picking === s.id} finding={web.busy === s.id} canFind={lines.length > 0 && lines.every(parseSelector)}
         result={find ? { ...webFindText(find, s.tab, s.type === 'webRead'), elText: find.found ? find.text : undefined } : null}

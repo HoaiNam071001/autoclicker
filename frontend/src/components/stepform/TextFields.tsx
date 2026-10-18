@@ -3,6 +3,7 @@ import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
 import { Step } from '../../types';
+import { WEB_BASIC_NOTE } from '../../flow/web';
 import { Field, hint, selectBox, useNodeVars } from './shared';
 
 // Trình duyệt gợi ý cho bước Mở (Windows: open.go đổi sang tên lệnh chrome / msedge / firefox)
@@ -35,7 +36,7 @@ export function OpenFields({ step: s }: { step: Step }) {
           </select>
           <span className={hint}>
             {s.webBrowser
-              ? 'Chrome / Edge / Brave với profile riêng của app (lần đầu phải đăng nhập lại trang, sau đó tự nhớ); đang mở thì mở tab mới. Chỉ mở URL / file.'
+              ? 'Chrome / Edge / Brave với profile riêng của app (lần đầu phải đăng nhập lại trang, sau đó tự nhớ); đang mở thì mở tab mới. Chỉ mở URL / file. ' + WEB_BASIC_NOTE
               : 'Không chờ trang tải xong – đặt “Chờ sau bước” đủ lâu (mặc định 2 s).'}
           </span>
         </Field>
