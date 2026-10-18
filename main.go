@@ -8,12 +8,16 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
+
+	"autoclicker/internal/winfloat"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
+	winfloat.PrepareLaunch() // trước wails.Run – thanh mini / overlay nổi được trên app toàn màn hình (macOS)
+
 	// Create an instance of the app structure
 	app := NewApp()
 

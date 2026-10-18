@@ -8,6 +8,7 @@ import (
 
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
+	"autoclicker/internal/winfloat"
 )
 
 // Chế độ cửa sổ. Wails v2 chỉ có một cửa sổ nên overlay / mini bar là cách đổi kích thước,
@@ -49,6 +50,7 @@ func (a *App) SetWindowMode(mode string) error {
 	case ModeMain:
 		r := a.mainRect
 		runtime.WindowSetAlwaysOnTop(a.ctx, false)
+		winfloat.Set(false, false)
 		a.moveToDisplay(a.mainDisp) // vị trí main lưu theo màn của nó (Wails tính vị trí theo màn hiện tại)
 		runtime.WindowSetSize(a.ctx, r.w, r.h)
 		runtime.WindowSetPosition(a.ctx, r.x, r.y)
@@ -61,6 +63,8 @@ func (a *App) SetWindowMode(mode string) error {
 			return err
 		}
 		runtime.WindowSetAlwaysOnTop(a.ctx, true)
+		// macOS: nổi cả trên app toàn màn hình (Space riêng); overlay nhận bàn phím, thanh mini không giành focus
+		winfloat.Set(true, mode == ModeOverlay)
 		if mode == ModeOverlay && a.ovDisp >= 0 && a.moveToDisplay(a.ovDisp) {
 			if sw, sh, err = a.currentScreenSize(); err != nil {
 				return err

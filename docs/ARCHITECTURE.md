@@ -173,6 +173,8 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 `internal/samples` – kịch bản mẫu để test (bước 33): `samples.go` (`List`, `Open` – điền mặc định `NewStep`, nối cạnh theo thứ tự, thay `{{sandbox}}` / ảnh mẫu `@file`), `sandbox.go` (`WriteSandbox`, `FileURL`), `scripts/*.json`, `pages/` (trang sân thử HTML offline + `logo.png`). `samples_real_test.go` – chạy mẫu bằng engine trên máy thật (`AUTOCLICKER_REAL=1`).
 
+`internal/winfloat` – `winfloat_darwin.go`: thanh mini / overlay nổi trên mọi Space, kể cả app toàn màn hình (`PrepareLaunch` đầu `main()`, `Set` trong `SetWindowMode`); `winfloat_other.go` rỗng.
+
 `internal/launch` – `open.go`: mở URL / file / app (`OpenTarget`, `openCommand` theo hệ điều hành).
 
 `internal/script` – kịch bản như dữ liệu (không thiết bị, không đĩa): `codec.go` (`EncodeScript` / `DecodeScript`, `SafeFileName`), `check.go` (kiểm tra lúc mở: `checkScript`, `checkStep`, `FixRefs`), `validate.go` (`ValidateScript` – đủ dữ liệu để chạy), `flowcheck.go` (`validateFlow`, `UnreachableNodes`), `control.go` (kiểm tra node điều khiển + điều kiện), `inputs.go` / `inputvalue.go` (`ResolveInputs`, ép kiểu, ghim trường), `varfields.go` (`VarFields` – mọi ô chữ nhận `{{biến}}`), `anchor.go` (`ResolvePoint`, `Bounds`), `errors.go` (`stepErr` → `model.ScriptError`).
