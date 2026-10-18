@@ -12,6 +12,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 - [ ] Mẫu thử → **Thao tác giống người – vệt chuột, nhịp gõ** → Chạy: vệt chuột trên trang cong, không nhảy; *Điểm chuột / lần di* hàng chục, *Giữ nút* 60–150 ms, nhịp gõ lệch. Cài đặt chạy → **Tắt** → chạy lại: 1–2 điểm mỗi lần di, cong 0 px
 - [ ] Bấm Dừng / F8 / rê chuột vào góc khi chuột đang đi giữa đường → dừng ngay, không bấm thêm; chuột đi gần mép / góc màn không tự kích hoạt dừng khẩn cấp
 - [ ] Kịch bản mới: Cài đặt chạy mặc định **Vừa**; inspector node Click / Gõ có ô *Thao tác giống người* (Theo kịch bản / Tắt / …), node web chạy nền thì không có; thẻ node ghi đè có chip – xem cả theme sáng + tối
+- [ ] Overlay → **Xem trước** kịch bản mức Vừa / Cao: con trỏ giả đi đường cong, chậm – nhanh – chậm, đôi khi đi lố rồi khựng + chỉnh; vệt vẽ cong theo đường đã đi; kéo thả cong trong thời gian kéo; node ghi đè Tắt (hoặc kịch bản Tắt) bay thẳng như cũ; bấm Dừng giữa đường dừng ngay
 - [ ] Kéo thả (kanban) và double click vẫn ăn khi bật giống người; Windows (khi có máy): click giữ nút + đường chuột đúng chỗ khi DPI 125 %
 
 ## 20 F5c – Output mọi node + ô số nhận biến · [phase3/20-flow.md](phase3/20-flow.md)

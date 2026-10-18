@@ -35,7 +35,7 @@ func Path(r R, p Profile, from, to model.Point, t Target, bounds model.Rect) []M
 	}
 	dur := t.DurMs
 	if dur <= 0 {
-		dur = int(fitts(d, t.Size) * p.Speed * (0.85 + 0.3*r.Float64()))
+		dur = int(Fitts(d, t.Size) * p.Speed * (0.85 + 0.3*r.Float64()))
 	}
 	if t.DurMs > 0 || d < 80 || r.Float64() >= p.Overshoot {
 		return curve(r, p, from, to, dur, bounds)
@@ -51,8 +51,9 @@ func Path(r R, p Profile, from, to model.Point, t Target, bounds model.Rect) []M
 	return append(first, fix...)
 }
 
-// fitts – thời gian (ms) di chuột quãng d tới đích cỡ size: a + b·log2(d / size + 1).
-func fitts(d float64, size int) float64 {
+// Fitts – thời gian (ms) di chuột quãng d tới đích cỡ size: a + b·log2(d / size + 1).
+// Cùng công thức fitts (frontend/src/overlay/humanPath.ts), test chung testdata/human_path.json.
+func Fitts(d float64, size int) float64 {
 	w := float64(size)
 	if w <= 0 {
 		w = 24
@@ -63,13 +64,9 @@ func fitts(d float64, size int) float64 {
 func curve(r R, p Profile, a, b model.Point, dur int, bounds model.Rect) []Move {
 	d := dist(a, b)
 	n := max(dur/stepMs, 2)
-	// pháp tuyến đơn vị; hai điểm điều khiển lệch cùng phía (cong một chiều), độ lệch khác nhau
-	nx, ny := -float64(b.Y-a.Y)/d, float64(b.X-a.X)/d
 	bend := d * p.Curve * (r.Float64()*2 - 1)
-	o1, o2 := bend*(0.6+0.8*r.Float64()), bend*(0.6+0.8*r.Float64())
-	ax, ay, bx, by := float64(a.X), float64(a.Y), float64(b.X), float64(b.Y)
-	c1x, c1y := ax+(bx-ax)*0.3+nx*o1, ay+(by-ay)*0.3+ny*o1
-	c2x, c2y := ax+(bx-ax)*0.7+nx*o2, ay+(by-ay)*0.7+ny*o2
+	c1, c2 := Controls(a, b, bend*(0.6+0.8*r.Float64()), bend*(0.6+0.8*r.Float64()))
+	fa, fb := FPoint{float64(a.X), float64(a.Y)}, FPoint{float64(b.X), float64(b.Y)}
 
 	out := make([]Move, 0, n)
 	wait := 0
@@ -79,9 +76,8 @@ func curve(r R, p Profile, a, b model.Point, dur int, bounds model.Rect) []Move 
 			out = append(out, Move{X: b.X, Y: b.Y, WaitMs: wait})
 			break
 		}
-		s := minJerk(float64(i) / float64(n))
-		x, y := bezier(ax, c1x, c2x, bx, s), bezier(ay, c1y, c2y, by, s)
-		q := clamp(model.Point{X: round(x + r.NormFloat64()*p.Tremor), Y: round(y + r.NormFloat64()*p.Tremor)}, bounds)
+		c := CurveAt(fa, c1, c2, fb, float64(i)/float64(n))
+		q := clamp(model.Point{X: round(c.X + r.NormFloat64()*p.Tremor), Y: round(c.Y + r.NormFloat64()*p.Tremor)}, bounds)
 		if len(out) > 0 && out[len(out)-1].X == q.X && out[len(out)-1].Y == q.Y {
 			continue // đứng yên: dồn thời gian chờ sang bước sau
 		}
@@ -89,6 +85,27 @@ func curve(r R, p Profile, a, b model.Point, dur int, bounds model.Rect) []Move 
 		wait = 0
 	}
 	return out
+}
+
+// FPoint – điểm toạ độ thực (điểm điều khiển, điểm trên đường trước khi làm tròn).
+type FPoint struct {
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
+}
+
+// Controls – hai điểm điều khiển Bezier của đường a → b: ở 30 % / 70 % quãng, lệch theo pháp tuyến o1 / o2 px
+// (cùng dấu = cong một chiều). Cùng công thức controls ở humanPath.ts.
+func Controls(a, b model.Point, o1, o2 float64) (FPoint, FPoint) {
+	ax, ay, bx, by := float64(a.X), float64(a.Y), float64(b.X), float64(b.Y)
+	d := math.Max(math.Hypot(bx-ax, by-ay), 1e-9)
+	nx, ny := -(by-ay)/d, (bx-ax)/d
+	return FPoint{ax + (bx-ax)*0.3 + nx*o1, ay + (by-ay)*0.3 + ny*o1}, FPoint{ax + (bx-ax)*0.7 + nx*o2, ay + (by-ay)*0.7 + ny*o2}
+}
+
+// CurveAt – điểm trên đường ở thời điểm t ∈ [0, 1] (tiến độ theo minJerk). Cùng công thức curveAt ở humanPath.ts.
+func CurveAt(a, c1, c2, b FPoint, t float64) FPoint {
+	s := minJerk(t)
+	return FPoint{bezier(a.X, c1.X, c2.X, b.X, s), bezier(a.Y, c1.Y, c2.Y, b.Y, s)}
 }
 
 // minJerk – tiến độ theo thời gian t ∈ [0, 1] của chuyển động tay: chậm – nhanh – chậm.

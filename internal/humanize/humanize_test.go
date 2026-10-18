@@ -47,7 +47,7 @@ func TestPathEndsInsideAndTimed(t *testing.T) {
 					prev = model.Point{X: m.X, Y: m.Y}
 				}
 				d := math.Hypot(float64(c.to.X-c.from.X), float64(c.to.Y-c.from.Y))
-				lo, hi := fitts(d, 30)*p.Speed*0.8, fitts(d, 30)*p.Speed*1.2+650 // + đi lố và chỉnh lại
+				lo, hi := Fitts(d, 30)*p.Speed*0.8, Fitts(d, 30)*p.Speed*1.2+650 // + đi lố và chỉnh lại
 				if ms := float64(total(path)); ms < lo || ms > hi {
 					t.Fatalf("%s seed %d %v→%v: %v ms, muốn %v–%v", lv, seed, c.from, c.to, ms, lo, hi)
 				}

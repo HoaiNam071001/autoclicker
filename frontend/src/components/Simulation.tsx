@@ -4,10 +4,11 @@ import { boundsOf, endpoints } from '../store';
 import { orderedSteps } from '../flow/model';
 import { fmtSelectors } from '../flow/web';
 import { fmtKey } from '../keys';
+import { effectiveHuman } from '../flow/human';
+import { curveAt, HUMAN_PROFILES, humanLegs } from '../overlay/humanPath';
 import { Point, Rect, SCROLL_ARROW, scrollDelta, ScrollDirection, Step, stepLabel, Script } from '../types';
-import ScrollProgress from './simulation/ScrollProgress';
 
-const TRAVEL_MS = 300; // thời gian con trỏ giả bay tới điểm (engine thật dịch chuyển tức thì)
+const TRAVEL_MS = 300; // thời gian con trỏ giả bay tới điểm khi tắt giống người (engine thật dịch chuyển tức thì)
 const TYPE_CHAR_MS = 40;
 const KEY_SHOW_MS = 500;
 const RIPPLE_MS = 700;
@@ -18,7 +19,7 @@ const MAX_TRAIL = 60;
 const FRAME_MS = 16;
 const nextFrame = (cb: (now: number) => void) => setTimeout(() => cb(performance.now()), FRAME_MS);
 
-type Segment = { from: Point; to: Point; drag: boolean };
+type Segment = { from: Point; to: Point; drag: boolean; pts?: Point[] }; // pts: các điểm đường cong (giống người)
 type Ripple = { id: number; at: Point; hold?: number }; // hold: ms giữ chuột (vòng lớn dần)
 
 export type SimState = {
@@ -57,7 +58,7 @@ export function scrollRange(steps: Step[]) {
 class Stopped extends Error {}
 
 // Xem trước đi theo thứ tự hiển thị của flow (nhánh chính – cổng success trước); rẽ nhánh theo lựa chọn: bước 20 F6.
-export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges'>, region: Rect | null, speed: number) {
+export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges' | 'human'>, region: Rect | null, speed: number) {
   const steps = orderedSteps(sc);
   const [sim, setSim] = useState<SimState>(idle);
   const token = useRef(0); // tăng lên để huỷ lượt chạy đang dở
@@ -115,6 +116,26 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges'>, reg
       };
       nextFrame(frame);
     });
+    // tới p như chuột thật: node có mức giống người → đi theo đường cong + thời gian như engine (humanLegs),
+    // tắt → bay thẳng TRAVEL_MS. dragMs: đang kéo thả, đi đúng chừng này
+    const travel = async (p: Point, s: Step, dragMs?: number) => {
+      const drag = dragMs !== undefined;
+      const prof = HUMAN_PROFILES[effectiveHuman(sc.human, s.human)];
+      if (!prof || !pos) return moveTo(p, drag ? Math.max(dragMs, 1) : TRAVEL_MS, drag);
+      for (const l of humanLegs(pos, p, prof, drag ? { durMs: Math.max(dragMs, 1) } : {})) {
+        await wait(l.pauseMs); // khựng trước khi chỉnh lại sau khi đi lố
+        const pts: Point[] = [l.from];
+        if (l.ms > 0) {
+          await animate(l.ms, (k) => {
+            pos = curveAt(l.from, l.c1, l.c2, l.to, k);
+            pts.push(pos);
+            patch({ pos });
+          });
+        }
+        pos = l.to;
+        patch((st) => ({ pos: l.to, trail: [...st.trail, { from: l.from, to: l.to, drag, pts: [...pts, l.to] }].slice(-MAX_TRAIL) }));
+      }
+    };
     let rid = 0;
     const ripple = (at: Point, hold?: number) => {
       const r = { id: ++rid, at, hold };
@@ -134,19 +155,19 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges'>, reg
         switch (s.type) {
           case 'click':
             for (let n = 0; n < Math.max(s.clicks, 1); n++) {
-              if (e?.start) await moveTo(e.start, TRAVEL_MS);
+              if (e?.start) await travel(e.start, s);
               ripple(pos!);
               if (n < s.clicks - 1) await wait(s.clickInterval);
             }
             break;
           case 'double':
-            if (e?.start) await moveTo(e.start, TRAVEL_MS);
+            if (e?.start) await travel(e.start, s);
             ripple(pos!);
             await wait(100);
             ripple(pos!);
             break;
           case 'hold':
-            if (e?.start) await moveTo(e.start, TRAVEL_MS);
+            if (e?.start) await travel(e.start, s);
             patch({ pressed: true, bubble: `Giữ ${s.holdMs} ms` });
             ripple(pos!, s.holdMs);
             await wait(s.holdMs);
@@ -154,9 +175,9 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges'>, reg
             break;
           case 'drag':
             if (!e?.start || !e.end) break;
-            await moveTo(e.start, TRAVEL_MS);
+            await travel(e.start, s);
             patch({ pressed: true });
-            await moveTo(e.end, Math.max(s.dragMs, 1), true);
+            await travel(e.end, s, s.dragMs);
             patch({ pressed: false });
             break;
           case 'type':
@@ -170,7 +191,7 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges'>, reg
             await wait(KEY_SHOW_MS);
             break;
           case 'scroll': {
-            if (e?.start) await moveTo(e.start, TRAVEL_MS);
+            if (e?.start) await travel(e.start, s);
             // cuộn tại chuột: từ chỗ con trỏ giả đang đứng (chưa có thì giữa vùng / màn hình)
             const b = boundsOf(region);
             const from = e?.start ?? pos ?? { x: b.x + b.w / 2, y: b.y + b.h / 2 };
@@ -207,7 +228,7 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges'>, reg
             await wait(KEY_SHOW_MS);
             break;
           case 'waitPixel':
-            if (e?.start) await moveTo(e.start, TRAVEL_MS);
+            if (e?.start) await travel(e.start, s);
             patch({ bubble: `Chờ màu ${s.color} ±${s.tolerance}` });
             await wait(Math.min(s.timeoutMs ?? 0, 800));
             break;
@@ -228,51 +249,4 @@ export function useSimulation(sc: Pick<Script, 'steps' | 'start' | 'edges'>, reg
   };
 
   return { sim, start, stop };
-}
-
-// Lớp vẽ: vệt đường đi, gợn click, con trỏ giả + bong bóng. toClient: toạ độ màn hình → cửa sổ overlay.
-export function SimulationLayer({ sim, toClient }: { sim: SimState; toClient: (p: Point) => Point }) {
-  const cur = sim.pos && toClient(sim.pos);
-  return (
-    <div className="pointer-events-none absolute inset-0">
-      <svg className="absolute inset-0 h-full w-full" aria-hidden>
-        {sim.trail.map((t, i) => {
-          const a = toClient(t.from);
-          const b = toClient(t.to);
-          return (
-            <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-              stroke={t.drag ? '#F0913A' : '#FF4FA3'} strokeWidth={t.drag ? 4 : 2.5}
-              strokeDasharray={t.drag ? undefined : '4 6'} strokeLinecap="round"
-              opacity={0.35 + 0.65 * ((i + 1) / sim.trail.length)} />
-          );
-        })}
-      </svg>
-
-      {sim.scroll && <ScrollProgress sc={sim.scroll} toClient={toClient} />}
-
-      {sim.ripples.map((r) => {
-        const at = toClient(r.at);
-        return (
-          <span key={r.id} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: at.x, top: at.y }}>
-            <span className={`block h-12 w-12 rounded-full border-4 border-[#FF4FA3] ${r.hold ? 'sim-hold' : 'sim-ripple'}`}
-              style={r.hold ? { animationDuration: `${r.hold}ms` } : undefined} />
-          </span>
-        );
-      })}
-
-      {cur && (
-        <div className="absolute" style={{ left: cur.x, top: cur.y }}>
-          {/* con trỏ giả: mũi tên hồng viền trắng, đầu mũi tên đúng toạ độ */}
-          <svg width="26" height="32" viewBox="0 0 26 32" className={`drop-shadow-[0_2px_4px_rgb(0_0_0/.4)] transition-transform ${sim.pressed ? 'scale-90' : ''}`}>
-            <path d="M2 2 L2 26 L8.5 19.5 L13 30 L17.5 28 L13 18 L22 18 Z" fill="#FF4FA3" stroke="#fff" strokeWidth="2" strokeLinejoin="round" />
-          </svg>
-          {sim.bubble && (
-            <span className="absolute left-7 top-7 w-max max-w-[320px] whitespace-pre-wrap rounded-lg bg-hud px-2.5 py-1.5 font-mono text-[13px] text-hud-text shadow">
-              {sim.bubble}
-            </span>
-          )}
-        </div>
-      )}
-    </div>
-  );
 }
