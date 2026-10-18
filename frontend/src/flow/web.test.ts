@@ -43,6 +43,7 @@ describe('browserStatusText', () => {
 
 describe('fmtWebStep', () => {
   const web = (p: Parameters<typeof makeStep>[0]) => fmtWebStep(makeStep({ selectors: ['text=Gửi'], timeoutMs: 5000, ...p }));
+  it('chạy nền', () => expect(web({ id: 'a', type: 'webClick', webBackground: true })).toBe('chữ “Gửi” · chạy nền · tối đa 5 s'));
   it('gõ', () => expect(web({ id: 'a', type: 'webType', text: '{{email}}', webEnter: true })).toBe('“{{email}}” + Enter vào chữ “Gửi” · tối đa 5 s'));
   it('đọc thuộc tính', () => expect(web({ id: 'a', type: 'webRead', readFrom: 'attr', attr: 'href' })).toBe('đọc thuộc tính href · chữ “Gửi” · tối đa 5 s'));
   it('đọc chữ', () => expect(web({ id: 'a', type: 'webRead' })).toBe('đọc chữ hiển thị · chữ “Gửi” · tối đa 5 s'));

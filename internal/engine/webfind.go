@@ -41,6 +41,7 @@ func (e *Engine) FindElement(ctx context.Context, s model.Step) (WebFindResult, 
 		return WebFindResult{}, errors.New("chưa nhập cách tìm phần tử")
 	}
 	q.Read, q.Attr = readOf(s) // webRead: Thử tìm cho xem luôn giá trị sẽ đọc
+	q.Background = false       // khung vẽ trên overlay cần toạ độ màn hình, kể cả node chạy nền
 	start := time.Now()
 	f, err := e.browser.Find(ctx, q)
 	if err != nil {

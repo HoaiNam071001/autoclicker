@@ -25,10 +25,7 @@ func (e *Engine) webType(ctx context.Context, s model.Step) (map[string]any, err
 	if err := e.gate.wait(ctx); err != nil {
 		return nil, err
 	}
-	if err := e.move(f.at.X, f.at.Y); err != nil {
-		return nil, err
-	}
-	if err := e.click("left", false); err != nil {
+	if err := e.webPress(ctx, s, f.at, "left", 1); err != nil {
 		return nil, err
 	}
 	if err := Sleep(ctx, focusWaitMs); err != nil {
@@ -41,26 +38,35 @@ func (e *Engine) webType(ctx context.Context, s model.Step) (map[string]any, err
 	if !ok {
 		return nil, &notFoundErr{fmt.Sprintf("đã click vào “%s” nhưng ô nhập không nhận focus (đang focus: %s) – cách tìm có trỏ đúng ô nhập không?", lines[f.Selector], at)}
 	}
-	if s.WebClear {
-		selectAll := model.Step{Keys: []string{"a"}, Modifiers: []string{selectAllMod()}, KeyMode: model.KeyChord}
-		if err := pressKeys(ctx, e.in, selectAll); err != nil {
-			return nil, err
-		}
-		if err := pressKeys(ctx, e.in, model.Step{Keys: []string{"backspace"}}); err != nil {
-			return nil, err
-		}
-	}
-	if err := e.typeText(ctx, s.Text); err != nil {
+	if err := e.webKeys(ctx, s); err != nil {
 		return nil, err
-	}
-	if s.WebEnter {
-		if err := pressKeys(ctx, e.in, model.Step{Keys: []string{"enter"}}); err != nil {
-			return nil, err
-		}
 	}
 	out := webOutput(f.Found, lines)
 	out["text"], out["clickX"], out["clickY"] = s.Text, f.at.X, f.at.Y
 	return out, nil
+}
+
+// webKeys – phần gõ của webType vào ô đã focus: phím thật, hoặc chèn chữ qua CDP khi chạy nền.
+func (e *Engine) webKeys(ctx context.Context, s model.Step) error {
+	if s.WebBackground {
+		return e.browser.BgType(ctx, s.Text, s.WebClear, s.WebEnter)
+	}
+	if s.WebClear {
+		selectAll := model.Step{Keys: []string{"a"}, Modifiers: []string{selectAllMod()}, KeyMode: model.KeyChord}
+		if err := pressKeys(ctx, e.in, selectAll); err != nil {
+			return err
+		}
+		if err := pressKeys(ctx, e.in, model.Step{Keys: []string{"backspace"}}); err != nil {
+			return err
+		}
+	}
+	if err := e.typeText(ctx, s.Text); err != nil {
+		return err
+	}
+	if s.WebEnter {
+		return pressKeys(ctx, e.in, model.Step{Keys: []string{"enter"}})
+	}
+	return nil
 }
 
 // selectAllMod – phím kèm của "chọn tất cả" theo hệ điều hành.
@@ -105,10 +111,7 @@ func (e *Engine) webScroll(ctx context.Context, s model.Step) (map[string]any, e
 		if err != nil {
 			return nil, err
 		}
-		if err := e.move(f.at.X, f.at.Y); err != nil {
-			return nil, err
-		}
-		if err := e.wheel(ctx, s.Direction, s.Amount); err != nil {
+		if err := e.webWheel(ctx, s, f.at); err != nil {
 			return nil, err
 		}
 		return webOutput(f.Found, lines), nil
@@ -157,11 +160,8 @@ func (e *Engine) scrollUntil(ctx context.Context, s model.Step) (map[string]any,
 		if boxTry, err = e.webTryOnce(ctx, s, box, true); err != nil || !boxTry.ok {
 			return false, 0, err
 		}
-		if err := e.move(boxTry.at.X, boxTry.at.Y); err != nil {
-			return false, 0, err
-		}
 		n++
-		return false, 0, e.wheel(ctx, s.Direction, s.Amount)
+		return false, 0, e.webWheel(ctx, s, boxTry.at)
 	})
 	if errors.Is(err, errTimeout) {
 		return nil, &notFoundErr{scrollMissMsg(s, last, boxTry, lines, boxLines, n)}
@@ -172,6 +172,17 @@ func (e *Engine) scrollUntil(ctx context.Context, s model.Step) (map[string]any,
 	out := webOutput(last, lines)
 	out["scrolls"] = n
 	return out, nil
+}
+
+// webWheel lăn Amount nấc Direction tại at: chuột thật, hoặc qua CDP khi chạy nền.
+func (e *Engine) webWheel(ctx context.Context, s model.Step, at model.Point) error {
+	if s.WebBackground {
+		return e.wheelEach(ctx, s.Amount, func() error { return e.browser.BgWheel(ctx, at.X, at.Y, s.Direction) })
+	}
+	if err := e.move(at.X, at.Y); err != nil {
+		return err
+	}
+	return e.wheel(ctx, s.Direction, s.Amount)
 }
 
 // scrollMissMsg – vì sao cuộn hết giờ vẫn chưa thấy: không lăn được trong khung, thấy mà chưa tới, hay chưa thấy.

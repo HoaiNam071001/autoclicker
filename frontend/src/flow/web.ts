@@ -57,10 +57,13 @@ export type ReadFrom = Exclude<keyof typeof READ_LABEL, ''>;
 export const SCROLL_MODE_LABEL = { '': 'Tới phần tử', in: 'Trong phần tử', until: 'Tới khi thấy' } as const;
 export type ScrollMode = Exclude<keyof typeof SCROLL_MODE_LABEL, ''>;
 
+// Loại node web chọn được chạy nền (Step.webBackground) – webRead vốn không đụng chuột.
+export const canBackground = (s: Step) => s.type === 'webWait' || s.type === 'webClick' || s.type === 'webType' || s.type === 'webScroll';
+
 // Dòng chi tiết trên thẻ node web.
 export function fmtWebStep(s: Step): string {
   const sel = fmtSelectors(s.selectors);
-  const tail = `${s.tab ? ` · tab “${s.tab}”` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
+  const tail = `${s.tab ? ` · tab “${s.tab}”` : ''}${s.webBackground && canBackground(s) ? ' · chạy nền' : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
   const roll = `${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount ?? 0} nấc`;
   switch (s.type) {
     case 'webType': return `“${s.text}”${s.webEnter ? ' + Enter' : ''} vào ${sel}${tail}`;

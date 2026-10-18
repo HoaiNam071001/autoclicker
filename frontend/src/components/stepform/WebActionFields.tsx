@@ -7,7 +7,7 @@ import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
 import { ScrollDirection, Step } from '../../types';
-import { parseSelector, READ_LABEL, ReadFrom, SCROLL_MODE_LABEL, ScrollMode, SELECTOR_LABEL, selectorLines } from '../../flow/web';
+import { canBackground, parseSelector, READ_LABEL, ReadFrom, SCROLL_MODE_LABEL, ScrollMode, SELECTOR_LABEL, selectorLines } from '../../flow/web';
 import { ButtonField, DIRECTION_OPTIONS, Field, hint, NumField, useNodeVars } from './shared';
 
 const set = (s: Step, patch: Partial<Step>) => updateStep(s.id, patch);
@@ -121,8 +121,27 @@ export function WebScrollFields({ step: s }: { step: Step }) {
   </>;
 }
 
+// Chuột thật / chạy nền (D4b) – chỉ loại có thao tác (canBackground).
+export function WebModeField({ step: s }: { step: Step }) {
+  if (!canBackground(s)) return null;
+  return (
+    <Field label="Điều khiển" wide group>
+      <Segmented value={s.webBackground ? 'bg' : 'real'} onChange={(v) => set(s, { webBackground: v === 'bg' || undefined })} full label="Điều khiển"
+        options={[{ id: 'real', label: 'Chuột thật' }, { id: 'bg', label: 'Chạy nền' }]} />
+      <span className={hint}>
+        {s.webBackground ? 'Bấm / gõ / lăn qua Chrome của app, không đụng chuột – Chrome bị che hay thu nhỏ vẫn chạy. Toạ độ output theo trang. Trang chống bot kỹ nên dùng chuột thật.'
+          : 'Chuột / phím thật như người dùng, đưa Chrome lên trước khi bấm.'}
+      </span>
+    </Field>
+  );
+}
+
 // Dòng giải thích cuối inspector theo loại node.
 export function webHintText(s: Step, after: string): string {
+  if (s.webBackground && canBackground(s)) {
+    if (s.type === 'webType') return `Click vào ô qua Chrome của app, ô phải nhận focus mới chèn chữ (không thì cổng Thất bại). Không thấy sau ${after} → cổng Thất bại.`;
+    if (s.type === 'webScroll' && s.scrollMode) return s.scrollMode === 'until' ? `Lăn qua Chrome của app mỗi lần kiểm tra tới khi phần tử vào khung nhìn; quá ${after} → cổng Thất bại.` : 'Lăn trong phần tử qua Chrome của app.';
+  }
   switch (s.type) {
     case 'webWait': return s.webGone ? `Phần tử còn sau ${after} → cổng Thất bại.` : `Không thấy sau ${after} → cổng Thất bại.`;
     case 'webClick': return `Không thấy sau ${after} → cổng Thất bại. Phần tử ngoài màn hình thì tự cuộn tới; bị popup che thì chờ tiếp.`;

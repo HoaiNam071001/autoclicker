@@ -1,0 +1,24 @@
+{
+ "meta": {
+  "name": "Web: chạy nền (Chrome bị che vẫn chạy)",
+  "description": "Như mẫu đăng nhập + cuộn feed nhưng mọi node web bật Chạy nền: bấm / gõ / lăn qua Chrome của app, không đụng chuột – bấm Chạy xong cứ dùng app khác, che hay thu nhỏ Chrome. Đăng nhập (xoá chữ cũ, gõ, Enter), đọc tên, mở feed, lăn tới BÀI ĐẶC BIỆT, thả tim. Đúng: kết thúc thành công, chuột không nhúc nhích; Chrome chỉ lên trước lúc node Mở mở trang.",
+  "app": "Web (DOM)",
+  "level": 2,
+  "page": "login.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {"type": "open", "target": "{{sandbox}}/login.html", "webBrowser": true, "delayAfter": 500},
+   {"type": "webType", "webBackground": true, "selectors": ["role=textbox[name=\"TÊN TÀI KHOẢN\"]", "css=#u"], "text": "demo", "webClear": true, "timeoutMs": 5000, "intervalMs": 200, "delayAfter": 200},
+   {"type": "webType", "webBackground": true, "selectors": ["css=#p"], "text": "123456", "webClear": true, "webEnter": true, "timeoutMs": 5000, "intervalMs": 200, "delayAfter": 300},
+   {"type": "webWait", "webBackground": true, "selectors": ["text=XIN CHÀO"], "timeoutMs": 5000, "intervalMs": 200, "delayAfter": 0},
+   {"type": "webRead", "selectors": ["css=#who"], "timeoutMs": 5000, "intervalMs": 200, "delayAfter": 0},
+   {"type": "open", "target": "{{sandbox}}/feed.html", "webBrowser": true, "delayAfter": 500},
+   {"type": "webScroll", "webBackground": true, "scrollMode": "until", "selectors": ["text=\"⭐ BÀI ĐẶC BIỆT\"", "css=.post.special"], "direction": "down", "amount": 3, "timeoutMs": 40000, "intervalMs": 300, "delayAfter": 300},
+   {"type": "webClick", "webBackground": true, "selectors": ["text=\"THẢ TIM BÀI NÀY\""], "timeoutMs": 5000, "intervalMs": 200, "delayAfter": 300},
+   {"type": "webWait", "webBackground": true, "selectors": ["text=ĐÃ THẢ TIM"], "timeoutMs": 3000, "intervalMs": 200, "delayAfter": 0},
+   {"type": "end", "endStatus": "success", "message": "Chạy nền: XIN CHÀO {{n5.output.text}}, lăn {{n7.output.scrolls}} lần tới bài đặc biệt"}
+  ]
+ }
+}

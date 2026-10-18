@@ -159,11 +159,16 @@ func (e *Engine) typeText(ctx context.Context, text string) error {
 
 // wheel lăn n nấc theo dir ở chỗ chuột đang đứng.
 func (e *Engine) wheel(ctx context.Context, dir string, n int) error {
+	return e.wheelEach(ctx, n, func() error { return e.in.Scroll(dir) })
+}
+
+// wheelEach lăn n nấc bằng notch, cách nhau scrollGapMs, dừng / tạm dừng được giữa các nấc.
+func (e *Engine) wheelEach(ctx context.Context, n int, notch func() error) error {
 	for i := 0; i < n; i++ {
 		if err := e.gate.wait(ctx); err != nil {
 			return err
 		}
-		if err := e.in.Scroll(dir); err != nil {
+		if err := notch(); err != nil {
 			return err
 		}
 		if err := Sleep(ctx, scrollGapMs); err != nil {

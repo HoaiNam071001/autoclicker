@@ -114,8 +114,11 @@ type Step struct {
 	WebGone   bool     `json:"webGone,omitempty"`   // webWait: chờ phần tử mất (không còn / bị ẩn)
 	WebClear  bool     `json:"webClear,omitempty"`  // webType: xoá chữ cũ trong ô (Cmd/Ctrl+A, Backspace) trước khi gõ
 	WebEnter  bool     `json:"webEnter,omitempty"`  // webType: bấm Enter sau khi gõ
-	ReadFrom  string   `json:"readFrom,omitempty"`  // webRead: "" = chữ hiển thị | value (giá trị ô) | attr (thuộc tính Attr)
-	Attr      string   `json:"attr,omitempty"`      // webRead ReadFrom attr: tên thuộc tính, vd href
+	// webWait / webClick / webType / webScroll: chạy nền (D4b) – bấm / gõ / lăn qua CDP, không đụng chuột / phím thật,
+	// không đưa Chrome lên trước (cửa sổ bị che / thu nhỏ vẫn chạy); output x, y… theo toạ độ trong trang
+	WebBackground bool   `json:"webBackground,omitempty"`
+	ReadFrom      string `json:"readFrom,omitempty"` // webRead: "" = chữ hiển thị | value (giá trị ô) | attr (thuộc tính Attr)
+	Attr          string `json:"attr,omitempty"`     // webRead ReadFrom attr: tên thuộc tính, vd href
 	// webScroll: "" = tới phần tử (vào giữa khung nhìn) | in = lăn Amount nấc Direction trong phần tử | until = lăn tới khi
 	// phần tử nằm trong khung nhìn (lăn trong khung ScrollIn, trống = giữa trang)
 	ScrollMode string   `json:"scrollMode,omitempty"`

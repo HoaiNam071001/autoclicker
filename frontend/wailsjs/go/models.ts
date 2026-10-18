@@ -764,6 +764,7 @@ export namespace model {
 	    webGone?: boolean;
 	    webClear?: boolean;
 	    webEnter?: boolean;
+	    webBackground?: boolean;
 	    readFrom?: string;
 	    attr?: string;
 	    scrollMode?: string;
@@ -833,6 +834,7 @@ export namespace model {
 	        this.webGone = source["webGone"];
 	        this.webClear = source["webClear"];
 	        this.webEnter = source["webEnter"];
+	        this.webBackground = source["webBackground"];
 	        this.readFrom = source["readFrom"];
 	        this.attr = source["attr"];
 	        this.scrollMode = source["scrollMode"];

@@ -25,7 +25,23 @@ type fakeBrowser struct {
 	opened  []string
 	focus   []bool // Focused lần lượt (cuối lặp lại; trống = luôn đúng)
 	nFocus  int
+	bg      []string // thao tác chạy nền đã gửi
 	err     error
+}
+
+func (b *fakeBrowser) BgClick(_ context.Context, x, y int, button string, count int) error {
+	b.bg = append(b.bg, fmt.Sprintf("click %d,%d %s %d", x, y, button, count))
+	return nil
+}
+
+func (b *fakeBrowser) BgWheel(_ context.Context, x, y int, dir string) error {
+	b.bg = append(b.bg, fmt.Sprintf("wheel %d,%d %s", x, y, dir))
+	return nil
+}
+
+func (b *fakeBrowser) BgType(_ context.Context, text string, clear, enter bool) error {
+	b.bg = append(b.bg, fmt.Sprintf("type %q %v %v", text, clear, enter))
+	return nil
 }
 
 func (b *fakeBrowser) Focused(context.Context) (bool, string, error) {

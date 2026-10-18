@@ -34,9 +34,10 @@ type Chrome struct {
 }
 
 type tabConn struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	cal    *calibration // nil = chưa đo / phải đo lại
+	ctx      context.Context
+	cancel   context.CancelFunc
+	cal      *calibration // nil = chưa đo / phải đo lại
+	focusEmu bool         // đã bật giả lập focus (chạy nền)
 }
 
 // NewChrome – profile: thư mục profile riêng của app; move: di chuột thật (đo toạ độ).
@@ -188,6 +189,9 @@ func (c *Chrome) Find(ctx context.Context, q Query) (Found, error) {
 	f := r.found(ti.URL, q)
 	if !f.OK || q.CheckOnly {
 		return f, nil
+	}
+	if q.Background {
+		return c.findBackground(ctx, t, q, r, f)
 	}
 	if q.Scroll && !(r.Focus && r.Visible) { // sắp bấm: tab / cửa sổ phải ở trên cùng (D0: Page.bringToFront đủ)
 		if err := bringToFront(ctx, t.ctx); err != nil {

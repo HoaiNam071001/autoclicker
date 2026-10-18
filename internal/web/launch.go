@@ -57,7 +57,9 @@ func findBrowser(goos string) (string, error) {
 
 // launchArgs – tham số bật trình duyệt; url mở ngay ở tab đầu.
 func launchArgs(profile, url string) []string {
-	return []string{"--remote-debugging-port=0", "--user-data-dir=" + profile, "--no-first-run", "--no-default-browser-check", url}
+	return []string{"--remote-debugging-port=0", "--user-data-dir=" + profile, "--no-first-run", "--no-default-browser-check",
+		// chạy nền (D4b): cửa sổ bị che / thu nhỏ, tab không hiện vẫn chạy đủ nhịp (không bị giảm tốc / dừng vẽ)
+		"--disable-backgrounding-occluded-windows", "--disable-renderer-backgrounding", "--disable-background-timer-throttling", url}
 }
 
 // activePort – dòng đầu <profile>/DevToolsActivePort là cổng Chrome đã chọn (file còn khi Chrome đã tắt – phải hỏi lại).

@@ -108,6 +108,7 @@ export interface Step {
   webGone?: boolean; // webWait: chờ phần tử mất
   webClear?: boolean; // webType: xoá chữ cũ trước khi gõ
   webEnter?: boolean; // webType: Enter sau khi gõ
+  webBackground?: boolean; // webWait / webClick / webType / webScroll: chạy nền qua CDP, không đụng chuột / phím thật (flow/web.ts canBackground)
   readFrom?: ReadFrom; // webRead: bỏ trống = chữ hiển thị
   attr?: string; // webRead readFrom attr: tên thuộc tính
   scrollMode?: ScrollMode; // webScroll: bỏ trống = tới phần tử

@@ -16,9 +16,10 @@ import (
 var errNoBrowserOpt = &web.BrowserError{Msg: "lần chạy này không điều khiển trình duyệt"}
 
 // webQuery – query tìm theo các dòng selector đã thay biến (dòng trống bỏ qua; đã kiểm tra ở ValidateScript), kèm dòng
-// gốc để báo lại. click: sắp bấm / lăn chuột vào phần tử (cuộn tới, chưa tính khi bị che, tab lên trước).
+// gốc để báo lại. click: sắp bấm / lăn chuột vào phần tử (cuộn tới, chưa tính khi bị che, tab lên trước – chạy nền
+// thì không đưa lên).
 func webQuery(s model.Step, sels []string, click bool) (web.Query, []string, error) {
-	q := web.Query{Tab: s.Tab, Scroll: click}
+	q := web.Query{Tab: s.Tab, Scroll: click, Background: s.WebBackground}
 	var lines []string
 	for _, line := range sels {
 		if strings.TrimSpace(line) == "" {
@@ -82,9 +83,10 @@ func (e *Engine) webTryOnce(ctx context.Context, s model.Step, q web.Query, aim 
 		t.ok = !f.OK && !f.Loading && !f.NoTab
 	case !f.OK || !aim:
 		t.ok = f.OK
+	case q.Background: // chạy nền: bấm qua CDP đúng toạ độ trang – không có chuột thật để thử hover
+		t.at, t.ok = e.aimPoint(s, f.Rect), true
 	default:
-		c := hit{Box: f.Rect}.center()
-		t.at = model.Point{X: e.jitter(c.X+s.Dx, s.JitterPx), Y: e.jitter(c.Y+s.Dy, s.JitterPx)}
+		t.at = e.aimPoint(s, f.Rect)
 		h, err := e.browser.Hover(ctx, t.at.X, t.at.Y, !q.Viewport && inRect(t.at, f.Rect))
 		t.ok, t.hover = h.OK, h.Miss
 		if err != nil {
@@ -92,6 +94,12 @@ func (e *Engine) webTryOnce(ctx context.Context, s model.Step, q web.Query, aim 
 		}
 	}
 	return t, nil
+}
+
+// aimPoint – điểm bấm: tâm khung + Dx / Dy + lệch ngẫu nhiên.
+func (e *Engine) aimPoint(s model.Step, r model.Rect) model.Point {
+	c := hit{Box: r}.center()
+	return model.Point{X: e.jitter(c.X+s.Dx, s.JitterPx), Y: e.jitter(c.Y+s.Dy, s.JitterPx)}
 }
 
 func inRect(p model.Point, r model.Rect) bool {
@@ -141,23 +149,19 @@ func (e *Engine) webClick(ctx context.Context, s model.Step) (map[string]any, er
 		return nil, err
 	}
 	out := webOutput(f.Found, lines)
-	c := hit{Box: f.Rect}.center()
 	n := max(s.Clicks, 1)
 	for i := 0; i < n; i++ {
 		if err := e.gate.wait(ctx); err != nil {
 			return nil, err
 		}
-		x, y := f.at.X, f.at.Y
+		at := f.at
 		if i > 0 {
-			x, y = e.jitter(c.X+s.Dx, s.JitterPx), e.jitter(c.Y+s.Dy, s.JitterPx)
+			at = e.aimPoint(s, f.Rect)
 		}
-		if err := e.move(x, y); err != nil {
+		if err := e.webPress(ctx, s, at, s.Button, i+1); err != nil {
 			return nil, err
 		}
-		if err := e.click(s.Button, false); err != nil {
-			return nil, err
-		}
-		out["clickX"], out["clickY"] = x, y
+		out["clickX"], out["clickY"] = at.X, at.Y
 		if i < n-1 {
 			if err := Sleep(ctx, e.jitterMs(s.ClickInterval, s.JitterMs)); err != nil {
 				return nil, err
@@ -165,6 +169,17 @@ func (e *Engine) webClick(ctx context.Context, s model.Step) (map[string]any, er
 		}
 	}
 	return out, nil
+}
+
+// webPress – một lần bấm của node web: chuột thật, hoặc qua CDP khi chạy nền (nth = lần bấm thứ mấy – double-click).
+func (e *Engine) webPress(ctx context.Context, s model.Step, at model.Point, button string, nth int) error {
+	if s.WebBackground {
+		return e.browser.BgClick(ctx, at.X, at.Y, button, nth)
+	}
+	if err := e.move(at.X, at.Y); err != nil {
+		return err
+	}
+	return e.click(button, false)
 }
 
 // openInBrowser – node Mở với WebBrowser: mở bằng Chrome của app.

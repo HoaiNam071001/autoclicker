@@ -10,7 +10,7 @@ import { browserStatusText, parseSelector, selectorLines, webFindText } from '..
 import { cancelPick, openAppBrowser, pickElement, refreshBrowser, testWebFind, useWebState } from '../../webSteps';
 import { inWails, openOverlay } from '../../windowMode';
 import { WebTools } from './WebTools';
-import { SelectorsField, WebClickFields, webHintText, WebReadFields, WebScrollFields, WebTypeFields, WebWaitFields } from './WebActionFields';
+import { SelectorsField, WebClickFields, webHintText, WebModeField, WebReadFields, WebScrollFields, WebTypeFields, WebWaitFields } from './WebActionFields';
 import { Field, fmtSec, hint, NumField, useNodeVars } from './shared';
 
 // Nhãn ô cách tìm theo loại / cách cuộn.
@@ -55,13 +55,14 @@ export function WebFields({ step: s }: { step: Step }) {
       {s.type === 'webClick' && <WebClickFields step={s} />}
       {s.type === 'webType' && <WebTypeFields step={s} />}
       {s.type === 'webRead' && <WebReadFields step={s} />}
+      <WebModeField step={s} />
       <NumField label="Chờ tối đa" step={s} field="timeoutMs" unit="ms" min={1} />
       <Field label="Kiểm tra mỗi">
         <NumInput value={s.intervalMs ?? 200} min={20} unit="ms" onChange={(intervalMs) => set({ intervalMs })} />
       </Field>
       <span className={`col-span-2 -mt-1 ${hint}`}>
         {webHintText(s, fmtSec(s.timeoutMs))}
-        {s.type !== 'webRead' && !(s.type === 'webWait' && s.webGone) && ' Lần đầu chuột đi vào trang vài điểm để đo toạ độ.'}
+        {s.type !== 'webRead' && !(s.type === 'webWait' && s.webGone) && !s.webBackground && ' Lần đầu chuột đi vào trang vài điểm để đo toạ độ.'}
       </span>
     </>
   );

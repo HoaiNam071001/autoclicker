@@ -22,6 +22,11 @@ type Browser interface {
 	// Focused – sau khi click vào phần tử của lần Find (Scroll) gần nhất: ô nhập đang focus có phải nó (con / cha / ô của
 	// label) không; không phải thì at mô tả phần tử đang focus.
 	Focused(ctx context.Context) (ok bool, at string, err error)
+	// Chạy nền (D4b, Query.Background): thao tác qua CDP trên tab của lần Find (Scroll) gần nhất, (x, y) theo toạ độ
+	// trong trang như Found.Rect – không đụng chuột / phím thật, không đưa tab lên trước.
+	BgClick(ctx context.Context, x, y int, button string, count int) error // count = lần bấm thứ mấy (2 = double-click)
+	BgWheel(ctx context.Context, x, y int, dir string) error              // lăn một nấc theo dir (up | down | left | right)
+	BgType(ctx context.Context, text string, clear, enter bool) error      // vào ô đang focus: xoá chữ cũ, chèn text, Enter
 	Close()
 }
 
@@ -34,12 +39,14 @@ type Query struct {
 	Read      string // webRead: đọc vào Found.Value – "text" (chữ hiển thị) | "value" (giá trị ô) | "attr" (thuộc tính Attr)
 	Attr      string
 	Viewport  bool // tìm chính khung nhìn của trang (bỏ qua Selectors) – lăn chuột giữa trang (webScroll)
+	// Background: chạy nền – không đưa tab lên trước, không đo toạ độ bằng chuột; Found.Rect theo toạ độ trong trang
+	Background bool
 }
 
 // Found – kết quả một lần tìm.
 type Found struct {
 	OK       bool
-	Rect     model.Rect // khung phần tử theo toạ độ màn hình (robotgo)
+	Rect     model.Rect // khung phần tử theo toạ độ màn hình (robotgo); Query.Background: toạ độ trong trang (CSS px)
 	Text     string     // chữ hiển thị (cắt ngắn)
 	Selector int        // chỉ số selector đã khớp (-1 = không)
 	Covered  string     // thấy nhưng bị phần tử khác che – mô tả phần tử che (OK = false)
