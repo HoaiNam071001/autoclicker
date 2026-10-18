@@ -232,7 +232,7 @@ func errCode(err error) string {
 		return model.ErrNetwork
 	case errors.As(err, &late):
 		return model.ErrTimeout
-	case errors.Is(err, device.ErrNoPermission), errors.Is(err, errDeleteNotAllowed):
+	case errors.Is(err, device.ErrNoPermission), errors.Is(err, device.ErrNoAccessibility), errors.Is(err, errDeleteNotAllowed):
 		return model.ErrPermission
 	}
 	return model.ErrInternal

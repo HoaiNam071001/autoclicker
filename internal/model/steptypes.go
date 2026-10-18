@@ -43,7 +43,7 @@ const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự tron
 	`{{n2.error.code}} / {{n2.error.message}}, {{n2.output.<khoá>}} = kết quả lần chạy gần nhất của node có ref n2 trong vòng này ` +
 	`(khoá theo outputs của loại node, cộng startedAt / durationMs mọi node đều có); ` +
 	`{{last.…}} = node vừa chạy trước; {{vars.<tên>}} = biến node setVar đặt. Biến nhận được trong: text, target, findText, selectors, tab, ` +
-	`cond (findText, left, right), cases (match, cond), value, message. ` +
+	`elementApp, cond (findText, selectors, elementApp, left, right), cases (match, cond), value, message. ` +
 	`Điểm trên màn hình (points của click, double, hold, drag, scroll, waitPixel) nhận toạ độ từ biến: {"xVar":"{{n2.output.x}} + 20","yVar":"{{n2.output.y}}"} – ` +
 	`có xVar / yVar thì bỏ qua x, y và neo; mỗi ô là số hoặc biến cộng / trừ px, biến node phải là output của node đó (vd x, y, w, h của waitImage); ` +
 	`kết quả là toạ độ màn hình (như output waitImage), không tính theo vùng; drag dragRelative: points[1] từ biến là độ lệch so với A. ` +
@@ -52,11 +52,12 @@ const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự tron
 	`thay cho trường đó; biến node phải là output của node đó; ra số sai khoảng (vd clicks < 1, số âm) → node fail invalid_input. ` +
 	`Node điều khiển rẽ nhánh theo cổng: if (true / false), switch / switchScreen (case:<key> theo từng case, rồi default / none), ` +
 	`counter (next / done – dùng để giới hạn vòng lặp), end (không có cổng: kết thúc vòng, fail = dừng kịch bản báo lỗi), setVar (success). ` +
-	`Điều kiện cond: {kind: text | image | pixel | value | all | any, not}: text = thấy chữ findText (textExact, textNoAccent, occurrence, searchArea); ` +
+	`Điều kiện cond: {kind: text | image | element | pixel | value | all | any, not}: text = thấy chữ findText (textExact, textNoAccent, occurrence, searchArea); ` +
+	`element = có phần tử selectors trong cửa sổ app elementApp (như findBy "element" của waitImage; không cuộn); ` +
 	`image = thấy ảnh mẫu template (templateScale, threshold, searchArea); pixel = points[0] có màu color ± tolerance; ` +
 	`value = so left op right (op: eq | ne | contains (không phân biệt hoa thường) | gt | lt (so số) | empty); all / any = conds[] (và / hoặc). ` +
 	`Kết quả mỗi node: {nodeId, ref, status, port, output, error {code, message}, logs, attempts, durationMs}; ` +
-	`error.code: not_found (chờ ảnh / chữ / màu / phần tử web hết giờ), browser (chưa mở Chrome của app), permission, invalid_input (biến trỏ node chưa chạy…), end (node Kết thúc thất bại), internal.`
+	`error.code: not_found (chờ ảnh / chữ / màu / phần tử hết giờ), browser (chưa mở Chrome của app), permission (Screen Recording / Accessibility), invalid_input (biến trỏ node chưa chạy…), end (node Kết thúc thất bại), internal.`
 
 // flowExample – kịch bản mẫu: mở trang → chờ chữ "Nhắn tin" → click → gõ; không thấy thì cuộn rồi chờ lại, tối đa
 // 10 lần (node Đếm) rồi kết thúc báo lỗi (test chạy qua script.ValidateScript).
@@ -107,12 +108,12 @@ var stepTypeDocs = []StepTypeDoc{
 	{StepOpen, "Mở URL / app", "Mở target: URL (https://… hoặc tên miền như youtube.com/…), đường dẫn file / app, hoặc tên app (Spotify). app: mở bằng app này, vd Google Chrome; trống = mặc định của máy. Nhận {{biến}} (trong URL tự mã hoá). Không chờ trang tải xong – đặt delayAfter đủ lâu hoặc thêm bước chờ. webBrowser true: mở URL / file bằng Chrome của app (profile riêng của app, Chrome / Edge / Brave – lần đầu phải đăng nhập lại trang) để node web (webWait, webClick, webType, webRead, webScroll) điều khiển được; đang mở thì mở tab mới, bỏ qua app.",
 		[]string{"target", "app", "webBrowser"}, []string{"delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"open","target":"https://www.youtube.com/results?search_query={{bai_hat}}","app":"Google Chrome","delayAfter":3000,"enabled":true}`, []string{"target", "app"}, nil},
-	{StepWaitImage, "Chờ ảnh", "Chờ tới khi ảnh mẫu template (PNG base64, chụp bằng app – CaptureTemplate) hiện trên màn hình, độ khớp ≥ threshold %. Hết timeoutMs không thấy → cổng fail (error.code not_found). Tìm trong vùng của kịch bản, hoặc searchArea \"screen\" = cả màn chứa vùng. Output x, y (tâm), w, h, score – node clickImage chọn imageFrom = id node này để click vào đó. findBy \"text\": tìm chữ findText thay ảnh mẫu (đọc chữ trên màn hình, tiếng Việt / Anh; không phân biệt hoa thường và khoảng trắng; nhận {{biến}}); textExact = cả dòng đúng chuỗi, textNoAccent = bỏ qua dấu, occurrence = chỗ thứ mấy theo thứ tự đọc. Chữ bền hơn ảnh khi đổi theme / zoom – nên dùng khi nút có chữ.",
-		[]string{"template", "templateScale", "threshold", "timeoutMs", "intervalMs", "searchArea", "findBy", "findText", "textExact", "textNoAccent", "occurrence"}, []string{"timeoutMs", "threshold", "delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"waitImage","template":"iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAAAAADhZOFXAAAAHUlEQVR4nGNkYPjPwMjwn4GJAQb+/4dguAgjEWoAyH0MAWBh3h0AAAAASUVORK5CYII=","templateScale":1,"threshold":90,"timeoutMs":10000,"intervalMs":250,"delayAfter":300,"enabled":true}`, []string{"x", "y", "w", "h", "score", "text"}, nil},
-	{StepClickImage, "Click theo ảnh", "Click vào tâm chỗ thấy ảnh / chữ (+ dx, dy). imageSource \"node\": chỗ node imageFrom (id node chờ ảnh / chữ, hoặc click theo ảnh tự tìm) thấy lần gần nhất trong vòng – node đó chưa thấy thì lỗi; \"search\": tự tìm ảnh mẫu / chữ riêng (các trường như waitImage, gồm findBy \"text\"). Không thấy → cổng fail.",
-		[]string{"imageSource", "dx", "dy", "button", "template", "templateScale", "threshold", "timeoutMs", "intervalMs", "searchArea", "findBy", "findText", "textExact", "textNoAccent", "occurrence", "jitterPx"}, []string{"timeoutMs", "threshold", "jitterPx", "delayAfter", "jitterMs", "enabled"},
-		`{"id":"s2","ref":"n2","type":"clickImage","imageSource":"node","imageFrom":"s1","dx":0,"dy":0,"button":"left","delayAfter":500,"enabled":true}`, []string{"clickX", "clickY", "x", "y", "w", "h", "score", "text"}, nil},
+	{StepWaitImage, "Chờ ảnh", "Chờ tới khi ảnh mẫu template (PNG base64, chụp bằng app – CaptureTemplate) hiện trên màn hình, độ khớp ≥ threshold %. Hết timeoutMs không thấy → cổng fail (error.code not_found). Tìm trong vùng của kịch bản, hoặc searchArea \"screen\" = cả màn chứa vùng. Output x, y (tâm), w, h, score – node clickImage chọn imageFrom = id node này để click vào đó. findBy \"text\": tìm chữ findText thay ảnh mẫu (đọc chữ trên màn hình, tiếng Việt / Anh; không phân biệt hoa thường và khoảng trắng; nhận {{biến}}); textExact = cả dòng đúng chuỗi, textNoAccent = bỏ qua dấu, occurrence = chỗ thứ mấy theo thứ tự đọc. Chữ bền hơn ảnh khi đổi theme / zoom – nên dùng khi nút có chữ. findBy \"element\" (macOS): tìm phần tử qua cây accessibility của app elementApp (tên app / bundle id, trống = app có cửa sổ trên cùng) – Chrome thường đã đăng nhập, app khác; selectors như node web nhưng chỉ text= / aria= / role=…[name=]; đọc được chữ chính xác, nội dung ô nhập, nút chỉ có icon; cửa sổ phải đang hiện trên màn (thu nhỏ / Space khác → chờ tới hết giờ); phần tử ngoài khung nhìn thì tự cuộn tới; textNoAccent, occurrence dùng như tìm chữ; searchArea chỉ lọc khi kịch bản có vùng; output thêm text (chữ / giá trị) và role.",
+		[]string{"template", "templateScale", "threshold", "timeoutMs", "intervalMs", "searchArea", "findBy", "findText", "textExact", "textNoAccent", "occurrence", "selectors", "elementApp"}, []string{"timeoutMs", "threshold", "delayAfter", "jitterMs", "enabled"},
+		`{"id":"s1","ref":"n1","type":"waitImage","template":"iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAAAAADhZOFXAAAAHUlEQVR4nGNkYPjPwMjwn4GJAQb+/4dguAgjEWoAyH0MAWBh3h0AAAAASUVORK5CYII=","templateScale":1,"threshold":90,"timeoutMs":10000,"intervalMs":250,"delayAfter":300,"enabled":true}`, []string{"x", "y", "w", "h", "score", "text", "role"}, nil},
+	{StepClickImage, "Click theo ảnh", "Click vào tâm chỗ thấy ảnh / chữ (+ dx, dy). imageSource \"node\": chỗ node imageFrom (id node chờ ảnh / chữ, hoặc click theo ảnh tự tìm) thấy lần gần nhất trong vòng – node đó chưa thấy thì lỗi; \"search\": tự tìm ảnh mẫu / chữ / phần tử riêng (các trường như waitImage, gồm findBy \"text\" / \"element\" – phần tử: chờ khung đứng yên rồi mới bấm). Không thấy → cổng fail.",
+		[]string{"imageSource", "dx", "dy", "button", "template", "templateScale", "threshold", "timeoutMs", "intervalMs", "searchArea", "findBy", "findText", "textExact", "textNoAccent", "occurrence", "selectors", "elementApp", "jitterPx"}, []string{"timeoutMs", "threshold", "jitterPx", "delayAfter", "jitterMs", "enabled"},
+		`{"id":"s2","ref":"n2","type":"clickImage","imageSource":"node","imageFrom":"s1","dx":0,"dy":0,"button":"left","delayAfter":500,"enabled":true}`, []string{"clickX", "clickY", "x", "y", "w", "h", "score", "text", "role"}, nil},
 	{StepWaitPixel, "Chờ màu pixel", "Chờ tới khi điểm points[0] có màu color (#RRGGBB), mỗi kênh lệch ≤ tolerance. Hết timeoutMs → cổng fail. Không di chuột. Output color = màu đọc được.",
 		[]string{"points[1]", "color", "tolerance", "timeoutMs", "intervalMs"}, []string{"timeoutMs", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"waitPixel","points":[{"x":640,"y":300}],"color":"#1877F2","tolerance":10,"timeoutMs":5000,"intervalMs":100,"delayAfter":300,"enabled":true}`, []string{"color"}, nil},
@@ -155,7 +156,7 @@ var stepTypeDocs = []StepTypeDoc{
 	{StepIf, "Nếu", "Rẽ nhánh theo điều kiện cond (xem flow guide): đúng → cổng true, sai → false. timeoutMs > 0: xem lại mỗi intervalMs tới khi đúng, hết giờ = sai (0 = xem một lần). Thiếu quyền / ảnh hỏng → node lỗi, dừng kịch bản. Output result (true / false) + chỗ thấy x, y, w, h, score, text của điều kiện ảnh / chữ đúng đầu tiên (clickImage chọn imageFrom = node này được).",
 		[]string{"cond", "timeoutMs", "intervalMs"}, []string{"timeoutMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"if","cond":{"kind":"any","conds":[{"kind":"text","findText":"Đã gửi"},{"kind":"value","left":"{{n2.output.text}}","op":"contains","right":"ok"}]},"timeoutMs":3000,"intervalMs":250,"enabled":true}`,
-		[]string{"result", "x", "y", "w", "h", "score", "text"}, nil},
+		[]string{"result", "x", "y", "w", "h", "score", "text", "role"}, nil},
 	{StepSwitch, "Switch theo giá trị", "So value (thường là {{biến}}) với từng case theo thứ tự: case {key, label, op: eq | contains (không phân biệt hoa thường) | regex, match}; case đầu khớp → cổng case:<key>, không case nào khớp → default.",
 		[]string{"value", "cases"}, []string{"enabled"},
 		`{"id":"s1","ref":"n1","type":"switch","value":"{{n2.output.text}}","cases":[{"key":"ok","label":"Thành công","op":"contains","match":"đã gửi"},{"key":"err","label":"Lỗi","op":"regex","match":"(?i)lỗi|error"}],"enabled":true}`,
@@ -163,7 +164,7 @@ var stepTypeDocs = []StepTypeDoc{
 	{StepSwitchScreen, "Switch theo màn hình", "Chụp màn hình mỗi intervalMs, xem case nào (cases[].cond: thấy chữ / ảnh / màu) đúng trước – xét theo thứ tự case – thì đi cổng case:<key>; hết timeoutMs không case nào → cổng none. Dùng khi trang có thể ở nhiều trạng thái (đăng nhập / đã vào / popup).",
 		[]string{"cases", "timeoutMs", "intervalMs"}, []string{"timeoutMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"switchScreen","cases":[{"key":"login","label":"Đăng nhập","cond":{"kind":"text","findText":"Đăng nhập"}},{"key":"home","label":"Trang chủ","cond":{"kind":"text","findText":"Nhắn tin"}}],"timeoutMs":3000,"intervalMs":250,"enabled":true}`,
-		[]string{"case", "x", "y", "w", "h", "score", "text"}, nil},
+		[]string{"case", "x", "y", "w", "h", "score", "text", "role"}, nil},
 	{StepCounter, "Đếm", "Đếm số lần đi qua trong vòng này: lần 1..max → cổng next, lần max+1 → done (rồi đếm lại từ 0). Đặt trên đường quay lại của vòng lặp để giới hạn số lần thử (vd không thấy nút → Đếm → next: cuộn rồi tìm lại; done: Kết thúc báo lỗi).",
 		[]string{"max"}, []string{"enabled"},
 		`{"id":"s1","ref":"n1","type":"counter","max":10,"enabled":true}`, []string{"count"}, nil},

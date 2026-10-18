@@ -13,11 +13,14 @@ import (
 // không tính app này), danh sách phẳng theo thứ tự đọc.
 type ElementReader interface {
 	Elements(app string) ([]element.Node, error)
+	// ScrollTo cuộn phần tử thứ index của lần Elements vừa đọc vào khung nhìn (phần tử bị kẹp ở mép – Node.Shown).
+	ScrollTo(app string, index int) error
 }
 
 type SystemElements struct{}
 
 func (SystemElements) Elements(app string) ([]element.Node, error) { return readElements(app) }
+func (SystemElements) ScrollTo(app string, index int) error        { return scrollTo(app, index) }
 
 var (
 	// ErrNoAccessibility – app / terminal chưa có quyền Accessibility (StepError code permission).

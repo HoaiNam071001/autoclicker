@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
+	"autoclicker/internal/element"
 )
 
 // FakeInput ghi lại các lệnh dưới dạng chuỗi thay vì điều khiển chuột thật; Lines() trả lại để so.
@@ -152,4 +154,32 @@ func (a *FakeAudio) SetMuted(m bool) error {
 		a.Muted = m
 	}
 	return a.Err
+}
+
+// FakeElements – cây phần tử giả: mỗi lần Elements trả khung tiếp theo trong Frames (hết thì giữ khung cuối), Err ≠ nil
+// thì báo lỗi đó; ScrollTo ghi lại index vào Scrolled.
+type FakeElements struct {
+	Frames   [][]element.Node
+	Err      error
+	Apps     []string // app đã hỏi theo thứ tự
+	Scrolled []int
+	n        int
+}
+
+func (f *FakeElements) Elements(app string) ([]element.Node, error) {
+	f.Apps = append(f.Apps, app)
+	if f.Err != nil {
+		return nil, f.Err
+	}
+	if len(f.Frames) == 0 {
+		return nil, nil
+	}
+	fr := f.Frames[min(f.n, len(f.Frames)-1)]
+	f.n++
+	return fr, nil
+}
+
+func (f *FakeElements) ScrollTo(app string, index int) error {
+	f.Scrolled = append(f.Scrolled, index)
+	return nil
 }

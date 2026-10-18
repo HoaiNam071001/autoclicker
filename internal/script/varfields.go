@@ -40,8 +40,14 @@ func VarFields(s *model.Step) []VarField {
 	case model.StepText:
 		add("text", &s.Text, false)
 	case model.StepWaitImage, model.StepClickImage:
-		if s.FindBy == model.FindByText {
+		switch s.FindBy {
+		case model.FindByText:
 			add("findText", &s.FindText, false)
+		case model.FindByElement:
+			for i := range s.Selectors {
+				add(fmt.Sprintf("selectors[%d]", i), &s.Selectors[i], false)
+			}
+			add("elementApp", &s.ElementApp, false)
 		}
 	case model.StepWebWait, model.StepWebClick, model.StepWebType, model.StepWebRead, model.StepWebScroll:
 		for i := range s.Selectors {
@@ -150,6 +156,11 @@ func condFields(c *model.Cond, name string, add func(string, *string, bool)) {
 	switch c.Kind {
 	case model.CondText:
 		add(name+".findText", &c.FindText, false)
+	case model.CondElement:
+		for i := range c.Selectors {
+			add(fmt.Sprintf("%s.selectors[%d]", name, i), &c.Selectors[i], false)
+		}
+		add(name+".elementApp", &c.ElementApp, false)
 	case model.CondValue:
 		add(name+".left", &c.Left, false)
 		add(name+".right", &c.Right, false)

@@ -48,10 +48,11 @@ type snapshot struct {
 	ocr   device.TextReader
 	shots map[model.Rect]image.Image
 	texts map[image.Image][]vision.TextLine
+	elems map[string]elementRead // cây phần tử theo app (điều kiện "thấy phần tử")
 }
 
 func newSnapshot(scr device.Screen, ocr device.TextReader) *snapshot {
-	return &snapshot{scr: scr, ocr: ocr, shots: map[model.Rect]image.Image{}, texts: map[image.Image][]vision.TextLine{}}
+	return &snapshot{scr: scr, ocr: ocr, shots: map[model.Rect]image.Image{}, texts: map[image.Image][]vision.TextLine{}, elems: map[string]elementRead{}}
 }
 
 func (s *snapshot) Capture(r model.Rect) (image.Image, error) {
@@ -149,6 +150,12 @@ func (e *Engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, 
 		} else {
 			part.Detail = fmt.Sprintf("không thấy “%s”%s", c.FindText, readHint(read))
 		}
+	case model.CondElement:
+		v, err := e.elementCond(c, snap, &part)
+		if err != nil {
+			return part, err
+		}
+		ok = v
 	case model.CondImage:
 		probe := c.Probe(key)
 		tpl, err := e.template(probe)

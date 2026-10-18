@@ -50,6 +50,7 @@ type Engine struct {
 	open        func(target, app string) error // bước Mở – test thay bằng hàm ghi lại
 	scr         device.Screen                  // chụp màn hình / đọc màu (imagestep.go) – test thay bằng màn hình giả
 	ocr         device.TextReader              // đọc chữ (tìm theo chữ, ocr.go) – test thay bằng bộ đọc giả
+	elems       device.ElementReader           // phần tử màn hình qua Accessibility (elementstep.go) – test thay bằng cây giả
 	clip        device.Clipboard               // clipboard (chụp màn hình chép ảnh – shot.go) – test thay bằng bản giả
 	httpc       *http.Client                   // node HTTP (http.go) – thời gian chờ theo TimeoutMs của node
 	trash       device.Trash                   // node Tệp / thư mục xoá vào Thùng rác (file.go) – test thay bằng bản giả
@@ -83,7 +84,7 @@ type Engine struct {
 }
 
 func newEngine(in device.Input, sc model.Script, onProgress func(Progress)) *Engine {
-	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{}, audio: device.SystemAudio{},
+	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, elems: device.SystemElements{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{}, audio: device.SystemAudio{},
 		rng: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))}
 }
 

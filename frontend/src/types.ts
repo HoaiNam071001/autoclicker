@@ -50,13 +50,14 @@ export const CONTROL_TYPES: ControlType[] = ['if', 'switch', 'switchScreen', 'co
 export const isControl = (t: StepType): t is ControlType => (CONTROL_TYPES as StepType[]).includes(t);
 
 // Điều kiện của node Nếu / case của Switch theo màn hình – khớp Cond trong model.go (internal/engine/cond.go).
-export type CondKind = 'image' | 'text' | 'pixel' | 'value' | 'all' | 'any';
+export type CondKind = 'image' | 'text' | 'element' | 'pixel' | 'value' | 'all' | 'any';
 export type CondOp = 'eq' | 'ne' | 'contains' | 'gt' | 'lt' | 'empty';
 export interface Cond {
   kind: CondKind;
   not?: boolean; // đảo kết quả
   template?: string; templateScale?: number; threshold?: number; searchArea?: string; // image (như Chờ ảnh)
   findText?: string; textExact?: boolean; textNoAccent?: boolean; occurrence?: number; // text, nhận {{biến}}
+  selectors?: string[]; elementApp?: string; // element (bước 37): như Chờ ảnh tìm theo phần tử, nhận {{biến}}
   points?: StepPoint[]; color?: string; tolerance?: number; // pixel: points[0]
   left?: string; op?: CondOp; right?: string; // value: so 2 vế, nhận {{biến}}
   conds?: Cond[]; // all (và) / any (hoặc)
@@ -130,7 +131,8 @@ export interface Step extends AdvancedFields {
   imageFrom?: string; // clickImage imageSource node / screenshot shotArea node: id node lấy chỗ thấy
   dx?: number; // clickImage / webClick: lệch so với tâm ảnh / phần tử
   dy?: number;
-  findBy?: 'text'; // waitImage / clickImage tự tìm: bỏ trống = ảnh mẫu, text = tìm chữ (ocr.go)
+  findBy?: 'text' | 'element'; // waitImage / clickImage tự tìm: bỏ trống = ảnh mẫu, text = tìm chữ (ocr.go), element = phần tử (bước 37, dùng selectors)
+  elementApp?: string; // findBy element: tên app / bundle id, trống = app có cửa sổ trên cùng; nhận {{biến}}
   findText?: string; // chữ cần tìm, nhận {{biến}}
   textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
   textNoAccent?: boolean; // bỏ qua dấu
@@ -211,10 +213,11 @@ export const makeStep = (p: Partial<Step> & Pick<Step, 'id' | 'type'>): Step => 
   text: '', keys: [], keyMode: 'chord', modifiers: [], delayAfter: 300, jitterMs: 0, jitterPx: 0, enabled: true, ...p,
 });
 
-// Tên hiện cho một bước cụ thể: Chờ ảnh / Click theo ảnh đang tìm theo chữ thì là "Chờ chữ" / "Click theo chữ".
+// Tên hiện cho một bước cụ thể: Chờ ảnh / Click theo ảnh đang tìm theo chữ / phần tử thì là "Chờ chữ" / "Click theo chữ"…
 export function stepLabel(s: Step): string {
-  if (s.findBy === 'text' && (s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search'))) {
-    return s.type === 'waitImage' ? 'Chờ chữ' : 'Click theo chữ';
+  if (s.findBy && (s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search'))) {
+    const what = s.findBy === 'text' ? 'chữ' : 'phần tử';
+    return s.type === 'waitImage' ? `Chờ ${what}` : `Click theo ${what}`;
   }
   return STEP_LABEL[s.type];
 }

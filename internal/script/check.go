@@ -181,7 +181,7 @@ func checkStep(s *model.Step) error {
 	if r := s.Retry; r != nil && (r.Count < 0 || r.Count > model.MaxRetries || r.DelayMs < 0) {
 		return fmt.Errorf("số lần thử lại phải trong 0–%d, thời gian nghỉ không âm", model.MaxRetries)
 	}
-	if s.FindBy != "" && s.FindBy != model.FindByText {
+	if s.FindBy != "" && s.FindBy != model.FindByText && s.FindBy != model.FindByElement {
 		return fmt.Errorf("cách tìm không hợp lệ: %q", s.FindBy)
 	}
 	if s.SearchArea != "" && s.SearchArea != "screen" {

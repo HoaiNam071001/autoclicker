@@ -97,7 +97,8 @@ var errTimeout = errors.New("hết giờ")
 type hit struct {
 	Box   model.Rect
 	Score int    // % khớp (tìm theo chữ: 100)
-	Text  string // tìm theo chữ: dòng chứa chữ
+	Text  string // tìm theo chữ: dòng chứa chữ; phần tử: chữ / giá trị đọc ra
+	Role  string // phần tử: vai trò (button, link…)
 }
 
 func (h hit) center() model.Point { return model.Point{X: h.Box.X + h.Box.W/2, Y: h.Box.Y + h.Box.H/2} }
@@ -108,11 +109,17 @@ func (h hit) output() map[string]any {
 	if h.Text != "" {
 		out["text"] = h.Text
 	}
+	if h.Role != "" {
+		out["role"] = h.Role
+	}
 	return out
 }
 
-// findImage chờ tới khi thấy ảnh mẫu (hoặc chữ, FindBy text); trả chỗ thấy.
+// findImage chờ tới khi thấy ảnh mẫu (hoặc chữ / phần tử theo FindBy); trả chỗ thấy.
 func (e *Engine) findImage(ctx context.Context, s model.Step) (hit, error) {
+	if s.FindBy == model.FindByElement {
+		return e.findElementStep(ctx, s, s.Type == model.StepClickImage)
+	}
 	area := e.searchArea(s)
 	if err := device.CaptureArea(area, e.displays); err != nil {
 		return hit{}, err

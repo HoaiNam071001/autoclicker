@@ -132,3 +132,12 @@ it('mapVarText: trường số lấy từ biến (F5c)', () => {
   const s = makeStep({ id: 's', type: 'scroll', numVars: [{ field: 'amount', expr: '{{nac}} + 1' }] });
   expect(mapVarText(s, (t) => t.replace('{{nac}}', '{{so_nac}}')).numVars).toEqual([{ field: 'amount', expr: '{{so_nac}} + 1' }]);
 });
+
+it('mapVarText: tìm theo phần tử – selectors, elementApp, điều kiện (khớp varfields.go)', () => {
+  const got: string[] = [];
+  const s = makeStep({ id: 'e', type: 'waitImage', findBy: 'element', selectors: ['{{ten}}'], elementApp: '{{app}}' });
+  mapVarText(s, (t) => (got.push(t), t));
+  const cond = makeStep({ id: 'c', type: 'if', cond: { kind: 'element', selectors: ['text={{gia}}'], elementApp: 'Chrome' } });
+  mapVarText(cond, (t) => (got.push(t), t));
+  expect(got).toEqual(['{{ten}}', '{{app}}', 'text={{gia}}', 'Chrome']);
+});

@@ -44,6 +44,7 @@ const POINT_TYPES: Step['type'][] = ['click', 'double', 'hold', 'drag', 'scroll'
 function mapFieldText(s: Step, f: (t: string) => string): Step {
   const cond = (c: Cond): Cond =>
     c.kind === 'text' ? { ...c, findText: f(c.findText ?? '') }
+      : c.kind === 'element' ? { ...c, selectors: c.selectors?.map(f), elementApp: c.elementApp && f(c.elementApp) }
       : c.kind === 'value' ? { ...c, left: f(c.left ?? ''), right: f(c.right ?? '') }
       : c.kind === 'all' || c.kind === 'any' ? { ...c, conds: (c.conds ?? []).map(cond) } : c;
   switch (s.type) {
@@ -63,7 +64,8 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
     }
     case 'clipboard': return s.clipOp === 'write' ? { ...s, text: f(s.text) } : s.clipOp === 'image' ? { ...s, filePath: f(s.filePath ?? '') } : s;
     case 'screenshot': return { ...s, saveDir: s.saveDir && f(s.saveDir), fileName: s.fileName && f(s.fileName) };
-    case 'waitImage': case 'clickImage': return s.findBy === 'text' ? { ...s, findText: f(s.findText ?? '') } : s;
+    case 'waitImage': case 'clickImage': return s.findBy === 'text' ? { ...s, findText: f(s.findText ?? '') }
+      : s.findBy === 'element' ? { ...s, selectors: s.selectors?.map(f), elementApp: s.elementApp && f(s.elementApp) } : s;
     case 'webWait': case 'webClick': case 'webRead': return { ...s, selectors: s.selectors?.map(f), tab: s.tab && f(s.tab) };
     case 'webType': return { ...s, selectors: s.selectors?.map(f), tab: s.tab && f(s.tab), text: f(s.text) };
     case 'webScroll': return { ...s, selectors: s.selectors?.map(f), tab: s.tab && f(s.tab),

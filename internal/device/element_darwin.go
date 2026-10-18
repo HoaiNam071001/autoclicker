@@ -19,6 +19,8 @@ typedef struct {
 	CFAbsoluteTime deadline;
 	CFArrayRef attrs;
 	CFMutableSetRef seen; // phần tử đã duyệt – Chrome trả cùng cây qua nhiều cửa sổ (thanh công cụ toàn màn hình)
+	int target;           // ≥ 0: duyệt tới nút thứ target thì cuộn nó vào khung nhìn rồi dừng (ax_scroll_to)
+	int acted;
 } ax_walk;
 
 enum { AX_ROLE, AX_SUBROLE, AX_TITLE, AX_DESC, AX_VALUE, AX_PLACEHOLDER, AX_POS, AX_SIZE, AX_CHILDREN, AX_NATTR };
@@ -47,6 +49,12 @@ static void ax_walk_el(AXUIElementRef el, int depth, ax_walk *c) {
 		ax_node *nn = realloc(c->nodes, cap * sizeof(ax_node));
 		if (!nn) { CFRelease(vals); return; }
 		c->nodes = nn; c->cap = cap;
+	}
+	if (c->n == c->target) {
+		c->acted = AXUIElementPerformAction(el, CFSTR("AXScrollToVisible")) == kAXErrorSuccess;
+		c->max = 0; // dừng duyệt
+		CFRelease(vals);
+		return;
 	}
 	ax_node *o = &c->nodes[c->n++];
 	memset(o, 0, sizeof(*o));
@@ -118,8 +126,9 @@ static void ax_enable(pid_t pid) {
 }
 
 // Đọc cây các cửa sổ không thu nhỏ của app pid. Trả 0 được, 3 không có cửa sổ đang hiện.
-static int ax_read(pid_t pid, int maxNodes, double seconds, ax_node **nodes, int *n) {
-	*nodes = NULL; *n = 0;
+// target ≥ 0: không đọc mà cuộn nút thứ target vào khung nhìn, *acted = 1 nếu được (thứ tự duyệt như lần đọc).
+static int ax_read(pid_t pid, int maxNodes, double seconds, int target, int *acted, ax_node **nodes, int *n) {
+	*nodes = NULL; *n = 0; *acted = 0;
 	AXUIElementRef ax = AXUIElementCreateApplication(pid);
 	AXUIElementSetMessagingTimeout(ax, 1.0);
 	CFTypeRef wins = NULL;
@@ -128,6 +137,7 @@ static int ax_read(pid_t pid, int maxNodes, double seconds, ax_node **nodes, int
 		kAXValueAttribute, CFSTR("AXPlaceholderValue"), kAXPositionAttribute, kAXSizeAttribute, kAXChildrenAttribute};
 	ax_walk c = {0};
 	c.max = maxNodes;
+	c.target = target;
 	c.deadline = CFAbsoluteTimeGetCurrent() + seconds;
 	c.attrs = CFArrayCreate(NULL, (const void **)names, AX_NATTR, &kCFTypeArrayCallBacks);
 	c.seen = CFSetCreateMutable(NULL, 0, &kCFTypeSetCallBacks);
@@ -147,7 +157,7 @@ static int ax_read(pid_t pid, int maxNodes, double seconds, ax_node **nodes, int
 	CFRelease(c.attrs);
 	CFRelease(c.seen);
 	CFRelease(ax);
-	*nodes = c.nodes; *n = c.n;
+	*nodes = c.nodes; *n = c.n; *acted = c.acted;
 	return shown ? 0 : 3;
 }
 
@@ -163,6 +173,7 @@ static void ax_free(ax_node *ns, int n) {
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strings"
@@ -185,8 +196,42 @@ const (
 var axEnabled sync.Map
 
 func readElements(app string) ([]element.Node, error) {
+	pid, name, err := findApp(app)
+	if err != nil {
+		return nil, err
+	}
+	if _, seen := axEnabled.LoadOrStore(int(pid), true); !seen {
+		return firstRead(pid, name)
+	}
+	return readPid(pid, name)
+}
+
+// scrollTo cuộn nút thứ index (thứ tự như readElements) vào khung nhìn – cây đổi giữa hai lần thì có thể cuộn nhầm,
+// nơi gọi phải đọc lại để đo.
+func scrollTo(app string, index int) error {
+	pid, name, err := findApp(app)
+	if err != nil {
+		return err
+	}
+	var (
+		ns       *C.ax_node
+		n, acted C.int
+	)
+	rc := C.ax_read(pid, maxElementNodes, maxElementSeconds, C.int(index), &acted, &ns, &n)
+	C.ax_free(ns, n)
+	if rc == 3 {
+		return fmt.Errorf("%w (%s)", ErrNoWindow, name)
+	}
+	if acted == 0 {
+		return errors.New("không cuộn được tới phần tử (trang vừa đổi hoặc phần tử không cuộn được)")
+	}
+	return nil
+}
+
+// findApp – pid + tên app theo tên / bundle id ("" = app có cửa sổ trên cùng), kiểm quyền trước.
+func findApp(app string) (C.pid_t, string, error) {
 	if C.ax_trusted() == 0 {
-		return nil, ErrNoAccessibility
+		return 0, "", ErrNoAccessibility
 	}
 	capp := C.CString(app)
 	defer C.free(unsafe.Pointer(capp))
@@ -194,16 +239,13 @@ func readElements(app string) ([]element.Node, error) {
 	pid := C.ax_find_pid(capp, &cname)
 	if pid <= 0 {
 		if app == "" {
-			return nil, ErrNoWindow
+			return 0, "", ErrNoWindow
 		}
-		return nil, fmt.Errorf("%w: “%s”", ErrAppNotFound, app)
+		return 0, "", fmt.Errorf("%w: “%s”", ErrAppNotFound, app)
 	}
 	name := C.GoString(cname)
 	C.free(unsafe.Pointer(cname))
-	if _, seen := axEnabled.LoadOrStore(int(pid), true); !seen {
-		return firstRead(pid, name)
-	}
-	return readPid(pid, name)
+	return pid, name, nil
 }
 
 // firstRead – lần đầu với một app: bật cây rồi đọc lại tới khi số nút đứng yên (Chrome dựng ngay, Electron > 1 s).
@@ -227,10 +269,10 @@ func firstRead(pid C.pid_t, name string) ([]element.Node, error) {
 
 func readPid(pid C.pid_t, name string) ([]element.Node, error) {
 	var (
-		ns *C.ax_node
-		n  C.int
+		ns       *C.ax_node
+		n, acted C.int
 	)
-	rc := C.ax_read(pid, maxElementNodes, maxElementSeconds, &ns, &n)
+	rc := C.ax_read(pid, maxElementNodes, maxElementSeconds, -1, &acted, &ns, &n)
 	defer C.ax_free(ns, n)
 	if rc == 3 {
 		return nil, fmt.Errorf("%w (%s)", ErrNoWindow, name)

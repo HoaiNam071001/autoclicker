@@ -96,3 +96,29 @@ func TestValidateTextStep(t *testing.T) {
 		t.Errorf("biến trong chữ cần tìm: %v %q", err, out.Steps[0].FindText)
 	}
 }
+
+func TestValidateElementStep(t *testing.T) {
+	el := func(sels ...string) model.Script {
+		return model.Script{Loops: 1, Steps: []model.Step{modeltest.Step(model.StepWaitImage, func(s *model.Step) {
+			s.FindBy, s.Selectors, s.TimeoutMs, s.IntervalMs = model.FindByElement, sels, 1000, 100
+		})}}
+	}
+	cases := map[string]model.Script{
+		"chưa nhập cách tìm phần tử": el(" "),
+		"chỉ dùng được ở node web":   el("css=.buy"),
+		"sai dạng":                   el("role=button[name"),
+		"điều kiện phần tử": {Loops: 1, Steps: []model.Step{modeltest.Step(model.StepIf, func(s *model.Step) {
+			s.Cond = &model.Cond{Kind: model.CondElement}
+		})}},
+	}
+	for want, sc := range cases {
+		err := script.ValidateScript(scripttest.Linear(sc), model.Rect{})
+		if err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("muốn lỗi chứa %q, nhận %v", want, err)
+		}
+	}
+	// dòng có biến chỉ kiểm lúc chạy
+	if err := script.ValidateScript(scripttest.Linear(el("{{loai}}=Mua", "text=Mua")), model.Rect{}); err != nil {
+		t.Errorf("err = %v", err)
+	}
+}

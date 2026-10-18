@@ -112,7 +112,8 @@ type Step struct {
 	ImageFrom     string  `json:"imageFrom,omitempty"`     // clickImage ImageSource node / screenshot ShotArea node: id node lấy chỗ thấy
 	Dx            int     `json:"dx,omitempty"`            // clickImage / webClick: lệch so với tâm ảnh / phần tử
 	Dy            int     `json:"dy,omitempty"`
-	FindBy        string  `json:"findBy,omitempty"`       // waitImage / clickImage tự tìm: "" = ảnh mẫu | text = chữ
+	FindBy        string  `json:"findBy,omitempty"`       // waitImage / clickImage tự tìm: "" = ảnh mẫu | text = chữ | element = phần tử (Selectors)
+	ElementApp    string  `json:"elementApp,omitempty"`   // FindBy element: tên app / bundle id ("" = app có cửa sổ trên cùng); nhận {{biến}}
 	FindText      string  `json:"findText,omitempty"`     // FindBy text: chữ cần tìm; nhận {{biến}}
 	TextExact     bool    `json:"textExact,omitempty"`    // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
 	TextNoAccent  bool    `json:"textNoAccent,omitempty"` // FindBy text: bỏ qua dấu
@@ -199,20 +200,22 @@ type Case struct {
 // Cond – điều kiện của node Nếu / case của Switch theo màn hình (cond.go). Kind image / text / pixel dùng cùng trường
 // với node Chờ ảnh / chữ / pixel; value so 2 vế; all / any ghép nhiều điều kiện.
 type Cond struct {
-	Kind string `json:"kind"`          // image | text | pixel | value | all | any
+	Kind string `json:"kind"`          // image | text | element | pixel | value | all | any
 	Not  bool   `json:"not,omitempty"` // đảo kết quả
 
-	Template      string  `json:"template,omitempty"`
-	TemplateScale float64 `json:"templateScale,omitempty"`
-	Threshold     int     `json:"threshold,omitempty"`
-	SearchArea    string  `json:"searchArea,omitempty"`
-	FindText      string  `json:"findText,omitempty"` // nhận {{biến}}
-	TextExact     bool    `json:"textExact,omitempty"`
-	TextNoAccent  bool    `json:"textNoAccent,omitempty"`
-	Occurrence    int     `json:"occurrence,omitempty"`
-	Points        []Point `json:"points,omitempty"` // pixel: points[0]
-	Color         string  `json:"color,omitempty"`
-	Tolerance     int     `json:"tolerance,omitempty"`
+	Template      string   `json:"template,omitempty"`
+	TemplateScale float64  `json:"templateScale,omitempty"`
+	Threshold     int      `json:"threshold,omitempty"`
+	SearchArea    string   `json:"searchArea,omitempty"`
+	FindText      string   `json:"findText,omitempty"` // nhận {{biến}}
+	TextExact     bool     `json:"textExact,omitempty"`
+	TextNoAccent  bool     `json:"textNoAccent,omitempty"`
+	Occurrence    int      `json:"occurrence,omitempty"`
+	Selectors     []string `json:"selectors,omitempty"`  // element: cách tìm phần tử (text= / aria= / role=); nhận {{biến}}
+	ElementApp    string   `json:"elementApp,omitempty"` // element: tên app ("" = app có cửa sổ trên cùng); nhận {{biến}}
+	Points        []Point  `json:"points,omitempty"`     // pixel: points[0]
+	Color         string   `json:"color,omitempty"`
+	Tolerance     int      `json:"tolerance,omitempty"`
 
 	Left  string `json:"left,omitempty"`  // value: vế trái, vd {{n2.output.text}}; nhận {{biến}}
 	Op    string `json:"op,omitempty"`    // value: eq | ne | contains | gt | lt | empty
@@ -222,7 +225,10 @@ type Cond struct {
 }
 
 // Step.FindBy
-const FindByText = "text"
+const (
+	FindByText    = "text"
+	FindByElement = "element" // phần tử màn hình qua Accessibility (bước 37)
+)
 
 // Step.ReadFrom (webRead)
 const (

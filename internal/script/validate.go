@@ -150,10 +150,14 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 	return nil
 }
 
-// checkImageStep: bước chờ ảnh / click theo ảnh tự tìm có ảnh mẫu đọc được (hoặc chữ cần tìm) và thông số hợp lệ.
+// checkImageStep: bước chờ ảnh / click theo ảnh tự tìm có ảnh mẫu đọc được (hoặc chữ / cách tìm phần tử) và thông số hợp lệ.
 func checkImageStep(i int, s model.Step) error {
-	if s.FindBy == model.FindByText {
-		if strings.TrimSpace(s.FindText) == "" {
+	if s.FindBy == model.FindByText || s.FindBy == model.FindByElement {
+		if s.FindBy == model.FindByElement {
+			if err := checkElementSelectors(s.Selectors); err != nil {
+				return stepErr(i, s, "selectors", "%v", err)
+			}
+		} else if strings.TrimSpace(s.FindText) == "" {
 			return stepErr(i, s, "findText", "chưa nhập chữ cần tìm")
 		}
 		if s.Occurrence < 0 {

@@ -9,6 +9,7 @@ import { fmtSystem } from './system';
 import { fmtWaitUntil } from './waitUntil';
 import { fmtPath } from './shape';
 import { fmtWebStep, isWebStep } from './web';
+import { fmtElement } from './element';
 import { fmtMs, numVarOf, SCROLL_ARROW, SCROLL_NOTCH_PX, type Step, type StepPoint } from '../types';
 
 const fmtSigned = (v: number) => (v > 0 ? `+${v}` : `${v}`);
@@ -32,7 +33,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'waitUntil' ? fmtWaitUntil(s)
     : s.type === 'path' ? fmtPath(s)
     : s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search')
-      ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.findBy === 'text'
+      ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.findBy === 'element' ? fmtElement(s) : s.findBy === 'text'
         ? (s.findText?.trim() ? `chữ “${s.findText}”${(s.occurrence ?? 0) > 1 ? ` (chỗ thứ ${s.occurrence})` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa nhập chữ cần tìm')
         : s.template ? `khớp ≥ ${s.threshold}% · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa có ảnh mẫu'}`
     : s.type === 'clickImage' ? `chỗ ${s.imageFrom ? refOf(s.imageFrom) : '(chưa chọn node)'} thấy${s.dx || s.dy ? ` ${fmtSigned(s.dx ?? 0)},${fmtSigned(s.dy ?? 0)}` : ''}`

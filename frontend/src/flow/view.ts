@@ -4,6 +4,7 @@ import type { FlowNodeView, PortView, RunState } from '../components/flow/model'
 import { humanLabel, usesHuman } from './human';
 import { Cond, fmtMs, isControl, numVarOf, Script, Step, stepLabel } from '../types';
 import { fmtPos } from './detail';
+import { firstSelector } from './element';
 import { reachable } from './edit';
 import { CASE_PREFIX, flowOrder, PORT_FAIL, PORT_SUCCESS, PortShape, portsOf } from './model';
 
@@ -81,6 +82,7 @@ function warningOf(s: Step, reachable: boolean, refs: Map<string, string>): stri
 export function condMissing(c: Cond): string | undefined {
   switch (c.kind) {
     case 'text': return c.findText?.trim() ? undefined : 'Chưa nhập chữ cần thấy';
+    case 'element': return c.selectors?.some((l) => l.trim()) ? undefined : 'Chưa nhập cách tìm phần tử';
     case 'image': return c.template ? undefined : 'Chưa có ảnh mẫu';
     case 'pixel': return c.points?.[0] ? undefined : 'Chưa chọn điểm màu';
     case 'all': case 'any':
@@ -95,6 +97,7 @@ export function condText(c: Cond): string {
   const neg = c.not ? 'không ' : '';
   switch (c.kind) {
     case 'text': return `${neg}thấy chữ “${c.findText ?? ''}”`;
+    case 'element': return `${neg}thấy phần tử ${firstSelector(c.selectors)}`;
     case 'image': return c.template ? `${neg}thấy ảnh (≥ ${c.threshold ?? 90}%)` : 'chưa có ảnh mẫu';
     case 'pixel': return `${c.not ? 'khác' : 'có'} màu ${c.color ?? ''}`;
     case 'value': {
@@ -124,7 +127,8 @@ function controlDetail(s: Step): string {
 export type OutputField = { key: string; desc: string };
 const FOUND: OutputField[] = [
   { key: 'x', desc: 'tâm chỗ thấy – X' }, { key: 'y', desc: 'tâm chỗ thấy – Y' }, { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' },
-  { key: 'score', desc: '% khớp' }, { key: 'text', desc: 'chữ tìm thấy (tìm theo chữ)' },
+  { key: 'score', desc: '% khớp' }, { key: 'text', desc: 'chữ tìm thấy (tìm theo chữ / phần tử)' },
+  { key: 'role', desc: 'vai trò phần tử (tìm theo phần tử)' },
 ];
 const WEB_FOUND: OutputField[] = [
   { key: 'x', desc: 'tâm phần tử – X' }, { key: 'y', desc: 'tâm phần tử – Y' }, { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' },

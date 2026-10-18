@@ -61,6 +61,9 @@ type FindResult struct {
 // FindOnce tìm ảnh mẫu / chữ của node s trên màn hình lúc này (một lần, không chờ) – nút "Thử tìm".
 // {{biến}} trong s phải thay sẵn (script.WithInputDefaults).
 func (e *Engine) FindOnce(s model.Step) (FindResult, error) {
+	if s.FindBy == model.FindByElement {
+		return e.findElementOnce(s)
+	}
 	area := e.searchArea(s)
 	if err := device.CaptureArea(area, e.displays); err != nil {
 		return FindResult{}, err

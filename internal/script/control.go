@@ -20,7 +20,7 @@ var (
 var condOps = []string{"eq", "ne", "contains", "gt", "lt", "empty"}
 
 func isLeafScreen(kind string) bool {
-	return kind == model.CondImage || kind == model.CondText || kind == model.CondPixel
+	return kind == model.CondImage || kind == model.CondText || kind == model.CondElement || kind == model.CondPixel
 }
 
 // ParseNumber đọc số, nhận cả dấu phẩy thập phân ("1,5").
@@ -31,7 +31,7 @@ func ParseNumber(s string) (float64, error) {
 // checkCond kiểm cấu trúc điều kiện (mở file): loại, phép so, lồng nhóm.
 func checkCond(c *model.Cond, depth int) error {
 	switch c.Kind {
-	case model.CondImage, model.CondText, model.CondPixel:
+	case model.CondImage, model.CondText, model.CondElement, model.CondPixel:
 	case model.CondValue:
 		if !slices.Contains(condOps, c.Op) {
 			return fmt.Errorf("phép so không hợp lệ: %q", c.Op)
@@ -63,6 +63,10 @@ func validateCond(c model.Cond, inside func(model.Point) bool) error {
 	case model.CondText:
 		if strings.TrimSpace(c.FindText) == "" {
 			return errors.New("điều kiện chưa nhập chữ cần thấy")
+		}
+	case model.CondElement:
+		if err := checkElementSelectors(c.Selectors); err != nil {
+			return fmt.Errorf("điều kiện phần tử: %w", err)
 		}
 	case model.CondImage:
 		if c.Template == "" {
