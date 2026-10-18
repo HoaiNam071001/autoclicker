@@ -1,0 +1,254 @@
+//go:build darwin
+
+package device
+
+/*
+#cgo CFLAGS: -x objective-c -fobjc-arc
+#cgo LDFLAGS: -framework ApplicationServices -framework AppKit -framework CoreGraphics -framework Foundation
+#include <ApplicationServices/ApplicationServices.h>
+#import <AppKit/AppKit.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+typedef struct { char *role, *subrole, *title, *desc, *value, *placeholder; double x, y, w, h; int depth; } ax_node;
+
+typedef struct {
+	ax_node *nodes;
+	int n, cap, max;
+	CFAbsoluteTime deadline;
+	CFArrayRef attrs;
+	CFMutableSetRef seen; // phần tử đã duyệt – Chrome trả cùng cây qua nhiều cửa sổ (thanh công cụ toàn màn hình)
+} ax_walk;
+
+enum { AX_ROLE, AX_SUBROLE, AX_TITLE, AX_DESC, AX_VALUE, AX_PLACEHOLDER, AX_POS, AX_SIZE, AX_CHILDREN, AX_NATTR };
+
+// Chuỗi C (strdup) từ giá trị AX: chuỗi, số (checkbox 0 / 1, thanh trượt); kiểu khác / lỗi → NULL.
+static char *ax_str(CFTypeRef v) {
+	if (!v) return NULL;
+	if (CFGetTypeID(v) == CFStringGetTypeID()) {
+		NSString *s = (__bridge NSString *)v;
+		return s.length ? strdup(s.UTF8String) : NULL;
+	}
+	if (CFGetTypeID(v) == CFNumberGetTypeID()) return strdup([(__bridge NSNumber *)v stringValue].UTF8String);
+	return NULL;
+}
+
+static void ax_walk_el(AXUIElementRef el, int depth, ax_walk *c) {
+	if (c->n >= c->max || CFAbsoluteTimeGetCurrent() > c->deadline) return;
+	if (depth > 200 || CFSetContainsValue(c->seen, el)) return;
+	CFSetAddValue(c->seen, el);
+	CFArrayRef vals = NULL;
+	// một lần hỏi nhiều thuộc tính – nhanh hơn hỏi từng cái (mỗi lần là một IPC sang app)
+	if (AXUIElementCopyMultipleAttributeValues(el, c->attrs, 0, &vals) != kAXErrorSuccess || !vals) return;
+	if (CFArrayGetCount(vals) < AX_NATTR) { CFRelease(vals); return; }
+	if (c->n == c->cap) {
+		int cap = c->cap ? c->cap * 2 : 1024;
+		ax_node *nn = realloc(c->nodes, cap * sizeof(ax_node));
+		if (!nn) { CFRelease(vals); return; }
+		c->nodes = nn; c->cap = cap;
+	}
+	ax_node *o = &c->nodes[c->n++];
+	memset(o, 0, sizeof(*o));
+	o->depth = depth;
+	o->role = ax_str(CFArrayGetValueAtIndex(vals, AX_ROLE));
+	o->subrole = ax_str(CFArrayGetValueAtIndex(vals, AX_SUBROLE));
+	o->title = ax_str(CFArrayGetValueAtIndex(vals, AX_TITLE));
+	o->desc = ax_str(CFArrayGetValueAtIndex(vals, AX_DESC));
+	o->value = ax_str(CFArrayGetValueAtIndex(vals, AX_VALUE));
+	o->placeholder = ax_str(CFArrayGetValueAtIndex(vals, AX_PLACEHOLDER));
+	CFTypeRef pos = CFArrayGetValueAtIndex(vals, AX_POS), size = CFArrayGetValueAtIndex(vals, AX_SIZE);
+	CGPoint p = CGPointZero; CGSize s = CGSizeZero;
+	if (pos && CFGetTypeID(pos) == AXValueGetTypeID() && AXValueGetValue(pos, kAXValueCGPointType, &p) &&
+	    size && CFGetTypeID(size) == AXValueGetTypeID() && AXValueGetValue(size, kAXValueCGSizeType, &s)) {
+		o->x = p.x; o->y = p.y; o->w = s.width; o->h = s.height;
+	}
+	CFTypeRef kids = CFArrayGetValueAtIndex(vals, AX_CHILDREN);
+	if (kids && CFGetTypeID(kids) == CFArrayGetTypeID()) {
+		CFIndex k = CFArrayGetCount(kids);
+		for (CFIndex i = 0; i < k; i++) ax_walk_el(CFArrayGetValueAtIndex(kids, i), depth + 1, c);
+	}
+	CFRelease(vals);
+}
+
+// pid của app có cửa sổ thường (layer 0) trên cùng đang hiện, không tính app này; -1 nếu không có.
+static pid_t ax_front_pid(void) {
+	CFArrayRef list = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
+	if (!list) return -1;
+	pid_t self = getpid(), out = -1;
+	for (NSDictionary *w in (__bridge NSArray *)list) {
+		if ([w[(id)kCGWindowLayer] intValue] != 0) continue;
+		pid_t pid = [w[(id)kCGWindowOwnerPID] intValue];
+		if (pid != self) { out = pid; break; }
+	}
+	CFRelease(list);
+	return out;
+}
+
+// pid theo tên hiển thị hoặc bundle id (không phân biệt hoa thường); "" = ax_front_pid. *name = tên app (strdup).
+static pid_t ax_find_pid(const char *app, char **name) {
+	NSString *want = [NSString stringWithUTF8String:app];
+	pid_t pid = -1;
+	if (want.length == 0) {
+		pid = ax_front_pid();
+	} else {
+		for (NSRunningApplication *a in NSWorkspace.sharedWorkspace.runningApplications) {
+			// tên / bundle id có thể nil – gửi message tới nil trả 0 = NSOrderedSame nên phải kiểm trước
+			if ((a.localizedName && [a.localizedName caseInsensitiveCompare:want] == NSOrderedSame) ||
+			    (a.bundleIdentifier && [a.bundleIdentifier caseInsensitiveCompare:want] == NSOrderedSame)) {
+				pid = a.processIdentifier;
+				break;
+			}
+		}
+	}
+	if (pid > 0) {
+		NSRunningApplication *a = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
+		*name = strdup(a.localizedName ? a.localizedName.UTF8String : "");
+	}
+	return pid;
+}
+
+// Chrome / Electron chỉ dựng cây khi có client accessibility; app thường bỏ qua hai thuộc tính này.
+static void ax_enable(pid_t pid) {
+	AXUIElementRef ax = AXUIElementCreateApplication(pid);
+	AXUIElementSetMessagingTimeout(ax, 1.0);
+	AXUIElementSetAttributeValue(ax, CFSTR("AXManualAccessibility"), kCFBooleanTrue);
+	AXUIElementSetAttributeValue(ax, CFSTR("AXEnhancedUserInterface"), kCFBooleanTrue);
+	CFRelease(ax);
+}
+
+// Đọc cây các cửa sổ không thu nhỏ của app pid. Trả 0 được, 3 không có cửa sổ đang hiện.
+static int ax_read(pid_t pid, int maxNodes, double seconds, ax_node **nodes, int *n) {
+	*nodes = NULL; *n = 0;
+	AXUIElementRef ax = AXUIElementCreateApplication(pid);
+	AXUIElementSetMessagingTimeout(ax, 1.0);
+	CFTypeRef wins = NULL;
+	AXUIElementCopyAttributeValue(ax, kAXWindowsAttribute, &wins);
+	CFStringRef names[AX_NATTR] = {kAXRoleAttribute, kAXSubroleAttribute, kAXTitleAttribute, kAXDescriptionAttribute,
+		kAXValueAttribute, CFSTR("AXPlaceholderValue"), kAXPositionAttribute, kAXSizeAttribute, kAXChildrenAttribute};
+	ax_walk c = {0};
+	c.max = maxNodes;
+	c.deadline = CFAbsoluteTimeGetCurrent() + seconds;
+	c.attrs = CFArrayCreate(NULL, (const void **)names, AX_NATTR, &kCFTypeArrayCallBacks);
+	c.seen = CFSetCreateMutable(NULL, 0, &kCFTypeSetCallBacks);
+	int shown = 0;
+	if (wins && CFGetTypeID(wins) == CFArrayGetTypeID()) {
+		for (CFIndex i = 0; i < CFArrayGetCount(wins); i++) {
+			AXUIElementRef w = (AXUIElementRef)CFArrayGetValueAtIndex(wins, i);
+			CFTypeRef mini = NULL;
+			BOOL minimized = AXUIElementCopyAttributeValue(w, kAXMinimizedAttribute, &mini) == kAXErrorSuccess && mini == kCFBooleanTrue;
+			if (mini) CFRelease(mini);
+			if (minimized) continue;
+			shown++;
+			ax_walk_el(w, 0, &c);
+		}
+	}
+	if (wins) CFRelease(wins);
+	CFRelease(c.attrs);
+	CFRelease(c.seen);
+	CFRelease(ax);
+	*nodes = c.nodes; *n = c.n;
+	return shown ? 0 : 3;
+}
+
+static int ax_trusted(void) { return AXIsProcessTrusted(); }
+
+static void ax_free(ax_node *ns, int n) {
+	for (int i = 0; i < n; i++) {
+		free(ns[i].role); free(ns[i].subrole); free(ns[i].title); free(ns[i].desc); free(ns[i].value); free(ns[i].placeholder);
+	}
+	free(ns);
+}
+*/
+import "C"
+
+import (
+	"fmt"
+	"math"
+	"strings"
+	"sync"
+	"time"
+	"unsafe"
+
+	"autoclicker/internal/element"
+	"autoclicker/internal/model"
+)
+
+// Giới hạn mỗi lần đọc cây: trang nặng (Tiki, YouTube) ~1–3 nghìn nút, 60–250 ms. Quá giới hạn thì dùng phần đã đọc.
+const (
+	maxElementNodes   = 20000
+	maxElementSeconds = 2.0
+	axBuildWait       = 2500 * time.Millisecond // lần đầu bật cây: chờ app dựng cây tối đa
+)
+
+// axEnabled – pid đã bật cây accessibility (AXManualAccessibility) – chỉ chờ dựng cây ở lần đầu.
+var axEnabled sync.Map
+
+func readElements(app string) ([]element.Node, error) {
+	if C.ax_trusted() == 0 {
+		return nil, ErrNoAccessibility
+	}
+	capp := C.CString(app)
+	defer C.free(unsafe.Pointer(capp))
+	var cname *C.char
+	pid := C.ax_find_pid(capp, &cname)
+	if pid <= 0 {
+		if app == "" {
+			return nil, ErrNoWindow
+		}
+		return nil, fmt.Errorf("%w: “%s”", ErrAppNotFound, app)
+	}
+	name := C.GoString(cname)
+	C.free(unsafe.Pointer(cname))
+	if _, seen := axEnabled.LoadOrStore(int(pid), true); !seen {
+		return firstRead(pid, name)
+	}
+	return readPid(pid, name)
+}
+
+// firstRead – lần đầu với một app: bật cây rồi đọc lại tới khi số nút đứng yên (Chrome dựng ngay, Electron > 1 s).
+// Cây nhỏ (< 50 nút) chưa chắc đã dựng xong nên đọc tới hết axBuildWait – chỉ tốn một lần mỗi app.
+func firstRead(pid C.pid_t, name string) ([]element.Node, error) {
+	C.ax_enable(pid)
+	deadline := time.Now().Add(axBuildWait)
+	var best []element.Node
+	for {
+		time.Sleep(300 * time.Millisecond)
+		nodes, err := readPid(pid, name)
+		if err != nil {
+			return nil, err
+		}
+		if len(nodes) == len(best) && len(nodes) >= 50 || time.Now().After(deadline) {
+			return nodes, nil
+		}
+		best = nodes
+	}
+}
+
+func readPid(pid C.pid_t, name string) ([]element.Node, error) {
+	var (
+		ns *C.ax_node
+		n  C.int
+	)
+	rc := C.ax_read(pid, maxElementNodes, maxElementSeconds, &ns, &n)
+	defer C.ax_free(ns, n)
+	if rc == 3 {
+		return nil, fmt.Errorf("%w (%s)", ErrNoWindow, name)
+	}
+	out := make([]element.Node, 0, int(n))
+	for _, c := range unsafe.Slice(ns, int(n)) {
+		raw, sub := C.GoString(c.role), C.GoString(c.subrole)
+		out = append(out, element.Node{
+			Role: element.RoleFromAX(raw, sub), Raw: raw,
+			Title: oneLine(C.GoString(c.title)), Desc: oneLine(C.GoString(c.desc)), Value: C.GoString(c.value),
+			Placeholder: oneLine(C.GoString(c.placeholder)),
+			Box: model.Rect{X: int(math.Round(float64(c.x))), Y: int(math.Round(float64(c.y))),
+				W: int(math.Round(float64(c.w))), H: int(math.Round(float64(c.h)))},
+			Depth: int(c.depth),
+		})
+	}
+	return out, nil
+}
+
+// oneLine gộp khoảng trắng (tên / nhãn hay có xuống dòng, tab). Value giữ nguyên – nội dung ô nhập nhiều dòng.
+func oneLine(s string) string { return strings.Join(strings.Fields(s), " ") }

@@ -68,6 +68,20 @@ func runesIndex(s, sub []rune, from int) int {
 	return -1
 }
 
+// MatchText: got chứa want (exact: đúng cả chuỗi) theo cùng cách so với tìm chữ – bỏ hoa / thường, khoảng trắng,
+// (tuỳ chọn) dấu. Dùng chung cho tìm phần tử màn hình (internal/element). want trống → false.
+func MatchText(got, want string, exact, noAccent bool) bool {
+	g, _ := textKey(got, noAccent)
+	w, _ := textKey(want, noAccent)
+	if len(w) == 0 {
+		return false
+	}
+	if exact {
+		return string(g) == string(w)
+	}
+	return runesIndex(g, w, 0) >= 0
+}
+
 // TextHit – chỗ thấy chữ: khung theo px ảnh và dòng chứa nó.
 type TextHit struct {
 	Box  model.Rect

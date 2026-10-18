@@ -46,3 +46,23 @@ func TestFindText(t *testing.T) {
 		t.Errorf("chia theo tỷ lệ: %v", b)
 	}
 }
+
+func TestMatchText(t *testing.T) {
+	cases := []struct {
+		got, want       string
+		exact, noAccent bool
+		ok              bool
+	}{
+		{"Giá: 1.234.000 ₫", "1.234.000", false, false, true},
+		{"Thêm vào giỏ", "THEM VAO GIO", false, true, true},
+		{"Thêm vào giỏ", "THEM VAO GIO", false, false, false},
+		{"Đăng nhập", "dang nhap", true, true, true},
+		{"Đăng nhập ngay", "đăng nhập", true, false, false},
+		{"bất kỳ", "", false, false, false},
+	}
+	for _, c := range cases {
+		if got := MatchText(c.got, c.want, c.exact, c.noAccent); got != c.ok {
+			t.Errorf("MatchText(%q, %q, exact=%v, noAccent=%v) = %v", c.got, c.want, c.exact, c.noAccent, got)
+		}
+	}
+}
