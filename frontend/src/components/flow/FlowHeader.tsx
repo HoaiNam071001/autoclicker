@@ -5,8 +5,11 @@ import { ReactNode } from 'react';
 export default function FlowHeader({ count, children }: { count: number; children: ReactNode }) {
   return (
     <div className="pointer-events-none absolute inset-x-4 top-3 z-10 flex flex-wrap items-center gap-2.5">
-      <h1 className="font-semibold">Flow</h1>
-      <span className="text-[12.5px] whitespace-nowrap text-muted">{count} node</span>
+      {/* nền mờ: node cuộn tới dưới dòng đầu thì chữ vẫn đọc được */}
+      <span className="flex items-center gap-2.5 rounded-md bg-canvas/85 px-1.5 py-0.5">
+        <h1 className="font-semibold">Flow</h1>
+        <span className="text-[12.5px] whitespace-nowrap text-muted">{count} node</span>
+      </span>
       <span className="pointer-events-auto ml-auto flex items-center gap-1.5">{children}</span>
     </div>
   );

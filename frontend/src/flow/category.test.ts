@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CATEGORIES, nodeCategory } from './category';
+import { CATEGORIES, categoryOfType, nodeCategory } from './category';
 
 describe('nodeCategory', () => {
   it('theo loại node', () => {
@@ -16,6 +16,11 @@ describe('nodeCategory', () => {
   it('mở bằng Chrome của app thuộc nhóm Web', () => {
     expect(nodeCategory({ type: 'open' })).toBe('app');
     expect(nodeCategory({ type: 'open', webBrowser: true })).toBe('web');
+  });
+
+  it('theo tên loại dạng chuỗi', () => {
+    expect(categoryOfType('http')).toBe('data');
+    expect(categoryOfType('khongco')).toBeUndefined();
   });
 
   it('mỗi nhóm có tên, không trùng', () => {

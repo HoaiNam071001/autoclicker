@@ -87,7 +87,7 @@ export function PaletteView({ groups: all, onClose, onCancel, footer, context }:
                     <button key={it.label} onClick={() => pick(it)} onMouseEnter={() => setSel(i)} aria-disabled={!it.run}
                       title={it.soon ? `Sắp có (${it.soon})` : undefined}
                       className={`flex min-h-[46px] items-center gap-2.5 rounded-card px-2.5 py-1.5 text-left ${on ? 'ring-selected' : 'border border-line bg-surface'} ${it.run ? '' : 'cursor-default'}`}>
-                      <span className={`grid h-[30px] w-[30px] flex-none place-items-center rounded-[7px] ${on && it.run ? 'bg-accent-soft text-accent-text' : 'bg-soft text-muted'} ${it.run ? '' : 'opacity-60'}`}>
+                      <span className={`grid h-[30px] w-[30px] flex-none place-items-center rounded-[7px] bg-cat-tile text-cat ${it.run ? '' : 'opacity-60'}`}>
                         <StepIcon type={it.icon} className="h-[15px] w-[15px]" />
                       </span>
                       <span className={`min-w-0 flex-1 font-medium ${it.run ? '' : 'text-muted'}`}>{it.label}</span>

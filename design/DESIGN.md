@@ -1,6 +1,6 @@
 # Auto Clicker – Design v3 (gọn) trên nền v2
 
-Canvas **v3 – gọn** (2026-10-19, đang áp dụng – bước [38](../docs/tasks/phase3/38-ui-v3.md)): https://claude.ai/artifact/Hr4MxJYqSwCgAFuuZFNVvD – mã nguồn artboard trong `design/canvas/*.dc.html`.
+Canvas **v3 – gọn** (2026-10-19, đã dựng – bước [38](../docs/tasks/phase3/38-ui-v3.md)): https://claude.ai/artifact/Hr4MxJYqSwCgAFuuZFNVvD – mã nguồn artboard đã xoá khỏi repo khi xong 38, xem lại bằng `git show d5a6b52:design/canvas/<tên>.dc.html` (đủ 7 artboard) hoặc mở canvas.
 Canvas v2 (nền token, thành phần): https://claude.ai/artifact/5WdDyFZdB3WKxEXwkticnw
 Xuất ảnh / PDF: mở canvas → Share › Export.
 
@@ -232,7 +232,7 @@ Soạn kịch bản dạng node + cạnh kiểu n8n (`@xyflow/react`). Xem mẫu
 
 ## Màn hình trên canvas → file trong repo
 
-**v3 (`design/canvas/`, bước 38):**
+**v3 (bước 38 – đã dựng):**
 
 | Artboard | Nội dung | File trong repo |
 |---|---|---|
@@ -265,4 +265,4 @@ Soạn kịch bản dạng node + cạnh kiểu n8n (`@xyflow/react`). Xem mẫu
 | `accent-light`, `drag`, `drag-light`, `drag-marker` | bỏ; kéo thả dùng chung icon/màu trung tính, marker overlay dùng `accent` |
 | `dark-*` | bỏ; dùng token chung + `data-theme="dark"` (MiniBar, PreviewScreen) |
 
-Mã nguồn artboard v2 đã xoá khỏi repo ngày 2026-10-18 (UI v2 đã dựng xong); xem lại: `git show f5d2dce:design/canvas/<tên>.dc.html` hoặc mở canvas. `design/canvas/*.dc.html` hiện là **v3** – xoá khi bước 38 xong.
+Mã nguồn artboard v2 đã xoá khỏi repo ngày 2026-10-18 (UI v2 đã dựng xong); xem lại: `git show f5d2dce:design/canvas/<tên>.dc.html` hoặc mở canvas. Mã artboard v3 đã xoá khi xong bước 38 (xem dòng đầu file).

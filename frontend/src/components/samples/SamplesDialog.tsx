@@ -2,6 +2,7 @@
 // Chỉ hiển thị – nạp danh sách / mở mẫu ở Samples.tsx (app thật) hoặc dữ liệu giả (#demo).
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { StepIcon, StepIconName, STEP_ICON } from '../icons';
+import { categoryOfType } from '../../flow/category';
 import { fieldBox } from '../NumInput';
 import { ALL, appsOf, filterSamples, Sample, SampleFilter, stepCounts, stepName } from '../../samples/filter';
 import SampleCard from './SampleCard';
@@ -48,7 +49,7 @@ export default function SamplesDialog({ samples, error, ready, onPick, onOpenPag
           <ChipRow label="Bước">
             {steps.map(({ type, count }) => (
               <Chip key={type} on={f.step === type} onClick={() => toggle('step', type)}>
-                {type in STEP_ICON && <StepIcon type={type as StepIconName} className="h-3.5 w-3.5" />}
+                {type in STEP_ICON && <span className={`cat-${categoryOfType(type)} grid`}><StepIcon type={type as StepIconName} className="h-3.5 w-3.5 text-cat" /></span>}
                 {stepName(type)} <span className="font-mono text-[11px] opacity-70">{count}</span>
               </Chip>
             ))}

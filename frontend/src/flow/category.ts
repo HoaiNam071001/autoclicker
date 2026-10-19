@@ -29,4 +29,7 @@ const BY_TYPE: Record<StepType, NodeCategory> = {
 export const nodeCategory = (s: Pick<Step, 'type' | 'webBrowser'>): NodeCategory =>
   s.type === 'open' && s.webBrowser ? 'web' : BY_TYPE[s.type];
 
+// Nhóm theo tên loại dạng chuỗi (danh sách Mẫu thử từ Go) – loại lạ thì không có nhóm.
+export const categoryOfType = (type: string): NodeCategory | undefined => BY_TYPE[type as StepType];
+
 export const categoryName = (c: NodeCategory) => CATEGORIES.find((x) => x.id === c)!.name;
