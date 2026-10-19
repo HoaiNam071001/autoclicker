@@ -104,7 +104,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 ### Các đường chạy phụ
 
 - **Thử node** (`TestNode` → `Engine.TestNode`, `engine/nodetest.go`): xét if / switch / switchScreen trên màn hình lúc này, không chạy cả flow → `NodeTestPanel` + khung chỗ thấy trên overlay.
-- **Thử tìm ảnh / chữ** (`FindImage` → `Engine.FindOnce`), **lấy màu** (`PixelColorAt`), **quyền chụp** (`ScreenCaptureAllowed` / `RequestScreenCapture`, macOS Screen Recording).
+- **Thử tìm ảnh / chữ / phần tử** (`FindImage` → `Engine.FindOnce`), **Chọn phần tử trên màn** (37 E3: `PickElementAt` → `Engine.PickElement`, `engine/elementpick.go` + `element.At` / `QueryFor`; overlay lấy điểm qua `pickScreenPoint` – `store/points.ts`, `pickElement` – `imageSteps.ts`), **lấy màu** (`PixelColorAt`), **quyền chụp** (`ScreenCaptureAllowed` / `RequestScreenCapture`, macOS Screen Recording).
 - **Node web** (`webapi.go`, một `web.Chrome` riêng của giao diện): trạng thái Chrome của app (`BrowserStatus`), mở trang trống (`OpenAppBrowser`), **Thử tìm** (`FindElement` → `Engine.FindElement`, `engine/webfind.go`), **Chọn phần tử trên trang** (`PickElement` / `CancelPick` → `Chrome.Pick`, `web/pick.go` + `pick.js`) → `webSteps.ts` + `stepform/WebTools`.
 - **Chạy từ node**: `RunOptions.from` → một vòng bắt đầu ở node đó (biến node trước trống).
 - **Lịch sử**: `ListRuns` / `GetRun` / `RunShot` – mở từ thư viện, hiện như lần chạy đang xem.
@@ -118,7 +118,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | Chạy | `ValidateScript`, `DeleteCheck` (thao tác xoá + đã đồng ý chưa), `RunScript`, `StopScript`, `PauseScript`, `ResumeScript`, `StepScript`, `TestNode` |
 | Lịch sử | `ListRuns`, `GetRun`, `RunShot` |
 | Input | `GetInputMemory`, `SaveInputMemory` |
-| Ảnh / màn hình | `CaptureTemplate`, `FindImage`, `PixelColorAt`, `ScreenCaptureAllowed`, `RequestScreenCapture`, `ScreenBounds`, `MousePos` |
+| Ảnh / màn hình | `CaptureTemplate`, `FindImage`, `PickElementAt`, `PixelColorAt`, `ScreenCaptureAllowed`, `RequestScreenCapture`, `ScreenBounds`, `MousePos` |
 | Node web (Chrome của app) | `BrowserStatus`, `OpenAppBrowser`, `FindElement`, `PickElement`, `CancelPick` |
 | Cửa sổ | `SetWindowMode`, `Displays`, `OverlayDisplayFor`, `SetOverlayDisplay` |
 | Cấu hình | `GetSettings`, `SetTheme` |
@@ -147,7 +147,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | Ô số nhận biến (F5c) | `Step.numVars`; trường được = `Pinnable` (`model.NumVarFieldsOf`); chạy `script.ApplyNumVars` (`numvars.go`) trong `execNode`; UI `NumField` nút {x} (`stepform/shared.tsx`), `flow/numvars.ts` |
 | Output node mới | `Outputs` trong `model/steptypes.go` + `flow/view.ts` `outputsOf`; output chung `CommonOutputs` điền ở `execNode` |
 | Thao tác giống người (34) | Công thức `internal/humanize`; engine `human.go` (mức mỗi node đặt trong `execNode`), `move` / `click` / `typeText` / `wheelEach` / `drag` (`actions.go`), `pressKeys`; model `Script.human` / `Step.human`; UI `components/HumanFields.tsx` (Cài đặt chạy + inspector), `flow/human.ts`; xem trước theo đường cong: `overlay/humanPath.ts` (cùng công thức `path.go`, test chung `testdata/human_path.json`) → `Simulation.tsx` `travel`; sân thử `human.html` |
-| Tìm phần tử màn hình (Accessibility, bước 37) | `engine/elementstep.go` (+ node Đọc phần tử `elementRead`), `internal/element` (`Find`), `internal/device/element_*.go` (đọc cây, `ScrollTo`); chữ hiển thị `flow/element.ts`; inspector `stepform/ElementFields` (`ElementQueryFields` dùng chung) |
+| Tìm phần tử màn hình (Accessibility, bước 37) | `engine/elementstep.go` (+ node Đọc phần tử `elementRead`), `internal/element` (`Find`), `internal/device/element_*.go` (đọc cây, `ScrollTo`); Chọn phần tử trên màn `element/pick.go` + `engine/elementpick.go`; chữ hiển thị `flow/element.ts`; inspector `stepform/ElementFields` (`ElementQueryFields` dùng chung, `ElementSearchFields` cho Tìm theo: Phần tử) |
 | Tìm ảnh / chữ / màu | `engine/imagestep.go`, `internal/vision` (`match.go` NCC, `ocr.go` tìm chữ), `internal/device` (`ocr_*.go` đọc chữ, `capture*.go` chụp); UI `imageSteps.ts`, `stepform/ImageFields` |
 | Toạ độ / neo / DPI | `script/anchor.go` ↔ `anchor.ts` (cùng công thức), `coordMap.ts` (overlay ↔ robotgo), `window.go` (màn hình) |
 | Toạ độ từ biến (F5b) | `script/coord.go` (`EvalCoord`, `PointOnScreen`), engine `pointAt` (`actions.go`), kiểm tra `checkVarField` (`flowcheck.go`); UI `stepform/PointSource` (Số / Biến) + `PointVarFields`, `setPointVar` (`store/points.ts`), `coordSources` (`flow/view.ts`) |
@@ -178,7 +178,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 `internal/humanize` – thao tác giống người (bước 34), hàm thuần nhận nguồn ngẫu nhiên: `profile.go` (mức off / low / medium / high → `Profile`, `Effective`), `path.go` (`Path` – đường chuột Bezier + minimum-jerk + Fitts, đi lố rồi chỉnh, rung, giữ cách mép màn; phần tất định `Fitts` / `Controls` / `CurveAt` cùng công thức `overlay/humanPath.ts`, test chung `testdata/human_path.json`; `Aim` – điểm bấm quanh tâm), `keys.go` (`Typing` – nhịp gõ, ngừng, gõ nhầm rồi xoá; `Gaps` – nhịp cuộn).
 `internal/vision` – tìm ảnh / chữ thuần trên ảnh đã chụp: `match.go` (NCC, `MatchScaled`, `ImageScale`), `ocr.go` (`TextLine`, `FindText`, `MatchText`, `ReadingOrder`), `image.go` (PNG base64, màu `#RRGGBB`, `Shrink`). `visiontest/` – ảnh giả dùng chung cho test (`Scene`, `Button`, `Crop`).
 
-`internal/element` – phần tử màn hình (bước 37) thuần: `node.go` (`Node`, `RoleFromAX`, `Name` / `Text` / `Shown`), `find.go` (`Find` theo text= / aria= / role=, chỗ thứ N, lọc vùng, `CheckSelector`, `Settled`).
+`internal/element` – phần tử màn hình (bước 37) thuần: `node.go` (`Node`, `RoleFromAX`, `Name` / `Text` / `Shown`), `find.go` (`Find` theo text= / aria= / role=, chỗ thứ N, lọc vùng, `CheckSelector`, `Settled`), `pick.go` (`At` – phần tử dưới điểm, `QueryFor` – sinh selector tìm lại đúng phần tử).
 
 `internal/device` – thiết bị thật qua interface: `input.go` (`Input` + robotgo – `Move` có chờ app nhận, `MoveStep` bước giữa đường không chờ, `Location`; `Displays`, `MainScreen`), `capture.go` / `capture_darwin.go` / `capture_other.go` (`Screen`, quyền Screen Recording, chụp không lẫn cửa sổ app), `ocr.go` / `ocr_darwin.go` / `ocr_other.go` (`TextReader`; Vision, Windows chưa có), `system.go` / `system_darwin.go` (osascript volume settings) / `system_windows.go` (Core Audio qua PowerShell) / `system_other.go` (`Audio`), `trash.go` / `trash_darwin.go` (đổi tên vào ~/.Trash, dọn qua Finder) / `trash_windows.go` (Recycle Bin) / `trash_other.go` (`Trash`), `clipboard.go` / `clipboard_darwin.go` (pbcopy / pbpaste / osascript) / `clipboard_windows.go` (PowerShell, ẩn cửa sổ) / `clipboard_other.go` (`Clipboard` – chữ + ảnh PNG từ file), `failsafe.go` (dừng khi chuột chạm góc, `TrackingInput`), `element.go` / `element_darwin.go` (cây Accessibility qua cgo, bỏ cây trùng, lần đầu chờ Electron dựng cây) / `element_other.go` (`ElementReader` – phần tử màn hình, bước 37). `devicetest/` – `FakeInput`, `FakeClipboard`, `FakeTrash`, `FakeAudio` cho test.
 

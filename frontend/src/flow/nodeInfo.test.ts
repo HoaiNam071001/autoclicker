@@ -18,6 +18,8 @@ describe('nodeInfo', () => {
     expect(infoKey({ type: 'waitImage' })).toBe('waitImage');
     expect(infoKey({ type: 'clickImage', findBy: 'text', imageSource: 'search' })).toBe('clickText');
     expect(infoKey({ type: 'clickImage', findBy: 'text' })).toBe('clickImage'); // ảnh từ node trước
+    expect(infoKey({ type: 'waitImage', findBy: 'element' })).toBe('waitElement');
+    expect(infoKey({ type: 'clickImage', findBy: 'element', imageSource: 'search' })).toBe('clickElement');
     expect(infoKey({ type: 'open', webBrowser: true })).toBe('openWeb');
     expect(infoKey({ type: 'if' })).toBe('if');
   });

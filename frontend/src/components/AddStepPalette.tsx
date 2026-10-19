@@ -5,7 +5,7 @@ import { addControl, addPointStep, addStep, getEditor, insertTarget } from '../s
 import { portView } from '../flow/view';
 import { WEB_BASIC_NOTE } from '../flow/web';
 import { NODE_INFO } from '../flow/nodeInfo';
-import { addImageStep, addTextStep } from '../imageSteps';
+import { addElementStep, addImageStep, addTextStep } from '../imageSteps';
 
 // Nhóm theo flow/category (cùng màu thẻ node) – tên nhóm lấy từ CATEGORIES
 const GROUPS: PaletteGroup[] = [
@@ -19,6 +19,7 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'scroll', label: 'Cuộn', info: NODE_INFO.scroll, keywords: 'scroll lan chuot', run: () => addStep('scroll') },
       { icon: 'clickImage', label: 'Click theo ảnh', info: NODE_INFO.clickImage, keywords: 'image anh mau tim nut', run: () => addImageStep('clickImage') },
       { icon: 'clickImage', label: 'Click theo chữ', info: NODE_INFO.clickText, keywords: 'text chu ocr doc nut tim', run: () => addTextStep('clickImage') },
+      { icon: 'clickImage', label: 'Click theo phần tử', info: NODE_INFO.clickElement, keywords: 'phan tu accessibility nut chrome thuong app aria role bam', run: () => addElementStep('clickImage') },
     ],
   },
   {
@@ -32,6 +33,7 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'wait', label: 'Chờ', info: NODE_INFO.wait, keywords: 'wait delay nghi doi', run: () => addStep('wait') },
       { icon: 'waitImage', label: 'Chờ ảnh', info: NODE_INFO.waitImage, keywords: 'wait image anh mau xuat hien khoanh', run: () => addImageStep('waitImage') },
       { icon: 'waitImage', label: 'Chờ chữ', info: NODE_INFO.waitText, keywords: 'wait text chu ocr doc xuat hien', run: () => addTextStep('waitImage') },
+      { icon: 'waitImage', label: 'Chờ phần tử', info: NODE_INFO.waitElement, keywords: 'phan tu accessibility chrome thuong app aria role xuat hien', run: () => addElementStep('waitImage') },
       { icon: 'waitUntil', label: 'Chờ đến giờ', info: NODE_INFO.waitUntil, keywords: 'cho den gio hen gio dong ho time schedule san sale flash ntp', run: () => addStep('waitUntil') },
       { icon: 'waitPixel', label: 'Chờ màu pixel', info: NODE_INFO.waitPixel, keywords: 'pixel mau color diem', run: () => addImageStep('waitPixel') },
       { icon: 'screenshot', label: 'Chụp màn hình', info: NODE_INFO.screenshot, keywords: 'screenshot chup anh man hinh luu png clipboard bang chung', run: () => addStep('screenshot') },

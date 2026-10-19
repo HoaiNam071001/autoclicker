@@ -1,5 +1,5 @@
-// Phần tử màn hình qua Accessibility (bước 37): node Đọc phần tử. ElementQueryFields (cách tìm, app, bỏ dấu, chỗ thứ
-// mấy) dùng chung cho Chờ / Click theo phần tử (E3).
+// Phần tử màn hình qua Accessibility (bước 37): node Đọc phần tử, Tìm theo: Phần tử của Chờ / Click (E3).
+// ElementQueryFields (cách tìm, app, bỏ dấu, chỗ thứ mấy) dùng chung cả hai.
 import NumInput from '../NumInput';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
@@ -8,6 +8,8 @@ import { Step } from '../../types';
 import { elementSelectorError } from '../../flow/element';
 import { SelectorsField } from './WebActionFields';
 import { errText, Field, fmtSec, hint, NumField, SwitchField, useNodeVars } from './shared';
+import { pickElement, testFind, useImageState } from '../../imageSteps';
+import { inWails, openOverlay } from '../../windowMode';
 
 export function ElementQueryFields({ step: s }: { step: Step }) {
   const script = useScript();
@@ -29,6 +31,41 @@ export function ElementQueryFields({ step: s }: { step: Step }) {
       <Field label="Chỗ thứ" help="Nhiều phần tử khớp thì lấy cái thứ mấy (theo thứ tự đọc)">
         <NumInput value={Math.max(s.occurrence ?? 1, 1)} min={1} stepper onChange={(n) => set({ occurrence: n > 1 ? n : undefined })} />
       </Field>
+    </>
+  );
+}
+
+// Tìm theo: Phần tử của Chờ / Click theo ảnh·chữ (37 E3): cách tìm + Chọn phần tử trên màn + Thử tìm (khung vẽ trên
+// overlay; không thấy thì liệt kê các phần tử đang có để chọn lại cách tìm).
+export function ElementSearchFields({ step: s }: { step: Step }) {
+  const { finds, busy, error } = useImageState();
+  const find = finds[s.id];
+  const btn = 'h-[34px] flex-1 rounded-control border border-line bg-surface text-[13px] text-ink enabled:hover:bg-hover disabled:opacity-50';
+  return (
+    <>
+      <ElementQueryFields step={s} />
+      <div className="col-span-2 flex flex-col gap-1.5">
+        <div className="flex gap-1.5">
+          <button onClick={() => pickElement(s.id)} disabled={!inWails || busy === s.id} className={btn}
+            title={inWails ? 'Chọn phần tử trên màn: bấm vào phần tử trên màn hình – app tự viết cách tìm' : 'Chỉ dùng được trong app'}>Chọn trên màn</button>
+          <button onClick={() => testFind(s.id)} disabled={!inWails || busy === s.id || !s.selectors?.some((l) => l.trim().length > 5)} className={btn}
+            title="Tìm trong cây phần tử của app lúc này (không di chuột)">{busy === s.id ? 'Đang tìm…' : 'Thử tìm'}</button>
+        </div>
+        {find && (
+          <span className={`flex flex-col gap-1 text-xs ${find.found ? 'text-ok' : 'text-warn'}`}>
+            <span className="flex flex-wrap items-center gap-x-2">
+              {find.found ? <>Thấy tại X {find.x + Math.round(find.w / 2)} Y {find.y + Math.round(find.h / 2)}{find.ms ? ` · ${find.ms} ms` : ''}</>
+                : find.fromRun ? <>Lần chạy trước hết giờ không thấy phần tử này</> : <>Không thấy trong cửa sổ app lúc này</>}
+              {find.found && <button onClick={() => openOverlay('point', s.id)} className="text-muted underline">xem trên màn hình</button>}
+            </span>
+            {!find.found && !!find.read?.length && (
+              <span className="text-muted">Đang có: {find.read.slice(0, 12).join(' · ')}{find.read.length > 12 ? ' …' : ''}</span>
+            )}
+          </span>
+        )}
+        {error && busy === '' && <span className={errText}>{error}</span>}
+        <span className={hint}>Cửa sổ app phải đang hiện trên màn (không thu nhỏ, không ở desktop khác); trình duyệt chỉ thấy tab đang mở. Cần quyền Accessibility.</span>
+      </div>
     </>
   );
 }

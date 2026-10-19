@@ -123,7 +123,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {isMouse(s) && <MouseFields step={s} setPoint={setPoint} />}
       {s.type === 'path' && <PathFields step={s} />}
       {s.type === 'scroll' && <ScrollFields step={s} setPoint={setPoint} />}
-      {(isImageStep(s) || s.type === 'screenshot') && <CapturePermission />}
+      {(isImageStep(s) || s.type === 'screenshot') && s.findBy !== 'element' && <CapturePermission />}
       {s.type === 'waitImage' && <ImageSearchFields step={s} />}
       {s.type === 'clickImage' && <ClickImageFields step={s} />}
       {s.type === 'waitPixel' && <WaitPixelFields step={s} setPoint={setPoint} />}

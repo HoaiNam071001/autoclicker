@@ -1,10 +1,10 @@
 // Chờ ảnh / click theo ảnh / chờ pixel (bước 25) – phía giao diện: khoanh ảnh mẫu trên overlay, thử tìm trên màn hình,
 // lấy màu pixel, quyền chụp màn hình (macOS). Engine + so khớp ở Go (internal/engine, internal/vision, imageapi.go).
 import { useSyncExternalStore } from 'react';
-import { CaptureTemplate, FindImage, PixelColorAt, RequestScreenCapture, ScreenCaptureAllowed, TestNode } from '../wailsjs/go/main/App';
+import { CaptureTemplate, FindImage, PickElementAt, PixelColorAt, RequestScreenCapture, ScreenCaptureAllowed, TestNode } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { model } from '../wailsjs/go/models';
-import { addStep, getEditor, selectStep, setNotice, toScreen, updateCond, updateStep } from './store';
+import { addStep, getEditor, pickScreenPoint, selectStep, setNotice, toScreen, updateCond, updateStep } from './store';
 import { CondAt, condOf } from './flow/cond';
 import { errorText } from './engineStore';
 import { inWails, openOverlay, setWindowMode } from './windowMode';
@@ -70,6 +70,13 @@ export function addTextStep(type: 'waitImage' | 'clickImage') {
   updateStep(getEditor().selected, { findBy: 'text', findText: '', ...(type === 'clickImage' ? { imageSource: 'search' as const } : {}) });
 }
 
+// Bảng thêm bước: Chờ phần tử / Click theo phần tử (37 E3) = chờ ảnh / click theo ảnh (tự tìm) tìm theo phần tử
+// accessibility – dòng cách tìm để trống cho người dùng gõ hoặc Chọn phần tử trên màn.
+export function addElementStep(type: 'waitImage' | 'clickImage') {
+  addStep(type);
+  updateStep(getEditor().selected, { findBy: 'element', selectors: ['text='], ...(type === 'clickImage' ? { imageSource: 'search' as const } : {}) });
+}
+
 // "Dùng ảnh này" trên overlay: chụp vùng r (toạ độ màn hình thật) – Go ẩn cửa sổ lúc chụp – ghi vào bước, về màn chính.
 export async function applyCapture(r: Rect): Promise<string | null> {
   if (capturesRect()) {
@@ -115,6 +122,25 @@ export async function testFind(stepId: string) {
   } catch (e) {
     set({ busy: '', error: errorText(e) });
   }
+}
+
+// "Chọn phần tử trên màn" (37 E3): bấm vào phần tử trên overlay → Go đọc cây accessibility, lấy phần tử dưới điểm và
+// sinh cách tìm (đã tìm lại đúng) → ghi vào node; khung phần tử vẽ trên overlay như Thử tìm.
+export function pickElement(stepId: string) {
+  if (!inWails) return;
+  set({ error: '' });
+  void pickScreenPoint(async (p) => {
+    set({ busy: stepId });
+    try {
+      const r = await PickElementAt(model.Script.createFrom(getEditor().script), stepId, p.x, p.y);
+      updateStep(stepId, { selectors: r.selectors, occurrence: r.occurrence > 1 ? r.occurrence : undefined });
+      const b = r.box;
+      set({ busy: '', finds: { ...state.finds, [stepId]: { found: true, score: 100, x: b.x, y: b.y, w: b.w, h: b.h, area: b, ms: 0, label: r.role } } });
+      setNotice(`Đã chọn ${r.role}${r.name ? ` “${r.name}”` : ''} – cách tìm: ${r.selectors[0]}`);
+    } catch (e) {
+      set({ busy: '', error: errorText(e) });
+    }
+  });
 }
 
 // Khung trên overlay của nơi khác (Thử tìm node web – webSteps.ts); null = bỏ khung.

@@ -15,6 +15,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 37 – Phần tử màn hình qua Accessibility · [phase3/37-phan-tu-man-hinh.md](phase3/37-phan-tu-man-hinh.md)
 
+- [ ] E3 Chờ / Click theo phần tử (Chrome thường mở `element.html` hoặc trang thật): bảng thêm node → Click theo phần tử; **Chọn trên màn** → bấm nút “Mua ngay” / nút chỉ có icon → ô cách tìm tự điền (text="…" / aria="…"), khung hiện đúng chỗ trên overlay; **Thử tìm** thấy đúng, đổi chữ sai → liệt kê phần tử đang có; chạy node bấm trúng. Bấm vào chỗ trống / ảnh không có chữ → báo lỗi rõ
 - [ ] E2 Mẫu thử (Chrome thường làm trình duyệt mặc định, cấp quyền Accessibility cho app / terminal): **Phần tử – đọc giá đang đổi** → lời kết thúc ghi đúng giá đang hiện + nam@example.com; **Phần tử – bấm nút chỉ có icon** → trái tim tô đậm, thành công; **Phần tử – nút dưới cuối trang** → trang tự cuộn xuống, bấm trúng XÁC NHẬN ĐƠN, thành công. Lần đầu với một app có thể chậm ~0,5–2 s (app dựng cây). Thử lại khi Chrome ở desktop (Space) khác / thu nhỏ → chờ hết giờ, lỗi ghi *không có cửa sổ đang hiện*. Tắt quyền Accessibility → lỗi quyền ngay
 - [ ] E2 Inspector Đọc phần tử: thêm từ bảng (nhóm Ứng dụng – đổi ở 38 V0), gõ `css=.x` → báo đỏ chỉ dùng text= / aria= / role=; ô App nhận `{{biến}}`. Xem cả theme sáng + tối
 
