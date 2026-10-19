@@ -62,6 +62,7 @@ function Item({ it, close }: { it: RunMenuItem; close: () => void }) {
 // Icon các mục menu (path d, 24×24)
 export const RUN_ICON = {
   from: 'M5 4l10 8-10 8zM19 5v14',
+  only: 'M8 5l10 7-10 7z',
   step: 'M4 12h12M12 6l6 6-6 6M20 5v14',
   preview: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
   record: 'M12 5a7 7 0 1 0 0 14 7 7 0 0 0 0-14z',

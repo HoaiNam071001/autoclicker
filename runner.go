@@ -43,7 +43,7 @@ func (a *App) ValidateScript(sc model.Script, values map[string]any) error {
 func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) error {
 	screen := device.MainScreen()
 	if opt.From != "" {
-		sc.Start, sc.Loops = opt.From, 1 // chạy từ node: một vòng, node trước đó không chạy (biến của chúng trống)
+		sc = script.RunFrom(sc, opt.From, opt.Only)
 	}
 	sc, err := script.ResolveInputs(sc, values)
 	if err != nil {
@@ -215,6 +215,7 @@ type RunOptions struct {
 	Path      string `json:"path,omitempty"`   // file kịch bản – gom lịch sử theo kịch bản (chưa lưu: theo tên)
 	Source    string `json:"source,omitempty"` // user (mặc định) | schedule | cli | ai
 	From      string `json:"from,omitempty"`   // debug: chạy một vòng bắt đầu từ node này thay cho start
+	Only      bool   `json:"only,omitempty"`   // cùng From: chỉ chạy riêng node From (RunNode cho AI – 31c)
 	Step      bool   `json:"step,omitempty"`   // debug: dừng trước mỗi node, Tiếp / F10 chạy node kế
 	// dấu vân tay thao tác xoá người dùng vừa đồng ý (DeleteCheck) – chạy được và ghi nhớ; trống = chỉ chạy khi đã đồng ý trước đó
 	ConfirmDelete string `json:"confirmDelete,omitempty"`

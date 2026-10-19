@@ -83,7 +83,7 @@ Bấm Chạy / F8 (hotkey:f8start)
            1. Go ValidateScript(sc, values)   — lỗi: ở lại màn chính, hiện lastError
               Go DeleteCheck(sc, values, path) — có thao tác xoá chưa đồng ý → DeleteConfirmDialog (Huỷ = không chạy)
            2. setWindowMode('minibar')
-           3. Go RunScript(sc, values, RunOptions{countdown, path, source, from, step, confirmDelete})   (chặn tới khi xong)
+           3. Go RunScript(sc, values, RunOptions{countdown, path, source, from, only, step, confirmDelete})   (chặn tới khi xong)
            4. setWindowMode('main')
 ```
 
@@ -106,7 +106,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 - **Thử node** (`TestNode` → `Engine.TestNode`, `engine/nodetest.go`): xét if / switch / switchScreen trên màn hình lúc này, không chạy cả flow → `NodeTestPanel` + khung chỗ thấy trên overlay.
 - **Thử tìm ảnh / chữ / phần tử** (`FindImage` → `Engine.FindOnce`), **Chọn phần tử trên màn** (37 E3: `PickElementAt` → `Engine.PickElement`, `engine/elementpick.go` + `element.At` / `QueryFor`; overlay lấy điểm qua `pickScreenPoint` – `store/points.ts`, `pickElement` – `imageSteps.ts`), **lấy màu** (`PixelColorAt`), **quyền chụp** (`ScreenCaptureAllowed` / `RequestScreenCapture`, macOS Screen Recording).
 - **Node web** (`webapi.go`, một `web.Chrome` riêng của giao diện): trạng thái Chrome của app (`BrowserStatus`), mở trang trống (`OpenAppBrowser`), **Thử tìm** (`FindElement` → `Engine.FindElement`, `engine/webfind.go`), **Chọn phần tử trên trang** (`PickElement` / `CancelPick` → `Chrome.Pick`, `web/pick.go` + `pick.js`) → `webSteps.ts` + `stepform/WebTools`.
-- **Chạy từ node**: `RunOptions.from` → một vòng bắt đầu ở node đó (biến node trước trống).
+- **Chạy từ node**: `RunOptions.from` → một vòng bắt đầu ở node đó (biến node trước trống); thêm `only` → chạy riêng node đó (`script.RunFrom` bỏ cạnh ra của nó) – đường cho AI chạy một node (31c).
 - **Lịch sử**: `ListRuns` / `GetRun` / `RunShot` – mở từ thư viện, hiện như lần chạy đang xem.
 
 ## 5. API Go (method của App) & event
@@ -192,7 +192,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 `internal/launch` – `open.go`: mở URL / file / app (`OpenTarget`, `openCommand` theo hệ điều hành).
 
-`internal/script` – kịch bản như dữ liệu (không thiết bị, không đĩa): `codec.go` (`EncodeScript` / `DecodeScript`, `SafeFileName`), `check.go` (kiểm tra lúc mở: `checkScript`, `checkStep`, `FixRefs`), `validate.go` (`ValidateScript` – đủ dữ liệu để chạy), `flowcheck.go` (`validateFlow`, `UnreachableNodes`), `control.go` (kiểm tra node điều khiển + điều kiện), `inputs.go` / `inputvalue.go` (`ResolveInputs`, ép kiểu, ghim trường), `varfields.go` (`VarFields` – mọi ô chữ nhận `{{biến}}`, kể cả toạ độ điểm), `anchor.go` (`ResolvePoint`, `Bounds`), `coord.go` (toạ độ từ biến: `EvalCoord`, `PointOnScreen`), `numvars.go` (trường số từ biến `numVars`: `ApplyNumVars`, kiểm tra), `element.go` (`checkElementSelectors` – cách tìm phần tử chỉ text= / aria= / role=), `errors.go` (`stepErr` → `model.ScriptError`).
+`internal/script` – kịch bản như dữ liệu (không thiết bị, không đĩa): `codec.go` (`EncodeScript` / `DecodeScript`, `SafeFileName`), `check.go` (kiểm tra lúc mở: `checkScript`, `checkStep`, `FixRefs`), `validate.go` (`ValidateScript` – đủ dữ liệu để chạy), `flowcheck.go` (`validateFlow` – lỗi cạnh kèm `edgeId`, `UnreachableNodes`), `runfrom.go` (`RunFrom` – bản sao chạy từ / chạy riêng một node), `control.go` (kiểm tra node điều khiển + điều kiện), `inputs.go` / `inputvalue.go` (`ResolveInputs`, ép kiểu, ghim trường), `varfields.go` (`VarFields` – mọi ô chữ nhận `{{biến}}`, kể cả toạ độ điểm), `anchor.go` (`ResolvePoint`, `Bounds`), `coord.go` (toạ độ từ biến: `EvalCoord`, `PointOnScreen`), `numvars.go` (trường số từ biến `numVars`: `ApplyNumVars`, kiểm tra), `element.go` (`checkElementSelectors` – cách tìm phần tử chỉ text= / aria= / role=), `errors.go` (`stepErr` → `model.ScriptError`).
 
 `internal/store` – dữ liệu app trên máy (`ConfigDir`, `WriteFileAtomic`): `scriptfile.go` (đọc / ghi file kịch bản), `draft.go` (nháp tự lưu), `settings.go` (theme, `BrowserProfile` – profile Chrome của app), `recent.go` (mở gần đây), `inputmemory.go` (`inputs.json` – giá trị input lần trước / preset), `deleteconsent.go` (`delete-consent.json` – dấu vân tay thao tác xoá đã đồng ý theo kịch bản), `runs.go` (lịch sử chạy: `SaveRun`, `RunsOf`, `GetRun`, `RunShot`, `safeName`).
 

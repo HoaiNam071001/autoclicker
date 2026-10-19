@@ -1,6 +1,7 @@
 package script
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 	"testing"
@@ -48,6 +49,20 @@ func TestValidateFlow(t *testing.T) {
 	sc.Steps[1] = modeltest.Node("b", "n2", model.StepText, func(x *model.Step) { x.Text = "{{last.status}} {{vars.dem}}" })
 	if err := validateFlow(sc); err != nil {
 		t.Errorf("vars / last: %v", err)
+	}
+}
+
+// Lỗi cạnh có id cạnh + node (AI sửa đúng cạnh – 20 F7).
+func TestValidateFlowEdgeID(t *testing.T) {
+	sc := model.Script{Start: "a", Steps: []model.Step{modeltest.Node("a", "n1", model.StepWait, nil)},
+		Edges: []model.Edge{{ID: "e1", From: "a", Port: model.PortSuccess, To: "x"}}}
+	var se *model.ScriptError
+	if err := validateFlow(sc); !errors.As(err, &se) || se.Edge != "e1" || se.StepID != "a" || se.Ref != "n1" || se.Field != "edges" {
+		t.Errorf("lỗi cạnh = %#v", err)
+	}
+	sc.Edges[0].From = "y"
+	if err := validateFlow(sc); !errors.As(err, &se) || se.Edge != "e1" {
+		t.Errorf("cạnh từ node không còn = %#v", err)
 	}
 }
 

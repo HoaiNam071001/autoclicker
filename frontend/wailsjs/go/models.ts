@@ -288,6 +288,7 @@ export namespace main {
 	    path?: string;
 	    source?: string;
 	    from?: string;
+	    only?: boolean;
 	    step?: boolean;
 	    confirmDelete?: string;
 	
@@ -301,6 +302,7 @@ export namespace main {
 	        this.path = source["path"];
 	        this.source = source["source"];
 	        this.from = source["from"];
+	        this.only = source["only"];
 	        this.step = source["step"];
 	        this.confirmDelete = source["confirmDelete"];
 	    }

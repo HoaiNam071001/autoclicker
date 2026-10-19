@@ -41,19 +41,24 @@ func validateFlow(sc model.Script) error {
 	for _, e := range sc.Edges {
 		i, ok := idx[e.From]
 		if !ok {
-			return &model.ScriptError{Field: "edges", Msg: fmt.Sprintf("cạnh %s đi ra từ node không còn trong kịch bản", e.ID)}
+			return &model.ScriptError{Field: "edges", Edge: e.ID, Msg: fmt.Sprintf("cạnh %s đi ra từ node không còn trong kịch bản", e.ID)}
 		}
 		s := sc.Steps[i]
 		_, toOK := idx[e.To]
+		var err *model.ScriptError
 		switch {
 		case !model.HasPort(s, e.Port):
-			return stepErr(i, s, "edges", "node không có cổng %q", e.Port)
+			err = stepErr(i, s, "edges", "node không có cổng %q", e.Port)
 		case !toOK:
-			return stepErr(i, s, "edges", "cổng %s nối tới node không còn trong kịch bản", e.Port)
+			err = stepErr(i, s, "edges", "cổng %s nối tới node không còn trong kịch bản", e.Port)
 		case e.From == e.To:
-			return stepErr(i, s, "edges", "cổng %s nối vào chính node này – vòng lặp phải đi qua node khác (vd Đếm)", e.Port)
+			err = stepErr(i, s, "edges", "cổng %s nối vào chính node này – vòng lặp phải đi qua node khác (vd Đếm)", e.Port)
 		case ports[[2]string{e.From, e.Port}]:
-			return stepErr(i, s, "edges", "cổng %s có hơn một cạnh", e.Port)
+			err = stepErr(i, s, "edges", "cổng %s có hơn một cạnh", e.Port)
+		}
+		if err != nil {
+			err.Edge = e.ID
+			return err
 		}
 		ports[[2]string{e.From, e.Port}] = true
 	}

@@ -65,8 +65,8 @@ const COUNTDOWN_SEC = 3;
 // Lỗi từ Go (Wails trả Error hoặc chuỗi) → chữ hiện cho người dùng, bỏ tiền tố "Error: ".
 export const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e)).replace(/^Error:\s*/, '');
 
-// Debug (bước 20 F5): from = chạy một vòng từ node này; step = dừng trước mỗi node (Tiếp / F10).
-export type Debug = { from?: string; step?: boolean };
+// Debug (bước 20 F5): from = chạy một vòng từ node này (only: chỉ riêng node đó – 20 F7); step = dừng trước mỗi node (Tiếp / F10).
+export type Debug = { from?: string; only?: boolean; step?: boolean };
 
 // Chạy kịch bản với giá trị input (Go áp vào bản sao – resolveInputs): kiểm tra trước (lỗi thì ở lại màn chính),
 // thu cửa sổ thành mini bar, chạy tới khi xong / dừng, rồi về màn chính. Form Chạy: runForm.ts.

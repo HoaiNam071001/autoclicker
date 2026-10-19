@@ -37,7 +37,8 @@ type ScriptError struct {
 	StepID string `json:"stepId,omitempty"`
 	Ref    string `json:"ref,omitempty"` // mã node (n2) – hiện trong lời báo lỗi
 	Field  string `json:"field,omitempty"`
-	Input  string `json:"input,omitempty"` // key input liên quan
+	Edge   string `json:"edgeId,omitempty"` // id cạnh lỗi (Field = edges)
+	Input  string `json:"input,omitempty"`  // key input liên quan
 	Msg    string `json:"message"`
 }
 

@@ -10,6 +10,7 @@ import (
 	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
 	"autoclicker/internal/model/modeltest"
+	"autoclicker/internal/script"
 	"autoclicker/internal/vision"
 )
 
@@ -86,6 +87,26 @@ func TestFlowFailUnconnectedStops(t *testing.T) {
 	}
 	if r := e.results["w"]; r.Error == nil || r.Error.Code != model.ErrNotFound {
 		t.Errorf("mã lỗi: %+v", r.Error)
+	}
+}
+
+// Chạy riêng một node (20 F7 – RunNode cho AI): node chạy đúng một lần, không đi tiếp cạnh ra; thất bại thì báo lỗi.
+func TestRunOnlyNode(t *testing.T) {
+	e, in := sendFlow(0, nil)
+	e.sc = script.RunFrom(e.sc, "s", true)
+	var got []string
+	e.onNode = func(r model.StepResult) { got = append(got, r.Ref+">"+r.Port) }
+	if err := e.Run(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(got, []string{"n4>success"}) || !reflect.DeepEqual(in.Lines(), []string{"scroll down"}) {
+		t.Errorf("node %q, lệnh %q", got, in.Lines())
+	}
+
+	e, _ = sendFlow(-1, nil)
+	e.sc = script.RunFrom(e.sc, "w", true) // cạnh fail → cuộn bị bỏ: không thấy là lỗi
+	if err := e.Run(context.Background()); err == nil || e.failed != "w" {
+		t.Fatalf("lỗi %v, failed %q", err, e.failed)
 	}
 }
 

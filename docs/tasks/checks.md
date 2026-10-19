@@ -3,7 +3,9 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 20 F6 – Xem trước theo nhánh, thanh mini · [phase3/20-flow.md](phase3/20-flow.md)
+## 20 F6 / F7 – Xem trước theo nhánh, thanh mini, chạy riêng node · [phase3/20-flow.md](phase3/20-flow.md)
+
+- [ ] Chọn một node (vd Click n3) → ▾ cạnh nút Chạy → **Chạy riêng n3**: chỉ node đó chạy một lần (click thật), thẻ node tô kết quả, Lịch sử chạy có lần chạy chỉ một node; node thất bại (vd Chờ chữ không thấy) → báo lỗi dù có nối nhánh Thất bại; F8 dừng được
 
 - [ ] Mẫu có rẽ nhánh (vd ví dụ Facebook: Chờ chữ → Thất bại → Đếm → Cuộn): overlay → Xem trước → **Nhánh** chọn Thất bại cho node Chờ → Chạy thử: con trỏ đi vòng cuộn 1 lần rồi theo Hết lượt; dòng gợi ý ghi đường đã đi; *Về nhánh chính* đi lại nhánh Thành công; đóng / mở lại overlay vẫn nhớ lựa chọn; Esc khi menu mở chỉ đóng menu
 - [ ] Chạy thật kịch bản có Đếm + nhánh Thất bại: thanh mini ghi "n2 · … · Thất bại → n4 · Đếm", dòng "lượt n4 2 / 10" tăng dần, hết lượt thì mất

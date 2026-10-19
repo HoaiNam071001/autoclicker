@@ -74,7 +74,7 @@ export default function MainScreen() {
         runDisabled={!inWails}
         runTitle={!inWails ? 'Chỉ chạy được trong app'
           : autoRun ? 'Chạy luôn với giá trị lần trước – Shift + bấm để sửa input' : undefined}
-        runItems={runItems(cur?.ref, !inWails || running, !!script.inputs?.length, cur && (() => startRun(false, { from: cur.id })))}
+        runItems={runItems(cur?.ref, !inWails || running, !!script.inputs?.length, cur && ((only) => startRun(false, { from: cur.id, only })))}
         onPreview={() => openOverlay('preview')} />
 
       <div className="flex min-h-0 flex-1 border-t border-line">
@@ -105,11 +105,13 @@ export default function MainScreen() {
   );
 }
 
-// Menu ▾ cạnh nút Chạy. off: không chạy được lúc này (trình duyệt / đang chạy); onFrom: có node đang chọn.
-function runItems(ref: string | undefined, off: boolean, hasInputs: boolean, onFrom?: () => void): RunMenuItem[] {
+// Menu ▾ cạnh nút Chạy. off: không chạy được lúc này (trình duyệt / đang chạy); onFrom: có node đang chọn (only: chỉ riêng node đó).
+function runItems(ref: string | undefined, off: boolean, hasInputs: boolean, onFrom?: (only: boolean) => void): RunMenuItem[] {
   return [
-    { label: 'Chạy từ node đang chọn', icon: RUN_ICON.from, disabled: off || !onFrom, onClick: onFrom,
+    { label: ref ? `Chạy từ ${ref}` : 'Chạy từ node đang chọn', icon: RUN_ICON.from, disabled: off || !onFrom, onClick: () => onFrom?.(false),
       title: ref ? `Chạy một vòng bắt đầu từ ${ref} – các node trước đó không chạy` : 'Chọn một node để chạy từ đó' },
+    { label: ref ? `Chạy riêng ${ref}` : 'Chạy riêng node đang chọn', icon: RUN_ICON.only, disabled: off || !onFrom, onClick: () => onFrom?.(true),
+      title: ref ? `Chạy đúng ${ref} một lần rồi dừng – biến của node trước trống` : 'Chọn một node để chạy riêng' },
     { label: 'Chạy từng node', icon: RUN_ICON.step, hotkey: 'F10', disabled: off, onClick: () => startRun(false, { step: true }),
       title: 'Dừng trước mỗi node, bấm Tiếp / F10 để chạy node kế' },
     { label: 'Xem trước trên màn hình', icon: RUN_ICON.preview, onClick: () => openOverlay('preview'),
