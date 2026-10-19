@@ -23,7 +23,7 @@ func TestPickDisplay(t *testing.T) {
 		{"không khớp gì → màn chính", ds, 1280, 720, model.Point{X: -50, Y: -50}, 0},
 	}
 	for _, c := range cases {
-		if got := pickDisplay(c.ds, c.ds, c.w, c.h, c.mouse); got != c.want {
+		if got := pickDisplay(c.ds, c.w, c.h, c.mouse); got != c.want {
 			t.Errorf("%s: được %d, cần %d", c.name, got, c.want)
 		}
 	}

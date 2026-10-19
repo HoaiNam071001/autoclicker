@@ -5,7 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/go-vgo/robotgo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"autoclicker/internal/device"
@@ -109,7 +108,7 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 	}
 	runtime.EventsEmit(a.ctx, "engine:countdown", 0)
 
-	go device.WatchCorners(ctx, robotgo.Location, device.HardCorners(device.Displays()), in, func() { a.stopWith(StopByCorner) })
+	go device.WatchCorners(ctx, device.Location, device.HardCorners(device.Displays()), in, func() { a.stopWith(StopByCorner) })
 
 	rec.StartedAt = time.Now()
 	rec.ID = store.NewRunID(rec.StartedAt)

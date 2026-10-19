@@ -5,6 +5,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 18a – Build exe · [phase1-mvp.md](phase1-mvp.md)
 
+- [ ] Windows scale 125 % (sửa 2026-10-19 – chuột qua Win32, pixel thật): tải exe mới nhất ở Actions, xoá điểm cũ rồi ghi lại điểm (F6 / chọn trên overlay) → chạy: click trúng đúng chỗ, cả khi cửa sổ đích là app khác (Chrome, Notepad, Explorer); khung vùng / marker trên overlay nằm đúng chỗ; chờ ảnh / Thử tìm thấy đúng; thử thêm 150 % và 2 màn khác scale nếu có. Kịch bản ghi trên bản cũ ở 125 % có thể lệch – ghi lại điểm
 - [ ] GitHub → tab **Actions** → *Build Windows* → lần chạy mới nhất xanh → tải artifact `autoclicker-windows-…` (zip), giải nén, mở `autoclicker.exe` trên Windows (SmartScreen: More info → Run anyway): app mở, tạo kịch bản click 2 điểm chạy đúng, Lưu / mở lại được. Ghi lại lỗi gặp (thiếu WebView2, click lệch khi scale 125 %…)
 
 ## 38 – UI v3 – gọn · [phase3/38-ui-v3.md](phase3/38-ui-v3.md)
