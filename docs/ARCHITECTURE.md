@@ -57,7 +57,7 @@ component ──gọi──► store/nodes|control|points|multi ──► flow/e
 
 - Mọi sửa kịch bản đi qua `updateScript` (`store/editor.ts`) → có hoàn tác / làm lại + cờ chưa lưu (`SetDirty` sang Go để hỏi khi đóng).
 - Thêm node: bảng Ctrl/Cmd+K (`AddStepPalette`) → `addStep` (gọi Go `NewStep` lấy mặc định) / `addControl` → nối vào node đang chọn (`insertAt`).
-- Canvas: `FlowEditor` (nối store) → `FlowCanvas` / `NodeCard` / `FlowEdge` (chỉ props). Tên, chi tiết, nhãn cổng, output gợi ý lấy từ `flow/view.ts`. Tự xếp: `flow/layout.ts` (elkjs nạp lười).
+- Canvas: `FlowEditor` (nối store) → `FlowCanvas` / `NodeCard` / `FlowEdge` (chỉ props). Tên, chi tiết, nhãn cổng, output gợi ý lấy từ `flow/view.ts`; nhóm node (màu đầu thẻ, nhóm trong bảng thêm node) từ `flow/category.ts` (`nodeCategory`, class `cat-<nhóm>` + `bg-cat-soft` / `bg-cat-tile` / `text-cat`). Cỡ thẻ + vị trí cổng: `components/flow/model.ts` (`nodeHeight`, `portY`, `portRows`). Tự xếp: `flow/layout.ts` (elkjs nạp lười).
 - Inspector: `StepForm` → trường theo loại ở `components/stepform/*`, node điều khiển ở `components/flow/nodes/*` (qua `stepform/ControlSection`).
 
 ### Đặt điểm / vùng trên overlay

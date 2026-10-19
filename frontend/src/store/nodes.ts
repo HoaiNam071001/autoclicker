@@ -38,7 +38,7 @@ export const insertTarget = () => insertAt;
 // Thêm node vào flow theo insertAt, đặt mã + vị trí, chọn nó và báo. Node sau (đặt điểm liên tiếp) nối vào node này.
 export function insertNode(step: Step, notice: (ref: string) => string) {
   const sc = script();
-  const node: Step = { ...step, ref: step.ref || nextRef(sc.steps), pos: step.pos ?? insertAt?.pos ?? placeNode(sc.steps, insertAt?.from) };
+  const node: Step = { ...step, ref: step.ref || nextRef(sc.steps), pos: step.pos ?? insertAt?.pos ?? placeNode(sc.steps, insertAt?.from, portsOf(step)) };
   updateScript(insertInto(sc, node, insertAt));
   const next = portsOf(node)[0]; // node đặt tiếp (điểm liên tiếp trên overlay) nối vào cổng đầu của node này
   if (insertAt) insertAt = next ? { from: node.id, port: next } : null;

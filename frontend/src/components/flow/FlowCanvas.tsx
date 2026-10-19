@@ -122,7 +122,7 @@ function Canvas({
       deleteKeyCode={['Delete', 'Backspace']}
       connectionLineStyle={{ stroke: 'var(--c-accent)', strokeWidth: 2 }}
       minZoom={0.3} maxZoom={1.6} proOptions={{ hideAttribution: true }}>
-      <Background variant={BackgroundVariant.Dots} gap={18} size={1.4} color="var(--c-line-strong)" />
+      <Background variant={BackgroundVariant.Dots} gap={18} size={1.4} color="var(--c-dot)" />
       {tall && <MiniMap pannable zoomable nodeColor="var(--c-soft)" nodeStrokeColor="var(--c-line-strong)" nodeBorderRadius={6}
         maskColor="color-mix(in srgb, var(--c-bg) 70%, transparent)" style={{ width: 168, height: 108 }} />}
       <Panel position="top-left" className="pointer-events-none rounded-md bg-bg/85 px-1.5 py-0.5 text-xs text-muted">

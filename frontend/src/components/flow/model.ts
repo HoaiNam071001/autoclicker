@@ -1,6 +1,8 @@
 // Kiểu dữ liệu hiển thị của canvas flow (bước 20, F4a). Thẻ node / cạnh / nhật ký chỉ nhận các kiểu này qua props –
 // màn mẫu #demo-flow tạo từ dữ liệu giả, app thật (F4b) tạo từ Script (model F1).
 import type { StepIconName } from '../icons';
+import type { NodeCategory } from '../../flow/category';
+import { PORT_FAIL, PORT_SUCCESS } from '../../flow/model';
 
 // Màu cổng ra: ok = thành công, fail = thất bại, neutral = nhánh khác (đúng / sai, case, còn lượt…)
 export type PortKind = 'ok' | 'fail' | 'neutral';
@@ -17,6 +19,7 @@ export type FlowNodeView = {
   id: string;
   ref: string; // mã ngắn n1, n2… – dùng trong biến {{n2.output.x}}
   icon: StepIconName;
+  cat: NodeCategory; // nhóm node – màu đầu thẻ (flow/category)
   title: string;
   detail: string; // dòng mono dưới tên
   ports: PortView[]; // cổng ra theo thứ tự trên thẻ (trên → dưới)
@@ -52,13 +55,21 @@ export type RunRow = {
   shot?: string; // ảnh màn hình lúc thất bại (file trong lịch sử chạy)
 };
 
-// Cỡ thẻ node – cố định để xếp tự động (flow/layout.ts) không cần đo DOM. NodeCard dùng đúng các số này.
-export const NODE_W = 248;
-export const NODE_HEAD = 56; // phần icon + tên + chi tiết
-export const PORT_ROW = 24; // mỗi cổng ra một dòng
-export const PORTS_PAD = 4; // đệm trên / dưới vùng cổng
+// Cỡ thẻ node (design v3) – cố định để xếp tự động (flow/layout.ts) không cần đo DOM. NodeCard dùng đúng các số này.
+export const NODE_W = 168;
+export const NODE_HEAD = 32; // đầu thẻ: ô icon + tên + mã node (nền màu nhóm)
+export const NODE_DETAIL = 26; // dòng chi tiết mono
+export const PORT_ROW = 18; // node nhiều lối ra: mỗi cổng một dòng
+export const PORTS_PAD = 6; // đệm dưới vùng cổng
 
-export const nodeHeight = (ports: number) => 2 + NODE_HEAD + (ports ? 1 + 2 * PORTS_PAD + ports * PORT_ROW : 0);
-// Toạ độ y (tính từ mép trên thẻ) của cổng ra thứ i và cổng vào
-export const portY = (i: number) => 1 + NODE_HEAD + 1 + PORTS_PAD + i * PORT_ROW + PORT_ROW / 2;
+// Node chỉ có Thành công / Thất bại (node hành động, Đặt biến): không có dòng cổng – chỉ 2 chấm trên mép phải.
+// Node khác (Nếu, Switch, Đếm): mỗi cổng một dòng có nhãn.
+export const portRows = (ports: string[]) => ports.some((p) => p !== PORT_SUCCESS && p !== PORT_FAIL);
+
+export const nodeHeight = (ports: string[]) => 2 + NODE_HEAD + NODE_DETAIL + (portRows(ports) ? ports.length * PORT_ROW + PORTS_PAD : 0);
+// Toạ độ y (tính từ mép trên thẻ) của cổng vào và cổng ra thứ i: Thành công ngang đầu thẻ, Thất bại sát đáy.
 export const inputY = 1 + NODE_HEAD / 2;
+export function portY(ports: string[], i: number): number {
+  if (portRows(ports)) return 1 + NODE_HEAD + NODE_DETAIL + i * PORT_ROW + PORT_ROW / 2;
+  return ports[i] === PORT_FAIL ? nodeHeight(ports) - 11 : inputY;
+}

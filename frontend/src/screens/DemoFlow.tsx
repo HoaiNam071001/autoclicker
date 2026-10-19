@@ -14,6 +14,8 @@ import { FlowNodeView } from '../components/flow/model';
 import FlowDemoInspector from '../demo/FlowDemoInspector';
 import { addConnected, connect, disconnect, Edge, reachable, removeEdge, removeNode } from '../flow/edit';
 import { layoutFlow, Positions } from '../flow/layout';
+import { nodeCategory } from '../flow/category';
+import type { StepType } from '../types';
 import { demoInputs, demoLibrary } from '../demo/demoScript';
 import {
   DemoFlowNode, demoFlowEdges, demoFlowNodes, demoFlowStart, DemoRun, failedRun, newDemoNode, portsOf, runningRun,
@@ -63,6 +65,7 @@ export default function DemoFlow() {
     const ok = reachable(edges, start);
     return nodes.map(({ body, retry: _, ...n }) => ({
       ...n,
+      cat: nodeCategory({ type: n.icon as StepType }),
       ports: portsOf(body),
       warn: ok.has(n.id) ? undefined : 'Không có đường nào đi tới node này – sẽ không bao giờ chạy',
       run: run?.nodes[n.id]?.run,
@@ -171,13 +174,15 @@ function paletteGroups(add: (t: Parameters<typeof newDemoNode>[0]) => void): Pal
   const it = (icon: Parameters<typeof newDemoNode>[0], label: string, keywords: string) =>
     ({ icon: icon as never, label, keywords, info: NODE_INFO[icon as InfoKey], run: () => add(icon) });
   return [
-    { name: 'Chuột', items: [it('click', 'Click', 'bam chuot'), it('scroll', 'Cuộn', 'scroll'), it('clickImage', 'Click theo ảnh', 'image anh')] },
-    { name: 'Bàn phím', items: [it('type', 'Gõ chữ', 'type text'), it('key', 'Phím tắt', 'key enter')] },
-    { name: 'Chờ', items: [it('wait', 'Chờ', 'wait delay'), it('waitImage', 'Chờ ảnh', 'wait image'), it('waitPixel', 'Chờ màu pixel', 'pixel mau'), it('open', 'Mở URL / app', 'url web')] },
-    { name: 'Rẽ nhánh & luồng', items: [
+    { cat: 'mouse', items: [it('click', 'Click', 'bam chuot'), it('scroll', 'Cuộn', 'scroll'), it('clickImage', 'Click theo ảnh', 'image anh')] },
+    { cat: 'kb', items: [it('type', 'Gõ chữ', 'type text'), it('key', 'Phím tắt', 'key enter')] },
+    { cat: 'wait', items: [it('wait', 'Chờ', 'wait delay'), it('waitImage', 'Chờ ảnh', 'wait image'), it('waitPixel', 'Chờ màu pixel', 'pixel mau')] },
+    { cat: 'data', items: [it('setVar', 'Đặt biến', 'set var bien gan')] },
+    { cat: 'app', items: [it('open', 'Mở URL / app', 'url web')] },
+    { cat: 'flow', items: [
       it('if', 'Nếu', 'if dieu kien re nhanh else'), it('switchScreen', 'Switch theo màn hình', 'switch case man hinh thay'),
       it('switch', 'Switch theo giá trị', 'switch case gia tri bien'), it('counter', 'Đếm', 'counter lap loop dem'),
-      it('end', 'Kết thúc', 'end stop dung ket thuc'), it('setVar', 'Đặt biến', 'set var bien gan'),
+      it('end', 'Kết thúc', 'end stop dung ket thuc'),
     ] },
   ];
 }

@@ -1,0 +1,32 @@
+// Nhóm của node (design v3, bước 38): quyết định màu ô icon / đầu thẻ / đầu inspector và nhóm trong bảng thêm node.
+// Màu nhóm chỉ để nhận ra loại node – trạng thái (chọn, chạy, lỗi) vẫn dùng accent / ok / danger.
+import type { Step, StepType } from '../types';
+
+export type NodeCategory = 'mouse' | 'kb' | 'wait' | 'data' | 'app' | 'flow' | 'web';
+
+// Thứ tự = thứ tự nhóm trong bảng thêm node
+export const CATEGORIES: { id: NodeCategory; name: string }[] = [
+  { id: 'mouse', name: 'Chuột' },
+  { id: 'kb', name: 'Bàn phím' },
+  { id: 'wait', name: 'Chờ & ảnh' },
+  { id: 'data', name: 'Hệ thống & dữ liệu' },
+  { id: 'app', name: 'Ứng dụng' },
+  { id: 'flow', name: 'Rẽ nhánh & luồng' },
+  { id: 'web', name: 'Web (trình duyệt)' },
+];
+
+const BY_TYPE: Record<StepType, NodeCategory> = {
+  click: 'mouse', double: 'mouse', hold: 'mouse', drag: 'mouse', scroll: 'mouse', path: 'mouse', clickImage: 'mouse',
+  type: 'kb', key: 'kb',
+  wait: 'wait', waitImage: 'wait', waitPixel: 'wait', waitUntil: 'wait', screenshot: 'wait',
+  clipboard: 'data', http: 'data', file: 'data', system: 'data', setVar: 'data',
+  open: 'app', elementRead: 'app',
+  if: 'flow', switch: 'flow', switchScreen: 'flow', counter: 'flow', end: 'flow',
+  webWait: 'web', webClick: 'web', webType: 'web', webRead: 'web', webScroll: 'web',
+};
+
+// Mở trang bằng Chrome của app thuộc nhóm Web (cùng chỗ trong bảng thêm node), mở thường thuộc Ứng dụng.
+export const nodeCategory = (s: Pick<Step, 'type' | 'webBrowser'>): NodeCategory =>
+  s.type === 'open' && s.webBrowser ? 'web' : BY_TYPE[s.type];
+
+export const categoryName = (c: NodeCategory) => CATEGORIES.find((x) => x.id === c)!.name;
