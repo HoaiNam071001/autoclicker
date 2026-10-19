@@ -34,10 +34,12 @@ func main() {
 		Frameless:        true,
 		BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 0},
 		Mac:              &mac.Options{WebviewIsTransparent: true},
-		Windows:          &windows.Options{WebviewIsTransparent: true},
-		OnStartup:        app.startup,
-		OnShutdown:       app.shutdown,
-		OnBeforeClose:    app.beforeClose,
+		// Windows: chỉ WebviewIsTransparent thì cửa sổ Win32 vẫn đặc – cần WindowIsTranslucent (không bitmap nền) và
+		// BackdropType None (không Mica / Acrylic) để nhìn xuyên đúng alpha của trang.
+		Windows:       &windows.Options{WebviewIsTransparent: true, WindowIsTranslucent: true, BackdropType: windows.None},
+		OnStartup:     app.startup,
+		OnShutdown:    app.shutdown,
+		OnBeforeClose: app.beforeClose,
 		Bind: []interface{}{
 			app,
 		},

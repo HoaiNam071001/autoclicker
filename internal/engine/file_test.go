@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -102,7 +103,12 @@ func TestFileTrash(t *testing.T) {
 
 func TestGuardPath(t *testing.T) {
 	home, _ := os.UserHomeDir()
-	for _, p := range []string{"/", home, filepath.Join(home, "Library", "x"), "/System/x", "/usr/local/bin/a.txt", "/etc/hosts"} {
+	blocked := []string{"/", home, filepath.Join(home, "Library", "x"), "/System/x", "/usr/local/bin/a.txt", "/etc/hosts"}
+	if runtime.GOOS == "windows" {
+		blocked = []string{`C:\`, home, filepath.Join(os.Getenv("SystemRoot"), "System32", "x.dll"),
+			filepath.Join(os.Getenv("ProgramFiles"), "a.txt"), filepath.Join(os.Getenv("ProgramData"), "x")}
+	}
+	for _, p := range blocked {
 		if guardPath(p) == nil {
 			t.Errorf("%s phải bị chặn", p)
 		}

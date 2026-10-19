@@ -61,7 +61,7 @@ def main():
     text = open(README, encoding='utf-8').read()
     checks = pending_checks()
     all_steps = {}
-    for f in ['phase0.md', 'phase1-mvp.md', 'phase2.md'] + sorted(os.path.relpath(p, ROOT) for p in glob.glob(os.path.join(ROOT, 'phase3', '*.md')) if not p.endswith('-xong.md')):
+    for f in ['phase0.md', 'phase1-mvp.md', 'phase2.md'] + sorted(os.path.relpath(p, ROOT).replace(os.sep, '/') for p in glob.glob(os.path.join(ROOT, 'phase3', '*.md')) if not p.endswith('-xong.md')):
         for s in steps(f):
             all_steps[s['num']] = s
     # Phase 3 theo thứ tự làm: thứ tự các link phase3/… trong bảng "Thứ tự làm"
@@ -81,7 +81,7 @@ def main():
         '', '### Phase 0 – 2', '', head, *[row(s, checks) for s in phase({'phase0.md', 'phase1-mvp.md', 'phase2.md'})],
     ]
     new = re.sub(r'(<!-- index:start -->\n).*?(<!-- index:end -->)', lambda m: m.group(1) + '\n'.join(parts) + '\n' + m.group(2), text, flags=re.S)
-    open(README, 'w', encoding='utf-8').write(new)
+    open(README, 'w', encoding='utf-8', newline='\n').write(new)  # giữ LF trên Windows
 
 
 if __name__ == '__main__':

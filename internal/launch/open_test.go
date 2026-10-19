@@ -2,6 +2,7 @@ package launch
 
 import (
 	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -48,6 +49,10 @@ func TestBrowserURL(t *testing.T) {
 		"/Users/a/sân thử/index.html":  "file:///Users/a/s%C3%A2n%20th%E1%BB%AD/index.html",
 		"Spotify":                      "",
 		"https://shop.vn/?q=a&b=2#đơn": "https://shop.vn/?q=a&b=2#đơn",
+	}
+	if runtime.GOOS == "windows" { // "/Users/…" không có ổ đĩa → Abs gắn ổ hiện tại
+		delete(cases, "/Users/a/sân thử/index.html")
+		cases[`C:\Users\a\sân thử\index.html`] = "file:///C:/Users/a/s%C3%A2n%20th%E1%BB%AD/index.html"
 	}
 	for in, want := range cases {
 		if got := BrowserURL(in); got != want {

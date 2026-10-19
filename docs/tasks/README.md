@@ -98,7 +98,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 > Bảng tự sinh – sau khi tick chạy `python3 scripts/tasks-index.py`. Bấm tên bước để mở file chi tiết.
 
 <!-- index:start -->
-**34 / 49 bước xong code** · 🧪 **[79 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
+**34 / 49 bước xong code** · 🧪 **[80 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
 
 ### Phase 3 – Design v2 & tự động hoá (theo thứ tự làm)
 
@@ -154,7 +154,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | ✅ xong | [15. Form cấu hình bước](phase1-mvp.md) | 5 / 5 |  |
 | ✅ xong | [16. Cài đặt chạy](phase1-mvp.md) | 7 / 7 |  |
 | 🟡 đang làm | [17. DPI & đa màn hình](phase1-mvp.md) | 6 / 7 | [2 việc](checks.md) |
-| 🟡 đang làm | [18. Build & thử máy sạch](phase1-mvp.md) | 1 / 2 |  |
+| 🟡 đang làm | [18. Build & thử máy sạch](phase1-mvp.md) | 3 / 4 |  |
 | ✅ xong | [19. Ngẫu nhiên hoá](phase2.md) | 5 / 5 |  |
 | ✅ xong | [19b. Xem trước kịch bản](phase2.md) | 4 / 4 |  |
 | ✅ xong | [19c. Xem / sửa riêng một bước trên overlay](phase2.md) | 3 / 3 |  |
