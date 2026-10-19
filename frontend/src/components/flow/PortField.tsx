@@ -8,20 +8,20 @@ import NumInput, { fieldBox } from '../NumInput';
 import { FlowEdgeView, FlowNodeView, PortKind, RunRow } from './model';
 
 const dot: Record<PortKind, string> = { ok: 'bg-ok', fail: 'bg-danger', neutral: 'bg-muted' };
-const section = 'flex flex-col gap-2.5 border-t border-line pt-3';
-const head = 'flex items-center justify-between font-semibold';
+// Mỗi panel chỉ là nội dung – tên khối + tóm tắt nằm ở Section (stepform/InspectorParts) bên ngoài.
+const body = 'flex flex-col gap-2.5';
 
 export function PortsPanel({ node, nodes, edges, onConnect, onDisconnect, onJump }: {
   node: FlowNodeView; nodes: FlowNodeView[]; edges: FlowEdgeView[];
   onConnect: (port: string, to: string) => void; onDisconnect: (port: string) => void; onJump: (id: string) => void;
 }) {
   if (!node.ports.length) {
-    return <section className={section}><span className={head}>Cổng ra</span><span className="text-[13px] text-muted">Node Kết thúc không có cổng ra – kịch bản dừng ở đây.</span></section>;
+    return <span className="text-[13px] text-muted">Node Kết thúc không có cổng ra – kịch bản dừng ở đây.</span>;
   }
   const others = nodes.filter((n) => n.id !== node.id);
   return (
-    <section className={section}>
-      <span className={head}>Cổng ra <span className="text-xs font-normal text-muted">hoặc kéo từ chấm trên thẻ</span></span>
+    <div className={body}>
+      <span className="text-xs text-muted">Chọn node đích, hoặc kéo từ chấm trên thẻ</span>
       {node.ports.map((p) => {
         const to = edges.find((e) => e.from === node.id && e.port === p.id)?.to ?? '';
         return (
@@ -39,21 +39,20 @@ export function PortsPanel({ node, nodes, edges, onConnect, onDisconnect, onJump
           </div>
         );
       })}
-    </section>
+    </div>
   );
 }
 
 export type Retry = { count: number; delayMs: number };
 export function RetryPanel({ value, onChange }: { value: Retry; onChange: (v: Retry) => void }) {
   return (
-    <section className={section}>
-      <span className={head}>Khi thất bại</span>
+    <div className={body}>
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1.5 text-muted">Thử lại<NumInput value={value.count} unit="lần" onChange={(count) => onChange({ ...value, count })} /></label>
         <label className="flex flex-col gap-1.5 text-muted">Nghỉ giữa các lần<NumInput value={value.delayMs} unit="ms" onChange={(delayMs) => onChange({ ...value, delayMs })} /></label>
       </div>
       <span className="text-xs text-muted">Thử hết vẫn không được thì đi ra cổng <span className="text-danger-text">Thất bại</span>.</span>
-    </section>
+    </div>
   );
 }
 
@@ -61,7 +60,6 @@ import type { OutputField } from '../../flow/view';
 export type { OutputField };
 export function OutputsPanel({ refName, fields }: { refName: string; fields: OutputField[] }) {
   const [copied, setCopied] = useState('');
-  if (!fields.length) return null;
   const copy = (k: string) => {
     const t = `{{${refName}.output.${k}}}`;
     navigator.clipboard?.writeText(t).catch(() => {});
@@ -69,8 +67,8 @@ export function OutputsPanel({ refName, fields }: { refName: string; fields: Out
     setTimeout(() => setCopied(''), 1200);
   };
   return (
-    <section className={section}>
-      <span className={head}>Output <span className="text-xs font-normal text-muted">bấm để chép biến</span></span>
+    <div className={body}>
+      <span className="text-xs text-muted">Bấm để chép biến</span>
       <div className="flex flex-col gap-1">
         {fields.map((f) => (
           <button key={f.key} onClick={() => copy(f.key)} className="flex items-center gap-2 rounded-md px-1 py-0.5 text-left hover:bg-hover">
@@ -80,15 +78,13 @@ export function OutputsPanel({ refName, fields }: { refName: string; fields: Out
         ))}
       </div>
       <span className="text-xs text-muted">Còn có <span className="font-mono">{`{{${refName}.status}}`}</span>, <span className="font-mono">{`{{${refName}.error.message}}`}</span>.</span>
-    </section>
+    </div>
   );
 }
 
-export function LastRunPanel({ row }: { row: RunRow | undefined }) {
-  if (!row) return null;
+export function LastRunPanel({ row }: { row: RunRow }) {
   return (
-    <section className={section}>
-      <span className={head}>Lần chạy gần nhất <StatusChip status={row.status} /></span>
+    <div className={body}>
       <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-muted">
         <span>{row.at}</span>
         {row.ms !== undefined && <span>{fmtMs(row.ms)}</span>}
@@ -102,7 +98,7 @@ export function LastRunPanel({ row }: { row: RunRow | undefined }) {
       )}
       {row.output && <pre className="overflow-x-auto rounded-control bg-soft px-2.5 py-2 font-mono text-xs text-ink">{JSON.stringify(row.output, null, 1)}</pre>}
       {!!row.logs?.length && <LogLines logs={row.logs} />}
-    </section>
+    </div>
   );
 }
 
