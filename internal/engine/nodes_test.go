@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"image"
 	"image/color"
 	"reflect"
@@ -83,6 +84,41 @@ func TestCounterEndFail(t *testing.T) {
 	}
 	if r := e.results["x"]; r.Error == nil || r.Error.Code != model.ErrEnd {
 		t.Errorf("mã lỗi kết thúc: %+v", r.Error)
+	}
+}
+
+// Tiến độ cho thanh mini: node trước + cổng đã đi, lượt Đếm đang lặp; hết lượt thì bỏ lượt.
+func TestProgressFromAndCounter(t *testing.T) {
+	sc := model.Script{Start: "w", Steps: []model.Step{
+		modeltest.Node("w", "n1", model.StepWaitImage, func(s *model.Step) { s.FindBy, s.FindText, s.TimeoutMs, s.IntervalMs = model.FindByText, "Gửi", 1, 1 }),
+		modeltest.Node("s", "n2", model.StepScroll, func(s *model.Step) { s.Amount = 1 }),
+		modeltest.Node("k", "n3", model.StepCounter, func(s *model.Step) { s.Max = 2 }),
+		modeltest.Node("x", "n4", model.StepEnd, func(s *model.Step) { s.EndStatus = model.EndSuccess }),
+	}, Edges: []model.Edge{modeltest.Edge("w", model.PortFail, "k"), modeltest.Edge("k", model.PortNext, "s"), modeltest.Edge("k", model.PortDone, "x"), modeltest.Edge("s", model.PortSuccess, "w")}}
+	e, _ := ctlEngine(sc, &ocrSeq{frames: [][]vision.TextLine{noText}})
+	var got []string
+	e.onProgress = func(p Progress) {
+		if p.Wait != nil {
+			return
+		}
+		line := p.Ref + " từ "
+		if p.From != nil {
+			line += p.From.Ref + ">" + p.From.Port
+		}
+		if p.Counter != nil {
+			line += fmt.Sprintf(" lượt %s %d/%d", p.Counter.Ref, p.Counter.Count, p.Counter.Max)
+		}
+		if len(got) == 0 || got[len(got)-1] != line {
+			got = append(got, line)
+		}
+	}
+	if err := e.Run(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"n1 từ ", "n3 từ n1>fail", "n2 từ n3>next lượt n3 1/2", "n1 từ n2>success lượt n3 1/2", "n3 từ n1>fail lượt n3 1/2",
+		"n2 từ n3>next lượt n3 2/2", "n1 từ n2>success lượt n3 2/2", "n3 từ n1>fail lượt n3 2/2", "n4 từ n3>done"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("tiến độ\n%q\nmuốn\n%q", got, want)
 	}
 }
 

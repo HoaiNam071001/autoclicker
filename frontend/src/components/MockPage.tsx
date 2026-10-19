@@ -1,6 +1,7 @@
 // Trang mẫu cho "trang thu nhỏ" khi Xem trước bước cuộn: vẽ khối theo kích thước thật (px của trang) rồi thu nhỏ theo
 // tỷ lệ s – nhờ vậy 1500 px trên danh sách thấy được ≈ 23 dòng, trên feed ≈ 3 bài. Chọn kiểu ở thanh công cụ Xem trước.
 import { ReactNode, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { usePopover } from './usePopover';
 import { useTheme } from '../theme';
 
 export type PageKind = 'text' | 'web' | 'list' | 'grid' | 'feed' | 'table' | 'none'; // none: không phủ nền, nhìn màn hình thật
@@ -189,22 +190,7 @@ export function MockPage({ kind: k, W, L, s, horizontal = false }: { kind: PageK
 // Nút chọn kiểu trang trên thanh công cụ Xem trước (HUD tối): danh sách kèm hình thu nhỏ từng kiểu.
 export function PageKindPicker({ className = '' }: { className?: string }) {
   const k = usePageKind();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent | KeyboardEvent) => {
-      if (e instanceof KeyboardEvent ? e.key !== 'Escape' : ref.current?.contains(e.target as Node)) return;
-      e.stopPropagation(); // Esc chỉ đóng menu, không thoát overlay (lắng nghe ở pha capture)
-      setOpen(false);
-    };
-    window.addEventListener('mousedown', close);
-    window.addEventListener('keydown', close, true);
-    return () => {
-      window.removeEventListener('mousedown', close);
-      window.removeEventListener('keydown', close, true);
-    };
-  }, [open]);
+  const { open, setOpen, ref } = usePopover({ escOnly: true });
   const cur = PAGE_KINDS.find((x) => x.id === k)!;
   return (
     <div ref={ref} className="relative">

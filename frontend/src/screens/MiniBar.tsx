@@ -4,12 +4,15 @@ import { PauseScript, ResumeScript, StepScript, StopScript } from '../../wailsjs
 import { Pause, Play, Stop, StepIcon, StepIconName, StepOver } from '../components/icons';
 import { elapsedNow, fmtElapsed, Progress, useEngine } from '../engineStore';
 import { useScript } from '../store';
-import { stepLabel } from '../types';
 import { inWails, setWindowMode } from '../windowMode';
 import { fmtCountdown } from '../flow/waitUntil';
+import { counterText, progressNode } from '../flow/progress';
 
 // Số mẫu khi xem trên trình duyệt (#minibar)
-const sample: Progress = { loop: 4, loops: 10, step: 3, total: 6, clicks: 142, elapsedMs: 86_000, paused: false };
+const sample: Progress = {
+  loop: 4, loops: 10, step: 3, total: 6, nodeId: '11', ref: 'n11', clicks: 142, elapsedMs: 86_000, paused: false,
+  from: { ref: 'n10', port: 'next' }, counter: { ref: 'n10', count: 3, max: 5 },
+};
 const R = 22;
 const CIRC = 2 * Math.PI * R;
 
@@ -52,9 +55,9 @@ export default function MiniBar() {
       title={!running ? 'Chưa chạy'
         : counting ? `Bắt đầu sau ${engine.countdown} giây…`
         : !p ? 'Đang bắt đầu…'
-        : `${p.break ? `Dừng trước ${BREAK_LABEL[p.break]} · ` : paused ? 'Tạm dừng · ' : ''}${p.ref ?? 'Node'} (${p.step} / ${p.total})${cur ? `: ${cur.name || stepLabel(cur)}` : ''}`}
+        : `${p.break ? `Dừng trước ${BREAK_LABEL[p.break]} · ` : paused ? 'Tạm dừng · ' : ''}${progressNode(p, steps)}`}
       lines={[
-        ...(p?.retry ? [`thử lại ${p.retry} / ${p.retries}`] : []),
+        ...(p?.counter || p?.retry ? [[p.counter && counterText(p.counter), p.retry && `thử lại ${p.retry} / ${p.retries}`].filter(Boolean).join('   ')] : []),
         ...(w ? [w.kind === 'time' ? `chờ đến giờ – còn ${fmtCountdown(w.timeoutMs - waitNow)}`
           : `${WAIT_LABEL[w.kind] ?? 'đang chờ'} ${(waitNow / 1000).toFixed(1)} / ${w.timeoutMs / 1000} s${w.kind === 'image' || w.kind === 'pixel' ? `   khớp nhất ${w.best}%` : ''}`] : []),
         `vòng ${p?.loop ?? 0} / ${p && p.loops > 0 ? p.loops : '∞'}   ${p?.clicks ?? 0} click   ${fmtElapsed(elapsed)}`,

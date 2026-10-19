@@ -4,8 +4,7 @@
 import { useSyncExternalStore } from 'react';
 import { ScreenBounds } from '../../wailsjs/go/main/App';
 import { Point, Rect, Script } from '../types';
-import { browserSteps } from '../demo/browserSteps';
-import { chain } from '../flow/edit';
+import { browserEdges, browserSteps } from '../demo/browserSteps';
 import { inWails, setEditingBounds } from '../windowMode';
 
 export type EditorState = {
@@ -27,7 +26,7 @@ export type EditorState = {
 // Trình duyệt (không có Go): dữ liệu mẫu nối thành chuỗi để xem canvas / overlay.
 const browserScript = (): Script => ({
   version: 4, name: 'Kịch bản 1', region: null, loops: 10, maxMinutes: 0,
-  steps: browserSteps, start: browserSteps[0].id, edges: chain(browserSteps.map((s) => s.id)),
+  steps: browserSteps, start: browserSteps[0].id, edges: browserEdges,
 });
 // Kịch bản mới bật sẵn thao tác giống người mức vừa (bước 34, khớp model.NewScript).
 export const emptyScript = (): Script => ({ version: 4, name: 'Kịch bản 1', region: null, loops: 1, maxMinutes: 0, steps: [], start: '', edges: [], human: 'medium' });

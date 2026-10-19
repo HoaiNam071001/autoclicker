@@ -3,6 +3,11 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 20 F6 – Xem trước theo nhánh, thanh mini · [phase3/20-flow.md](phase3/20-flow.md)
+
+- [ ] Mẫu có rẽ nhánh (vd ví dụ Facebook: Chờ chữ → Thất bại → Đếm → Cuộn): overlay → Xem trước → **Nhánh** chọn Thất bại cho node Chờ → Chạy thử: con trỏ đi vòng cuộn 1 lần rồi theo Hết lượt; dòng gợi ý ghi đường đã đi; *Về nhánh chính* đi lại nhánh Thành công; đóng / mở lại overlay vẫn nhớ lựa chọn; Esc khi menu mở chỉ đóng menu
+- [ ] Chạy thật kịch bản có Đếm + nhánh Thất bại: thanh mini ghi "n2 · … · Thất bại → n4 · Đếm", dòng "lượt n4 2 / 10" tăng dần, hết lượt thì mất
+
 ## 37 E5 – Phần tử màn hình Windows · [phase3/37-phan-tu-man-hinh.md](phase3/37-phan-tu-man-hinh.md)
 
 - [ ] Windows, Chrome thường đã đăng nhập (Gmail / Facebook): node Đọc phần tử / Click theo phần tử đọc đúng chữ, bấm đúng nút; App ghi `chrome` hoặc `Google Chrome` đều được; Chọn trên màn sinh dòng tìm đúng phần tử

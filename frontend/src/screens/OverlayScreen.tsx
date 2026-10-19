@@ -14,6 +14,8 @@ import { inWails, OverlayTool, overlayFocus, overlayTool, setWindowMode } from '
 import { addSample, currentMapping, isMeasured, resetSamples, toClientPt, toScreenPt } from '../coordMap';
 import { scrollRange, useSimulation } from '../components/Simulation';
 import SimulationLayer from '../components/simulation/SimulationLayer';
+import { branchNodes } from '../flow/preview';
+import { chooseBranch, resetBranches, useBranchChoices } from '../previewBranches';
 import { PageBackdrop, usePageKind } from '../components/MockPage';
 import { captureTargetStep, capturesRect, useImageState } from '../imageSteps';
 import { Eye, Region, SelectIcon, StepIcon } from '../components/icons';
@@ -47,7 +49,8 @@ export default function OverlayScreen() {
   const { finds } = useImageState();
   const preview = tool === 'preview';
   const [speed, setSpeed] = useState(1);
-  const { sim, start: startSim, stop: stopSim } = useSimulation(script, region, speed);
+  const choices = useBranchChoices();
+  const { sim, start: startSim, stop: stopSim } = useSimulation(script, region, speed, choices);
   const pageKind = usePageKind();
   const simRef = useRef({ running: false, stop: stopSim });
   simRef.current = { running: sim.running, stop: stopSim };
@@ -264,7 +267,7 @@ export default function OverlayScreen() {
       <Crosshair at={cursor} screen={toScreenFromClient(cursor)} hidden={preview} />
 
       <HintPill barOpen={bar.open} onEnter={bar.show} onLeave={bar.leave} icon={hintIcon} title={toolName} hint={hint}
-        extra={preview && sim.label ? `${sim.step && sim.running ? `${sim.step}/${steps.length} · ` : ''}${sim.label}` : undefined}
+        extra={preview && (sim.route || sim.label) ? [sim.route, sim.label].filter(Boolean).join('  ·  ') : undefined}
         notice={noticeOn ? notice : undefined} />
       <CoordInfo region={region} displays={displays} current={curDisp} focusStep={focusStep} focusEnds={focus ? ends.get(focus) : undefined}
         measure={inWails ? { map, measured } : null} />
@@ -274,6 +277,7 @@ export default function OverlayScreen() {
         onShowAll={() => { exitFocus(); setFocus(null); setTool('point'); }}
         preview={preview} simRunning={sim.running} onToggleSim={() => (sim.running ? stopSim() : startSim())} speed={speed} setSpeed={setSpeed}
         onEditPoints={() => { stopSim(); setTool('select'); }}
+        branches={preview ? branchNodes(script) : []} choices={choices} onChooseBranch={chooseBranch} onResetBranches={resetBranches}
         tool={tool} setTool={setTool} fullRegion={isFull ? null : { label: fullRegion ? 'Toàn màn này' : 'Toàn màn hình', onClick: () => requestRegion(fullRegion) }}
         displays={displays} onPickDisplay={pickDisplay} />
 

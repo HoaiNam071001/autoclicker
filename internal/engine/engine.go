@@ -33,6 +33,21 @@ type Progress struct {
 	Retry     int           `json:"retry,omitempty"`   // đang thử lại lần thứ mấy (0 = lần đầu)
 	Retries   int           `json:"retries,omitempty"` // số lần thử lại tối đa của bước hiện tại
 	Break     string        `json:"break,omitempty"`   // đang dừng trước node NodeID vì debug: breakpoint | step
+	From      *FromPort     `json:"from,omitempty"`    // node vừa chạy xong + cổng đi ra tới node này (nil: node đầu vòng)
+	Counter   *CounterLoop  `json:"counter,omitempty"` // node Đếm gần nhất còn lượt – đang ở trong vòng lặp của nó
+}
+
+// FromPort – node trước + cổng ra đã đi (thanh mini: "n2 · thất bại → n5").
+type FromPort struct {
+	Ref  string `json:"ref"`
+	Port string `json:"port"`
+}
+
+// CounterLoop – lượt hiện tại của node Đếm (thanh mini: "lượt n5 3 / 10").
+type CounterLoop struct {
+	Ref   string `json:"ref"`
+	Count int    `json:"count"`
+	Max   int    `json:"max"`
 }
 
 // progressEvery – giãn cách tối thiểu giữa 2 lần báo tiến độ trong cùng một bước (tránh dội event).
@@ -115,6 +130,13 @@ func (e *Engine) update(force bool, f func(*Progress)) {
 	if e.onProgress != nil {
 		e.onProgress(p)
 	}
+}
+
+// setProg sửa tiến độ, không báo – lần update kế (node sau bắt đầu) mang theo.
+func (e *Engine) setProg(f func(*Progress)) {
+	e.mu.Lock()
+	f(&e.prog)
+	e.mu.Unlock()
 }
 
 // Snapshot trả tiến độ hiện tại (kèm thời gian đã chạy và trạng thái tạm dừng).

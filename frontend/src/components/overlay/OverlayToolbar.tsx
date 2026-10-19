@@ -6,6 +6,8 @@ import { PageKindPicker } from '../MockPage';
 import { Play, Region, SelectIcon, StepIcon, Stop, Target } from '../icons';
 import { Step, stepLabel } from '../../types';
 import type { OverlayTool } from '../../windowMode';
+import type { BranchChoices, BranchNode } from '../../flow/preview';
+import { BranchMenu } from './BranchMenu';
 
 export const TOOLS: { id: OverlayTool; label: string; soon?: string; icon: ReactNode }[] = [
   { id: 'point', label: 'Đặt điểm', icon: <StepIcon type="click" /> },
@@ -25,6 +27,7 @@ export type ToolbarProps = {
   focusStep: Step | null; repicking: boolean; onToggleRepick: () => void; onShowAll: () => void;
   // xem trước
   preview: boolean; simRunning: boolean; onToggleSim: () => void; speed: number; setSpeed: (v: number) => void; onEditPoints: () => void;
+  branches: BranchNode[]; choices: BranchChoices; onChooseBranch: (id: string, port: string) => void; onResetBranches: () => void;
   // công cụ; fullRegion: nút đặt vùng = cả màn (null = đang là cả màn)
   tool: OverlayTool; setTool: (t: OverlayTool) => void; fullRegion: { label: string; onClick: () => void } | null;
   displays: main.DisplayInfo[]; onPickDisplay: (i: number) => void;
@@ -57,7 +60,7 @@ function FocusTools({ focusStep, repicking, onToggleRepick, onShowAll }: Toolbar
   );
 }
 
-function PreviewTools({ simRunning, onToggleSim, speed, setSpeed, onEditPoints }: ToolbarProps) {
+function PreviewTools({ simRunning, onToggleSim, speed, setSpeed, onEditPoints, branches, choices, onChooseBranch, onResetBranches }: ToolbarProps) {
   return (
     <>
       <button onClick={onToggleSim} className={`${toolBtn} ${simRunning ? 'btn-danger-soft' : 'btn-primary'}`}>
@@ -71,6 +74,7 @@ function PreviewTools({ simRunning, onToggleSim, speed, setSpeed, onEditPoints }
           </button>
         ))}
       </div>
+      {branches.length > 0 && <BranchMenu branches={branches} choices={choices} onChoose={onChooseBranch} onReset={onResetBranches} className={`${toolBtn} font-normal`} />}
       <PageKindPicker className={`${toolBtn} font-normal`} />
       <Sep />
       <button onClick={onEditPoints} title="Chọn nhiều điểm để di chuyển / co giãn / xoay, rồi Xem trước lại" className={`${toolBtn} font-normal hover:bg-white/6`}>Sửa điểm</button>

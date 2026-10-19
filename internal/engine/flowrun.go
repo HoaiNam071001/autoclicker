@@ -80,6 +80,7 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 	e.results = map[string]*model.StepResult{}
 	e.counts = map[string]int{}
 	var trail []string // các node gần nhất – báo lỗi lặp vô hạn
+	e.setProg(func(p *Progress) { p.From, p.Counter = nil, nil })
 	cur := e.sc.Start
 	for n := 1; cur != ""; n++ {
 		s := e.byID[cur]
@@ -104,6 +105,7 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 			trail = trail[1:]
 		}
 		next := model.EdgeOut(e.sc.Edges, s.ID, res.Port)
+		e.setProg(func(p *Progress) { trackFlow(p, s, res) })
 		if res.Status == model.StatusFail && next == "" {
 			e.failed = s.ID
 			return fmt.Errorf("vòng %d, %s: %s", loop, s.Ref, res.Error.Message)
@@ -116,6 +118,20 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 		cur = next
 	}
 	return nil
+}
+
+// trackFlow ghi node vừa chạy (+ lượt Đếm) vào tiến độ.
+func trackFlow(p *Progress, s model.Step, res model.StepResult) {
+	p.From = &FromPort{Ref: s.Ref, Port: res.Port}
+	if s.Type != model.StepCounter || res.Status != model.StatusSuccess {
+		return
+	}
+	if res.Port == model.PortNext {
+		n, _ := res.Output["count"].(int)
+		p.Counter = &CounterLoop{Ref: s.Ref, Count: n, Max: s.Max}
+	} else if p.Counter != nil && p.Counter.Ref == s.Ref {
+		p.Counter = nil // hết lượt – ra khỏi vòng
+	}
 }
 
 // execNode chạy một node, thử lại theo Retry; không bao giờ trả lỗi – mọi kết quả nằm trong StepResult.
