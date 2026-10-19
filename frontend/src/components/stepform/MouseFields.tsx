@@ -32,7 +32,7 @@ export function MouseFields({ step: s, setPoint }: { step: Step; setPoint: SetPo
 
       {s.type === 'click' && (
         <>
-          <NumField label="Số click" step={s} field="clicks" min={1} />
+          <NumField label="Số click" step={s} field="clicks" min={1} stepper />
           {(s.clicks > 1 || numVarOf(s, 'clicks') !== undefined) && <NumField label="Giữa các click" step={s} field="clickInterval" unit="ms" />}
         </>
       )}

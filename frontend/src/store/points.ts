@@ -1,6 +1,7 @@
 // Điểm của node: đặt điểm mới / chọn lại trên overlay (click, F6), dời marker, đổi neo, kéo thả từ điểm trước / tương đối,
 // cuộn tại điểm. Node mới tạo từ điểm đi qua nodes.insertNode (nối theo insertAt).
 import { EventsOn } from '../../wailsjs/runtime/runtime';
+import { STEP_DEFAULTS } from '../flow/defaults';
 import { anchorPoint, fmtPoint } from '../anchor';
 import { makeStep, Anchor, Point, Step, STEP_LABEL, StepPoint, StepType } from '../types';
 import { inWails, openOverlay, setWindowMode } from '../windowMode';
@@ -157,11 +158,11 @@ export function placePoint(screen: Point): boolean {
   }
   if (a) {
     const relA = toRelative(a, sc.region)!;
-    const step = makeStep({ id: newId(), type: 'drag', points: [relA, rel], dragMs: 400, delayAfter: 500 });
+    const step = makeStep({ id: newId(), type: 'drag', ...STEP_DEFAULTS.drag, points: [relA, rel] });
     insertNode(step, (ref) => `Đã thêm ${ref}: kéo A ${fmtPoint(relA)} → B ${fmtPoint(rel)}`);
     return true;
   }
-  const step = makeStep({ id: newId(), type: pointType, points: [rel], delayAfter: 500, holdMs: pointType === 'hold' ? 1000 : 0 });
+  const step = makeStep({ id: newId(), type: pointType, ...STEP_DEFAULTS[pointType], points: [rel] });
   insertNode(step, (ref) => `Đã thêm ${ref}: ${STEP_LABEL[pointType].toLowerCase()} ${fmtPoint(rel)}`);
   return true;
 }

@@ -20,7 +20,7 @@ export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetP
           <Segmented value={s.direction ?? 'down'} onChange={(direction: ScrollDirection) => set({ direction })} full label="Hướng cuộn"
             options={DIRECTION_OPTIONS} />
         </Field>
-        <NumField label="Số nấc" step={s} field="amount" unit="nấc" min={1} />
+        <NumField label="Số nấc" step={s} field="amount" unit="nấc" min={1} stepper />
         <Field label="Quãng cuộn ≈">
           <NumInput value={(s.amount ?? 0) * SCROLL_NOTCH_PX} unit="px" min={SCROLL_NOTCH_PX} pinned={!!pinnedInput(script, s.id, 'amount')}
             onChange={(px) => {

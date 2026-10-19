@@ -69,17 +69,18 @@ export default function StepForm({ step: s }: { step: Step }) {
       </div>
 
       {tab === 'inputs' ? <InputsTab /> : <>
-        <Section title="Thiết lập" scope={s.type} defaultOpen>
+        {/* node Chờ: chỉ có thời gian chờ – không hiện khối Thiết lập trống, mở sẵn khối Thời gian */}
+        {s.type !== 'wait' && <Section title="Thiết lập" scope={s.type} defaultOpen>
           {isControl(s.type) ? <ControlSection step={s} /> : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
               <TypeBody step={s} setPoint={setPoint} />
             </div>
           )}
-        </Section>
+        </Section>}
 
         {!isControl(s.type) && (
-          <Section title="Thời gian" scope={s.type} summary={timingSummary(delay, numVarOf(s, 'jitterMs') ?? s.jitterMs)}>
-            <div className="grid grid-cols-2 gap-3">
+          <Section title="Thời gian" scope={s.type} defaultOpen={s.type === 'wait'} summary={timingSummary(delay, numVarOf(s, 'jitterMs') ?? s.jitterMs)}>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
               <NumField label={s.type === 'wait' ? 'Thời gian chờ' : 'Chờ sau khi xong'} step={s} field="delayAfter" unit="ms" />
               <NumField label="Ngẫu nhiên" step={s} field="jitterMs" unit="ms" prefix="±" />
               <span className={`col-span-2 -mt-1 ${hint}`}>
@@ -101,11 +102,16 @@ export default function StepForm({ step: s }: { step: Step }) {
 // Loại node dưới tên (chữ màu nhóm): node hành động đổi qua lại được, node điều khiển chỉ hiện chữ.
 function TypeSelect({ step: s }: { step: Step }) {
   if (isControl(s.type)) return <span className="truncate text-cat">{STEP_LABEL[s.type]}</span>;
+  // select trong suốt phủ lên chữ: select thường rộng theo mục dài nhất, ▾ sẽ nằm xa chữ
   return (
-    <select value={s.type} onChange={(e) => changeStepType(s.id, e.target.value as StepType)} aria-label="Loại node" title="Đổi loại node"
-      className="min-w-0 truncate rounded bg-transparent pr-1 text-cat outline-none hover:bg-hover">
-      {TYPES.map((t) => <option key={t} value={t} className="bg-surface text-ink">{t === s.type ? stepLabel(s) : STEP_LABEL[t]}</option>)}
-    </select>
+    <span className="relative inline-flex min-w-0 items-center gap-0.5 rounded px-0.5 text-cat hover:bg-hover">
+      <span className="truncate">{stepLabel(s)}</span>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" className="flex-none" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
+      <select value={s.type} onChange={(e) => changeStepType(s.id, e.target.value as StepType)} aria-label="Loại node" title="Đổi loại node"
+        className="absolute inset-0 cursor-pointer opacity-0">
+        {TYPES.map((t) => <option key={t} value={t}>{t === s.type ? stepLabel(s) : STEP_LABEL[t]}</option>)}
+      </select>
+    </span>
   );
 }
 

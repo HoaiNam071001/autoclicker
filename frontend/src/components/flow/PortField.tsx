@@ -10,6 +10,8 @@ import { FlowEdgeView, FlowNodeView, PortKind, RunRow } from './model';
 const dot: Record<PortKind, string> = { ok: 'bg-ok', fail: 'bg-danger', neutral: 'bg-muted' };
 // Mỗi panel chỉ là nội dung – tên khối + tóm tắt nằm ở Section (stepform/InspectorParts) bên ngoài.
 const body = 'flex flex-col gap-2.5';
+// Hàng nhãn trái + ô phải – như Field (stepform/shared, design v3)
+const row = 'grid grid-cols-[112px_minmax(0,1fr)] items-center gap-2.5';
 
 export function PortsPanel({ node, nodes, edges, onConnect, onDisconnect, onJump }: {
   node: FlowNodeView; nodes: FlowNodeView[]; edges: FlowEdgeView[];
@@ -47,10 +49,8 @@ export type Retry = { count: number; delayMs: number };
 export function RetryPanel({ value, onChange }: { value: Retry; onChange: (v: Retry) => void }) {
   return (
     <div className={body}>
-      <div className="grid grid-cols-2 gap-3">
-        <label className="flex flex-col gap-1.5 text-muted">Thử lại<NumInput value={value.count} unit="lần" onChange={(count) => onChange({ ...value, count })} /></label>
-        <label className="flex flex-col gap-1.5 text-muted">Nghỉ giữa các lần<NumInput value={value.delayMs} unit="ms" onChange={(delayMs) => onChange({ ...value, delayMs })} /></label>
-      </div>
+      <label className={row}><span className="text-muted">Thử lại</span><NumInput value={value.count} unit="lần" stepper onChange={(count) => onChange({ ...value, count })} /></label>
+      <label className={row}><span className="text-muted">Nghỉ giữa các lần</span><NumInput value={value.delayMs} unit="ms" onChange={(delayMs) => onChange({ ...value, delayMs })} /></label>
       <span className="text-xs text-muted">Thử hết vẫn không được thì đi ra cổng <span className="text-danger-text">Thất bại</span>.</span>
     </div>
   );

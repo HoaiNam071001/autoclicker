@@ -5,6 +5,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 38 – UI v3 – gọn · [phase3/38-ui-v3.md](phase3/38-ui-v3.md)
 
+- [ ] V3b1 Ô nhập (`wails dev`): rê vào ô số hiện ⋯; Dùng biến… → ô biểu thức, ✕ trở lại số; Đặt làm input khi chạy → viền nét đứt, chip key, form Chạy hỏi giá trị; dùng chung input có sẵn; Về mặc định đúng theo loại node (Chờ 1000 ms, Mở 2000 ms…); − / + ở Số click; menu ⋯ gần đáy inspector mở lên trên
 - [ ] V3a Inspector (`wails dev`): mở / đóng các khối, chọn node cùng loại khác vẫn giữ khối đang mở; tóm tắt đúng khi đóng (Thời gian, Khi thất bại, Cổng ra); đổi loại node ở chữ màu dưới tên; nút ⓘ hiện mô tả, bấm ra ngoài đóng
 - [ ] V2 Khung app (`wails dev`): nút Chạy (F8 vẫn chạy / dừng), ▾ mở menu – Chạy từ node đang chọn, Chạy từng node (F10 đi tiếp), Xem trước, Sửa input trước khi chạy (kịch bản có input); menu theme đổi Sáng / Tối / Theo hệ thống, lưu sau khi mở lại app; kéo cửa sổ bằng thanh tiêu đề vẫn được (không kéo nhầm khi bấm nút theme); thư viện thu gọn Mở gần đây / Lịch sử chạy nhớ sau khi mở lại
 - [ ] V1 Thẻ node mới trên canvas app thật (`wails dev`): kéo nối từ chấm cổng nhỏ (8 px) vẫn dễ trúng; rê chuột vào chấm cổng chưa nối → tooltip "chưa nối: …"; rê vào thẻ có chip ("1 input", "thử lại 2") → tooltip; mở kịch bản cũ rồi bấm *Sắp xếp lại* → dàn đều; xem cả theme sáng + tối (màu nhóm đọc rõ)

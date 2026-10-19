@@ -1,8 +1,10 @@
-// Phần dùng chung của inspector node: ô có nhãn, ô số ghim được, nút chọn lại điểm, tab, hằng style.
+// Phần dùng chung của inspector node: hàng trường (nhãn trái, ô phải), ô số có menu ⋯, nút chọn lại điểm, tab, hằng style.
 import { ReactNode, useMemo } from 'react';
 import NumInput, { fieldBox } from '../NumInput';
 import { Target } from '../icons';
-import PinButton, { KeyChip, PinMenu, VarButton } from '../inputs/PinButton';
+import PinButton, { KeyChip } from '../inputs/PinButton';
+import { FieldMenu, FieldMenuItem, MENU_ICON } from '../FieldMenu';
+import { defaultOf } from '../../flow/defaults';
 import VarTextInput from '../inputs/VarTextInput';
 import { pickPointFor, setNumVarExpr, setNumVarOn, updateStep, useScript } from '../../store';
 import { addInput, compatibleInputs, pinField, pinnedInput, pinToInput, setPinnedValue, unpinField } from '../../scriptInputs';
@@ -32,45 +34,58 @@ export function PickButton({ step: s, title = 'Chọn lại trên màn hình' }:
 }
 
 
-// group: bên trong là nhóm nút (Segmented) – dùng <div>, vì <label> bọc nút thì bấm chữ nhãn sẽ bấm luôn nút đầu
-export function Field({ label, children, wide = false, group = false }: {
-  label: string; children: ReactNode; wide?: boolean; group?: boolean;
+// Hàng trường design v3 (FieldKit): nhãn 112 px bên trái, ô bên phải. wide: nhãn ở trên, ô rộng hết hàng (ô chữ dài,
+// cặp X / Y, danh sách). group: bên trong là nhóm nút (Segmented) – dùng <div>, vì <label> bọc nút thì bấm chữ nhãn
+// sẽ bấm luôn nút đầu. extra: chip dưới nhãn (key input đã ghim).
+export function Field({ label, children, wide = false, group = false, extra }: {
+  label: ReactNode; children: ReactNode; wide?: boolean; group?: boolean; extra?: ReactNode;
 }) {
   const Tag = group ? 'div' : 'label';
-  return <Tag className={`flex flex-col gap-1.5 text-muted ${wide ? 'col-span-2' : ''}`}>{label}{children}</Tag>;
+  const head = <span className="flex min-w-0 flex-col items-start gap-[3px] text-muted"><span className="max-w-full">{label}</span>{extra}</span>;
+  if (wide) return <Tag className="col-span-2 flex flex-col gap-1.5">{head}{children}</Tag>;
+  return <Tag className="col-span-2 grid grid-cols-[112px_minmax(0,1fr)] items-center gap-2.5">{head}{children}</Tag>;
 }
 
-// Ô số ghim được (bước 21b): đã ghim → viền nét đứt + chip key cạnh nhãn, sửa số = sửa mặc định của input
-// (mọi trường ghim cùng input đổi theo). Nút {x} (F5c): ô thành ô biến chiếm cả hàng (biểu thức dài) – giá trị lúc chạy
-// lấy từ biến, không ghim được.
-export function NumField({ label, step: s, field, unit, prefix, min = 0 }: {
-  label: string; step: Step; field: NumVarField; unit?: string; prefix?: string; min?: number;
+// Ô số trong inspector (design v3 FieldKit). Nút ⋯ trong ô: dùng biến (F5c – ô thành biểu thức, vd {{n2.output.count}} + 1),
+// đặt làm input khi chạy (bước 21b – ghim: viền nét đứt, chip key dưới nhãn, sửa số = sửa mặc định của input; dùng chung
+// input cùng kiểu đã có), về mặc định của loại node (flow/defaults). stepper: số nguyên nhỏ có − / +.
+export function NumField({ label, step: s, field, unit, prefix, min = 0, stepper = false, help }: {
+  label: string; step: Step; field: NumVarField; unit?: string; prefix?: string; min?: number; stepper?: boolean; help?: string;
 }) {
   const script = useScript();
   const nodeVars = useNodeVars(s.id);
   const inp = pinnedInput(script, s.id, field);
   const others = compatibleInputs(script, field).filter((i) => i !== inp);
   const expr = numVarOf(s, field);
+  const def = defaultOf(s.type, field);
+  const value = s[field] ?? min;
+  const items: FieldMenuItem[] = expr !== undefined ? [] : [
+    ...(inp ? [] : [{ label: 'Dùng biến…', icon: MENU_ICON.variable, sub: 'vd {{n2.output.count}} + 1', onClick: () => setNumVarOn(s.id, field, true) }]),
+    inp
+      ? { label: `Bỏ input ${inp.key}`, icon: MENU_ICON.pin, sub: 'không hỏi khi chạy nữa', onClick: () => unpinField(s.id, field) }
+      : { label: 'Đặt làm input khi chạy', icon: MENU_ICON.pin, sub: 'giá trị hiện tại làm mặc định', onClick: () => pinField(s.id, field) },
+    ...(inp ? [] : others.map((o) => ({ label: o.key, sub: `dùng chung input: ${o.label}`, mono: true, onClick: () => pinToInput(s.id, field, o.key) }))),
+    ...(def !== undefined && def !== value && !inp ? [{ label: `Về mặc định (${def}${unit ? ` ${unit}` : ''})`, icon: MENU_ICON.reset, onClick: () => updateStep(s.id, { [field]: def }) }] : []),
+  ];
   return (
-    <div className={`flex flex-col gap-1.5 text-muted ${expr !== undefined ? 'col-span-2' : ''}`}>
-      <span className="flex min-w-0 items-center gap-1.5"><span className="truncate">{label}</span>{inp && <KeyChip k={inp.key} />}</span>
-      <span className="flex items-start gap-1">
-        {expr !== undefined ? (
-          <div className="min-w-0 flex-1">
+    <Field label={label} group extra={inp && <KeyChip k={inp.key} />}>
+      {expr !== undefined ? (
+        <span className="flex min-w-0 items-center gap-1">
+          <span className="min-w-0 flex-1">
             <VarTextInput value={expr} rows={1} compact inputs={script.inputs ?? []} nodeVars={nodeVars} placeholder="{{n2.output.count}}"
               onCreateInput={(key) => addInput({ key, label: key, type: 'number' })} onChange={(v) => setNumVarExpr(s.id, field, v)} />
-          </div>
-        ) : (
-          <NumInput value={s[field] ?? min} min={min} unit={unit} prefix={prefix} pinned={!!inp} className="min-w-0 flex-1"
-            onChange={(v) => (inp ? setPinnedValue(s.id, field, v) : updateStep(s.id, { [field]: v }))} />
-        )}
-        <VarButton on={expr !== undefined} disabled={!!inp} onToggle={() => setNumVarOn(s.id, field, expr === undefined)} />
-        {expr === undefined && (
-          <PinMenu pinnedKey={inp?.key} options={others} onPinNew={() => pinField(s.id, field)}
-            onPinTo={(key) => pinToInput(s.id, field, key)} onUnpin={() => unpinField(s.id, field)} />
-        )}
-      </span>
-    </div>
+          </span>
+          <button type="button" onClick={() => setNumVarOn(s.id, field, false)} aria-label="Bỏ biến" title="Bỏ biến – dùng số cố định"
+            className="grid h-6 w-6 flex-none place-items-center rounded-[5px] text-muted hover:bg-hover hover:text-ink">
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" strokeWidth="1.4" /></svg>
+          </button>
+        </span>
+      ) : (
+        <NumInput value={value} min={min} unit={unit} prefix={prefix} pinned={!!inp} tag={inp ? 'mặc định' : undefined} stepper={stepper}
+          menu={<FieldMenu items={items} help={help} />}
+          onChange={(v) => (inp ? setPinnedValue(s.id, field, v) : updateStep(s.id, { [field]: v }))} />
+      )}
+    </Field>
   );
 }
 

@@ -56,7 +56,7 @@ export function WebClickFields({ step: s }: { step: Step }) {
       </div>
     </Field>
     <ButtonField step={s} />
-    <NumField label="Số lần click" step={s} field="clicks" min={1} />
+    <NumField label="Số lần click" step={s} field="clicks" min={1} stepper />
     <NumField label="Giữa các click" step={s} field="clickInterval" unit="ms" />
   </>;
 }
@@ -112,7 +112,7 @@ export function WebScrollFields({ step: s }: { step: Step }) {
         <Segmented value={s.direction ?? 'down'} onChange={(direction: ScrollDirection) => set(s, { direction })} full label="Hướng cuộn"
           options={DIRECTION_OPTIONS} />
       </Field>
-      <NumField label={mode === 'until' ? 'Mỗi lần lăn' : 'Số nấc'} step={s} field="amount" unit="nấc" min={1} />
+      <NumField label={mode === 'until' ? 'Mỗi lần lăn' : 'Số nấc'} step={s} field="amount" unit="nấc" min={1} stepper />
     </>}
     {mode === 'until' && (
       <SelectorsField step={s} label="Lăn trong khung (tuỳ chọn)" value={s.scrollIn} onChange={(scrollIn) => set(s, { scrollIn })}
