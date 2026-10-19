@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Auto Clicker – Soạn kịch bản (gọn)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="min-height: 900px; display: flex; flex-direction: column; background: {{c.bg}}; color: {{c.text}}; font-family: 'Segoe UI Variable Text', 'Segoe UI', 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 13.5px">
+
+<div style="height: 36px; display: flex; align-items: center; gap: 8px; padding-left: 14px; background: {{c.chrome}}">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{c.accent}}" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><path d="M12 1v5M12 18v5M1 12h5M18 12h5"></path></svg>
+<span style="font-size: 12px; color: {{c.muted}}">Auto Clicker</span>
+<div style="margin-left: auto; display: flex; align-items: center; color: {{c.muted}}">
+<button aria-label="Giao diện sáng / tối" style="width: 36px; height: 36px; border: 0; background: transparent; color: inherit; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"></path></svg></button>
+<button aria-label="Thu nhỏ" style="width: 44px; height: 36px; border: 0; background: transparent; color: {{c.text}}; display: grid; place-items: center"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 5h10" stroke="currentColor"></path></svg></button>
+<button aria-label="Phóng to" style="width: 44px; height: 36px; border: 0; background: transparent; color: {{c.text}}; display: grid; place-items: center"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><rect x=".5" y=".5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor"></rect></svg></button>
+<button aria-label="Đóng" style="width: 44px; height: 36px; border: 0; background: transparent; color: {{c.text}}; display: grid; place-items: center"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 0l10 10M10 0L0 10" stroke="currentColor"></path></svg></button>
+</div>
+</div>
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 4px 16px 10px; background: {{c.chrome}}; border-bottom: 1px solid {{c.border}}">
+<span style="font-size: 18px; font-weight: 600">Nhắn tin Facebook</span>
+<span style="display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; background: {{c.soft}}; color: {{c.muted}}; font-size: 12px"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{c.warn}}"></span>Chưa lưu</span>
+<div style="display: flex; gap: 16px; margin-left: 8px">
+<button style="height: 32px; padding: 0 2px; border: 0; background: transparent; color: {{c.text}}; font: inherit; font-weight: 600; position: relative">Soạn<span style="position: absolute; left: 22%; right: 22%; bottom: 0; height: 3px; border-radius: 2px; background: {{c.accent}}"></span></button>
+<button style="height: 32px; padding: 0 2px; border: 0; background: transparent; color: {{c.muted}}; font: inherit">Xem trước</button>
+</div>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+<button style="height: 34px; padding: 0 12px; display: flex; align-items: center; gap: 7px; border: 1px solid {{c.border}}; border-radius: 7px; background: {{c.surface}}; color: {{c.text}}; font: inherit">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"></path></svg><span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 12.5px">3 vòng</span></button>
+<div style="display: flex; border-radius: 7px; box-shadow: {{c.btnShadow}}">
+<button style="height: 34px; padding: 0 14px; display: flex; align-items: center; gap: 9px; border: 1px solid {{c.btnEdge}}; border-right: 0; border-radius: 7px 0 0 7px; background: {{c.btnGrad}}; color: #FFFFFF; font: inherit; font-weight: 600"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>Chạy <span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; font-weight: 400; opacity: .8">F8</span></button>
+<button aria-label="Cách chạy khác" style="width: 30px; height: 34px; border: 1px solid {{c.btnEdge}}; border-left: 1px solid rgba(255,255,255,.3); border-radius: 0 7px 7px 0; background: {{c.btnGrad}}; color: #FFFFFF; display: grid; place-items: center"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+</div>
+</header>
+
+<div style="flex: 1 1 auto; display: flex; flex-wrap: wrap; min-height: 0">
+
+<nav aria-label="Thư viện kịch bản" style="flex: 0 0 224px; padding: 12px 8px 10px; display: flex; flex-direction: column; gap: 10px; background: {{c.side}}; border-right: 1px solid {{c.border}}">
+<div style="display: flex; gap: 6px; padding: 0 4px">
+<label style="flex: 1; display: flex; align-items: center; gap: 7px; height: 32px; padding: 0 9px; border-radius: 7px; background: {{c.surface}}; border: 1px solid {{c.border}}; color: {{c.muted}}">
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input placeholder="Tìm kịch bản" style="flex: 1; min-width: 0; border: 0; outline: none; font: inherit; background: transparent; color: {{c.text}}"></label>
+<button aria-label="Thu gọn thư viện" style="width: 32px; height: 32px; border: 0; border-radius: 7px; background: transparent; color: {{c.muted}}; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16"></path></svg></button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 1px">
+<span style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; color: {{c.muted}}; padding: 4px 10px">KỊCH BẢN<span style="font-weight: 500">4</span></span>
+<a href="#" style="position: relative; display: flex; align-items: center; height: 34px; padding: 0 10px; border-radius: 6px; background: {{c.hover}}; color: {{c.text}}; text-decoration: none; font-weight: 600"><span style="position: absolute; left: 0; top: 9px; width: 3px; height: 16px; border-radius: 2px; background: {{c.accent}}"></span>Nhắn tin Facebook<span style="margin-left: auto; width: 6px; height: 6px; border-radius: 50%; background: {{c.warn}}" aria-label="Chưa lưu"></span></a>
+<a href="#" style="display: flex; align-items: center; height: 34px; padding: 0 10px; border-radius: 6px; color: {{c.text}}; text-decoration: none">Farm nhặt đồ<span style="margin-left: auto; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; color: {{c.muted}}">08:00</span></a>
+<a href="#" style="display: flex; align-items: center; height: 34px; padding: 0 10px; border-radius: 6px; color: {{c.text}}; text-decoration: none">Điền form đăng ký</a>
+<a href="#" style="display: flex; align-items: center; height: 34px; padding: 0 10px; border-radius: 6px; color: {{c.text}}; text-decoration: none">Test kéo thả</a>
+</div>
+<div style="display: flex; flex-direction: column; gap: 1px; border-top: 1px solid {{c.border}}; padding-top: 6px">
+<button style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; font: inherit; font-size: 12.5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>Mở gần đây<span style="margin-left: auto">2</span></button>
+<button style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; font: inherit; font-size: 12.5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>Lịch sử chạy<span style="margin-left: auto; display: flex; gap: 3px"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{c.ok}}"></span><span style="width: 6px; height: 6px; border-radius: 50%; background: {{c.danger}}"></span><span style="width: 6px; height: 6px; border-radius: 50%; background: {{c.ok}}"></span></span></button>
+</div>
+<div style="margin-top: auto; display: flex; gap: 4px; padding: 0 4px">
+<button style="flex: 1; height: 34px; border: 1px solid {{c.border}}; border-radius: 7px; background: {{c.surface}}; color: {{c.text}}; font: inherit; font-size: 12.5px">+ Mới</button>
+<button aria-label="Mẫu thử" title="Mẫu thử" style="width: 34px; height: 34px; border: 1px solid {{c.border}}; border-radius: 7px; background: {{c.surface}}; color: {{c.muted}}; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg></button>
+<button aria-label="Mở file" title="Mở (Ctrl+O)" style="width: 34px; height: 34px; border: 1px solid {{c.border}}; border-radius: 7px; background: {{c.surface}}; color: {{c.muted}}; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></button>
+<button aria-label="Lưu" title="Lưu (Ctrl+S)" style="width: 34px; height: 34px; border: 1px solid {{c.border}}; border-radius: 7px; background: {{c.surface}}; color: {{c.muted}}; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 3v5h7V3M7 21v-7h10v7"></path></svg></button>
+</div>
+</nav>
+
+<main aria-label="Canvas flow" style="flex: 1 1 520px; min-width: 0; position: relative; overflow: hidden; min-height: 760px; background-color: {{c.canvas}}; background-image: radial-gradient({{c.dot}} 1px, transparent 1.2px); background-size: 18px 18px">
+<div style="position: absolute; top: 12px; left: 16px; right: 16px; display: flex; align-items: center; gap: 10px; z-index: 3">
+<span style="font-weight: 600">Flow</span><span style="color: {{c.muted}}; font-size: 12.5px">10 node</span>
+<div style="margin-left: auto; display: flex; gap: 6px">
+<button style="height: 32px; padding: 0 10px; display: flex; align-items: center; gap: 6px; border: 1px solid {{c.border}}; border-radius: 7px; background: {{c.surface}}; color: {{c.muted}}; font: inherit; font-size: 12.5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke-dasharray="3 3"></rect></svg>Toàn màn hình</button>
+<button style="height: 32px; padding: 0 12px; display: flex; align-items: center; gap: 8px; border: 1px solid {{c.border}}; border-radius: 7px; background: {{c.surface}}; color: {{c.text}}; font: inherit; font-size: 12.5px">+ Thêm node <span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; color: {{c.muted}}">Ctrl+K</span></button>
+</div>
+</div>
+
+<div style="position: absolute; left: 0; top: 52px; width: 840px; height: 690px">
+<svg width="840" height="690" viewBox="0 0 840 690" style="position: absolute; inset: 0" aria-hidden="true">
+<sc-for list="{{edges}}" as="e" hint-placeholder-count="9">
+<path d="{{e.d}}" fill="none" stroke="{{e.stroke}}" stroke-width="1.6"></path>
+</sc-for>
+</svg>
+<span style="position: absolute; left: 16px; top: 126px; font-size: 11px; font-weight: 600; color: {{c.accentText}}; background: {{c.accentSoft}}; padding: 2px 8px; border-radius: 999px">▸ Bắt đầu</span>
+<sc-for list="{{nodes}}" as="n" hint-placeholder-count="10">
+<div style="position: absolute; left: {{n.x}}; top: {{n.y}}; width: 168px; box-sizing: border-box; border-radius: 10px; border: {{n.border}}; background: {{n.bg}}; box-shadow: {{n.shadow}}; opacity: {{n.op}}">
+<div style="display: flex; align-items: center; gap: 7px; height: 32px; padding: 0 8px; border-radius: 9px 9px 0 0; background: {{n.soft}}">
+<span style="width: 20px; height: 20px; flex: none; border-radius: 6px; background: {{n.tile}}; color: {{n.fg}}; display: grid; place-items: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{n.icon}}"></path></svg></span>
+<span style="font-weight: 600; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{n.title}}</span>
+<span style="margin-left: auto; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 10.5px; color: {{c.muted}}">{{n.ref}}</span>
+</div>
+<div style="padding: 5px 10px 7px; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; color: {{c.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{n.summary}}</div>
+<sc-for list="{{n.ports}}" as="p" hint-placeholder-count="0">
+<div style="height: 18px; padding-right: 12px; display: flex; justify-content: flex-end; align-items: center; font-size: 11px; color: {{c.muted}}">{{p}}</div>
+</sc-for>
+<sc-if value="{{n.multi}}" hint-placeholder-val="{{ false }}"><div style="height: 6px"></div></sc-if>
+<span style="position: absolute; left: -5px; top: 12px; width: 8px; height: 8px; border-radius: 50%; background: {{c.surface}}; border: 1.5px solid {{c.portIn}}"></span>
+<sc-for list="{{n.dots}}" as="d" hint-placeholder-count="1">
+<span style="position: absolute; right: -5px; top: {{d.top}}; width: {{d.size}}; height: {{d.size}}; border-radius: 50%; background: {{c.surface}}; border: 1.5px solid {{d.color}}"></span>
+</sc-for>
+<sc-if value="{{n.jump}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: -50px; top: 10px; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 10.5px; color: {{c.muted}}; background: {{c.surface}}; border: 1px solid {{c.border}}; padding: 1px 6px; border-radius: 5px">→ {{n.jump}}</span></sc-if>
+</div>
+</sc-for>
+</div>
+
+<div style="position: absolute; left: 16px; bottom: 16px; display: flex; gap: 6px; z-index: 3">
+<div style="display: flex; border: 1px solid {{c.border}}; border-radius: 8px; background: {{c.surface}}; overflow: hidden">
+<button aria-label="Phóng to" style="width: 32px; height: 32px; border: 0; background: transparent; color: {{c.muted}}; font-size: 16px">+</button>
+<button aria-label="Thu nhỏ" style="width: 32px; height: 32px; border: 0; border-left: 1px solid {{c.border}}; background: transparent; color: {{c.muted}}; font-size: 16px">−</button>
+<button aria-label="Vừa khung" style="width: 32px; height: 32px; border: 0; border-left: 1px solid {{c.border}}; background: transparent; color: {{c.muted}}; display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg></button>
+</div>
+<button aria-label="Phím tắt canvas" title="Kéo từ chấm cổng ra để nối · thả vào chỗ trống để thêm node · Shift + kéo chọn nhiều · Delete xoá" style="width: 32px; height: 32px; border: 1px solid {{c.border}}; border-radius: 8px; background: {{c.surface}}; color: {{c.muted}}; font: inherit; font-weight: 600">?</button>
+</div>
+<div style="position: absolute; right: 16px; bottom: 16px; width: 148px; height: 92px; border: 1px solid {{c.border}}; border-radius: 8px; background: {{c.surface}}; z-index: 3" aria-hidden="true">
+<span style="position: absolute; left: 14px; top: 30px; width: 18px; height: 8px; border-radius: 2px; background: {{c.soft2}}"></span><span style="position: absolute; left: 38px; top: 30px; width: 18px; height: 14px; border-radius: 2px; background: {{c.soft2}}"></span><span style="position: absolute; left: 62px; top: 18px; width: 18px; height: 8px; border-radius: 2px; background: {{c.soft2}}"></span><span style="position: absolute; left: 62px; top: 30px; width: 18px; height: 8px; border-radius: 2px; background: {{c.accent}}"></span><span style="position: absolute; left: 62px; top: 44px; width: 18px; height: 12px; border-radius: 2px; background: {{c.soft2}}"></span><span style="position: absolute; left: 90px; top: 30px; width: 18px; height: 40px; border-radius: 2px; background: {{c.soft2}}"></span>
+</div>
+</main>
+
+<aside aria-label="Thuộc tính node n3" style="flex: 0 0 340px; display: flex; flex-direction: column; gap: 12px; padding: 14px; background: {{c.surface}}; border-left: 1px solid {{c.border}}">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 36px; height: 36px; flex: none; border-radius: 9px; background: {{cat.mouse.tile}}; color: {{cat.mouse.fg}}; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5h3M17 5h3v3M7 19H4v-3M10 9l9 5-4 1-2 4z"></path></svg></span>
+<div style="flex: 1; min-width: 0">
+<div style="font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Click nút Nhắn tin</div>
+<div style="display: flex; align-items: center; gap: 6px; margin-top: 2px">
+<span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; background: {{c.soft}}; padding: 0 5px; border-radius: 4px">n3</span>
+<button style="display: flex; align-items: center; gap: 4px; height: 20px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: {{cat.mouse.fg}}; font: inherit; font-size: 12px">Click theo ảnh<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+</div>
+</div>
+<button aria-label="Mô tả loại node" title="Click vào chỗ ảnh mẫu được tìm thấy. Dùng khi nút không nằm cố định trên màn hình." style="width: 30px; height: 30px; border: 0; border-radius: 7px; background: transparent; color: {{c.muted}}; display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></button>
+<button aria-label="Xem trên màn hình" style="width: 30px; height: 30px; border: 0; border-radius: 7px; background: transparent; color: {{c.muted}}; display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+<span style="width: 34px; height: 18px; flex: none; border-radius: 9px; background: {{c.accent}}; position: relative" role="img" aria-label="Đang bật"><span style="position: absolute; right: 3px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF"></span></span>
+</div>
+
+<div style="display: flex; gap: 16px; border-bottom: 1px solid {{c.border}}">
+<button style="height: 30px; padding: 0 2px; border: 0; background: transparent; color: {{c.text}}; font: inherit; font-weight: 600; position: relative">Node<span style="position: absolute; left: 15%; right: 15%; bottom: -1px; height: 3px; border-radius: 2px; background: {{c.accent}}"></span></button>
+<button style="height: 30px; padding: 0 2px; border: 0; background: transparent; color: {{c.muted}}; font: inherit; display: flex; align-items: center; gap: 6px">Input <span style="font-size: 11px; font-weight: 600; color: {{c.accentText}}; background: {{c.accentSoft}}; padding: 0 6px; border-radius: 999px">5</span></button>
+</div>
+
+<section style="border: 1px solid {{c.border}}; border-radius: 10px; background: {{c.panel}}">
+<button style="width: 100%; height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 0; background: transparent; color: {{c.text}}; font: inherit; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="{{c.muted}}" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>Thiết lập</button>
+<div style="display: flex; flex-direction: column; gap: 9px; padding: 0 12px 12px; position: relative">
+<div style="display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 8px">
+<span style="display: flex; align-items: center; gap: 4px; color: {{c.muted}}">Vị trí ảnh<button aria-label="Giải thích" style="width: 16px; height: 16px; border: 0; padding: 0; background: transparent; color: {{c.faint}}; display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></button></span>
+<div style="display: flex; padding: 2px; border-radius: 7px; background: {{c.soft}}"><button style="flex: 1; height: 26px; border: 0; border-radius: 5px; background: {{c.raised}}; box-shadow: {{c.raise}}; color: {{c.text}}; font: inherit; font-size: 12.5px; font-weight: 600">Kết quả n2</button><button style="flex: 1; height: 26px; border: 0; border-radius: 5px; background: transparent; color: {{c.muted}}; font: inherit; font-size: 12.5px">Tự tìm</button></div>
+</div>
+<div style="display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 8px">
+<span style="display: flex; align-items: center; gap: 4px; color: {{c.muted}}">Lệch tâm<button aria-label="Giải thích" style="width: 16px; height: 16px; border: 0; padding: 0; background: transparent; color: {{c.accentText}}; display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></button></span>
+<div style="display: flex; gap: 6px"><span style="flex: 1; display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px; border-radius: 6px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 12.5px"><span style="color: {{c.muted}}">ΔX</span>0</span><span style="flex: 1; display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px; border-radius: 6px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 12.5px"><span style="color: {{c.muted}}">ΔY</span>0</span></div>
+</div>
+<div role="tooltip" style="position: absolute; left: 70px; top: 76px; z-index: 5; width: 230px; padding: 8px 10px; border-radius: 8px; background: {{c.tipBg}}; color: {{c.tipText}}; font-size: 12px; line-height: 1.45; box-shadow: 0 8px 24px rgba(0,0,0,.18)">
+<span style="position: absolute; left: 20px; top: -5px; width: 10px; height: 10px; background: {{c.tipBg}}; transform: rotate(45deg)"></span>
+Click lệch khỏi tâm chỗ tìm thấy. Dương: sang phải / xuống. Dùng khi nút nằm cạnh ảnh mẫu.
+</div>
+<div style="display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 8px; margin-top: 2px">
+<span style="color: {{c.muted}}">Nút chuột</span>
+<div style="display: flex; padding: 2px; border-radius: 7px; background: {{c.soft}}"><button style="flex: 1; height: 26px; border: 0; border-radius: 5px; background: {{c.raised}}; box-shadow: {{c.raise}}; color: {{c.text}}; font: inherit; font-size: 12.5px; font-weight: 600">Trái</button><button style="flex: 1; height: 26px; border: 0; border-radius: 5px; background: transparent; color: {{c.muted}}; font: inherit; font-size: 12.5px">Phải</button><button style="flex: 1; height: 26px; border: 0; border-radius: 5px; background: transparent; color: {{c.muted}}; font: inherit; font-size: 12.5px">Giữa</button></div>
+</div>
+<div style="display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 8px; margin: 0 -6px; padding: 3px 6px; border-radius: 7px; background: {{c.hover}}">
+<span style="color: {{c.muted}}">Số click</span>
+<div style="display: flex; gap: 4px; align-items: center"><span style="flex: 1; display: flex; align-items: center; height: 30px; padding: 0 8px; border-radius: 6px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 12.5px">1</span>
+<button aria-label="Dùng biến" title="Dùng biến {x}" style="width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px">{x}</button>
+<button aria-label="Đặt làm input" title="Đặt làm input" style="width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6l-1 5 3 3v2H7v-2l3-3zM12 14v6"></path></svg></button></div>
+</div>
+<div style="display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 8px">
+<span style="color: {{c.muted}}">Lệch ngẫu nhiên</span>
+<span style="display: flex; align-items: center; height: 30px; padding: 0 8px; border-radius: 6px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 12.5px">± 0<span style="margin-left: auto; color: {{c.muted}}">px</span></span>
+</div>
+</div>
+</section>
+
+<sc-for list="{{sections}}" as="s" hint-placeholder-count="4">
+<section style="border: 1px solid {{c.border}}; border-radius: 10px; background: {{c.panel}}">
+<button style="width: 100%; height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 0; background: transparent; color: {{c.text}}; font: inherit; text-align: left"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="{{c.muted}}" stroke-width="2.4" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg><span style="font-weight: 600; flex: none">{{s.title}}</span><span style="flex: 1; min-width: 0; text-align: right; color: {{c.muted}}; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.summary}}</span></button>
+</section>
+</sc-for>
+
+<div style="margin-top: auto; display: flex; gap: 6px; padding-top: 10px; border-top: 1px solid {{c.border}}">
+<button style="height: 30px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; font: inherit; font-size: 12.5px">Đặt làm bắt đầu</button>
+<button style="height: 30px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; font: inherit; font-size: 12.5px">○ Điểm dừng</button>
+<button style="margin-left: auto; height: 30px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{c.dangerText}}; font: inherit; font-size: 12.5px">Xoá node</button>
+</div>
+</aside>
+</div>
+
+<footer style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 5px 16px; background: {{c.chrome}}; border-top: 1px solid {{c.border}}; color: {{c.muted}}; font-size: 12px">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 7px; height: 7px; border-radius: 50%; background: {{c.ok}}"></span>Sẵn sàng</span>
+<span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace">X 1204 Y 388</span>
+<span>Bản nháp tự lưu 14:32</span>
+<span style="margin-left: auto">Dừng khẩn cấp: F8 / góc màn hình</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"accent":{"editor":"color","default":"#4F6BED","options":["#4F6BED","#2F8F83","#5B6472"]},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const a = this.props.accent ?? '#4F6BED';
+    const hex = (h, al) => { const n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + al + ')'; };
+    const c = dark ? {
+      bg: '#141518', chrome: '#18191C', side: '#17181B', canvas: '#121316', dot: 'rgba(255,255,255,.07)', surface: '#1E1F23', panel: '#1B1C20', raised: '#2A2C31', field: '#17181B',
+      soft: 'rgba(255,255,255,.05)', soft2: 'rgba(255,255,255,.12)', hover: 'rgba(255,255,255,.05)', border: 'rgba(255,255,255,.08)',
+      text: '#ECEDF0', muted: '#A0A5B0', faint: '#7C828D', accentText: '#B4C1FF', accentSoft: hex(a, .16),
+      warn: '#D9A35B', ok: '#5DBB7A', danger: '#E5484D', dangerText: '#FF9A9D', raise: 'none', portIn: 'rgba(255,255,255,.3)', edge: 'rgba(255,255,255,.22)',
+      tipBg: '#ECEDF0', tipText: '#16181D'
+    } : {
+      bg: '#F6F7F9', chrome: '#FBFBFC', side: '#F3F4F7', canvas: '#EFF1F4', dot: 'rgba(22,24,29,.09)', surface: '#FFFFFF', panel: '#FCFCFD', raised: '#FFFFFF', field: '#FFFFFF',
+      soft: 'rgba(22,24,29,.045)', soft2: 'rgba(22,24,29,.12)', hover: 'rgba(22,24,29,.04)', border: '#E6E8EC',
+      text: '#16181D', muted: '#636A76', faint: '#9AA0AA', accentText: '#3B55CF', accentSoft: hex(a, .1),
+      warn: '#C8893A', ok: '#3E9B5C', danger: '#D6343A', dangerText: '#B4252B', raise: '0 1px 2px rgba(22,24,29,.1)', portIn: '#B8BDC6', edge: '#B8BDC6',
+      tipBg: '#16181D', tipText: '#F3F4F6'
+    };
+    c.accent = a;
+    c.btnGrad = 'linear-gradient(180deg, ' + hex(a, .82) + ' 0%, ' + a + ' 100%)';
+    c.btnEdge = hex(a, .9);
+    c.btnShadow = '0 1px 0 rgba(255,255,255,.25) inset, 0 4px 12px ' + hex(a, dark ? .25 : .2);
+    const C = (fgL, fgD, rgb) => ({ fg: dark ? fgD : fgL, soft: 'rgba(' + rgb + ',' + (dark ? .12 : .08) + ')', tile: 'rgba(' + rgb + ',' + (dark ? .24 : .16) + ')' });
+    const cat = {
+      mouse: C('#3657C8', '#8EA8FF', '62,99,221'),
+      kb: C('#0E7C71', '#5FD3C4', '15,138,126'),
+      wait: C('#6A4BC4', '#B9A4FF', '124,92,214'),
+      data: C('#93580A', '#F2B24D', '214,140,20'),
+      app: C('#4F5866', '#B4BAC4', '91,100,114'),
+      flow: C('#B0306A', '#F28BB8', '194,65,122'),
+      web: C('#0B6F94', '#6CCDF0', '14,127,168')
+    };
+    const I = {
+      open: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18',
+      switch: 'M6 3v6M6 9c0 4 6 4 6 8v4M6 9c0 4-4 4-4 8M18 3v18',
+      end: 'M5 21V4h11l-2 4 2 4H5',
+      clickImage: 'M4 8V5h3M17 5h3v3M7 19H4v-3M10 9l9 5-4 1-2 4z',
+      counter: 'M5 9h14M5 15h14M10 4L8 20M16 4l-2 16',
+      wait: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2',
+      type: 'M4 7V5h12v2M10 5v14M7 19h6M15 13h5M17.5 13v6',
+      key: 'M5 9h14v10H5zM8 13h1M11 13h1M14 13h2M8 16h8',
+      scroll: 'M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4'
+    };
+    const W = 168;
+    const raw = [
+      ['n1', 'open', 'app', 'Mở trang cá nhân', 'facebook.com/{{profile}}', 16, 150],
+      ['n2', 'switch', 'flow', 'Đang ở màn nào?', 'chờ tối đa 3 s', 216, 150, ['Đăng nhập', 'Có nút Nhắn tin', 'Không thấy']],
+      ['n9', 'end', 'flow', 'Chưa đăng nhập', 'thất bại · cần đăng nhập', 416, 30, null, true],
+      ['n3', 'clickImage', 'mouse', 'Click nút Nhắn tin', 'chỗ thấy ở n2', 416, 150],
+      ['n10', 'counter', 'flow', 'Thử cuộn', 'tối đa 10 lần', 416, 300, ['Còn lượt', 'Hết lượt']],
+      ['n4', 'wait', 'wait', 'Chờ khung chat', '800 ms', 640, 150],
+      ['n5', 'type', 'kb', 'Gõ lời nhắn', '"xin chào {{M1}}…"', 640, 250],
+      ['n6', 'key', 'kb', 'Enter', 'Enter', 640, 350],
+      ['n11', 'scroll', 'mouse', 'Cuộn xuống', '3 nấc tại chuột', 640, 470, null, false, 'n2'],
+      ['n12', 'end', 'flow', 'Không thấy nút', 'thất bại sau 10 lần', 640, 580, null, true]
+    ];
+    const pos = {};
+    const nodes = raw.map((r) => {
+      const [ref, icon, k, title, summary, x, y, ports, isEnd, jump] = r;
+      const k2 = cat[k];
+      const sel = ref === 'n3';
+      const multi = !!ports;
+      const h = multi ? 32 + 24 + ports.length * 18 + 6 : 56;
+      const dots = isEnd ? [] : multi
+        ? ports.map((p, i) => ({ top: (56 + 9 + 18 * i - 4) + 'px', size: '8px', color: c.edge }))
+        : [{ top: '12px', size: '8px', color: c.ok }, { top: (h - 14) + 'px', size: '7px', color: c.danger }];
+      pos[ref] = { x, y, h, ports: multi ? ports.map((p, i) => y + 56 + 9 + 18 * i) : [y + 16] };
+      return {
+        ref, title, summary, x: x + 'px', y: y + 'px', icon: I[icon], fg: k2.fg, soft: k2.soft, tile: k2.tile,
+        ports: ports || [], multi, dots, jump: jump || false, op: 1,
+        bg: sel ? 'linear-gradient(' + c.surface + ', ' + c.surface + ') padding-box, linear-gradient(135deg, ' + a + ', ' + hex(a, .3) + ') border-box' : c.surface,
+        border: sel ? '1.5px solid transparent' : '1px solid ' + c.border,
+        shadow: sel ? '0 6px 18px ' + hex(a, dark ? .25 : .16) : (dark ? 'none' : '0 1px 2px rgba(22,24,29,.05)')
+      };
+    });
+    const out = (ref, i) => ({ x: pos[ref].x + W, y: pos[ref].ports[i || 0] });
+    const inp = (ref) => ({ x: pos[ref].x, y: pos[ref].y + 16 });
+    const curve = (p, q) => { const dx = Math.max(28, (q.x - p.x) / 2); return 'M' + p.x + ' ' + p.y + ' C' + (p.x + dx) + ' ' + p.y + ' ' + (q.x - dx) + ' ' + q.y + ' ' + q.x + ' ' + q.y; };
+    const wrap = (p, q) => { const my = q.y - 40; return 'M' + p.x + ' ' + p.y + ' C' + (p.x + 26) + ' ' + p.y + ' ' + (p.x + 26) + ' ' + my + ' ' + (p.x - 4) + ' ' + my + ' L' + (q.x + 4) + ' ' + my + ' C' + (q.x - 22) + ' ' + my + ' ' + (q.x - 22) + ' ' + q.y + ' ' + q.x + ' ' + q.y; };
+    const e = (d) => ({ d, stroke: c.edge });
+    const edges = [
+      e(curve(out('n1'), inp('n2'))),
+      e(curve(out('n2', 0), inp('n9'))),
+      e(curve(out('n2', 1), inp('n3'))),
+      e(curve(out('n2', 2), inp('n10'))),
+      e(curve(out('n3'), inp('n4'))),
+      e(wrap(out('n4'), inp('n5'))),
+      e(wrap(out('n5'), inp('n6'))),
+      e(curve(out('n10', 0), inp('n11'))),
+      e(curve(out('n10', 1), inp('n12')))
+    ];
+    const sections = [
+      { title: 'Thời gian', summary: 'chờ 500 ms, cố định' },
+      { title: 'Khi thất bại', summary: 'thử lại 2 lần · nghỉ 500 ms' },
+      { title: 'Cổng ra', summary: 'ok → n4 · lỗi → dừng' },
+      { title: 'Output', summary: '4 biến' }
+    ];
+    return { c, cat, nodes, edges, sections };
+  }
+}
+</script>
+</body>
+</html>
