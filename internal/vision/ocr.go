@@ -19,9 +19,10 @@ type TextWord struct {
 
 // TextLine – một dòng chữ đọc được, khung theo px ảnh (gốc trên trái).
 type TextLine struct {
-	Text  string
-	Box   model.Rect
-	Words []TextWord
+	Text   string
+	Box    model.Rect
+	Words  []TextWord
+	Approx bool // bộ đọc không biết tiếng Việt (OCR Windows) – FindText so không dấu, chịu lệch nhẹ (fuzzy.go)
 }
 
 // TextQuery – cách so chữ. Luôn bỏ qua hoa / thường và khoảng trắng (bộ nhận chữ hay dính / tách chữ).
@@ -90,26 +91,50 @@ type TextHit struct {
 
 // FindText trả các chỗ thấy q.Text theo thứ tự đọc.
 func FindText(lines []TextLine, q TextQuery) []TextHit {
-	needle, _ := textKey(q.Text, q.NoAccent)
-	if len(needle) == 0 {
+	if n, _ := textKey(q.Text, q.NoAccent); len(n) == 0 {
 		return nil
 	}
-	sorted := readingOrder(lines)
 	var hits []TextHit
-	for _, l := range sorted {
-		key, idx := textKey(l.Text, q.NoAccent)
-		if q.Exact {
-			if string(key) == string(needle) {
+	for _, l := range readingOrder(lines) {
+		for _, span := range lineMatches(l, q) {
+			if q.Exact {
 				hits = append(hits, TextHit{Box: l.Box, Line: l.Text})
+			} else {
+				hits = append(hits, TextHit{Box: subBox(l, span[0], span[1]), Line: l.Text})
 			}
-			continue
-		}
-		for at := runesIndex(key, needle, 0); at >= 0; at = runesIndex(key, needle, at+len(needle)) {
-			a, b := idx[at], idx[at+len(needle)-1]+1 // khoảng rune gốc [a, b)
-			hits = append(hits, TextHit{Box: subBox(l, a, b), Line: l.Text})
 		}
 	}
 	return hits
+}
+
+// lineMatches – các khoảng rune gốc [a, b) của dòng khớp q (Exact: cả dòng hoặc không gì). Dòng Approx: so không dấu,
+// chịu fuzzyBudget lỗi.
+func lineMatches(l TextLine, q TextQuery) [][2]int {
+	noAccent := q.NoAccent || l.Approx
+	needle, _ := textKey(q.Text, noAccent)
+	key, idx := textKey(l.Text, noAccent)
+	k := 0
+	if l.Approx {
+		k = fuzzyBudget(len(needle))
+	}
+	if q.Exact {
+		if editDistance(key, needle) <= k {
+			return [][2]int{{0, len([]rune(l.Text))}}
+		}
+		return nil
+	}
+	var out [][2]int
+	for from := 0; from < len(key); {
+		a, b := fuzzyIndex(key, needle, from, k)
+		if a < 0 {
+			break
+		}
+		if b > a {
+			out = append(out, [2]int{idx[a], idx[b-1] + 1})
+		}
+		from = max(b, a+1)
+	}
+	return out
 }
 
 // ReadingOrder xếp dòng trên → dưới; các dòng cùng hàng (tâm dọc nằm trong nhau) thì trái → phải.
@@ -137,7 +162,7 @@ func subBox(l TextLine, a, b int) model.Rect {
 	var box model.Rect
 	for _, w := range l.Words {
 		if w.Start < ub && w.Start+w.Len > ua {
-			box = union(box, w.Box)
+			box = Union(box, w.Box)
 		}
 	}
 	if box.W > 0 {
@@ -149,7 +174,8 @@ func subBox(l TextLine, a, b int) model.Rect {
 	return model.Rect{X: x0, Y: l.Box.Y, W: max(x1-x0, 1), H: l.Box.H}
 }
 
-func union(a, b model.Rect) model.Rect {
+// Union – khung bao a và b; a rỗng → b.
+func Union(a, b model.Rect) model.Rect {
 	if a.W == 0 || a.H == 0 {
 		return b
 	}

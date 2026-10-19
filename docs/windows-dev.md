@@ -8,7 +8,7 @@ Từ 2026-10-19 người dùng có máy Windows: dev + test phần Windows (17, 
 2. **Go** đúng bản trong `go.mod` (dòng `go 1.xx`), **Node 22**, **Python 3** (lệnh `python3` phải chạy được trong Git Bash – bản cài từ python.org thường chỉ có `python` / `py`: tạo alias hoặc bật *App execution aliases* cho python3).
 3. **gcc 64-bit (MinGW-w64)** cho cgo (robotgo / gohook): MSYS2 → `pacman -S mingw-w64-ucrt-x86_64-gcc`, thêm `C:\msys64\ucrt64\bin` vào PATH (hoặc WinLibs qua `winget`). Kiểm tra: `gcc --version`.
 4. **Wails CLI** đúng bản trong `go.mod`: `go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0` (`%USERPROFILE%\go\bin` vào PATH) → `wails doctor` không báo thiếu gì (WebView2 có sẵn trên Windows 10/11).
-5. Clone repo, `git checkout claude/affectionate-goldberg-qnltoo` (nhánh đang làm), `cd frontend && npm ci`.
+5. Clone repo, `git checkout main`, `cd frontend && npm ci`.
 
 ## Lệnh (Git Bash, như trên macOS)
 
@@ -25,7 +25,8 @@ AUTOCLICKER_REAL=1 go test ./internal/device/ -run Real   # test thiết bị th
 
 - **Toạ độ = pixel thật**: app khai báo per-monitor DPI aware (`build/windows/wails.exe.manifest`) – chuột đọc / đặt qua Win32 (`internal/device/cursor_windows.go`), không qua `robotgo.Location` / `Move` (robotgo nhân / chia thêm tỷ lệ DPI – xem bước 17). Code mới đụng toạ độ phải theo `device.Location` / `device.Displays`.
 - File riêng hệ điều hành theo hậu tố: `*_darwin.go` (macOS), `*_windows.go`, `*_other.go` (`//go:build !darwin` / `!windows` – báo *chưa hỗ trợ*). Phần Windows mới → thêm `*_windows.go`, sửa build tag của `*_other.go` cho khỏi trùng.
-- Đang chưa có trên Windows: OCR (`device/ocr_other.go` – Windows.Media.Ocr, 25e), phần tử màn hình (`device/element_other.go` – UI Automation qua `go-ole`, 37 E5), Cửa sổ / Ứng dụng (26 W0).
+- OCR Windows (`device/ocr_windows.go`) không có gói tiếng Việt – dòng đọc được mang `Approx`, tìm chữ tự so không dấu + chịu lệch nhẹ (`vision/fuzzy.go`). Gọi WinRT / COM mới → dùng lại `device/winrt_windows.go`.
+- Đang chưa có trên Windows: phần tử màn hình (`device/element_other.go` – UI Automation qua `go-ole`, 37 E5), Cửa sổ / Ứng dụng (26 W0).
 - Test viết theo đường dẫn / hành vi macOS có thể đỏ trên Windows (như `TestGuardPath` đỏ trên Linux): sửa test cho đúng theo hệ điều hành (`runtime.GOOS`), không bỏ test.
 - Repo giữ xuống dòng LF (`.gitattributes`) – không đổi sang CRLF (script `.sh` hỏng, gofmt báo khác).
 - Hai máy (macOS / cloud và Windows) cùng làm một nhánh: `git pull` trước khi bắt đầu, commit + push khi xong từng phần.

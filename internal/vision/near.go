@@ -77,7 +77,7 @@ func NearText(lines []TextLine, label model.Rect, dir string, span int) (string,
 	a, b := pick[0].start, pick[len(pick)-1].end
 	var box model.Rect
 	for _, u := range pick {
-		box = union(box, u.box)
+		box = Union(box, u.box)
 	}
 	text := strings.TrimSpace(strings.TrimLeft(string(utf16.Decode(u16[min(a, len(u16)):min(b, len(u16))])), " :："))
 	return text, box, text != ""

@@ -21,7 +21,7 @@ func wordLine(words []string, boxes []model.Rect) TextLine {
 		n := len([]rune(w))
 		l.Words = append(l.Words, TextWord{Start: pos, Len: n, Box: boxes[i]})
 		pos += n
-		l.Box = union(l.Box, boxes[i])
+		l.Box = Union(l.Box, boxes[i])
 	}
 	return l
 }

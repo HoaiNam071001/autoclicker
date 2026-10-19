@@ -3,6 +3,11 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 25e – OCR Windows · [phase3/25e-ocr.md](phase3/25e-ocr.md)
+
+- [ ] Windows: node Chờ chữ / Click theo chữ trên trang tiếng Việt (vd Mẫu thử → **Click theo chữ**, **Bảng dữ liệu**): thấy đúng chữ dù OCR đọc sai dấu; *Thử tìm* không thấy thì danh sách “đọc được” hiện chữ không dấu / sai dấu (bình thường trên Windows). Chữ ngắn < 5 ký tự (vd “HUẾ”) có thể không thấy – dùng chữ dài hơn hoặc ảnh mẫu
+- [ ] Windows: Đọc phần tử → đọc chữ cạnh nhãn bằng OCR (37 E4) với nhãn tiếng Việt
+
 ## 17 – DPI Windows · [phase1-mvp.md](phase1-mvp.md)
 
 - [ ] Windows 125 % (sửa 2026-10-19 – ảnh mẫu co giãn theo DPI màn): chụp lại ảnh mẫu đã chụp trên Windows trước bản này; chụp ảnh mẫu một nút ở 125 % → đổi scale sang 100 % (Settings → Display) → Thử tìm / chạy vẫn thấy; ảnh mẫu trong inspector hiện đúng cỡ nhìn trên màn. Có 2 màn khác scale: chụp ở màn này, tìm ở màn kia
