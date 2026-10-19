@@ -61,14 +61,28 @@ v3 giữ nguyên nguyên tắc v2 (một màu nhấn cho trạng thái, gradient
 - **Đầu:** ô icon 36 bo 9 nền `cat-…-tile` màu `cat-…`; tên 15/600; dưới tên: mã node mono trên `soft` + **loại node là nút ▾ màu `cat-…`** (đổi loại); phải: nút ⓘ mô tả loại node (tooltip – thay thẻ mô tả N0 to), nút Xem trên màn hình, công tắc bật 34×18.
 - **Tab** Node / Input (chip số `accent-soft`), viền dưới `line`.
 - **Khối thu gọn (accordion):** mỗi nhóm một khung `border-line` bo 10 nền `panel`; đầu khối cao 38 (▾ / ▸ + tên 600 + **tóm tắt bên phải** `muted` 12 khi thu gọn: "chờ 500 ms, cố định", "thử lại 2 lần · nghỉ 500 ms", "ok → n4 · lỗi → dừng", "4 biến"). Mặc định mở *Thiết lập*, các khối khác thu gọn. Thứ tự: Thiết lập → Thời gian → Khi thất bại → Cổng ra → Output → (Lần chạy gần nhất khi có).
-- **Hàng trường:** lưới `104px 1fr`, nhãn `muted` bên trái (v2: nhãn trên ô), ô cao 30 bo 6 nền `field`, chữ số mono 12.5, đơn vị `muted` trong ô bên phải (`ms`, `px`, `lần`). Segmented cao 26 trong nền `soft`. Hàng đang rê: nền `hover` tràn 6 px. Ô cả hàng (URL, case, header) khi cần.
+- **Hàng trường:** xem *Ô nhập (`FieldKit`, `ClickDetail`)* ngay dưới – thay quy cách 104 / 30 ban đầu.
 - **Giải thích:** icon ⓘ 13 `faint` cạnh nhãn (đang mở: `accent-text`), bấm / rê mở tooltip đen (`ink` nền, chữ `bg`) rộng 230, mũi tên 10 – thay chữ giải thích dài dưới ô.
-- **Nút {x} / ghim** cạnh ô số: 26×26 không viền, `muted` – hiện rõ khi rê hàng.
-- **Ô có input:** chữ nhỏ "input: gap" `accent-text` trong ô.
 - **Case Switch:** mỗi case một thẻ (⋮⋮ kéo, chấm màu case, tên + điều kiện `muted`), case đang sửa viền accent 45% nền accent 5%; "+ Thêm case" nét đứt.
 - **Cổng ra:** mỗi cổng một hàng: chấm màu + tên, bên phải ô chọn đích (mã node mono + tên + ▾); ghi chú "hoặc kéo trên canvas".
 - **Output:** chip `var-token` `n7.output.status`, bấm để chép (tooltip mô tả).
 - **Chân:** hàng nút chữ không viền: "Đặt làm bắt đầu", "○ Điểm dừng", phải "Xoá node" `danger-text`; viền trên `line`.
+
+### Ô nhập (`FieldKit`, `ClickDetail` – thêm 2026-10-19)
+
+Một kiểu ô cho mọi trường của inspector; các nút phụ (biến, ghim input, về mặc định) gom vào **menu ⋯ trong ô** thay vì nút {x} / ghim nằm ngoài ô (v2 – làm ô số hẹp, cắt chữ).
+
+- **Hàng:** lưới `112px 1fr`, gap 10, nhãn `muted` bên trái (rê hàng: nhãn `ink`). Ô cao **34**, bo 7, nền `field`, viền `line`; số mono 13, đơn vị `muted` 12 sát phải trong ô.
+- **Rê chuột:** viền `line-strong`, hiện nút **⋯** 26×26 (nền `soft`) ở mép phải trong ô. Mở menu: viền ô `accent`, nút ⋯ nền `accent-soft` chữ `accent-text`.
+- **Menu ⋯** (rộng 226, bo 9, mục cao 36, icon 15 `muted`): *Dùng biến…* · *Đặt làm input khi chạy* · *Về mặc định (120 ms)* · *Ô này dùng để làm gì* (chữ `muted`, mở giải thích). Mục nào không áp dụng thì không hiện.
+- **Đang dùng biến:** trong ô chỉ còn chip `var-token` (`{{vars.clickGap}}`, cắt `…`) + nút ✕ 24 "Bỏ biến" bên phải.
+- **Đã ghim làm input:** dưới nhãn có chip key (icon ghim + `gap`, mono 11, `accent-soft`, bo tròn); ô viền **nét đứt** `accent`, sau giá trị chữ nhỏ "mặc định" `muted`.
+- **Lỗi:** viền `danger` + icon ⓘ đỏ trong ô; lý do trong tooltip (không thêm dòng chữ dưới ô).
+- **Số nguyên nhỏ** (Số click, số lần thử…): ô có nút **− / +** 34×34 hai đầu, số giữa căn giữa.
+- **Cặp X / Y** (vị trí): nhãn ở **trên** (kèm ⓘ, phải ghi neo "neo trên-trái" `muted` 12), dưới là 2 ô X / Y chia đều + nút chọn trên màn hình 34 + nút ⋯ (Số / Biến, neo…). **Sơ đồ màn hình thu gọn** thành một hàng nút "Sơ đồ màn hình · cách trái 812, trên 436"; mở ra: khung `soft` có sơ đồ, chọn neo 4 góc (↖ ↗ ↙ ↘), px / %.
+- **Chữ có biến:** ô **tự cao** theo nội dung (min 34, line-height 1.85), biến là chip `var-token` trong dòng.
+- **Dropdown:** cùng khung ô 34, chữ cắt `…`, mũi tên ▾ 12 `muted` bên phải.
+- Theme tối: canvas vẽ bằng bảng trung tính cũ – dùng token Slate tương ứng (`field`, `line`, `line-strong`, `accent-soft`…).
 
 ### Nút Chạy + menu (`RunMenu`)
 
@@ -224,6 +238,7 @@ Soạn kịch bản dạng node + cạnh kiểu n8n (`@xyflow/react`). Xem mẫu
 | `Main` / `MainDark` | Màn soạn gọn: thanh tiêu đề + toolbar, thư viện 224, canvas flow, inspector accordion | `components/TitleBar.tsx`, `AppChrome.tsx`, `Library.tsx` + `library/LibraryParts.tsx`, `StepForm.tsx`, `stepform/*`, `components/flow/*` (`FlowHeader`) |
 | `Inspectors` | Inspector Click, Switch theo màn hình, HTTP | `stepform/MouseFields.tsx`, `flow/nodes/ControlFields`, `stepform/HttpFields.tsx`, `flow/PortField.tsx` |
 | `Categories` | Màu 7 nhóm node, thẻ mẫu sáng / tối | token `cat-*` trong `style.css`; nhóm của node trong `flow/view.ts` |
+| `FieldKit` / `ClickDetail` | Ô nhập trong inspector: các trạng thái; node Click dùng ô mới | `stepform/shared` (`Field`, `NumField`), `NumInput`, `inputs/PinButton`, `VarTextInput`, `stepform/MouseFields`, `PointSource` |
 | `RunMenu` | Nút Chạy tách đôi + menu | `RunMenu.tsx` (`RunButton`), `AppChrome.tsx` (`Toolbar`) |
 
 **v2 (đã dựng, mã artboard đã xoá):**

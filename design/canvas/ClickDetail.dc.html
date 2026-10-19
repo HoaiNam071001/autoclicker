@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Auto Clicker – Node detail Click</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 780px; height: 980px; box-sizing: border-box; padding: 20px; display: flex; gap: 20px; align-items: flex-start; background: {{c.bg}}; color: {{c.text}}; font-family: 'Segoe UI Variable Text', 'Segoe UI', 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 13.5px">
+
+<sc-for list="{{panels}}" as="P" hint-placeholder-count="2">
+<aside aria-label="Node detail Click" style="width: 360px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; padding: 14px; background: {{c.surface}}; border: 1px solid {{c.border}}; border-radius: 12px">
+
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 36px; height: 36px; flex: none; border-radius: 9px; background: {{c.catTile}}; color: {{c.catFg}}; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l13 7-6 1.5L9 18z"></path></svg></span>
+<div style="flex: 1; min-width: 0"><div style="font-weight: 600; font-size: 15px">Click</div>
+<div style="display: flex; gap: 6px; align-items: center; font-size: 12px; margin-top: 2px"><span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; background: {{c.soft}}; padding: 0 5px; border-radius: 4px">n3</span><span style="color: {{c.catFg}}">Click ▾</span></div></div>
+<button aria-label="Mô tả loại node" style="width: 30px; height: 30px; border: 0; border-radius: 7px; background: transparent; color: {{c.muted}}; display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></button>
+<button aria-label="Xem trên màn hình" style="width: 30px; height: 30px; border: 0; border-radius: 7px; background: transparent; color: {{c.muted}}; display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+<span style="width: 34px; height: 18px; flex: none; border-radius: 9px; background: {{c.accent}}; position: relative" role="img" aria-label="Đang bật"><span style="position: absolute; right: 3px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF"></span></span>
+</div>
+
+<div style="display: flex; gap: 16px; border-bottom: 1px solid {{c.border}}">
+<span style="height: 30px; display: flex; align-items: center; font-weight: 600; position: relative">Node<span style="position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; border-radius: 2px; background: {{c.accent}}"></span></span>
+<span style="height: 30px; display: flex; align-items: center; gap: 6px; color: {{c.muted}}">Input <span style="font-size: 11px; font-weight: 600; color: {{c.accentText}}; background: {{c.accentSoft}}; padding: 0 6px; border-radius: 999px">{{P.inputs}}</span></span>
+</div>
+
+<section style="border: 1px solid {{c.border}}; border-radius: 10px; background: {{c.panel}}; padding: 0 12px 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="height: 38px; display: flex; align-items: center; gap: 8px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="{{c.muted}}" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>Thiết lập</div>
+
+<div style="display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 10px"><span style="color: {{c.muted}}">Nút chuột</span>
+<div style="display: flex; padding: 2px; border-radius: 8px; background: {{c.soft}}"><span style="flex: 1; height: 30px; display: grid; place-items: center; border-radius: 6px; background: {{c.raised}}; box-shadow: {{c.raise}}; font-weight: 600">Trái</span><span style="flex: 1; height: 30px; display: grid; place-items: center; color: {{c.muted}}">Phải</span><span style="flex: 1; height: 30px; display: grid; place-items: center; color: {{c.muted}}">Giữa</span></div></div>
+
+<div style="display: flex; flex-direction: column; gap: 7px">
+<span style="display: flex; align-items: center; gap: 6px; color: {{c.muted}}">Vị trí<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="{{c.faint}}" stroke-width="2" role="img" aria-label="Có giải thích"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg><span style="margin-left: auto; font-size: 12px">neo trên-trái</span></span>
+<div style="display: flex; gap: 6px">
+<span style="flex: 1; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: 7px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px"><span style="color: {{c.muted}}">X</span>812</span>
+<span style="flex: 1; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: 7px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px"><span style="color: {{c.muted}}">Y</span>436</span>
+<button aria-label="Chọn trên màn hình" style="width: 34px; height: 34px; border: 1px solid {{c.border}}; border-radius: 7px; background: {{c.field}}; color: {{c.muted}}; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3"></path></svg></button>
+<button aria-label="Tuỳ chọn vị trí" style="width: 34px; height: 34px; border: 1px solid {{c.border}}; border-radius: 7px; background: {{c.field}}; color: {{c.muted}}; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+</div>
+
+<sc-if value="{{P.mapOpen}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 9px; background: {{c.soft}}">
+<div style="display: flex; align-items: center; gap: 8px"><span style="font-size: 12.5px; font-weight: 600">Sơ đồ màn hình</span><span style="font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11.5px; color: {{c.muted}}">1440 × 900</span><svg style="margin-left: auto" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="{{c.muted}}" stroke-width="2.4" aria-hidden="true"><path d="M18 15l-6-6-6 6"></path></svg></div>
+<div style="position: relative; width: 100%; aspect-ratio: 16 / 10; border-radius: 6px; background: {{c.field}}; border: 1px solid {{c.border}}" role="img" aria-label="Điểm click cách trái 812 px, cách trên 436 px">
+<span style="position: absolute; left: 0; top: 48.4%; width: 56.4%; border-top: 1.5px dashed {{c.accent}}"></span>
+<span style="position: absolute; left: 56.4%; top: 0; height: 48.4%; border-left: 1.5px dashed {{c.accent}}"></span>
+<span style="position: absolute; left: 22%; top: calc(48.4% - 22px); font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11.5px; color: {{c.accentText}}; background: {{c.field}}; padding: 1px 5px; border-radius: 4px">812 px</span>
+<span style="position: absolute; left: calc(56.4% + 6px); top: 18%; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11.5px; color: {{c.accentText}}; background: {{c.field}}; padding: 1px 5px; border-radius: 4px">436 px</span>
+<span style="position: absolute; left: 56.4%; top: 48.4%; width: 12px; height: 12px; transform: translate(-50%, -50%); border-radius: 50%; background: {{c.accent}}; box-shadow: 0 0 0 4px {{c.accentSoft}}"></span>
+<span style="position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 50%; background: {{c.accent}}"></span>
+</div>
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-size: 12.5px; color: {{c.muted}}">Neo</span>
+<div style="display: flex; padding: 2px; border-radius: 7px; background: {{c.field}}; border: 1px solid {{c.border}}"><span style="width: 30px; height: 26px; display: grid; place-items: center; border-radius: 5px; background: {{c.accentSoft}}; color: {{c.accentText}}">↖</span><span style="width: 30px; height: 26px; display: grid; place-items: center; color: {{c.muted}}">↗</span><span style="width: 30px; height: 26px; display: grid; place-items: center; color: {{c.muted}}">↙</span><span style="width: 30px; height: 26px; display: grid; place-items: center; color: {{c.muted}}">↘</span></div>
+<div style="margin-left: auto; display: flex; padding: 2px; border-radius: 7px; background: {{c.field}}; border: 1px solid {{c.border}}"><span style="width: 34px; height: 26px; display: grid; place-items: center; border-radius: 5px; background: {{c.raised}}; box-shadow: {{c.raise}}; font-size: 12px; font-weight: 600">px</span><span style="width: 34px; height: 26px; display: grid; place-items: center; color: {{c.muted}}; font-size: 12px">%</span></div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{P.mapClosed}}" hint-placeholder-val="{{ true }}">
+<button style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: 0; border-radius: 7px; background: {{c.soft}}; color: {{c.text}}; font: inherit; font-size: 12.5px; text-align: left"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="{{c.muted}}" stroke-width="2.4" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>Sơ đồ màn hình<span style="margin-left: auto; color: {{c.muted}}; font-size: 12px">cách trái 812, trên 436</span></button>
+</sc-if>
+</div>
+
+<div style="display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 10px"><span style="display: flex; flex-direction: column; gap: 3px; color: {{c.muted}}">Số click<sc-if value="{{P.pinned}}" hint-placeholder-val="{{ false }}"><span style="align-self: flex-start; display: flex; align-items: center; gap: 3px; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 11px; color: {{c.accentText}}; background: {{c.accentSoft}}; padding: 0 6px; border-radius: 999px"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M9 4h6l-1 5 3 3v2H7v-2l3-3zM12 14v6"></path></svg>clicks</span></sc-if></span>
+<div style="display: flex; align-items: center; height: 34px; border-radius: 7px; background: {{c.field}}; border: {{P.clickBorder}}; overflow: hidden">
+<button aria-label="Bớt 1" style="width: 34px; height: 32px; border: 0; border-right: 1px solid {{c.border}}; background: transparent; color: {{c.muted}}; font-size: 16px">−</button>
+<span style="flex: 1; text-align: center; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px">5</span>
+<button aria-label="Thêm 1" style="width: 34px; height: 32px; border: 0; border-left: 1px solid {{c.border}}; background: transparent; color: {{c.muted}}; font-size: 16px">+</button>
+</div></div>
+
+<div style="display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 10px"><span style="color: {{c.muted}}">Giữa các click</span>
+<sc-if value="{{P.varGap}}" hint-placeholder-val="{{ false }}">
+<span style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 4px 0 6px; border-radius: 7px; background: {{c.field}}; border: 1px solid {{c.border}}; min-width: 0"><span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 12px; color: {{c.accentText}}; background: {{c.accentSoft}}; padding: 3px 7px; border-radius: 5px">{{tokGap}}</span><button aria-label="Bỏ biến" style="margin-left: auto; width: 24px; height: 24px; border: 0; border-radius: 5px; background: transparent; color: {{c.muted}}; display: grid; place-items: center"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.4"></path></svg></button></span>
+</sc-if>
+<sc-if value="{{P.plainGap}}" hint-placeholder-val="{{ true }}">
+<span style="display: flex; align-items: center; height: 34px; padding: 0 10px; border-radius: 7px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px">120<span style="margin-left: auto; color: {{c.muted}}; font-size: 12px">ms</span></span>
+</sc-if>
+</div>
+
+<div style="display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 10px"><span style="color: {{c.muted}}">Lệch ngẫu nhiên</span>
+<span style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px; border-radius: 7px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px"><span style="color: {{c.muted}}">±</span>{{P.jitter}}<span style="margin-left: auto; color: {{c.muted}}; font-size: 12px">px</span></span></div>
+</section>
+
+<sc-if value="{{P.timeOpen}}" hint-placeholder-val="{{ false }}">
+<section style="border: 1px solid {{c.border}}; border-radius: 10px; background: {{c.panel}}; padding: 0 12px 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="height: 38px; display: flex; align-items: center; gap: 8px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="{{c.muted}}" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>Thời gian</div>
+<div style="display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 10px"><span style="color: {{c.muted}}">Chờ sau khi xong</span><span style="display: flex; align-items: center; height: 34px; padding: 0 10px; border-radius: 7px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px">800<span style="margin-left: auto; color: {{c.muted}}; font-size: 12px">ms</span></span></div>
+<div style="display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 10px"><span style="display: flex; align-items: center; gap: 4px; color: {{c.muted}}">Ngẫu nhiên<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="{{c.faint}}" stroke-width="2" role="img" aria-label="Có giải thích"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8h.01"></path></svg></span><span style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px; border-radius: 7px; background: {{c.field}}; border: 1px solid {{c.border}}; font-family: 'Cascadia Mono', 'JetBrains Mono', monospace; font-size: 13px"><span style="color: {{c.muted}}">±</span>100<span style="margin-left: auto; color: {{c.muted}}; font-size: 12px">ms</span></span></div>
+<div style="display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 10px"><span style="color: {{c.muted}}">Giống người</span><span style="display: flex; align-items: center; height: 34px; padding: 0 10px; border-radius: 7px; background: {{c.field}}; border: 1px solid {{c.border}}; font-size: 13px; min-width: 0"><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Theo kịch bản (Tắt)</span><svg style="margin-left: auto; flex: none" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{c.muted}}" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></div>
+</section>
+</sc-if>
+
+<sc-for list="{{P.collapsed}}" as="s" hint-placeholder-count="3">
+<div style="height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid {{c.border}}; border-radius: 10px; background: {{c.panel}}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="{{c.muted}}" stroke-width="2.4" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg><span style="font-weight: 600">{{s.title}}</span><span style="margin-left: auto; color: {{c.muted}}; font-size: 12px; white-space: nowrap">{{s.summary}}</span></div>
+</sc-for>
+
+<div style="display: flex; gap: 6px; padding-top: 8px; border-top: 1px solid {{c.border}}">
+<button style="height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; font: inherit; font-size: 12.5px">Đặt làm bắt đầu</button>
+<button style="height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{c.muted}}; font: inherit; font-size: 12.5px">○ Điểm dừng</button>
+<button style="margin-left: auto; height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: {{c.dangerText}}; font: inherit; font-size: 12.5px">Xoá</button>
+</div>
+</aside>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"accent":{"editor":"color","default":"#4F6BED","options":["#4F6BED","#2F8F83","#5B6472"]},"$preview":{"width":780,"height":980}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const dark = (this.props.theme ?? 'light') === 'dark';
+    const a = this.props.accent ?? '#4F6BED';
+    const hex = (h, al) => { const n = parseInt(h.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + al + ')'; };
+    const c = dark ? {
+      bg: '#141518', surface: '#1E1F23', panel: '#1B1C20', raised: '#2A2C31', field: '#17181B', soft: 'rgba(255,255,255,.05)', border: 'rgba(255,255,255,.09)',
+      text: '#ECEDF0', muted: '#A0A5B0', faint: '#7C828D', accentText: '#B4C1FF', accentSoft: hex(a, .16), dangerText: '#FF9A9D', raise: 'none',
+      catFg: '#8EA8FF', catTile: 'rgba(62,99,221,.24)'
+    } : {
+      bg: '#EFF1F4', surface: '#FFFFFF', panel: '#FCFCFD', raised: '#FFFFFF', field: '#FFFFFF', soft: 'rgba(22,24,29,.045)', border: '#E2E5EA',
+      text: '#16181D', muted: '#636A76', faint: '#9AA0AA', accentText: '#3B55CF', accentSoft: hex(a, .1), dangerText: '#B4252B', raise: '0 1px 2px rgba(22,24,29,.1)',
+      catFg: '#3657C8', catTile: 'rgba(62,99,221,.16)'
+    };
+    c.accent = a;
+    const rest = [
+      { title: 'Khi thất bại', summary: 'không thử lại' },
+      { title: 'Cổng ra', summary: 'ok → n4 · lỗi → dừng' },
+      { title: 'Output', summary: '4 biến' }
+    ];
+    const panels = [
+      { inputs: 5, mapOpen: false, mapClosed: true, pinned: false, clickBorder: '1px solid ' + c.border, varGap: false, plainGap: true, jitter: '0', timeOpen: false,
+        collapsed: [{ title: 'Thời gian', summary: 'chờ 800 ms ±100' }].concat(rest) },
+      { inputs: 6, mapOpen: true, mapClosed: false, pinned: true, clickBorder: '1px dashed ' + a, varGap: true, plainGap: false, jitter: '3', timeOpen: true,
+        collapsed: rest }
+    ];
+    return { c, panels, tokGap: '{{vars.clickGap}}' };
+  }
+}
+</script>
+</body>
+</html>
