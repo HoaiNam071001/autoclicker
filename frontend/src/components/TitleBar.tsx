@@ -2,10 +2,11 @@
 import { Quit, WindowMinimise, WindowToggleMaximise } from '../../wailsjs/runtime/runtime';
 import { inWails } from '../windowMode';
 import { ReactNode } from 'react';
+import { usePopover } from './usePopover';
 import { Logo, Monitor, Moon, Sun } from './icons';
 import { setTheme, Theme, useTheme } from '../theme';
 
-const winBase = 'grid h-10 w-[46px] place-items-center text-ink';
+const winBase = 'grid h-9 w-11 place-items-center text-ink';
 const winBtn = `${winBase} hover:bg-hover`;
 // Nút đóng: nền đỏ khi rê chuột (không gộp với hover:bg-hover – hai class hover cùng lúc thì bg-hover thắng)
 const closeBtn = `${winBase} hover:bg-danger hover:text-white`;
@@ -13,9 +14,9 @@ const closeBtn = `${winBase} hover:bg-danger hover:text-white`;
 export default function TitleBar() {
   return (
     // double click vùng kéo = phóng to / thu về, giống cửa sổ thường
-    <div className="drag flex h-10 flex-none items-center gap-2.5 bg-chrome pl-3.5" 
+    <div className="drag flex h-9 flex-none items-center gap-2 bg-chrome pl-3.5" 
       onDoubleClick={(e) => inWails && !(e.target as HTMLElement).closest('button') && WindowToggleMaximise()}>
-      <Logo className="h-[18px] w-[18px] flex-none" />
+      <Logo className="h-[15px] w-[15px] flex-none" />
       <span className="text-xs text-muted">Auto Clicker</span>
       <ThemeSwitch />
       {inWails && (
@@ -41,18 +42,25 @@ const THEMES: { id: Theme; label: string; icon: ReactNode }[] = [
   { id: 'system', label: 'Theo hệ thống', icon: <Monitor /> },
 ];
 
-// Chọn theme: Sáng / Tối / Theo hệ thống – lưu vào cấu hình app.
+// Chọn theme: một nút (icon theme đang dùng) mở menu Sáng / Tối / Theo hệ thống – lưu vào cấu hình app.
 function ThemeSwitch() {
   const theme = useTheme();
+  const { open, setOpen, ref } = usePopover();
+  const cur = THEMES.find((t) => t.id === theme) ?? THEMES[2];
   return (
-    <div role="radiogroup" aria-label="Giao diện" className="mr-1 ml-auto flex rounded-md bg-soft p-0.5">
-      {THEMES.map((t) => (
-        <button key={t.id} role="radio" aria-checked={theme === t.id} aria-label={t.label} title={`Giao diện: ${t.label}`}
-          onClick={() => setTheme(t.id)}
-          className={`grid h-6 w-7 place-items-center rounded ${theme === t.id ? 'bg-raised text-ink shadow-[var(--c-raise)]' : 'text-muted hover:text-ink'}`}>
-          {t.icon}
-        </button>
-      ))}
+    <div ref={ref} className="relative ml-auto">
+      <button onClick={() => setOpen(!open)} aria-label={`Giao diện: ${cur.label}`} title={`Giao diện: ${cur.label}`} aria-haspopup="menu" aria-expanded={open}
+        className="grid h-9 w-9 place-items-center text-muted hover:bg-hover hover:text-ink">{cur.icon}</button>
+      {open && (
+        <div role="menu" className="absolute right-0 top-full z-30 mt-1 flex w-44 flex-col gap-px rounded-[10px] border border-line bg-surface p-1.5 shadow-[0_12px_32px_rgb(0_0_0/.14)]">
+          {THEMES.map((t) => (
+            <button key={t.id} role="menuitemradio" aria-checked={theme === t.id} onClick={() => { setTheme(t.id); setOpen(false); }}
+              className={`flex h-8 items-center gap-2.5 rounded-[7px] px-2.5 text-left hover:bg-hover ${theme === t.id ? 'font-semibold text-ink' : 'text-muted'}`}>
+              {t.icon}<span className="flex-1">{t.label}</span>{theme === t.id && <span className="h-1.5 w-1.5 rounded-full bg-accent" />}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

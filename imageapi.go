@@ -68,7 +68,7 @@ func (a *App) FindImage(sc model.Script, stepID string) (engine.FindResult, erro
 	if s, err = script.WithInputDefaults(sc, s); err != nil {
 		return engine.FindResult{}, err
 	}
-	if s.FindBy != model.FindByText && s.Template == "" { // báo ngay, khỏi ẩn cửa sổ
+	if s.FindBy == "" && s.Template == "" { // tìm theo ảnh mà chưa có ảnh mẫu: báo ngay, khỏi ẩn cửa sổ
 		return engine.FindResult{}, errors.New("bước chưa có ảnh mẫu")
 	}
 	e := engine.New(nil, sc, engine.Options{Screen: device.MainScreen(), Displays: device.Displays()})
@@ -88,6 +88,19 @@ func stepOf(sc model.Script, stepID string) (model.Step, error) {
 		}
 	}
 	return model.Step{}, errors.New("không có node này")
+}
+
+// PickElementAt – "Chọn phần tử trên màn" (bước 37 E3): phần tử dưới điểm (x, y) – toạ độ robotgo, bấm trên overlay –
+// trong cây accessibility của app node stepID dùng ("" = app có cửa sổ trên cùng), kèm selector tìm lại nó.
+func (a *App) PickElementAt(sc model.Script, stepID string, x, y int) (engine.ElementPick, error) {
+	s, err := stepOf(sc, stepID)
+	if err != nil {
+		return engine.ElementPick{}, err
+	}
+	if s, err = script.WithInputDefaults(sc, s); err != nil {
+		return engine.ElementPick{}, err
+	}
+	return engine.New(nil, sc, engine.Options{}).PickElement(s.ElementApp, model.Point{X: x, Y: y})
 }
 
 // PixelColorAt trả màu (#RRGGBB) đang hiện tại (x, y) – nút "Lấy màu" của bước chờ pixel.

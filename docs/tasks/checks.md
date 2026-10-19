@@ -3,10 +3,21 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 38 – UI v3 – gọn · [phase3/38-ui-v3.md](phase3/38-ui-v3.md)
+
+- [ ] V4 Bảng thêm node (Ctrl+K) và hộp Mẫu thử: icon tô đúng màu nhóm, đọc rõ ở theme tối; lần chạy thất bại – canvas cuộn tới node lỗi, dòng "Flow · N node" không đè chữ lên thẻ
+- [ ] V3b3 Inspector mọi loại node (`wails dev`): rê ⓘ cạnh nhãn hiện giải thích, không bị cắt mép; công tắc (Cả dòng, Bỏ qua dấu, Ghi nối tiếp, Vào clipboard, Giờ chuẩn, Khép kín…) bật / tắt đúng; báo lỗi đỏ vẫn hiện khi thiếu dữ liệu; theme tối đọc rõ
+- [ ] V3b2 Vị trí (`wails dev`): node Click – ⋯ cạnh X / Y → Lấy toạ độ từ biến, *Dùng số cố định* trở lại; hàng Sơ đồ mở / đóng, bấm chấm đổi neo giữ nguyên chỗ trên màn hình, px / % đổi đúng; chữ neo ở đầu khối đổi theo
+- [ ] V3b1 Ô nhập (`wails dev`): rê vào ô số hiện ⋯; Dùng biến… → ô biểu thức, ✕ trở lại số; Đặt làm input khi chạy → viền nét đứt, chip key, form Chạy hỏi giá trị; dùng chung input có sẵn; Về mặc định đúng theo loại node (Chờ 1000 ms, Mở 2000 ms…); − / + ở Số click; menu ⋯ gần đáy inspector mở lên trên
+- [ ] V3a Inspector (`wails dev`): mở / đóng các khối, chọn node cùng loại khác vẫn giữ khối đang mở; tóm tắt đúng khi đóng (Thời gian, Khi thất bại, Cổng ra); đổi loại node ở chữ màu dưới tên; nút ⓘ hiện mô tả, bấm ra ngoài đóng
+- [ ] V2 Khung app (`wails dev`): nút Chạy (F8 vẫn chạy / dừng), ▾ mở menu – Chạy từ node đang chọn, Chạy từng node (F10 đi tiếp), Xem trước, Sửa input trước khi chạy (kịch bản có input); menu theme đổi Sáng / Tối / Theo hệ thống, lưu sau khi mở lại app; kéo cửa sổ bằng thanh tiêu đề vẫn được (không kéo nhầm khi bấm nút theme); thư viện thu gọn Mở gần đây / Lịch sử chạy nhớ sau khi mở lại
+- [ ] V1 Thẻ node mới trên canvas app thật (`wails dev`): kéo nối từ chấm cổng nhỏ (8 px) vẫn dễ trúng; rê chuột vào chấm cổng chưa nối → tooltip "chưa nối: …"; rê vào thẻ có chip ("1 input", "thử lại 2") → tooltip; mở kịch bản cũ rồi bấm *Sắp xếp lại* → dàn đều; xem cả theme sáng + tối (màu nhóm đọc rõ)
+
 ## 37 – Phần tử màn hình qua Accessibility · [phase3/37-phan-tu-man-hinh.md](phase3/37-phan-tu-man-hinh.md)
 
+- [ ] E3 Chờ / Click theo phần tử (Chrome thường mở `element.html` hoặc trang thật): bảng thêm node → Click theo phần tử; **Chọn trên màn** → bấm nút “Mua ngay” / nút chỉ có icon → ô cách tìm tự điền (text="…" / aria="…"), khung hiện đúng chỗ trên overlay; **Thử tìm** thấy đúng, đổi chữ sai → liệt kê phần tử đang có; chạy node bấm trúng. Bấm vào chỗ trống / ảnh không có chữ → báo lỗi rõ
 - [ ] E2 Mẫu thử (Chrome thường làm trình duyệt mặc định, cấp quyền Accessibility cho app / terminal): **Phần tử – đọc giá đang đổi** → lời kết thúc ghi đúng giá đang hiện + nam@example.com; **Phần tử – bấm nút chỉ có icon** → trái tim tô đậm, thành công; **Phần tử – nút dưới cuối trang** → trang tự cuộn xuống, bấm trúng XÁC NHẬN ĐƠN, thành công. Lần đầu với một app có thể chậm ~0,5–2 s (app dựng cây). Thử lại khi Chrome ở desktop (Space) khác / thu nhỏ → chờ hết giờ, lỗi ghi *không có cửa sổ đang hiện*. Tắt quyền Accessibility → lỗi quyền ngay
-- [ ] E2 Inspector Đọc phần tử: thêm từ bảng (nhóm Chờ & điều kiện), gõ `css=.x` → báo đỏ chỉ dùng text= / aria= / role=; ô App nhận `{{biến}}`. Xem cả theme sáng + tối
+- [ ] E2 Inspector Đọc phần tử: thêm từ bảng (nhóm Ứng dụng – đổi ở 38 V0), gõ `css=.x` → báo đỏ chỉ dùng text= / aria= / role=; ô App nhận `{{biến}}`. Xem cả theme sáng + tối
 
 ## 35 – Node nâng cao · [phase3/35-node-nang-cao.md](phase3/35-node-nang-cao.md)
 

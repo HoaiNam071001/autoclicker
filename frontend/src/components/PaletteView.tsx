@@ -5,10 +5,11 @@ import { KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from '
 import { StepIcon, StepIconName } from './icons';
 import { fold } from '../fold';
 import type { NodeInfo } from '../flow/nodeInfo';
+import { categoryName, NodeCategory } from '../flow/category';
 
 export type PaletteItem = { icon: StepIconName; label: string; keywords: string; info?: NodeInfo; run?: () => unknown; soon?: string };
-// note: dòng ghi chú dưới tên nhóm
-export type PaletteGroup = { name: string; note?: string; items: PaletteItem[] };
+// cat: nhóm node (tên + chấm màu nhóm – flow/category); note: dòng ghi chú dưới tên nhóm
+export type PaletteGroup = { cat: NodeCategory; note?: string; items: PaletteItem[] };
 type Item = PaletteItem;
 
 const COLS = 3;
@@ -25,7 +26,7 @@ export function PaletteView({ groups: all, onClose, onCancel, footer, context }:
   const groups = useMemo(() => {
     const words = fold(q).split(/\s+/).filter(Boolean);
     return all
-      .map((g) => ({ ...g, items: g.items.filter((it) => words.every((w) => fold(`${it.label} ${it.keywords} ${g.name}`).includes(w))) }))
+      .map((g) => ({ ...g, items: g.items.filter((it) => words.every((w) => fold(`${it.label} ${it.keywords} ${categoryName(g.cat)}`).includes(w))) }))
       .filter((g) => g.items.length > 0);
   }, [q, all]);
   const flat = groups.flatMap((g) => g.items);
@@ -73,8 +74,10 @@ export function PaletteView({ groups: all, onClose, onCancel, footer, context }:
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3.5 py-2">
           {groups.length === 0 && <p className="py-6 text-center text-muted">Không có loại bước nào khớp “{q}”</p>}
           {groups.map((g) => (
-            <section key={g.name} className="flex flex-col gap-1.5">
-              <span className="px-1 text-xs font-semibold text-muted">{g.name}</span>
+            <section key={g.cat} className={`cat-${g.cat} flex flex-col gap-1.5`}>
+              <span className="flex items-center gap-1.5 px-1 text-xs font-semibold text-muted">
+                <span className="h-2 w-2 rounded-full bg-cat" aria-hidden />{categoryName(g.cat)}
+              </span>
               {g.note && <span className="-mt-1 px-1 text-xs text-muted">{g.note}</span>}
               <div className="grid grid-cols-3 gap-1.5">
                 {g.items.map((it) => {
@@ -84,7 +87,7 @@ export function PaletteView({ groups: all, onClose, onCancel, footer, context }:
                     <button key={it.label} onClick={() => pick(it)} onMouseEnter={() => setSel(i)} aria-disabled={!it.run}
                       title={it.soon ? `Sắp có (${it.soon})` : undefined}
                       className={`flex min-h-[46px] items-center gap-2.5 rounded-card px-2.5 py-1.5 text-left ${on ? 'ring-selected' : 'border border-line bg-surface'} ${it.run ? '' : 'cursor-default'}`}>
-                      <span className={`grid h-[30px] w-[30px] flex-none place-items-center rounded-[7px] ${on && it.run ? 'bg-accent-soft text-accent-text' : 'bg-soft text-muted'} ${it.run ? '' : 'opacity-60'}`}>
+                      <span className={`grid h-[30px] w-[30px] flex-none place-items-center rounded-[7px] bg-cat-tile text-cat ${it.run ? '' : 'opacity-60'}`}>
                         <StepIcon type={it.icon} className="h-[15px] w-[15px]" />
                       </span>
                       <span className={`min-w-0 flex-1 font-medium ${it.run ? '' : 'text-muted'}`}>{it.label}</span>

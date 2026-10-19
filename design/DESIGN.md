@@ -1,7 +1,94 @@
-# Auto Clicker – Design v2
+# Auto Clicker – Design v3 (gọn) trên nền v2
 
-Canvas gốc (xem trực tiếp, chỉnh Tweaks sáng/tối, màu nhấn): https://claude.ai/artifact/5WdDyFZdB3WKxEXwkticnw
+Canvas **v3 – gọn** (2026-10-19, đã dựng – bước [38](../docs/tasks/phase3/38-ui-v3.md)): https://claude.ai/artifact/Hr4MxJYqSwCgAFuuZFNVvD – mã nguồn artboard đã xoá khỏi repo khi xong 38, xem lại bằng `git show d5a6b52:design/canvas/<tên>.dc.html` (đủ 7 artboard) hoặc mở canvas.
+Canvas v2 (nền token, thành phần): https://claude.ai/artifact/5WdDyFZdB3WKxEXwkticnw
 Xuất ảnh / PDF: mở canvas → Share › Export.
+
+## v3 – gọn: thay đổi so với v2
+
+v3 giữ nguyên nguyên tắc v2 (một màu nhấn cho trạng thái, gradient 4 chỗ, font, token chung) – thêm **màu theo nhóm node** và làm bố cục chật hơn. **Theme tối giữ bảng Slate** (quyết định 2026-10-16) – canvas v3 vẽ theme tối bằng bảng trung tính cũ, chỉ lấy bố cục + màu nhóm, không lấy giá trị nền tối của canvas.
+
+### Token mới
+
+| Token | Sáng | Tối (Slate) | Dùng cho |
+|---|---|---|---|
+| `canvas` | `#EFF1F4` | `#141820` | Nền canvas flow (tối hơn `bg` một nấc để thẻ node nổi) |
+| `dot` | ink 9% | trắng 7% | Chấm lưới canvas, cách 18 px |
+| `panel` | `#FCFCFD` | `#1F2530` | Nền khối thu gọn trong inspector (trên `surface`) |
+| `faint` | `#9AA0AA` | `#6B7689` | Icon ⓘ giải thích, chữ rất phụ |
+| `cat-<nhóm>` | xem bảng dưới | | Màu chữ / icon của nhóm node |
+| `cat-<nhóm>-soft` | màu nhóm 8% | 12% | Nền đầu thẻ node |
+| `cat-<nhóm>-tile` | màu nhóm 16% | 24% | Ô icon trên thẻ node, đầu inspector |
+
+### Màu theo nhóm node (7 nhóm = nhóm trong bảng thêm node)
+
+| Nhóm | `cat-…` | Sáng | Tối | Gốc pha (soft / tile) | Loại node |
+|---|---|---|---|---|---|
+| Chuột | `mouse` | `#3657C8` | `#8EA8FF` | `rgb(62 99 221)` | Click, Double, Giữ, Kéo thả, Cuộn, Click theo ảnh / chữ / phần tử, Vẽ đường |
+| Bàn phím | `kb` | `#0E7C71` | `#5FD3C4` | `rgb(15 138 126)` | Gõ chữ, Phím tắt |
+| Chờ & ảnh | `wait` | `#6A4BC4` | `#B9A4FF` | `rgb(124 92 214)` | Chờ, Chờ ảnh / chữ / pixel / phần tử, Chờ đến giờ, Chụp màn hình |
+| Hệ thống & dữ liệu | `data` | `#93580A` | `#F2B24D` | `rgb(214 140 20)` | Clipboard, HTTP, Tệp, Âm lượng, Đặt biến |
+| Ứng dụng | `app` | `#4F5866` | `#B4BAC4` | `rgb(91 100 114)` | Mở URL / app, Focus cửa sổ, Đọc phần tử |
+| Rẽ nhánh & luồng | `flow` | `#B0306A` | `#F28BB8` | `rgb(194 65 122)` | Nếu, Switch, Switch theo màn hình, Đếm, Kết thúc |
+| Web | `web` | `#0B6F94` | `#6CCDF0` | `rgb(14 127 168)` | Mở trang (Chrome của app), Chờ / Click / Gõ / Đọc / Cuộn phần tử web |
+
+- Màu nhóm **chỉ** ở: ô icon + nền đầu thẻ node, ô icon đầu inspector, chữ loại node trong inspector, chấm nhóm trong bảng thêm node. Trạng thái (chọn, đang chạy, lỗi) vẫn dùng `accent` / `ok` / `danger` – màu nhóm không thay màu trạng thái.
+- Theo canvas v3, khác bảng thêm node hiện tại: *Đặt biến* sang *Hệ thống & dữ liệu* (đang ở Rẽ nhánh), *Đọc phần tử* sang *Ứng dụng* (đang ở Chờ), *Chụp màn hình* sang *Chờ & ảnh*; nhóm *Ứng dụng & cấu trúc* đổi tên *Ứng dụng*. Bảng thêm node và màu thẻ dùng chung một bảng nhóm.
+- Theme tối: giá trị lấy từ canvas, kiểm lại độ tương phản trên `surface` Slate `#222833` (≥ 4.5:1 cho chữ) khi dựng; Chuột `#8EA8FF` gần `accent` tối `#60A5FA` – thẻ đang chọn vẫn phân biệt bằng viền `ring-selected` + bóng.
+
+### Bố cục (màn soạn – `Main`)
+
+- **Thanh tiêu đề** cao 36 (v2: 40): logo accent, "Auto Clicker" 12 `muted`, bên phải nút sáng / tối (một nút bật tắt), nút cửa sổ 44×36.
+- **Toolbar** chung nền `chrome` với thanh tiêu đề, padding 4×16×10, viền dưới `line`: tên kịch bản 18/600 (v2: 19), chip "Chưa lưu" (chấm `warn`, nền `soft`, cao 22), tab Soạn / Xem trước (gạch dưới 3 px). Phải: nút vòng lặp ("3 vòng" mono), **nút Chạy tách đôi** (xem dưới). Các nút debug / ghi macro rời toolbar → vào menu Chạy.
+- **Thư viện** rộng 224 (v2: 236), nền `side`: ô tìm + nút thu gọn thư viện; nhãn nhỏ "KỊCH BẢN 4"; mục cao 34 (mục mở: `bg-hover`, vạch trái accent, chấm `warn`; giờ hẹn mono bên phải); "Mở gần đây" / "Lịch sử chạy" dạng hàng thu gọn (▸ + số / chấm kết quả `ok` / `danger`); chân: "+ Mới" + 3 nút icon 34 (Mẫu thử, Mở, Lưu).
+- **Canvas flow** nền `canvas` + lưới `dot`. Góc trái trên: "Flow · 10 node"; phải: "Toàn màn hình", "+ Thêm node Ctrl+K". Góc trái dưới: nhóm + / − / vừa khung + nút "?" (tooltip phím tắt canvas, thay dòng gợi ý v2). Góc phải dưới: minimap 148×92, node đang chọn tô `accent`.
+- **Inspector** rộng 340, padding 14, các khối cách 12.
+- **Status bar** padding 5×16, chữ 12: chấm trạng thái, toạ độ chuột mono, "Bản nháp tự lưu 14:32", phải "Dừng khẩn cấp: F8 / góc màn hình".
+
+### Thẻ node (v3)
+
+- Rộng **168** (v2: 248), bo 10, `bg-surface border-line`, bóng rất nhẹ (tối: không bóng).
+- **Đầu thẻ** cao 32, nền `cat-…-soft`, bo trên 9: ô icon 20×20 bo 6 nền `cat-…-tile`, icon 12 nét 2.1 màu `cat-…`; tên 12.5/600 cắt `…`; mã node mono 10.5 `muted` bên phải.
+- **Dòng chi tiết** mono 11 `muted`, padding 5×10×7, một dòng cắt `…`.
+- **Cổng ra:** node một lối ra (Thành công / Thất bại) **không có dòng nhãn** – 2 chấm trên mép phải: chấm `ok` 8 px ngang đầu thẻ (top 12), chấm `danger` 7 px sát đáy. Node nhiều lối ra (Nếu, Switch, Đếm): mỗi cổng một dòng 18, nhãn 11 `muted` căn phải + chấm 8 viền `line-strong`; thêm đệm dưới 6. Node Kết thúc: không có chấm ra. Cổng vào: chấm 8 nền `surface` viền `line-strong` ở mép trái, top 12.
+- **Phần v2 đưa vào tooltip** (người dùng chốt 2026-10-19): "→ dừng" / "→ hết" của cổng chưa nối, chip phụ ("1 input", "thử lại 2") – hiện khi rê chuột vào chấm / thẻ; inspector vẫn ghi đủ.
+- **Nhảy về node khác** (cạnh quay lại xa): nhãn nhỏ mono "→ n2" ngoài mép phải thẻ, nền `surface` viền `line`, thay vì vẽ cạnh dài.
+- Đang chọn: `ring-selected` (1.5 px) + bóng accent 16% (tối 25%). Bắt đầu: nhãn "▸ Bắt đầu" `accent-soft` ngay trên thẻ (như v2). Huy hiệu chạy / cảnh báo, outline đang chạy / lỗi: giữ như v2.
+- Cạnh: nét 1.6 `line-strong`, cong; khoảng cách giữa cột node ~200 (thẻ 168 + 32), giữa hàng ~100.
+
+### Inspector (v3 – `Main`, `Inspectors`)
+
+- **Đầu:** ô icon 36 bo 9 nền `cat-…-tile` màu `cat-…`; tên 15/600; dưới tên: mã node mono trên `soft` + **loại node là nút ▾ màu `cat-…`** (đổi loại); phải: nút ⓘ mô tả loại node (tooltip – thay thẻ mô tả N0 to), nút Xem trên màn hình, công tắc bật 34×18.
+- **Tab** Node / Input (chip số `accent-soft`), viền dưới `line`.
+- **Khối thu gọn (accordion):** mỗi nhóm một khung `border-line` bo 10 nền `panel`; đầu khối cao 38 (▾ / ▸ + tên 600 + **tóm tắt bên phải** `muted` 12 khi thu gọn: "chờ 500 ms, cố định", "thử lại 2 lần · nghỉ 500 ms", "ok → n4 · lỗi → dừng", "4 biến"). Mặc định mở *Thiết lập*, các khối khác thu gọn. Thứ tự: Thiết lập → Thời gian → Khi thất bại → Cổng ra → Output → (Lần chạy gần nhất khi có).
+- **Hàng trường:** xem *Ô nhập (`FieldKit`, `ClickDetail`)* ngay dưới – thay quy cách 104 / 30 ban đầu.
+- **Giải thích:** icon ⓘ 13 `faint` cạnh nhãn (đang mở: `accent-text`), bấm / rê mở tooltip đen (`ink` nền, chữ `bg`) rộng 230, mũi tên 10 – thay chữ giải thích dài dưới ô.
+- **Case Switch:** mỗi case một thẻ (⋮⋮ kéo, chấm màu case, tên + điều kiện `muted`), case đang sửa viền accent 45% nền accent 5%; "+ Thêm case" nét đứt.
+- **Cổng ra:** mỗi cổng một hàng: chấm màu + tên, bên phải ô chọn đích (mã node mono + tên + ▾); ghi chú "hoặc kéo trên canvas".
+- **Output:** chip `var-token` `n7.output.status`, bấm để chép (tooltip mô tả).
+- **Chân:** hàng nút chữ không viền: "Đặt làm bắt đầu", "○ Điểm dừng", phải "Xoá node" `danger-text`; viền trên `line`.
+
+### Ô nhập (`FieldKit`, `ClickDetail` – thêm 2026-10-19)
+
+Một kiểu ô cho mọi trường của inspector; các nút phụ (biến, ghim input, về mặc định) gom vào **menu ⋯ trong ô** thay vì nút {x} / ghim nằm ngoài ô (v2 – làm ô số hẹp, cắt chữ).
+
+- **Hàng:** lưới `112px 1fr` (code dùng **120 px** – nhãn có ⓘ không gãy dòng), gap 10, nhãn `muted` bên trái (rê hàng: nhãn `ink`). Ô cao **34**, bo 7, nền `field`, viền `line`; số mono 13, đơn vị `muted` 12 sát phải trong ô.
+- **Rê chuột:** viền `line-strong`, hiện nút **⋯** 26×26 (nền `soft`) ở mép phải trong ô. Mở menu: viền ô `accent`, nút ⋯ nền `accent-soft` chữ `accent-text`.
+- **Menu ⋯** (rộng 226, bo 9, mục cao 36, icon 15 `muted`): *Dùng biến…* · *Đặt làm input khi chạy* · *Về mặc định (120 ms)* · *Ô này dùng để làm gì* (chữ `muted`, mở giải thích). Mục nào không áp dụng thì không hiện.
+- **Đang dùng biến:** trong ô chỉ còn chip `var-token` (`{{vars.clickGap}}`, cắt `…`) + nút ✕ 24 "Bỏ biến" bên phải.
+- **Đã ghim làm input:** dưới nhãn có chip key (icon ghim + `gap`, mono 11, `accent-soft`, bo tròn); ô viền **nét đứt** `accent`, sau giá trị chữ nhỏ "mặc định" `muted`.
+- **Lỗi:** viền `danger` + icon ⓘ đỏ trong ô; lý do trong tooltip (không thêm dòng chữ dưới ô).
+- **Số nguyên nhỏ** (Số click, số lần thử…): ô có nút **− / +** 34×34 hai đầu, số giữa căn giữa.
+- **Cặp X / Y** (vị trí): nhãn ở **trên** (kèm ⓘ, phải ghi neo "neo trên-trái" `muted` 12), dưới là 2 ô X / Y chia đều + nút chọn trên màn hình 34 + nút ⋯ (Số / Biến, neo…). **Sơ đồ màn hình thu gọn** thành một hàng nút "Sơ đồ màn hình · cách trái 812, trên 436"; mở ra: khung `soft` có sơ đồ, chọn neo 4 góc (↖ ↗ ↙ ↘), px / %.
+- **Chữ có biến:** ô **tự cao** theo nội dung (min 34, line-height 1.85), biến là chip `var-token` trong dòng.
+- **Giải thích:** ⓘ `faint` cạnh nhãn, rê / focus hiện tooltip (fixed, không bị inspector cắt) – thay dòng chữ dài dưới ô; **lỗi / thiếu dữ liệu vẫn hiện chữ đỏ dưới ô** (không giấu vào ⓘ). Công tắc: hàng nhãn trái + công tắc (`SwitchField`). Nút chọn 2–3 mục dài, ô chữ dài: nhãn trên.
+- **Dropdown:** cùng khung ô 34, chữ cắt `…`, mũi tên ▾ 12 `muted` bên phải.
+- Theme tối: canvas vẽ bằng bảng trung tính cũ – dùng token Slate tương ứng (`field`, `line`, `line-strong`, `accent-soft`…).
+
+### Nút Chạy + menu (`RunMenu`)
+
+- Nút tách đôi `btn-primary`: trái "▶ Chạy F8" (F8 mono 11 mờ 80%), phải nút ▾ 30×34 (viền trái trắng 30%, `aria-label="Cách chạy khác"`).
+- Menu (rộng 280, bo 10, `surface`, bóng 12/32): Chạy từ node đang chọn · Chạy từng node `F10` · Xem trước trên màn hình · Ghi thao tác `F9` (icon `danger-text`); gạch ngăn; "Sửa input trước khi chạy `Shift+F8`" chữ nhỏ `muted`. Mục cao 40, icon 15 `muted`, phím tắt mono 11 bên phải. Đang chạy: nút trái thành Dừng `btn-danger-soft` như v2.
 
 ## Nguyên tắc
 
@@ -145,6 +232,18 @@ Soạn kịch bản dạng node + cạnh kiểu n8n (`@xyflow/react`). Xem mẫu
 
 ## Màn hình trên canvas → file trong repo
 
+**v3 (bước 38 – đã dựng):**
+
+| Artboard | Nội dung | File trong repo |
+|---|---|---|
+| `Main` / `MainDark` | Màn soạn gọn: thanh tiêu đề + toolbar, thư viện 224, canvas flow, inspector accordion | `components/TitleBar.tsx`, `AppChrome.tsx`, `Library.tsx` + `library/LibraryParts.tsx`, `StepForm.tsx`, `stepform/*`, `components/flow/*` (`FlowHeader`) |
+| `Inspectors` | Inspector Click, Switch theo màn hình, HTTP | `stepform/MouseFields.tsx`, `flow/nodes/ControlFields`, `stepform/HttpFields.tsx`, `flow/PortField.tsx` |
+| `Categories` | Màu 7 nhóm node, thẻ mẫu sáng / tối | token `cat-*` trong `style.css`; nhóm của node trong `flow/view.ts` |
+| `FieldKit` / `ClickDetail` | Ô nhập trong inspector: các trạng thái; node Click dùng ô mới | `stepform/shared` (`Field`, `NumField`), `NumInput`, `inputs/PinButton`, `VarTextInput`, `stepform/MouseFields`, `PointSource` |
+| `RunMenu` | Nút Chạy tách đôi + menu | `RunMenu.tsx` (`RunButton`), `AppChrome.tsx` (`Toolbar`) |
+
+**v2 (đã dựng, mã artboard đã xoá):**
+
 | Artboard | Nội dung | File trong repo |
 |---|---|---|
 | `Main` / `MainDark` | Soạn kịch bản: thư viện, danh sách bước + nhóm, inspector "Chờ ảnh" | `screens/MainScreen.tsx`, `components/StepList.tsx`, `StepForm.tsx`, `RunSettings.tsx`; thêm `components/Library.tsx` |
@@ -166,4 +265,4 @@ Soạn kịch bản dạng node + cạnh kiểu n8n (`@xyflow/react`). Xem mẫu
 | `accent-light`, `drag`, `drag-light`, `drag-marker` | bỏ; kéo thả dùng chung icon/màu trung tính, marker overlay dùng `accent` |
 | `dark-*` | bỏ; dùng token chung + `data-theme="dark"` (MiniBar, PreviewScreen) |
 
-Mã nguồn artboard (`design/canvas/*.dc.html`) đã xoá khỏi repo ngày 2026-10-18 (UI v2 đã dựng xong); xem lại: `git show f5d2dce:design/canvas/<tên>.dc.html` hoặc mở canvas.
+Mã nguồn artboard v2 đã xoá khỏi repo ngày 2026-10-18 (UI v2 đã dựng xong); xem lại: `git show f5d2dce:design/canvas/<tên>.dc.html` hoặc mở canvas. Mã artboard v3 đã xoá khi xong bước 38 (xem dòng đầu file).

@@ -1,12 +1,16 @@
-// Inspector – cấu hình node đang chọn (design v2, cột phải), sửa trực tiếp vào store.
-// Khung: đầu (loại, tên, mã node, bật / tắt), tab Node / Input; trường theo loại nằm ở components/stepform/.
+// Inspector – cấu hình node đang chọn (design v3, cột phải), sửa trực tiếp vào store.
+// Khung: đầu (màu nhóm, tên, mã node, loại, ⓘ, bật / tắt), tab Node / Input, khối thu gọn Thiết lập → Thời gian → khối flow;
+// trường theo loại nằm ở components/stepform/.
 import { ReactNode, useState } from 'react';
-import { Eye, Info, StepIcon } from './icons';
-import { Switch } from './RunSettings';
+import { Eye } from './icons';
+import { Switch } from './Switch';
 import { openOverlay } from '../windowMode';
 import { changeStepType, toggleStep, updateStep, useScript } from '../store';
-import { isControl, STEP_LABEL, Step, stepLabel, StepPoint, StepType } from '../types';
-import { hint, NumField, selectBox, TabBtn } from './stepform/shared';
+import { isControl, numVarOf, STEP_LABEL, Step, stepLabel, StepPoint, StepType } from '../types';
+import { hint, NumField, TabBtn } from './stepform/shared';
+import { InfoButton, iconBtn, InspectorHead, Section } from './stepform/InspectorParts';
+import { nodeCategory } from '../flow/category';
+import { timingSummary } from '../flow/summary';
 import { isMouse, JitterField, MouseFields } from './stepform/MouseFields';
 import { ScrollFields } from './stepform/ScrollFields';
 import { KeyFields } from './stepform/KeyFields';
@@ -28,9 +32,8 @@ import InputsTab from './stepform/InputsTab';
 import { HumanNodeField } from './HumanFields';
 import { usesHuman } from '../flow/human';
 import { nodeInfo } from '../flow/nodeInfo';
-import { NodeInfoCard, useNodeInfoShown } from './stepform/NodeInfoCard';
 
-// Loại node hành động đổi qua lại được trong ô Hành động (node điều khiển có trường riêng, không đổi loại)
+// Loại node hành động đổi qua lại được trong ô loại node ở đầu (node điều khiển có trường riêng, không đổi loại)
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'screenshot', 'clipboard', 'http', 'file', 'system', 'waitUntil', 'path', 'webWait', 'webClick',
   'webType', 'webRead', 'webScroll', 'elementRead'];
 const REF_RE = /^[A-Za-z][A-Za-z0-9_]{0,31}$/; // khớp validRef (flow.go)
@@ -38,69 +41,77 @@ const REF_RE = /^[A-Za-z][A-Za-z0-9_]{0,31}$/; // khớp validRef (flow.go)
 export default function StepForm({ step: s }: { step: Step }) {
   const script = useScript();
   const [tab, setTab] = useState<'step' | 'inputs'>('step');
-  const [infoShown, toggleInfo] = useNodeInfoShown();
   const setPoint = (i: number, p: Partial<StepPoint>) => updateStep(s.id, { points: s.points.map((q, j) => (j === i ? { ...q, ...p } : q)) });
   const atPoint = isMouse(s) || s.type === 'waitPixel' || (s.type === 'scroll' && s.points.length > 0); // có vị trí trên màn hình
+  const delay = numVarOf(s, 'delayAfter') ?? s.delayAfter;
 
   return (
-    <aside aria-label={`Thuộc tính node ${s.ref}`} className="flex w-[340px] flex-none flex-col gap-4 overflow-y-auto border-l border-line bg-surface p-4 max-[1100px]:w-[300px]">
-      <div className="flex items-center gap-3">
-        <span className="grid h-9 w-9 flex-none place-items-center rounded-[9px] bg-accent-soft text-accent-text"><StepIcon type={s.type} className="h-[18px] w-[18px]" /></span>
-        <div className="min-w-0 flex-1">
-          <input value={s.name ?? ''} placeholder={stepLabel(s)} onChange={(e) => updateStep(s.id, { name: e.target.value || undefined })}
-            aria-label="Tên node" title="Tên hiện trên thẻ – bỏ trống = tên theo loại"
-            className="w-full truncate bg-transparent text-[15px] font-semibold outline-none placeholder:text-ink" />
-          <RefInput step={s} />
-        </div>
-        <button onClick={toggleInfo} aria-label="Mô tả loại node" aria-pressed={infoShown} title={infoShown ? 'Ẩn mô tả loại node' : 'Hiện mô tả loại node'}
-          className={`grid h-8 w-8 flex-none place-items-center rounded-control border border-line hover:bg-hover hover:text-ink ${infoShown ? 'bg-soft text-ink' : 'text-muted'}`}><Info /></button>
-        {atPoint && (
-          <button onClick={() => openOverlay('point', s.id)} aria-label="Xem trên màn hình"
-            title="Xem / sửa vị trí riêng node này trên màn hình – các node khác mờ đi"
-            className="grid h-8 w-8 flex-none place-items-center rounded-control border border-line text-muted hover:bg-hover hover:text-ink"><Eye /></button>
-        )}
-        <Switch on={s.enabled} onChange={() => toggleStep(s.id)} label="Bật node" />
-      </div>
+    <aside aria-label={`Thuộc tính node ${s.ref}`} className="flex w-[340px] flex-none flex-col gap-3 overflow-y-auto border-l border-line bg-surface p-3.5 max-[1100px]:w-[300px]">
+      <InspectorHead cat={nodeCategory(s)} icon={s.type}
+        name={<input value={s.name ?? ''} placeholder={stepLabel(s)} onChange={(e) => updateStep(s.id, { name: e.target.value || undefined })}
+          aria-label="Tên node" title="Tên hiện trên thẻ – bỏ trống = tên theo loại"
+          className="w-full truncate bg-transparent text-[15px] font-semibold outline-none placeholder:text-ink" />}
+        sub={<><RefInput step={s} /><TypeSelect step={s} /></>}
+        actions={<>
+          <InfoButton info={nodeInfo(s)} />
+          {atPoint && (
+            <button onClick={() => openOverlay('point', s.id)} aria-label="Xem trên màn hình"
+              title="Xem / sửa vị trí riêng node này trên màn hình – các node khác mờ đi" className={iconBtn}><Eye /></button>
+          )}
+          <Switch on={s.enabled} onChange={() => toggleStep(s.id)} label="Bật node" />
+        </>} />
 
-      <div className="-mt-1 flex gap-[18px] border-b border-line" role="tablist">
+      <div className="flex flex-none gap-4 border-b border-line" role="tablist">
         <TabBtn active={tab === 'step'} onClick={() => setTab('step')}>Node</TabBtn>
         <TabBtn active={tab === 'inputs'} onClick={() => setTab('inputs')} title="Các giá trị hỏi khi bấm Chạy">
           Input {!!script.inputs?.length && <span className="rounded-full bg-accent-soft px-1.5 text-[11px] font-semibold text-accent-text">{script.inputs.length}</span>}
         </TabBtn>
       </div>
 
-      {/* mô tả loại node ngay dưới tab, trên các trường */}
-      {infoShown && tab === 'step' && <NodeInfoCard info={nodeInfo(s)} onHide={toggleInfo} />}
+      {tab === 'inputs' ? <InputsTab /> : <>
+        {/* node Chờ: chỉ có thời gian chờ – không hiện khối Thiết lập trống, mở sẵn khối Thời gian */}
+        {s.type !== 'wait' && <Section title="Thiết lập" scope={s.type} defaultOpen>
+          {isControl(s.type) ? <ControlSection step={s} /> : (
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <TypeBody step={s} setPoint={setPoint} />
+            </div>
+          )}
+        </Section>}
 
-      {tab === 'inputs' ? <InputsTab /> : isControl(s.type) ? <>
-        <ControlSection step={s} />
+        {!isControl(s.type) && (
+          <Section title="Thời gian" scope={s.type} defaultOpen={s.type === 'wait'} summary={timingSummary(delay, numVarOf(s, 'jitterMs') ?? s.jitterMs)}>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+              <NumField label={s.type === 'wait' ? 'Thời gian chờ' : 'Chờ sau khi xong'} step={s} field="delayAfter" unit="ms" />
+              <NumField label="Ngẫu nhiên" step={s} field="jitterMs" unit="ms" prefix="±" />
+              <span className={`col-span-2 -mt-1 ${hint}`}>
+                {s.jitterMs > 0
+                  ? `Chờ ${Math.max(s.delayAfter - s.jitterMs, 0)}–${s.delayAfter + s.jitterMs} ms${s.type === 'click' && s.clicks > 1 ? ', giữa các click cũng lệch' : ''}`
+                  : 'Thời gian chờ cố định (ngẫu nhiên = 0)'}
+                {' '}· chỉ chờ khi node thành công
+              </span>
+            </div>
+          </Section>
+        )}
+
         <FlowSections step={s} />
-      </> : <>
-        <label className="flex flex-col gap-1.5 text-muted">Hành động
-          <select value={s.type} onChange={(e) => changeStepType(s.id, e.target.value as StepType)} className={selectBox}>
-            {TYPES.map((t) => <option key={t} value={t}>{t === s.type ? stepLabel(s) : STEP_LABEL[t]}</option>)}
-          </select>
-        </label>
-
-        <div className="grid grid-cols-2 gap-3">
-          <TypeBody step={s} setPoint={setPoint} />
-        </div>
-
-        <FlowSections step={s} />
-
-        {/* Chờ sau node + ngẫu nhiên thời gian (bước 19) ở cuối, giống artboard */}
-        <section className="mt-auto grid grid-cols-2 gap-3 border-t border-line pt-3">
-          <NumField label={s.type === 'wait' ? 'Thời gian chờ' : 'Chờ sau khi xong'} step={s} field="delayAfter" unit="ms" />
-          <NumField label="Ngẫu nhiên" step={s} field="jitterMs" unit="ms" prefix="±" />
-          <span className={`col-span-2 -mt-1 ${hint}`}>
-            {s.jitterMs > 0
-              ? `Chờ ${Math.max(s.delayAfter - s.jitterMs, 0)}–${s.delayAfter + s.jitterMs} ms${s.type === 'click' && s.clicks > 1 ? ', giữa các click cũng lệch' : ''}`
-              : 'Thời gian chờ cố định (ngẫu nhiên = 0)'}
-            {' '}· chỉ chờ khi node thành công
-          </span>
-        </section>
       </>}
     </aside>
+  );
+}
+
+// Loại node dưới tên (chữ màu nhóm): node hành động đổi qua lại được, node điều khiển chỉ hiện chữ.
+function TypeSelect({ step: s }: { step: Step }) {
+  if (isControl(s.type)) return <span className="truncate text-cat">{STEP_LABEL[s.type]}</span>;
+  // select trong suốt phủ lên chữ: select thường rộng theo mục dài nhất, ▾ sẽ nằm xa chữ
+  return (
+    <span className="relative inline-flex min-w-0 items-center gap-0.5 rounded px-0.5 text-cat hover:bg-hover">
+      <span className="truncate">{stepLabel(s)}</span>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" className="flex-none" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
+      <select value={s.type} onChange={(e) => changeStepType(s.id, e.target.value as StepType)} aria-label="Loại node" title="Đổi loại node"
+        className="absolute inset-0 cursor-pointer opacity-0">
+        {TYPES.map((t) => <option key={t} value={t}>{t === s.type ? stepLabel(s) : STEP_LABEL[t]}</option>)}
+      </select>
+    </span>
   );
 }
 
@@ -112,7 +123,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {isMouse(s) && <MouseFields step={s} setPoint={setPoint} />}
       {s.type === 'path' && <PathFields step={s} />}
       {s.type === 'scroll' && <ScrollFields step={s} setPoint={setPoint} />}
-      {(isImageStep(s) || s.type === 'screenshot') && <CapturePermission />}
+      {(isImageStep(s) || s.type === 'screenshot') && s.findBy !== 'element' && <CapturePermission />}
       {s.type === 'waitImage' && <ImageSearchFields step={s} />}
       {s.type === 'clickImage' && <ClickImageFields step={s} />}
       {s.type === 'waitPixel' && <WaitPixelFields step={s} setPoint={setPoint} />}
@@ -128,8 +139,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'type' && <TypeFields step={s} />}
       {s.type === 'key' && <KeyFields step={s} />}
       {isMouse(s) && <JitterField step={s} />}
-      {usesHuman(s) && <HumanNodeField value={s.human} scriptLevel={script.human} className="col-span-2"
-        onChange={(human) => updateStep(s.id, { human })} />}
+      {usesHuman(s) && <HumanNodeField value={s.human} scriptLevel={script.human} onChange={(human) => updateStep(s.id, { human })} />}
     </>
   );
 }
@@ -141,7 +151,7 @@ function RefInput({ step: s }: { step: Step }) {
   const dup = steps.some((x) => x.id !== s.id && x.ref === draft);
   const bad = !REF_RE.test(draft) || draft === 'vars' || draft === 'last';
   return (
-    <div className="flex items-center gap-1.5 text-xs text-muted">
+    <span className="flex flex-none items-center gap-1.5 text-muted">
       <input value={draft} aria-label="Mã node" spellCheck={false}
         title="Mã node – dùng trong biến {{mã.output.x}}. Chữ cái đầu, sau đó chữ / số / _"
         onChange={(e) => {
@@ -150,8 +160,8 @@ function RefInput({ step: s }: { step: Step }) {
           if (REF_RE.test(v) && v !== 'vars' && v !== 'last' && !steps.some((x) => x.id !== s.id && x.ref === v)) updateStep(s.id, { ref: v });
         }}
         onBlur={() => setDraft(s.ref)}
-        className={`w-14 rounded bg-soft px-1 font-mono outline-none ${dup || bad ? 'text-danger-text' : 'text-ink'}`} />
-      {dup ? 'trùng mã node khác' : bad ? 'mã không hợp lệ' : <>{STEP_LABEL[s.type]}{s.enabled ? '' : ' · đang tắt'}</>}
-    </div>
+        className={`w-12 rounded bg-soft px-1 font-mono outline-none ${dup || bad ? 'text-danger-text' : 'text-ink'}`} />
+      {dup ? 'trùng mã node khác' : bad ? 'mã không hợp lệ' : null}
+    </span>
   );
 }

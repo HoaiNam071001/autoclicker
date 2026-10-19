@@ -12,7 +12,7 @@ type Props = {
   onCreateInput?: (key: string) => void; // biến mới chưa có trong tab Input
   rows?: number;
   placeholder?: string;
-  compact?: boolean; // ô ngắn (toạ độ): dòng chú thích dưới ô chỉ hiện khi có lỗi
+  compact?: boolean; // ô ngắn (toạ độ): dòng chú thích dưới ô chỉ hiện khi có lỗi (không hiện "N biến")
 };
 
 // Đoạn "{{abc" ngay trước con trỏ (chưa đóng) → đang gõ biến, trả phần đã gõ.
@@ -135,10 +135,10 @@ export default function VarTextInput({ value, onChange, inputs, nodeVars = [], o
           </div>
         )}
       </div>
-      {(!compact || badNodes.length > 0 || unknown.length > 0) && <span className="flex items-center gap-1.5 text-xs text-muted">
+      {/* chưa có biến thì không nhắc "gõ {{" ở đây – nhãn ô đã ghi (design v3, đỡ lặp dưới mọi ô) */}
+      {((!compact && used.length > 0) || badNodes.length > 0 || unknown.length > 0) && <span className="flex items-center gap-1.5 text-xs text-muted">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="12" cy="12" r="9" /><path d="M12 8h.01M11 12h1v4h1" /></svg>
-        {used.length === 0 && !badNodes.length ? `Gõ {{ để chèn biến${nodeVars.length ? ' hoặc kết quả node khác' : ''}`
-          : badNodes.length ? <span className="text-danger-text">Không có node {[...new Set(badNodes)].join(', ')}</span>
+        {badNodes.length ? <span className="text-danger-text">Không có node {[...new Set(badNodes)].join(', ')}</span>
           : unknown.length ? <span className="text-danger-text">Biến chưa có trong tab Input: {unknown.join(', ')}</span>
           : `${used.length} biến, tự thêm vào tab Input`}
       </span>}

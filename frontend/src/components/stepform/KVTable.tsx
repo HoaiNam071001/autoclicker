@@ -4,6 +4,7 @@ import { fieldBox } from '../NumInput';
 import VarTextInput from '../inputs/VarTextInput';
 import { isSecretKey } from '../../flow/http';
 import type { KV } from '../../types';
+import { Field } from './shared';
 
 type VarProps = { inputs: { key: string; label: string }[]; nodeVars: { key: string; label: string }[]; onCreateInput: (key: string) => void };
 
@@ -16,8 +17,7 @@ export function KVTable({ title, rows = [], onChange, keyHint, valueHint, varPro
     onChange(next.length ? next : undefined);
   };
   return (
-    <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-      <span className="flex items-center justify-between">{title}{rows.length > 0 && <span className="text-xs">{rows.length} dòng</span>}</span>
+    <Field label={title} wide group help={help} side={rows.length > 0 && <span className="text-xs text-muted">{rows.length} dòng</span>}>
       {rows.map((r, i) => (
         <div key={i} className="flex items-start gap-1.5">
           <label className={`${fieldBox} w-[44%] flex-none gap-1.5`}>
@@ -36,8 +36,7 @@ export function KVTable({ title, rows = [], onChange, keyHint, valueHint, varPro
       ))}
       <button onClick={() => onChange([...rows, { key: '', value: '' }])}
         className="h-8 w-fit rounded-control border border-dashed border-line-strong px-3 text-[13px] text-ink hover:bg-hover">+ Thêm dòng</button>
-      {help && <span className="text-xs">{help}</span>}
-    </div>
+    </Field>
   );
 }
 

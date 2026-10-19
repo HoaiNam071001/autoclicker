@@ -2,7 +2,7 @@
 // Đặt biến. Chỉ hiển thị: nhận node + set(patch) – app thật nối store (stepform/ControlSection), màn mẫu nối state cục bộ.
 import NumInput, { fieldBox } from '../../NumInput';
 import Segmented from '../../Segmented';
-import { Field } from '../../steps/StepFields';
+import { errText, Field, hint } from '../../stepform/shared';
 import { Trash } from '../../icons';
 import VarTextInput from '../../inputs/VarTextInput';
 import CondEditor, { CondCtx } from './CondEditor';
@@ -12,7 +12,6 @@ import type { Case, CaseOp, Step } from '../../../types';
 export type { CondCtx, CondTools, VarProps } from './CondEditor';
 
 const textBox = `${fieldBox} w-full text-ink outline-none`;
-const hint = 'text-xs text-muted';
 const sec = (ms?: number) => `${((ms ?? 0) / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} s`;
 const Grid = ({ children }: { children: React.ReactNode }) => <div className="grid grid-cols-2 gap-3">{children}</div>;
 
@@ -34,8 +33,9 @@ function IfFields({ ctx }: { ctx: CondCtx }) {
   return (
     <Grid>
       <CondEditor ctx={ctx} at={{ path: [] }} />
-      <Field label="Chờ tối đa"><NumInput value={s.timeoutMs ?? 0} unit="ms" onChange={(timeoutMs) => set({ timeoutMs: timeoutMs || undefined, intervalMs: s.intervalMs || 250 })} /></Field>
-      <span className={`self-end pb-2 ${hint}`}>{s.timeoutMs ? `Xem lại tới khi đúng, quá ${sec(s.timeoutMs)} thì là sai` : 'Xem một lần (0) – không đợi'}</span>
+      <Field label="Chờ tối đa" help={s.timeoutMs ? `Xem lại tới khi đúng, quá ${sec(s.timeoutMs)} thì là sai` : 'Xem một lần (0) – không đợi'}>
+        <NumInput value={s.timeoutMs ?? 0} unit="ms" onChange={(timeoutMs) => set({ timeoutMs: timeoutMs || undefined, intervalMs: s.intervalMs || 250 })} />
+      </Field>
     </Grid>
   );
 }
@@ -82,9 +82,9 @@ function SwitchFields({ ctx }: { ctx: CondCtx }) {
   const setCase = (i: number, p: Partial<Case>) => set({ cases: cases.map((c, j) => (j === i ? { ...c, ...p } : c)) });
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1.5 text-muted">Giá trị cần xét
+      <Field label="Giá trị cần xét" wide group help="Bằng / chứa không phân biệt hoa thường; khớp mẫu là biểu thức chính quy (thêm (?i) để bỏ qua hoa thường).">
         <VarTextInput value={s.value ?? ''} onChange={(value) => set({ value })} rows={1} placeholder="{{n2.output.text}}" {...vars} />
-      </div>
+      </Field>
       <CaseList ctx={ctx} last="không case nào khớp → cổng Khác">
         {(c, i) => (
           <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-2">
@@ -95,7 +95,6 @@ function SwitchFields({ ctx }: { ctx: CondCtx }) {
           </div>
         )}
       </CaseList>
-      <span className={hint}>Bằng / chứa không phân biệt hoa thường; khớp mẫu là biểu thức chính quy (thêm <span className="font-mono">(?i)</span> để bỏ qua hoa thường).</span>
     </div>
   );
 }
@@ -109,10 +108,8 @@ function SwitchScreenFields({ ctx }: { ctx: CondCtx }) {
       <CaseList ctx={ctx} last={`hết ${sec(s.timeoutMs)} không case nào hiện → cổng Không thấy`}>
         {(_, i) => <div className="grid grid-cols-2 gap-3"><CondEditor ctx={ctx} at={{ case: i, path: [] }} screenOnly /></div>}
       </CaseList>
-      <Grid>
-        <Field label="Chờ tối đa"><NumInput value={s.timeoutMs ?? 0} unit="ms" onChange={(timeoutMs) => set({ timeoutMs })} /></Field>
-        <Field label="Xem lại mỗi"><NumInput value={s.intervalMs ?? 250} min={10} unit="ms" onChange={(intervalMs) => set({ intervalMs })} /></Field>
-      </Grid>
+      <Field label="Chờ tối đa"><NumInput value={s.timeoutMs ?? 0} unit="ms" onChange={(timeoutMs) => set({ timeoutMs })} /></Field>
+      <Field label="Xem lại mỗi"><NumInput value={s.intervalMs ?? 250} min={10} unit="ms" onChange={(intervalMs) => set({ intervalMs })} /></Field>
     </div>
   );
 }
@@ -121,10 +118,9 @@ function SwitchScreenFields({ ctx }: { ctx: CondCtx }) {
 function CounterFields({ ctx: { step: s, set } }: { ctx: CondCtx }) {
   const max = s.max ?? 0;
   return (
-    <div className="flex flex-col gap-2">
-      <Grid><Field label="Tối đa"><NumInput value={max} min={1} unit="lần" onChange={(m) => set({ max: m })} /></Field></Grid>
-      <span className={hint}>Mỗi lần đi qua cộng 1: lần 1–{max} → cổng <b>Còn lượt</b>, lần {max + 1} → <b>Hết lượt</b> (rồi đếm lại từ đầu). Đặt lại mỗi vòng kịch bản. Dùng để chặn vòng lặp vô hạn.</span>
-    </div>
+    <Field label="Tối đa" help={`Mỗi lần đi qua cộng 1: lần 1–${max} → cổng Còn lượt, lần ${max + 1} → Hết lượt (rồi đếm lại từ đầu). Đặt lại mỗi vòng kịch bản. Dùng để chặn vòng lặp vô hạn.`}>
+      <NumInput value={max} min={1} unit="lần" stepper onChange={(m) => set({ max: m })} />
+    </Field>
   );
 }
 
@@ -133,14 +129,13 @@ function EndFields({ ctx: { step: s, set, vars } }: { ctx: CondCtx }) {
   const fail = s.endStatus === 'fail';
   return (
     <Grid>
-      <Field label="Kết quả" wide group>
+      <Field label="Kết quả" wide group help={fail ? 'Dừng kịch bản và báo lỗi kèm lời nhắn (nhật ký, thanh mini).' : 'Kết thúc vòng này bình thường – còn vòng lặp thì chạy vòng sau.'}>
         <Segmented value={fail ? 'fail' : 'success'} onChange={(endStatus) => set({ endStatus })} full label="Kết quả"
           options={[{ id: 'success', label: 'Thành công' }, { id: 'fail', label: 'Thất bại' }]} />
       </Field>
-      <div className="col-span-2 flex flex-col gap-1.5 text-muted">Lời nhắn
+      <Field label="Lời nhắn" wide group>
         <VarTextInput value={s.message ?? ''} onChange={(message) => set({ message })} rows={2} placeholder={fail ? 'Không thấy nút Nhắn tin' : ''} {...vars} />
-      </div>
-      <span className={`col-span-2 ${hint}`}>{fail ? 'Dừng kịch bản và báo lỗi kèm lời nhắn (nhật ký, thanh mini).' : 'Kết thúc vòng này bình thường – còn vòng lặp thì chạy vòng sau.'}</span>
+      </Field>
     </Grid>
   );
 }
@@ -158,13 +153,11 @@ function SetVarFields({ ctx: { step: s, set, vars } }: { ctx: CondCtx }) {
         <Segmented value={s.varOp === 'add' ? 'add' : 'set'} onChange={(varOp) => set({ varOp })} full label="Cách đặt"
           options={[{ id: 'set', label: 'Gán' }, { id: 'add', label: 'Cộng' }]} />
       </Field>
-      <div className="col-span-2 flex flex-col gap-1.5 text-muted">{s.varOp === 'add' ? 'Cộng thêm (số)' : 'Giá trị'}
+      <Field label={s.varOp === 'add' ? 'Cộng thêm (số)' : 'Giá trị'} wide group>
         <VarTextInput value={s.value ?? ''} onChange={(value) => set({ value })} rows={1} placeholder={s.varOp === 'add' ? '1' : '{{n2.output.text}}'} {...vars} />
-      </div>
-      <span className={`col-span-2 ${hint}`}>
-        {ok ? <>Dùng ở node sau: <span className="var-token">{`vars.${s.varName}`}</span>{s.varOp === 'add' ? ' – chưa có thì tính từ 0' : ''}. Đặt lại mỗi vòng.</>
-          : <span className="text-danger-text">Tên biến: chữ cái / _ đầu, sau đó chữ / số / _</span>}
-      </span>
+      </Field>
+      {ok ? <span className={`col-span-2 ${hint}`}>Dùng ở node sau: <span className="var-token">{`vars.${s.varName}`}</span>{s.varOp === 'add' ? ' – chưa có thì tính từ 0' : ''}. Đặt lại mỗi vòng.</span>
+        : <span className={`col-span-2 ${errText}`}>Tên biến: chữ cái / _ đầu, sau đó chữ / số / _</span>}
     </Grid>
   );
 }

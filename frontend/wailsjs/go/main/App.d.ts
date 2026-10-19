@@ -59,6 +59,8 @@ export function PauseScript():Promise<boolean>;
 
 export function PickElement(arg1:string):Promise<web.Picked>;
 
+export function PickElementAt(arg1:model.Script,arg2:string,arg3:number,arg4:number):Promise<engine.ElementPick>;
+
 export function PixelColorAt(arg1:number,arg2:number):Promise<string>;
 
 export function RecentScripts():Promise<Array<string>>;

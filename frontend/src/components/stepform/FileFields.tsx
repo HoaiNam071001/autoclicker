@@ -1,11 +1,11 @@
 // Node Tệp / thư mục (bước 35 N4): ghi chữ, thêm dòng csv / xlsx, tạo thư mục, xoá vào / dọn Thùng rác. Ô chữ nhận {{biến}}.
-import { Switch } from '../RunSettings';
+import { Switch } from '../Switch';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
 import { FILE_OPS, folderOf, isDeleteOp, type FileOp } from '../../flow/file';
 import { Step } from '../../types';
-import { Field, hint, selectBox, useNodeVars } from './shared';
+import { errText, Field, selectBox, useNodeVars } from './shared';
 
 export function FileFields({ step: s }: { step: Step }) {
   const script = useScript();
@@ -24,7 +24,7 @@ export function FileFields({ step: s }: { step: Step }) {
   });
   return (
     <>
-      <Field label="Làm gì" wide>
+      <Field label="Làm gì">
         <select value={op} onChange={(e) => setOp(e.target.value as FileOp)} className={selectBox}>
           {FILE_OPS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
         </select>
@@ -38,33 +38,28 @@ export function FileFields({ step: s }: { step: Step }) {
         </div>
       )}
       {op !== 'emptyTrash' && (
-        <div className="col-span-2 flex flex-col gap-1.5 text-muted">{folder ? 'Thư mục' : 'File'}
+        <Field label={folder ? 'Thư mục' : 'File'} wide group help="~ = thư mục người dùng · thư mục hệ thống, ~/Library bị chặn">
           <VarTextInput {...varProps} rows={1} compact value={s.filePath ?? ''} onChange={(v) => set({ filePath: v || undefined })}
             placeholder={folder ? '~/Downloads' : op === 'row' ? '~/Documents/don-hang.xlsx' : '~/Documents/nhat-ky.txt'} />
-          <span className={`text-xs ${s.filePath?.trim() && !badTable ? 'text-muted' : 'text-danger-text'}`}>
-            {!s.filePath?.trim() ? `Chưa nhập ${folder ? 'thư mục' : 'file'} – chạy sẽ báo lỗi`
-              : badTable ? 'Thêm dòng chỉ cho file .csv hoặc .xlsx – đổi đuôi file'
-              : '~ = thư mục người dùng · thư mục hệ thống, ~/Library bị chặn'}
-          </span>
-        </div>
+          {(!s.filePath?.trim() || badTable) && (
+            <span className={errText}>{!s.filePath?.trim() ? `Chưa nhập ${folder ? 'thư mục' : 'file'} – chạy sẽ báo lỗi` : 'Thêm dòng chỉ cho file .csv hoặc .xlsx – đổi đuôi file'}</span>
+          )}
+        </Field>
       )}
       {op === '' && <>
-        <div className="col-span-2 flex flex-col gap-1.5 text-muted">Nội dung
+        <Field label="Nội dung" wide group>
           <VarTextInput {...varProps} rows={4} value={s.text} onChange={(text) => set({ text })} placeholder={'Chạy lúc {{n1.output.startedAt}}\n'} />
-        </div>
-        <label className="col-span-2 flex items-center gap-2 text-ink">
+        </Field>
+        <Field label="Ghi nối tiếp" group help="Bật: thêm vào cuối file · tắt: ghi đè cả file">
           <Switch on={!!s.fileAppend} onChange={(on) => set({ fileAppend: on || undefined })} label="Thêm vào cuối file" />
-          Thêm vào cuối file <span className="text-xs text-muted">(tắt = ghi đè)</span>
-        </label>
+        </Field>
       </>}
       {op === 'row' && <CellsField step={s} varProps={varProps} xlsx={xlsx} />}
       {op === 'trash' && (
-        <div className="col-span-2 flex flex-col gap-1.5 text-muted">Mẫu tên file
+        <Field label="Mẫu tên file" wide group help="* = mọi ký tự, ? = một ký tự · vd bao-cao-*.csv · file ẩn bỏ qua">
           <VarTextInput {...varProps} rows={1} compact value={s.filePattern ?? ''} onChange={(v) => set({ filePattern: v || undefined })} placeholder="*.png" />
-          <span className={`text-xs ${s.filePattern?.trim() ? 'text-muted' : 'text-danger-text'}`}>
-            {s.filePattern?.trim() ? <><span className="font-mono">*</span> = mọi ký tự, <span className="font-mono">?</span> = một ký tự · vd <span className="font-mono">bao-cao-*.csv</span> · file ẩn bỏ qua</> : 'Chưa nhập mẫu tên – chạy sẽ báo lỗi'}
-          </span>
-        </div>
+          {!s.filePattern?.trim() && <span className={errText}>Chưa nhập mẫu tên – chạy sẽ báo lỗi</span>}
+        </Field>
       )}
     </>
   );
@@ -75,8 +70,8 @@ function CellsField({ step: s, varProps, xlsx }: { step: Step; varProps: Omit<Pa
   const set = (next: string[]) => updateStep(s.id, { cells: next });
   return (
     <>
-      <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-        <span className="flex items-center justify-between">Các ô của dòng mới<span className="text-xs">{cells.length} ô</span></span>
+      <Field label="Các ô của dòng mới" wide group side={<span className="text-xs text-muted">{cells.length} ô</span>}
+        help={xlsx ? 'Ô trông như số ghi thành số (Excel cộng được). Đang mở file trong Excel thì không ghi được.' : 'CSV: ô có dấu phẩy / xuống dòng tự đặt trong nháy; file mới có BOM để Excel hiện đúng tiếng Việt.'}>
         {cells.map((c, i) => (
           <div key={i} className="flex items-start gap-1.5">
             <span className="grid h-8 w-6 flex-none place-items-center font-mono text-xs">{String.fromCharCode(65 + (i % 26))}</span>
@@ -90,12 +85,11 @@ function CellsField({ step: s, varProps, xlsx }: { step: Step; varProps: Omit<Pa
           </div>
         ))}
         <button onClick={() => set([...cells, ''])} className="h-8 w-fit rounded-control border border-dashed border-line-strong px-3 text-[13px] text-ink hover:bg-hover">+ Thêm ô</button>
-        <span className={hint}>{xlsx ? 'Ô trông như số ghi thành số (Excel cộng được). Đang mở file trong Excel thì không ghi được.' : 'CSV: ô có dấu phẩy / xuống dòng tự đặt trong nháy; file mới có BOM để Excel hiện đúng tiếng Việt.'}</span>
-      </div>
+      </Field>
       {xlsx && (
-        <div className="col-span-2 flex flex-col gap-1.5 text-muted">Sheet
-          <VarTextInput {...varProps} rows={1} compact value={s.sheet ?? ''} onChange={(v) => updateStep(s.id, { sheet: v || undefined })} placeholder="bỏ trống = sheet đầu tiên" />
-        </div>
+        <Field label="Sheet" wide group>
+          <VarTextInput {...varProps} rows={1} compact value={s.sheet ?? ''} onChange={(v) => updateStep(s.id, { sheet: v || undefined })} placeholder="trống = sheet đầu" />
+        </Field>
       )}
     </>
   );

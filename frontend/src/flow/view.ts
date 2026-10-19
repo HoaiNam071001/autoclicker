@@ -4,6 +4,7 @@ import type { FlowNodeView, PortView, RunState } from '../components/flow/model'
 import { humanLabel, usesHuman } from './human';
 import { Cond, fmtMs, isControl, numVarOf, Script, Step, stepLabel } from '../types';
 import { fmtPos } from './detail';
+import { nodeCategory } from './category';
 import { firstSelector } from './element';
 import { reachable } from './edit';
 import { CASE_PREFIX, flowOrder, PORT_FAIL, PORT_SUCCESS, PortShape, portsOf } from './model';
@@ -48,6 +49,7 @@ export function nodeViews(sc: Pick<Script, 'steps' | 'start' | 'edges'>, opt: Vi
       id: s.id,
       ref: s.ref,
       icon: s.type,
+      cat: nodeCategory(s),
       title: nodeTitle(s),
       detail: isControl(s.type) ? controlDetail(s) : `${fmtPos(s, refOf)} · ${numVarOf(s, 'delayAfter') ?? fmtMs(s.delayAfter)}`,
       ports: portViews(s),

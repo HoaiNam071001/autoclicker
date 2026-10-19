@@ -2,7 +2,7 @@
 // Mọi thay đổi chỉ là state cục bộ của màn mẫu.
 import { ReactNode, useState } from 'react';
 import { StepIcon } from '../components/icons';
-import { Switch } from '../components/RunSettings';
+import { Switch } from '../components/Switch';
 import NumInput from '../components/NumInput';
 import PinButton, { KeyChip } from '../components/inputs/PinButton';
 import VarTextInput from '../components/inputs/VarTextInput';
@@ -84,7 +84,7 @@ function StepTab({ step, inputs, setInputs }: Omit<Props, 'n'>) {
   return (
     <>
       <StepBody step={step} inputs={inputs} setInputs={setInputs} />
-      <Footer step={step} />
+      <div className="mt-auto border-t border-line pt-3"><Footer step={step} /></div>
     </>
   );
 }
@@ -125,7 +125,7 @@ export function Footer({ step }: { step: DemoStep }) {
   const [delay, setDelay] = useState(parseInt(step.delay) * (step.delay.includes(' s') ? 1000 : 1) || 300);
   const [bp, setBp] = useState(!!step.breakpoint);
   return (
-    <section className="mt-auto flex flex-col gap-3 border-t border-line pt-3">
+    <section className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1.5 text-muted">Chờ sau bước<NumInput value={delay} unit="ms" onChange={setDelay} /></label>
         <label className="flex flex-col gap-1.5 text-muted">Ngẫu nhiên<NumInput prefix="±" value={step.delay.includes('±') ? 50 : 0} unit="ms" onChange={() => {}} /></label>

@@ -12,11 +12,13 @@ export type HintState = {
   captureRect?: boolean; // khoanh vùng cho node Chụp màn hình, không phải ảnh mẫu
   selected: number; // số điểm đang chọn (Chọn nhiều)
   picking: boolean; // đang chọn lại điểm của node có sẵn
+  pickingElement?: boolean; // Chọn phần tử trên màn (37 E3): click lấy phần tử dưới chuột
   placing: StepType; // loại node sẽ thêm khi đặt điểm
   modKey: string; // ⌘ / Ctrl
 };
 
 export function overlayHint(h: HintState): string {
+  if (h.pickingElement) return 'Click vào phần tử cần tìm (nút, ô nhập, chữ) – app tự viết cách tìm · Esc huỷ';
   const f = h.focusStep;
   if (f) {
     if (!h.repicking) return 'Kéo marker để sửa · Esc quay lại';

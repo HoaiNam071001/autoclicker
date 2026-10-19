@@ -3,7 +3,7 @@
 import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { MousePos } from '../../wailsjs/go/main/App';
 import {
-  boundsOf, cancelPick, endpoints, hasPoints, movePoint, pickingStep, placePoint, placingType, pointKey, refOf,
+  boundsOf, cancelPick, endpoints, hasPoints, movePoint, pickingPoint, pickingStep, placePoint, placingType, pointKey, refOf,
   regionMapping, RegionMapMode, selectedScreenPoints, selectStep, setDragMode, setFocusLock, setMulti, setRegion,
   setRegionMapped, startPick, transformedSteps, useEditor,
 } from '../store';
@@ -218,7 +218,7 @@ export default function OverlayScreen() {
   const captureStep = captureTargetStep();
   const hint = overlayHint({
     focusStep, repicking, dragA: !!dragA, tool, captured: !!cap, captureRef: captureStep ? refOf(captureStep) : null, captureRect: capturesRect(),
-    selected: multi.length, picking: !!picking, placing: placingType(), modKey: modKeyName,
+    selected: multi.length, picking: !!picking, placing: placingType(), modKey: modKeyName, pickingElement: pickingPoint(),
   });
   const hintIcon = preview ? <Eye className="h-3 w-3" /> : tool === 'region' && !focus ? <Region className="h-3 w-3" />
     : tool === 'select' && !focus ? <SelectIcon className="h-3 w-3" />

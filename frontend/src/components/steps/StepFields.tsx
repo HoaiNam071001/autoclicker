@@ -6,6 +6,7 @@ import NumInput, { fieldBox } from '../NumInput';
 import Segmented from '../Segmented';
 import { Target } from '../icons';
 import { KeyChip } from '../inputs/PinButton';
+import { Field as RowField } from '../stepform/shared';
 import {
   ClickImageData, FocusWindowData, GroupData, OnTimeout, OpenData, SAMPLE_WINDOWS, ScrollData, WaitImageData, WaitPixelData,
 } from './model';
@@ -14,17 +15,11 @@ type Ctl<T> = { value: T; onChange: (v: T) => void };
 const textBox = `${fieldBox} w-full text-ink outline-none`;
 const btn = 'h-8 flex-1 rounded-control border border-line bg-surface text-ink hover:bg-hover';
 
-// group: bên trong là nhóm nút (Segmented) – dùng <div>, vì <label> bọc nút thì bấm chữ nhãn sẽ bấm luôn nút đầu
-export function Field({ label, children, wide = false, pinKey, group = false }: {
-  label: string; children: ReactNode; wide?: boolean; pinKey?: string; group?: boolean;
+// Hàng trường dùng chung với inspector thật (stepform/shared – design v3); pinKey: chip key input đã ghim dưới nhãn.
+export function Field({ label, children, wide = false, pinKey, group = false, help }: {
+  label: string; children: ReactNode; wide?: boolean; pinKey?: string; group?: boolean; help?: string;
 }) {
-  const Tag = group ? 'div' : 'label';
-  return (
-    <Tag className={`flex flex-col gap-1.5 text-muted ${wide ? 'col-span-2' : ''}`}>
-      <span className="flex items-center gap-1.5">{label}{pinKey && <KeyChip k={pinKey} />}</span>
-      {children}
-    </Tag>
-  );
+  return <RowField label={label} wide={wide} group={group} help={help} extra={pinKey && <KeyChip k={pinKey} />}>{children}</RowField>;
 }
 
 // Toạ độ X / Y + nút chọn trên màn hình

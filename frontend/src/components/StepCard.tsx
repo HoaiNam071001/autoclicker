@@ -5,7 +5,7 @@ import { StepIcon, StepIconName } from './icons';
 export const cardClass = (selected: boolean) =>
   `group relative flex cursor-default items-center gap-3 rounded-card px-3 py-[9px] ${selected ? 'ring-selected' : 'border border-line bg-surface'}`;
 
-export const tileClass = (selected: boolean) =>
+const tileClass = (selected: boolean) =>
   `grid h-8 w-8 flex-none place-items-center rounded-lg ${selected ? 'bg-accent-soft text-accent-text' : 'bg-soft text-muted'}`;
 
 // Phần giữa + phải của thẻ: "01  Tên  [chip]" / chi tiết mono, chip phụ (viền), chip thời gian.

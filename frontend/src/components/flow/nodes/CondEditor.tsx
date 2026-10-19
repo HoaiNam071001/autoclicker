@@ -4,9 +4,9 @@
 import { ReactNode, useState } from 'react';
 import NumInput, { fieldBox } from '../../NumInput';
 import Segmented from '../../Segmented';
-import { Switch } from '../../RunSettings';
 import { Target, Trash } from '../../icons';
 import AnchorField from '../../steps/AnchorField';
+import { errText, Field, SwitchField } from '../../stepform/shared';
 import VarTextInput from '../../inputs/VarTextInput';
 import { CondAt, condOf, emptyCond, patchCond, patchRoot, removeCondAt } from '../../../flow/cond';
 import type { Anchor, Cond, CondKind, CondOp, ScriptInput, Step, StepPoint } from '../../../types';
@@ -33,11 +33,11 @@ export const OPS: { id: CondOp; label: string }[] = [
   { id: 'gt', label: 'lớn hơn' }, { id: 'lt', label: 'nhỏ hơn' }, { id: 'empty', label: 'trống' },
 ];
 const selectBox = `${fieldBox} w-full text-ink`;
-const hint = 'text-xs text-muted';
 const btn = 'h-8 rounded-control border border-line bg-surface text-ink enabled:hover:bg-hover disabled:opacity-50';
 
-const Row = ({ label, children }: { label?: string; children: ReactNode }) => (
-  <div className="col-span-2 flex flex-col gap-1.5 text-muted">{label && <span>{label}</span>}{children}</div>
+// Ô rộng (nhãn trên) – như Field wide của inspector (stepform/shared)
+const Row = ({ label, help, children }: { label?: string; help?: string; children: ReactNode }) => (
+  label ? <Field label={label} wide group help={help}>{children}</Field> : <div className="col-span-2 flex flex-col gap-1.5">{children}</div>
 );
 
 // screenOnly: case Switch theo màn hình – không có "So giá trị".
@@ -99,7 +99,7 @@ export default function CondEditor({ ctx, at, screenOnly = false }: { ctx: CondC
           ))}
           <button onClick={() => upd({ conds: [...(c.conds ?? []), emptyCond('text')] })}
             className="col-span-2 h-8 rounded-control border border-dashed border-line-strong text-[13px] text-muted hover:bg-hover hover:text-ink">+ Thêm điều kiện</button>
-          <label className="col-span-2 flex items-center gap-2 text-[13px] text-ink"><Switch on={!!c.not} onChange={(v) => upd({ not: v || undefined })} label="Đảo" />Đảo cả nhóm (đúng ↔ sai)</label>
+          <SwitchField label="Đảo cả nhóm" help="Đúng ↔ sai" on={!!c.not} onChange={(v) => upd({ not: v || undefined })} />
         </>
       )}
 
@@ -108,12 +108,10 @@ export default function CondEditor({ ctx, at, screenOnly = false }: { ctx: CondC
           {yesNo('Thấy chữ', 'Không thấy chữ')}
           <Row label="Chữ cần thấy">
             {textInput(c.findText ?? '', (findText) => upd({ findText }), 'Nhắn tin')}
-            {!c.findText?.trim() && <span className="text-xs text-danger-text">Chưa nhập chữ – chạy sẽ báo lỗi.</span>}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-1 text-[13px] text-ink">
-              <label className="flex items-center gap-2"><Switch on={!!c.textExact} onChange={(v) => upd({ textExact: v || undefined })} label="Cả dòng" />Cả dòng đúng chữ này</label>
-              <label className="flex items-center gap-2"><Switch on={!!c.textNoAccent} onChange={(v) => upd({ textNoAccent: v || undefined })} label="Bỏ qua dấu" />Bỏ qua dấu</label>
-            </div>
+            {!c.findText?.trim() && <span className={errText}>Chưa nhập chữ – chạy sẽ báo lỗi.</span>}
           </Row>
+          <SwitchField label="Cả dòng" help="Chỉ khớp ô / nút chỉ có đúng chữ này" on={!!c.textExact} onChange={(v) => upd({ textExact: v || undefined })} />
+          <SwitchField label="Bỏ qua dấu" on={!!c.textNoAccent} onChange={(v) => upd({ textNoAccent: v || undefined })} />
           {area}
         </>
       )}
@@ -128,7 +126,7 @@ export default function CondEditor({ ctx, at, screenOnly = false }: { ctx: CondC
               <AnchorField value={c.points[0]} onChange={(p) => upd({ points: [{ ...c.points![0], ...p }] })}
                 onAnchor={tools.reanchor && ((ax, ay) => upd({ points: [tools.reanchor!(c.points![0], ax, ay)] }))}
                 pick={<button aria-label="Chọn trên màn hình" title="Chọn trên màn hình" disabled={!tools.pickPoint} onClick={() => tools.pickPoint?.(at)}
-                  className="grid h-8 w-9 flex-none place-items-center rounded-control border border-line text-muted enabled:hover:bg-hover enabled:hover:text-ink disabled:opacity-50"><Target /></button>} />
+                  className="grid h-[34px] w-[34px] flex-none place-items-center rounded-control border border-line text-muted enabled:hover:bg-hover enabled:hover:text-ink disabled:opacity-50"><Target /></button>} />
             ) : (
               <button onClick={() => tools.pickPoint?.(at)} disabled={!tools.pickPoint} className={btn}>Chọn điểm trên màn hình</button>
             )}
@@ -144,23 +142,23 @@ export default function CondEditor({ ctx, at, screenOnly = false }: { ctx: CondC
                 title="Lấy màu đang hiện tại điểm này trên màn hình" className={`${btn} px-2.5 text-[13px] whitespace-nowrap`}>Lấy màu</button>
             </div>
           </Row>
-          <label className="flex flex-col gap-1.5 text-muted">Sai số màu
+          <Field label="Sai số màu" help={`Mỗi kênh R / G / B lệch ≤ ${c.tolerance ?? 0}`}>
             <NumInput prefix="±" value={c.tolerance ?? 0} onChange={(tolerance) => upd({ tolerance: Math.min(tolerance, 255) })} />
-          </label>
-          <span className={`self-end pb-2 ${hint}`}>Mỗi kênh R / G / B lệch ≤ {c.tolerance ?? 0}</span>
+          </Field>
         </>
       )}
 
       {c.kind === 'value' && (
-        <Row label="So sánh">
+        <Row label="So sánh" help="Mỗi vế gõ chữ hoặc {{biến}}. Bằng / khác / chứa không phân biệt hoa thường; lớn / nhỏ so số.">
           {textInput(c.left ?? '', (left) => upd({ left }), '{{n2.output.text}}')}
           <select value={c.op ?? 'eq'} onChange={(e) => upd({ op: e.target.value as CondOp })} className={selectBox} aria-label="Phép so">
             {OPS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
           </select>
           {c.op !== 'empty' && textInput(c.right ?? '', (right) => upd({ right }), 'Lan')}
-          <label className="flex items-center gap-2 pt-1 text-[13px] text-ink"><Switch on={!!c.not} onChange={(v) => upd({ not: v || undefined })} label="Đảo" />Đảo (đúng ↔ sai)</label>
-          <span className={hint}>Mỗi vế gõ chữ hoặc <span className="font-mono">{'{{biến}}'}</span>. Bằng / khác / chứa không phân biệt hoa thường; lớn / nhỏ so số.</span>
         </Row>
+      )}
+      {c.kind === 'value' && (
+        <SwitchField label="Đảo" help="Đúng ↔ sai" on={!!c.not} onChange={(v) => upd({ not: v || undefined })} />
       )}
     </>
   );
@@ -186,12 +184,11 @@ function ImageCond({ c, upd, capture, yesNo, area }: {
           ) : 'Chưa có ảnh mẫu – bấm “Khoanh ảnh mẫu”'}
         </div>
         <button onClick={capture} disabled={!capture} className={btn}>{c.template ? 'Khoanh lại' : 'Khoanh ảnh mẫu'}</button>
-        {!c.template && <span className="text-xs text-danger-text">Chưa có ảnh mẫu – chạy sẽ báo lỗi.</span>}
+        {!c.template && <span className={errText}>Chưa có ảnh mẫu – chạy sẽ báo lỗi.</span>}
       </Row>
-      <label className="flex flex-col gap-1.5 text-muted">Độ khớp tối thiểu
+      <Field label="Độ khớp tối thiểu" help="Ảnh khoanh đúng thường khớp 95–100%">
         <NumInput value={c.threshold ?? 90} min={1} unit="%" onChange={(threshold) => upd({ threshold: Math.min(threshold, 100) })} />
-      </label>
-      <span className={`self-end pb-2 ${hint}`}>Ảnh khoanh đúng thường khớp 95–100%</span>
+      </Field>
       {area}
     </>
   );

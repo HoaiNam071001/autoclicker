@@ -8,6 +8,10 @@ const base: HintState = {
 };
 
 describe('overlayHint', () => {
+  it('chọn phần tử trên màn', () => {
+    expect(overlayHint({ ...base, pickingElement: true })).toContain('phần tử');
+  });
+
   it('xem riêng node kéo thả đang chọn lại: chờ A rồi B', () => {
     const f = makeStep({ id: 'd', type: 'drag' });
     expect(overlayHint({ ...base, focusStep: f, repicking: true })).toContain('điểm A');

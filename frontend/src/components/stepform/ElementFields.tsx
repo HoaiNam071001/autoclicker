@@ -1,14 +1,15 @@
-// Phần tử màn hình qua Accessibility (bước 37): node Đọc phần tử. ElementQueryFields (cách tìm, app, bỏ dấu, chỗ thứ
-// mấy) dùng chung cho Chờ / Click theo phần tử (E3).
+// Phần tử màn hình qua Accessibility (bước 37): node Đọc phần tử, Tìm theo: Phần tử của Chờ / Click (E3).
+// ElementQueryFields (cách tìm, app, bỏ dấu, chỗ thứ mấy) dùng chung cả hai.
 import NumInput from '../NumInput';
-import { Switch } from '../RunSettings';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
 import { Step } from '../../types';
 import { elementSelectorError } from '../../flow/element';
 import { SelectorsField } from './WebActionFields';
-import { Field, fmtSec, hint, NumField, useNodeVars } from './shared';
+import { errText, Field, fmtSec, hint, NumField, SwitchField, useNodeVars } from './shared';
+import { pickElement, testFind, useImageState } from '../../imageSteps';
+import { inWails, openOverlay } from '../../windowMode';
 
 export function ElementQueryFields({ step: s }: { step: Step }) {
   const script = useScript();
@@ -18,24 +19,52 @@ export function ElementQueryFields({ step: s }: { step: Step }) {
   return (
     <>
       <SelectorsField step={s} label="Cách tìm phần tử" value={s.selectors} onChange={(selectors) => set({ selectors })}
-        placeholder={'text=₫\naria=Thêm vào giỏ\nrole=button[name="Mua ngay"]'} emptyText="Chưa nhập cách tìm – chạy sẽ báo lỗi">
-        {bad && <span className="text-xs text-danger-text">{bad}</span>}
-        <span className={hint}>
-          <span className="font-mono">text=</span> chữ trên phần tử (chứa; <span className="font-mono">text="Gửi"</span> = đúng cả chuỗi),{' '}
-          <span className="font-mono">aria=</span> nhãn (nút chỉ có icon),{' '}
-          <span className="font-mono">role=button[name="Gửi"]</span> vai trò + tên.
-        </span>
+        placeholder={'text=₫\naria=Thêm vào giỏ\nrole=button[name="Mua ngay"]'} emptyText="Chưa nhập cách tìm – chạy sẽ báo lỗi"
+        help={'text= chữ trên phần tử (chứa; text="Gửi" = đúng cả chuỗi), aria= nhãn (nút chỉ có icon), role=button[name="Gửi"] vai trò + tên.'}>
+        {bad && <span className={errText}>{bad}</span>}
       </SelectorsField>
-      <div className="col-span-2 flex flex-col gap-1.5 text-muted">App (tuỳ chọn)
+      <Field label="App" wide group help="Tuỳ chọn: tên app (vd Google Chrome, Safari) hoặc bundle id. Cửa sổ phải đang hiện trên màn – thu nhỏ / ở desktop khác thì không đọc được; trình duyệt chỉ thấy tab đang mở.">
         <VarTextInput value={s.elementApp ?? ''} onChange={(v) => set({ elementApp: v || undefined })} inputs={script.inputs ?? []} nodeVars={nodeVars}
-          onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} rows={1} placeholder="bỏ trống = app có cửa sổ trên cùng" />
-        <span className={hint}>Tên app (vd Google Chrome, Safari) hoặc bundle id. Cửa sổ phải đang hiện trên màn – thu nhỏ / ở desktop khác thì không đọc được; trình duyệt chỉ thấy tab đang mở.</span>
-      </div>
-      <div className="col-span-2 flex flex-wrap items-center gap-x-4 gap-y-2 py-1 text-[13px] text-ink">
-        <label className="flex items-center gap-2"><Switch on={!!s.textNoAccent} onChange={(textNoAccent) => set({ textNoAccent: textNoAccent || undefined })} label="Bỏ qua dấu" />Bỏ qua dấu</label>
-        <span className="flex items-center gap-2">Chỗ thứ
-          <NumInput value={Math.max(s.occurrence ?? 1, 1)} min={1} onChange={(n) => set({ occurrence: n > 1 ? n : undefined })} className="w-20" />
-        </span>
+          onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} rows={1} compact placeholder="trống = cửa sổ trên cùng" />
+      </Field>
+      <SwitchField label="Bỏ qua dấu" on={!!s.textNoAccent} onChange={(textNoAccent) => set({ textNoAccent: textNoAccent || undefined })} />
+      <Field label="Chỗ thứ" help="Nhiều phần tử khớp thì lấy cái thứ mấy (theo thứ tự đọc)">
+        <NumInput value={Math.max(s.occurrence ?? 1, 1)} min={1} stepper onChange={(n) => set({ occurrence: n > 1 ? n : undefined })} />
+      </Field>
+    </>
+  );
+}
+
+// Tìm theo: Phần tử của Chờ / Click theo ảnh·chữ (37 E3): cách tìm + Chọn phần tử trên màn + Thử tìm (khung vẽ trên
+// overlay; không thấy thì liệt kê các phần tử đang có để chọn lại cách tìm).
+export function ElementSearchFields({ step: s }: { step: Step }) {
+  const { finds, busy, error } = useImageState();
+  const find = finds[s.id];
+  const btn = 'h-[34px] flex-1 rounded-control border border-line bg-surface text-[13px] text-ink enabled:hover:bg-hover disabled:opacity-50';
+  return (
+    <>
+      <ElementQueryFields step={s} />
+      <div className="col-span-2 flex flex-col gap-1.5">
+        <div className="flex gap-1.5">
+          <button onClick={() => pickElement(s.id)} disabled={!inWails || busy === s.id} className={btn}
+            title={inWails ? 'Chọn phần tử trên màn: bấm vào phần tử trên màn hình – app tự viết cách tìm' : 'Chỉ dùng được trong app'}>Chọn trên màn</button>
+          <button onClick={() => testFind(s.id)} disabled={!inWails || busy === s.id || !s.selectors?.some((l) => l.trim().length > 5)} className={btn}
+            title="Tìm trong cây phần tử của app lúc này (không di chuột)">{busy === s.id ? 'Đang tìm…' : 'Thử tìm'}</button>
+        </div>
+        {find && (
+          <span className={`flex flex-col gap-1 text-xs ${find.found ? 'text-ok' : 'text-warn'}`}>
+            <span className="flex flex-wrap items-center gap-x-2">
+              {find.found ? <>Thấy tại X {find.x + Math.round(find.w / 2)} Y {find.y + Math.round(find.h / 2)}{find.ms ? ` · ${find.ms} ms` : ''}</>
+                : find.fromRun ? <>Lần chạy trước hết giờ không thấy phần tử này</> : <>Không thấy trong cửa sổ app lúc này</>}
+              {find.found && <button onClick={() => openOverlay('point', s.id)} className="text-muted underline">xem trên màn hình</button>}
+            </span>
+            {!find.found && !!find.read?.length && (
+              <span className="text-muted">Đang có: {find.read.slice(0, 12).join(' · ')}{find.read.length > 12 ? ' …' : ''}</span>
+            )}
+          </span>
+        )}
+        {error && busy === '' && <span className={errText}>{error}</span>}
+        <span className={hint}>Cửa sổ app phải đang hiện trên màn (không thu nhỏ, không ở desktop khác); trình duyệt chỉ thấy tab đang mở. Cần quyền Accessibility.</span>
       </div>
     </>
   );
@@ -44,7 +73,6 @@ export function ElementQueryFields({ step: s }: { step: Step }) {
 export function ElementReadFields({ step: s }: { step: Step }) {
   return (
     <>
-      <span className={`col-span-2 ${hint}`}>Đọc qua Accessibility của macOS – dùng được với Chrome thường đã đăng nhập và app khác. Cần quyền Accessibility.</span>
       <ElementQueryFields step={s} />
       <NumField label="Chờ tối đa" step={s} field="timeoutMs" unit="ms" min={1} />
       <Field label="Kiểm tra mỗi">

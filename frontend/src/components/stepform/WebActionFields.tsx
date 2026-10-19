@@ -2,19 +2,19 @@
 import { ReactNode } from 'react';
 import NumInput, { fieldBox } from '../NumInput';
 import Segmented from '../Segmented';
-import { Switch } from '../RunSettings';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
 import { ScrollDirection, Step } from '../../types';
 import { canBackground, parseSelector, READ_LABEL, ReadFrom, SCROLL_MODE_LABEL, ScrollMode, SELECTOR_LABEL, selectorLines } from '../../flow/web';
-import { ButtonField, DIRECTION_OPTIONS, Field, hint, NumField, useNodeVars } from './shared';
+import { ButtonField, DIRECTION_OPTIONS, Field, NumField, SwitchField, useNodeVars, varHint } from './shared';
 
 const set = (s: Step, patch: Partial<Step>) => updateStep(s.id, patch);
 
 // Ô "mỗi dòng một cách tìm" – dùng cho cách tìm phần tử và khung cuộn (webScroll tới khi thấy).
-export function SelectorsField({ step: s, label, value, onChange, placeholder, emptyText, children }: {
-  step: Step; label: string; value: string[] | undefined; onChange: (v: string[]) => void; placeholder: string; emptyText: string; children?: ReactNode;
+export function SelectorsField({ step: s, label, value, onChange, placeholder, emptyText, help, children }: {
+  step: Step; label: string; value: string[] | undefined; onChange: (v: string[]) => void; placeholder: string; emptyText: string;
+  help?: string; children?: ReactNode;
 }) {
   const script = useScript();
   const nodeVars = useNodeVars(s.id);
@@ -22,10 +22,7 @@ export function SelectorsField({ step: s, label, value, onChange, placeholder, e
   const parsed = lines.map(parseSelector);
   const bad = parsed.findIndex((p) => !p);
   return (
-    <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-      <span className="flex items-center justify-between">{label}
-        <span className="text-xs">mỗi dòng một cách</span>
-      </span>
+    <Field label={label} wide group help={help} side={<span className="text-xs text-muted">mỗi dòng một cách</span>}>
       <VarTextInput value={(value ?? []).join('\n')} onChange={(v) => onChange(v.split('\n'))} inputs={script.inputs ?? []} nodeVars={nodeVars}
         onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} rows={lines.length > 1 ? 3 : 2} placeholder={placeholder} />
       <span className={`text-xs ${bad >= 0 || (lines.length === 0 && emptyText.startsWith('Chưa')) ? 'text-danger-text' : 'text-muted'}`}>
@@ -34,7 +31,7 @@ export function SelectorsField({ step: s, label, value, onChange, placeholder, e
           : `${parsed.map((p) => SELECTOR_LABEL[p!.by] + (p!.exact ? ' (đúng cả chuỗi)' : '')).join(' → ')} · cách đầu thấy thì dùng`}
       </span>
       {children}
-    </div>
+    </Field>
   );
 }
 
@@ -56,7 +53,7 @@ export function WebClickFields({ step: s }: { step: Step }) {
       </div>
     </Field>
     <ButtonField step={s} />
-    <NumField label="Số lần click" step={s} field="clicks" min={1} />
+    <NumField label="Số lần click" step={s} field="clicks" min={1} stepper />
     <NumField label="Giữa các click" step={s} field="clickInterval" unit="ms" />
   </>;
 }
@@ -65,19 +62,12 @@ export function WebTypeFields({ step: s }: { step: Step }) {
   const script = useScript();
   const nodeVars = useNodeVars(s.id);
   return <>
-    <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-      <span className="flex items-center justify-between">Nội dung gõ
-        <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
-      </span>
+    <Field label="Nội dung gõ" wide group side={varHint}>
       <VarTextInput value={s.text} onChange={(text) => set(s, { text })} inputs={script.inputs ?? []} nodeVars={nodeVars} rows={2}
         placeholder="{{email}}" onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
-    </div>
-    <div className="col-span-2 flex flex-col gap-2 text-ink">
-      <label className="flex items-center gap-2"><Switch on={!!s.webClear} onChange={(webClear) => set(s, { webClear: webClear || undefined })} label="Xoá chữ cũ" />
-        Xoá chữ cũ trong ô trước khi gõ</label>
-      <label className="flex items-center gap-2"><Switch on={!!s.webEnter} onChange={(webEnter) => set(s, { webEnter: webEnter || undefined })} label="Enter" />
-        Bấm Enter sau khi gõ</label>
-    </div>
+    </Field>
+    <SwitchField label="Xoá chữ cũ" help="Xoá chữ cũ trong ô trước khi gõ" on={!!s.webClear} onChange={(webClear) => set(s, { webClear: webClear || undefined })} />
+    <SwitchField label="Enter sau khi gõ" on={!!s.webEnter} onChange={(webEnter) => set(s, { webEnter: webEnter || undefined })} />
   </>;
 }
 
@@ -89,12 +79,11 @@ export function WebReadFields({ step: s }: { step: Step }) {
         options={(Object.keys(READ_LABEL) as (keyof typeof READ_LABEL)[]).map((id) => ({ id, label: READ_LABEL[id][0].toUpperCase() + READ_LABEL[id].slice(1) }))} />
     </Field>
     {from === 'attr' && (
-      <Field label="Tên thuộc tính" wide>
+      <Field label="Tên thuộc tính" help="href / src trả URL đầy đủ.">
         <span className={`${fieldBox} w-full ${s.attr?.trim() ? '' : 'border-danger'}`}>
           <input value={s.attr ?? ''} onChange={(e) => set(s, { attr: e.target.value })} placeholder="href" spellCheck={false}
             className="min-w-0 flex-1 bg-transparent font-mono text-[13px] text-ink outline-none" />
         </span>
-        <span className={hint}><span className="font-mono">href</span> / <span className="font-mono">src</span> trả URL đầy đủ.</span>
       </Field>
     )}
   </>;
@@ -112,7 +101,7 @@ export function WebScrollFields({ step: s }: { step: Step }) {
         <Segmented value={s.direction ?? 'down'} onChange={(direction: ScrollDirection) => set(s, { direction })} full label="Hướng cuộn"
           options={DIRECTION_OPTIONS} />
       </Field>
-      <NumField label={mode === 'until' ? 'Mỗi lần lăn' : 'Số nấc'} step={s} field="amount" unit="nấc" min={1} />
+      <NumField label={mode === 'until' ? 'Mỗi lần lăn' : 'Số nấc'} step={s} field="amount" unit="nấc" min={1} stepper />
     </>}
     {mode === 'until' && (
       <SelectorsField step={s} label="Lăn trong khung (tuỳ chọn)" value={s.scrollIn} onChange={(scrollIn) => set(s, { scrollIn })}
@@ -125,13 +114,11 @@ export function WebScrollFields({ step: s }: { step: Step }) {
 export function WebModeField({ step: s }: { step: Step }) {
   if (!canBackground(s)) return null;
   return (
-    <Field label="Điều khiển" wide group>
+    <Field label="Điều khiển" wide group help={s.webBackground
+      ? 'Bấm / gõ / lăn qua Chrome của app, không đụng chuột – Chrome bị che hay thu nhỏ vẫn chạy. Toạ độ output theo trang. Trang chống bot kỹ nên dùng chuột thật.'
+      : 'Chuột / phím thật như người dùng, đưa Chrome lên trước khi bấm.'}>
       <Segmented value={s.webBackground ? 'bg' : 'real'} onChange={(v) => set(s, { webBackground: v === 'bg' || undefined })} full label="Điều khiển"
         options={[{ id: 'real', label: 'Chuột thật' }, { id: 'bg', label: 'Chạy nền' }]} />
-      <span className={hint}>
-        {s.webBackground ? 'Bấm / gõ / lăn qua Chrome của app, không đụng chuột – Chrome bị che hay thu nhỏ vẫn chạy. Toạ độ output theo trang. Trang chống bot kỹ nên dùng chuột thật.'
-          : 'Chuột / phím thật như người dùng, đưa Chrome lên trước khi bấm.'}
-      </span>
     </Field>
   );
 }

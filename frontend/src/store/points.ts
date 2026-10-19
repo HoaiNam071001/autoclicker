@@ -1,6 +1,7 @@
 // Điểm của node: đặt điểm mới / chọn lại trên overlay (click, F6), dời marker, đổi neo, kéo thả từ điểm trước / tương đối,
 // cuộn tại điểm. Node mới tạo từ điểm đi qua nodes.insertNode (nối theo insertAt).
 import { EventsOn } from '../../wailsjs/runtime/runtime';
+import { STEP_DEFAULTS } from '../flow/defaults';
 import { anchorPoint, fmtPoint } from '../anchor';
 import { makeStep, Anchor, Point, Step, STEP_LABEL, StepPoint, StepType } from '../types';
 import { inWails, openOverlay, setWindowMode } from '../windowMode';
@@ -85,11 +86,20 @@ export function pickPointFor(stepId: string) {
 }
 
 export const pickingStep = () => pickTarget;
+export const pickingPoint = () => pickFn !== null; // đang lấy điểm cho pickScreenPoint
 
 // Chọn điểm cho điều kiện màu (node Nếu / case Switch theo màn hình) – xong về màn chính.
 let pickCond: { id: string; at: CondAt } | null = null;
 export function pickCondPoint(stepId: string, at: CondAt) {
   pickCond = { id: stepId, at };
+  pickTarget = null;
+  return openOverlay('point');
+}
+
+// Lấy một điểm màn hình trên overlay rồi giao cho cb (vd Chọn phần tử trên màn – 37 E3); xong về màn chính.
+let pickFn: ((screen: Point) => void) | null = null;
+export function pickScreenPoint(cb: (screen: Point) => void) {
+  pickFn = cb;
   pickTarget = null;
   return openOverlay('point');
 }
@@ -110,6 +120,7 @@ export const cancelDragA = () => {
 export const cancelPick = () => {
   pickTarget = null;
   pickCond = null;
+  pickFn = null;
   pickStay = false;
   pointType = 'click';
   clearInsertAt();
@@ -120,6 +131,13 @@ export const cancelPick = () => {
 // đang chọn lại → sửa điểm của node đó rồi về màn chính; không thì thêm node click mới.
 export function placePoint(screen: Point): boolean {
   const { script: sc, dragA } = getEditor();
+  if (pickFn) { // toạ độ màn hình thật – không cần nằm trong vùng của kịch bản
+    const fn = pickFn;
+    pickFn = null;
+    setWindowMode('main');
+    fn(screen);
+    return true;
+  }
   if (focusLock && !pickTarget) {
     setNotice('Đang xem riêng một node – bấm “Chọn lại trên màn hình” để đặt điểm, hoặc “Xem tất cả”');
     return false;
@@ -157,11 +175,11 @@ export function placePoint(screen: Point): boolean {
   }
   if (a) {
     const relA = toRelative(a, sc.region)!;
-    const step = makeStep({ id: newId(), type: 'drag', points: [relA, rel], dragMs: 400, delayAfter: 500 });
+    const step = makeStep({ id: newId(), type: 'drag', ...STEP_DEFAULTS.drag, points: [relA, rel] });
     insertNode(step, (ref) => `Đã thêm ${ref}: kéo A ${fmtPoint(relA)} → B ${fmtPoint(rel)}`);
     return true;
   }
-  const step = makeStep({ id: newId(), type: pointType, points: [rel], delayAfter: 500, holdMs: pointType === 'hold' ? 1000 : 0 });
+  const step = makeStep({ id: newId(), type: pointType, ...STEP_DEFAULTS[pointType], points: [rel] });
   insertNode(step, (ref) => `Đã thêm ${ref}: ${STEP_LABEL[pointType].toLowerCase()} ${fmtPoint(rel)}`);
   return true;
 }

@@ -32,6 +32,21 @@
   --c-danger-text: #B4252B;
   --c-danger-soft: rgb(214 52 58 / 0.08);
   --c-raise: 0 1px 2px rgb(22 24 29 / 0.1);
+  /* v3 – gọn (bước 38) */
+  --c-canvas: #EFF1F4;               /* nền canvas flow */
+  --c-dot: rgb(22 24 29 / 0.09);     /* chấm lưới canvas */
+  --c-panel: #FCFCFD;                /* khối thu gọn trong inspector */
+  --c-faint: #9AA0AA;                /* icon ⓘ, chữ rất phụ */
+  /* Màu nhóm node: chữ / icon theo theme; gốc pha (-base) cho nền đầu thẻ (soft) và ô icon (tile) */
+  --c-cat-mouse: #3657C8; --c-cat-mouse-base: rgb(62 99 221);
+  --c-cat-kb: #0E7C71;    --c-cat-kb-base: rgb(15 138 126);
+  --c-cat-wait: #6A4BC4;  --c-cat-wait-base: rgb(124 92 214);
+  --c-cat-data: #93580A;  --c-cat-data-base: rgb(214 140 20);
+  --c-cat-app: #4F5866;   --c-cat-app-base: rgb(91 100 114);
+  --c-cat-flow: #B0306A;  --c-cat-flow-base: rgb(194 65 122);
+  --c-cat-web: #0B6F94;   --c-cat-web-base: rgb(14 127 168);
+  --c-cat-soft-pct: 8%;
+  --c-cat-tile-pct: 16%;
   color-scheme: light;
 }
 
@@ -60,6 +75,20 @@
   --c-danger-text: #FCA5A5;
   --c-danger-soft: rgb(248 113 113 / 0.16);
   --c-raise: none;
+  /* v3 – gọn: giữ bảng Slate, chỉ thêm token mới */
+  --c-canvas: #141820;
+  --c-dot: rgb(255 255 255 / 0.07);
+  --c-panel: #1F2530;
+  --c-faint: #6B7689;
+  --c-cat-mouse: #8EA8FF;
+  --c-cat-kb: #5FD3C4;
+  --c-cat-wait: #B9A4FF;
+  --c-cat-data: #F2B24D;
+  --c-cat-app: #B4BAC4;
+  --c-cat-flow: #F28BB8;
+  --c-cat-web: #6CCDF0;
+  --c-cat-soft-pct: 12%;
+  --c-cat-tile-pct: 24%;
   color-scheme: dark;
 }
 
@@ -88,6 +117,20 @@
     --c-danger-text: #FCA5A5;
     --c-danger-soft: rgb(248 113 113 / 0.16);
     --c-raise: none;
+    /* v3 – gọn: giữ bảng Slate, chỉ thêm token mới */
+    --c-canvas: #141820;
+    --c-dot: rgb(255 255 255 / 0.07);
+    --c-panel: #1F2530;
+    --c-faint: #6B7689;
+    --c-cat-mouse: #8EA8FF;
+    --c-cat-kb: #5FD3C4;
+    --c-cat-wait: #B9A4FF;
+    --c-cat-data: #F2B24D;
+    --c-cat-app: #B4BAC4;
+    --c-cat-flow: #F28BB8;
+    --c-cat-web: #6CCDF0;
+    --c-cat-soft-pct: 12%;
+    --c-cat-tile-pct: 24%;
     color-scheme: dark;
   }
 }
@@ -115,6 +158,14 @@
   --color-danger: var(--c-danger);
   --color-danger-text: var(--c-danger-text);
   --color-danger-soft: var(--c-danger-soft);
+  --color-canvas: var(--c-canvas);
+  --color-dot: var(--c-dot);
+  --color-panel: var(--c-panel);
+  --color-faint: var(--c-faint);
+  /* Màu nhóm node: đặt class cat-<nhóm> lên khung rồi dùng text-cat / bg-cat-soft / bg-cat-tile bên trong */
+  --color-cat: var(--cat);
+  --color-cat-soft: color-mix(in srgb, var(--cat-base) var(--c-cat-soft-pct), transparent);
+  --color-cat-tile: color-mix(in srgb, var(--cat-base) var(--c-cat-tile-pct), transparent);
 
   /* Overlay / HUD: luôn tối, không đổi theo theme */
   --color-hud: #222833;
@@ -131,6 +182,15 @@
   --radius-panel: 12px;   /* popup, bảng thêm bước */
   --radius-hud: 14px;     /* thanh mini */
 }
+
+/* Nhóm node (design v3): đặt biến --cat / --cat-base cho text-cat, bg-cat-soft, bg-cat-tile bên trong */
+.cat-mouse { --cat: var(--c-cat-mouse); --cat-base: var(--c-cat-mouse-base); }
+.cat-kb { --cat: var(--c-cat-kb); --cat-base: var(--c-cat-kb-base); }
+.cat-wait { --cat: var(--c-cat-wait); --cat-base: var(--c-cat-wait-base); }
+.cat-data { --cat: var(--c-cat-data); --cat-base: var(--c-cat-data-base); }
+.cat-app { --cat: var(--c-cat-app); --cat-base: var(--c-cat-app-base); }
+.cat-flow { --cat: var(--c-cat-flow); --cat-base: var(--c-cat-flow-base); }
+.cat-web { --cat: var(--c-cat-web); --cat-base: var(--c-cat-web-base); }
 
 /* ---- Chỉ 4 chỗ dùng gradient ---- */
 

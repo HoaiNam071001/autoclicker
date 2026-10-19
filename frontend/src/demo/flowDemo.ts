@@ -15,7 +15,7 @@ export type NodeBody =
   | { kind: 'wait'; ms: number }
   | { kind: 'control'; step: Step };
 
-export type DemoFlowNode = Omit<FlowNodeView, 'ports'> & { body: NodeBody; retry?: Retry };
+export type DemoFlowNode = Omit<FlowNodeView, 'ports' | 'cat'> & { body: NodeBody; retry?: Retry };
 
 const ACTION_PORTS: PortView[] = [
   { id: 'success', label: 'Thành công', kind: 'ok' },

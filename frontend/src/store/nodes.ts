@@ -5,6 +5,7 @@ import {
   Clip, connect, copyNodes, disconnect, InsertAt, insertNode as insertInto, nextRef, pasteNodes, pruneEdges, removeEdge as dropEdge, removeNode,
 } from '../flow/edit';
 import { findsImage, flowOrder, portsOf } from '../flow/model';
+import { STEP_DEFAULTS } from '../flow/defaults';
 import { isWebStep, type WebType } from '../flow/web';
 import { placeNode, Positions } from '../flow/layout';
 import { toggleNumVar, withNumVar } from '../flow/numvars';
@@ -38,41 +39,22 @@ export const insertTarget = () => insertAt;
 // Thêm node vào flow theo insertAt, đặt mã + vị trí, chọn nó và báo. Node sau (đặt điểm liên tiếp) nối vào node này.
 export function insertNode(step: Step, notice: (ref: string) => string) {
   const sc = script();
-  const node: Step = { ...step, ref: step.ref || nextRef(sc.steps), pos: step.pos ?? insertAt?.pos ?? placeNode(sc.steps, insertAt?.from) };
+  const node: Step = { ...step, ref: step.ref || nextRef(sc.steps), pos: step.pos ?? insertAt?.pos ?? placeNode(sc.steps, insertAt?.from, portsOf(step)) };
   updateScript(insertInto(sc, node, insertAt));
   const next = portsOf(node)[0]; // node đặt tiếp (điểm liên tiếp trên overlay) nối vào cổng đầu của node này
   if (insertAt) insertAt = next ? { from: node.id, port: next } : null;
   setEditor({ selected: node.id, notice: notice(node.ref) });
 }
 
-// Thêm node không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở, chờ ảnh…) – giá trị mặc định giống NewStep (model.go).
+// Thêm node không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở, chờ ảnh…) – mặc định ở flow/defaults (giống NewStep).
 // patch: sửa thêm sau mặc định (vd node Mở bằng Chrome của app).
 export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'waitUntil' | 'path' | 'elementRead' | WebType>, patch: Partial<Step> = {}) {
-  const defaults: Record<typeof type, Partial<Step>> = {
-    wait: { clicks: 0, delayAfter: 1000 },
-    type: { clicks: 0, delayAfter: 500 },
-    key: { clicks: 0, keys: ['enter'], delayAfter: 500 },
-    scroll: { clicks: 0, direction: 'down', amount: 3, delayAfter: 500 },
-    open: { clicks: 0, target: 'https://', delayAfter: 2000 },
-    waitImage: { clicks: 0, threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 300 },
-    clickImage: { imageSource: 'node', imageFrom: nearestFinder(), threshold: 90, timeoutMs: 10000, intervalMs: 250, delayAfter: 500 },
-    waitPixel: { clicks: 0, points: [centerPoint(script().region)], color: '#000000', tolerance: 10, timeoutMs: 5000, intervalMs: 100, delayAfter: 300 },
-    screenshot: { clicks: 0, delayAfter: 300 },
-    clipboard: { clicks: 0, delayAfter: 300 },
-    // 3 điểm neo giữa vùng / màn hình – kéo marker trên overlay để sửa
-    path: { points: [-150, 0, 150].map((x, i) => ({ x, y: i === 1 ? -100 : 0, ax: 'center' as const, ay: 'center' as const })), dragMs: 1500, delayAfter: 300 },
-    waitUntil: { clicks: 0, at: '12:00:00', delayAfter: 0 },
-    system: { clicks: 0, sysOp: 'volume', volume: 50, delayAfter: 300 },
-    file: { clicks: 0, filePath: '~/Documents/autoclicker/nhat-ky.txt', delayAfter: 300 },
-    http: { clicks: 0, method: 'GET', url: 'https://', timeoutMs: 15000, delayAfter: 0 },
-    webWait: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
-    webClick: { selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 500 },
-    webType: { clicks: 0, selectors: ['text='], webClear: true, timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
-    webRead: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 0 },
-    elementRead: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 250, delayAfter: 0 },
-    webScroll: { clicks: 0, selectors: ['text='], direction: 'down', amount: 3, timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
-  };
-  insertNode(makeStep({ id: newId(), type, ...defaults[type], ...patch }), (ref) => `Đã thêm ${ref}`);
+  // phần phụ thuộc kịch bản ghép thêm vào bảng mặc định chung (flow/defaults)
+  const dynamic: Partial<Step> = type === 'clickImage' ? { imageFrom: nearestFinder() }
+    : type === 'waitPixel' ? { points: [centerPoint(script().region)] }
+    : type === 'path' ? { points: [-150, 0, 150].map((x, i) => ({ x, y: i === 1 ? -100 : 0, ax: 'center' as const, ay: 'center' as const })) } // 3 điểm neo giữa – kéo marker để sửa
+    : {};
+  insertNode(makeStep({ id: newId(), type, ...STEP_DEFAULTS[type], ...dynamic, ...patch }), (ref) => `Đã thêm ${ref}`);
   clearInsertAt();
 }
 

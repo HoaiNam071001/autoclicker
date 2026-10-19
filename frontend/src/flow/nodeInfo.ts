@@ -5,7 +5,7 @@ import type { Step, StepType } from '../types';
 // desc: làm gì; use: dùng khi nào / ví dụ.
 export type NodeInfo = { desc: string; use: string };
 // Biến thể hiện như loại riêng trên UI: Chờ chữ / Click theo chữ (findBy text), Mở trang bằng Chrome của app.
-export type InfoKey = StepType | 'waitText' | 'clickText' | 'openWeb' | 'focusWindow';
+export type InfoKey = StepType | 'waitText' | 'clickText' | 'waitElement' | 'clickElement' | 'openWeb' | 'focusWindow';
 
 export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   click: { desc: 'Bấm chuột tại một điểm trên màn hình, một hoặc nhiều lần.', use: 'Bấm nút, mở mục, chọn ô – khi chỗ cần bấm luôn nằm cố định.' },
@@ -21,6 +21,8 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   waitImage: { desc: 'Chờ tới khi ảnh mẫu (nút, biểu tượng) hiện trên màn hình, cho biết vị trí tìm thấy.', use: 'Đợi trang tải xong, đợi hộp thoại hiện, kiểm tra đã đăng nhập chưa.' },
   waitText: { desc: 'Chờ tới khi một dòng chữ hiện trên màn hình (đọc chữ bằng OCR), cho biết vị trí.', use: 'Đợi thông báo “Thành công”, đợi tên nút hiện – không cần chụp ảnh mẫu.' },
   clickImage: { desc: 'Tìm ảnh mẫu trên màn hình rồi bấm vào đó.', use: 'Nút không nằm cố định (đổi chỗ theo cửa sổ, theo trang đã cuộn).' },
+  waitElement: { desc: 'Chờ tới khi một phần tử (nút, ô, chữ) có trong cửa sổ app – đọc qua Accessibility, không chụp màn hình.', use: 'Đợi nút / giá ở Chrome thường đã đăng nhập hoặc app khác hiện ra.' },
+  clickElement: { desc: 'Tìm phần tử theo chữ / nhãn / vai trò qua Accessibility rồi bấm bằng chuột thật.', use: 'Bấm nút chỉ có icon, nút ở Chrome thường đã đăng nhập.' },
   clickText: { desc: 'Tìm một dòng chữ trên màn hình rồi bấm vào đó.', use: 'Bấm nút / liên kết theo tên hiện trên màn, vd “Đăng nhập”, “Xem thêm”.' },
   waitPixel: { desc: 'Chờ tới khi một điểm trên màn hình có đúng màu cho trước.', use: 'Đèn trạng thái đổi màu, thanh tiến độ đầy, nút chuyển từ xám sang xanh.' },
   screenshot: { desc: 'Chụp vùng kịch bản, cả màn, vùng cố định hoặc đúng chỗ node trước thấy, lưu PNG; chép vào clipboard được.', use: 'Lưu bằng chứng sau khi đặt hàng / chuyển tiền, chụp kết quả để gửi đi.' },
@@ -49,6 +51,8 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
 export function infoKey(s: Pick<Step, 'type' | 'findBy' | 'imageSource' | 'webBrowser'>): InfoKey {
   if (s.findBy === 'text' && s.type === 'waitImage') return 'waitText';
   if (s.findBy === 'text' && s.type === 'clickImage' && s.imageSource === 'search') return 'clickText';
+  if (s.findBy === 'element' && s.type === 'waitImage') return 'waitElement';
+  if (s.findBy === 'element' && s.type === 'clickImage' && s.imageSource === 'search') return 'clickElement';
   if (s.type === 'open' && s.webBrowser) return 'openWeb';
   return s.type;
 }

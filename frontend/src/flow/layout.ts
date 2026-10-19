@@ -4,15 +4,15 @@ import type { ELK as ElkApi, ElkNode } from 'elkjs/lib/elk-api';
 import { inputY, NODE_W, nodeHeight, portY } from '../components/flow/model';
 import type { Edge } from './edit';
 import type { Point, Step } from '../types';
-import { portsOf } from './model';
+import { PORT_FAIL, PORT_SUCCESS, portsOf } from './model';
 
 // elkjs ~1,4 MB – nạp lười lần đầu xếp, không nằm trong bundle chính
 let elk: Promise<ElkApi> | null = null;
 const getElk = () => (elk ??= import('elkjs/lib/elk.bundled.js').then((m) => new m.default()));
 
 // Khoảng cách giữa các cột (lớp) và giữa các thẻ trong cột
-export const GAP_X = 72;
-export const GAP_Y = 50;
+export const GAP_X = 56;
+export const GAP_Y = 40;
 
 export type LayoutNode = { id: string; ports: string[] };
 export type Positions = Record<string, { x: number; y: number }>;
@@ -32,11 +32,11 @@ export async function layoutFlow(nodes: LayoutNode[], edges: Edge[]): Promise<Po
     children: nodes.map((n) => ({
       id: n.id,
       width: NODE_W,
-      height: nodeHeight(n.ports.length),
+      height: nodeHeight(n.ports),
       layoutOptions: { 'elk.portConstraints': 'FIXED_POS' },
       ports: [
         { id: `${n.id}|in`, x: 0, y: inputY, width: 1, height: 1, layoutOptions: { 'elk.port.side': 'WEST' } },
-        ...n.ports.map((p, i) => ({ id: `${n.id}|${p}`, x: NODE_W, y: portY(i), width: 1, height: 1, layoutOptions: { 'elk.port.side': 'EAST' } })),
+        ...n.ports.map((p, i) => ({ id: `${n.id}|${p}`, x: NODE_W, y: portY(n.ports, i), width: 1, height: 1, layoutOptions: { 'elk.port.side': 'EAST' } })),
       ],
     })),
     edges: edges
@@ -51,7 +51,7 @@ export async function layoutFlow(nodes: LayoutNode[], edges: Edge[]): Promise<Po
 
 // Vị trí cho node mới (không chạy elk): ngay bên phải node `from`, trùng thẻ khác thì dời xuống;
 // không có `from` (hoặc from chưa có vị trí) → bên phải thẻ xa nhất, cùng hàng thẻ đầu.
-export function placeNode(steps: Step[], from?: string, ports = 2): Point {
+export function placeNode(steps: Step[], from?: string, ports: string[] = [PORT_SUCCESS, PORT_FAIL]): Point {
   const placed = steps.filter((s) => s.pos);
   const src = placed.find((s) => s.id === from);
   const p: Point = src?.pos
@@ -59,7 +59,7 @@ export function placeNode(steps: Step[], from?: string, ports = 2): Point {
     : { x: placed.length ? Math.max(...placed.map((s) => s.pos!.x)) + NODE_W + GAP_X : 0, y: placed[0]?.pos?.y ?? 0 };
   const h = nodeHeight(ports);
   const hits = (y: number) => placed.some((s) => {
-    const sh = nodeHeight(portsOf(s).length);
+    const sh = nodeHeight(portsOf(s));
     return Math.abs(s.pos!.x - p.x) < NODE_W && y < s.pos!.y + sh + GAP_Y / 2 && s.pos!.y < y + h + GAP_Y / 2;
   });
   while (hits(p.y)) p.y += GAP_Y + h;

@@ -2,7 +2,7 @@
 // trị input đã chọn; thông báo Telegram / Discord / webhook khi xong hoặc lỗi. Mở từ popup "N vòng" (ScheduleRow).
 import { useState } from 'react';
 import Segmented from './Segmented';
-import { Switch } from './RunSettings';
+import { Switch } from './Switch';
 import { fieldBox } from './NumInput';
 
 export type Schedule = {

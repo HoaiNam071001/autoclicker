@@ -62,3 +62,23 @@ export const usesVar = (p: StepPoint) => !!(p.xVar || p.yVar);
 
 export const fmtPoint = (p: StepPoint) =>
   usesVar(p) ? `X ${p.xVar || '?'}  Y ${p.yVar || '?'}` : `X ${fmtAxis(p.x, p.ax)}  Y ${fmtAxis(p.y, p.ay)}`;
+
+// Tên neo ngắn cho đầu khối Vị trí (design v3): "neo trên-trái", "neo dưới-phải", "neo giữa", "theo %".
+const SIDE: Record<'x' | 'y', Record<Exclude<Anchor, 'ratio'>, string>> = {
+  x: { start: 'trái', center: 'giữa', end: 'phải' },
+  y: { start: 'trên', center: 'giữa', end: 'dưới' },
+};
+export function anchorName({ ax, ay }: Pick<StepPoint, 'ax' | 'ay'>): string {
+  const x = axisOf(ax), y = axisOf(ay);
+  if (x === 'ratio' || y === 'ratio') return 'theo %';
+  if (x === 'center' && y === 'center') return 'neo tâm';
+  return `neo ${SIDE.y[y]}-${SIDE.x[x]}`;
+}
+
+// Tóm tắt khoảng cách một dòng (hàng sơ đồ thu gọn): "cách trái 812, trên 436", "giữa ngang +20, cách dưới 10", "50% · 25%".
+export function anchorSummary({ x, y, ax, ay }: StepPoint): string {
+  const part = (n: number, a: Anchor, k: 'x' | 'y') =>
+    a === 'ratio' ? pct(n) : a === 'center' ? `giữa ${k === 'x' ? 'ngang' : 'dọc'} ${n >= 0 ? '+' : '−'}${Math.abs(n)}` : `cách ${SIDE[k][a]} ${n}`;
+  const px = part(x, axisOf(ax), 'x'), py = part(y, axisOf(ay), 'y');
+  return axisOf(ax) === 'ratio' ? `${px} · ${py}` : `${px}, ${py.replace(/^cách /, axisOf(ay) === axisOf(ax) ? '' : 'cách ')}`;
+}

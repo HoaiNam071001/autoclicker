@@ -1,4 +1,4 @@
-/* Canvas flow (bước 20) – chỉnh lại style mặc định của @xyflow/react theo token design v2 (cả 2 theme). */
+/* Canvas flow (bước 20) – chỉnh lại style mặc định của @xyflow/react theo token design v3 (cả 2 theme). */
 @import "@xyflow/react/dist/base.css";
 
 .flow-canvas {
@@ -6,23 +6,25 @@
   --xy-connectionline-stroke: var(--c-accent);
   --xy-selection-background-color: color-mix(in srgb, var(--c-accent) 8%, transparent);
   --xy-selection-border: 1px dashed var(--c-accent);
-  background: var(--c-bg);
+  background: var(--c-canvas);
 }
 .flow-canvas .react-flow__node { cursor: default; }
 .flow-canvas .react-flow__node.dragging { cursor: grabbing; }
 
-/* Cổng: chấm tròn 10 px, viền theo loại cổng; vùng bấm rộng hơn chấm */
+/* Cổng: chấm tròn 8 px (Thất bại 7 px), viền theo loại cổng; vùng bấm rộng hơn chấm */
 .flow-handle {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
+  min-width: 0;
+  min-height: 0;
   border-radius: 9999px;
   background: var(--c-surface);
-  border: 2px solid var(--c-line-strong);
+  border: 1.5px solid var(--c-line-strong);
 }
-.flow-handle::after { content: ""; position: absolute; inset: -7px; }
+.flow-handle::after { content: ""; position: absolute; inset: -8px; }
 .flow-handle.connectingto, .flow-handle:hover { border-color: var(--c-accent); background: var(--c-accent-soft); }
 .flow-port-ok { border-color: var(--c-ok); }
-.flow-port-fail { border-color: var(--c-danger); }
+.flow-port-fail { border-color: var(--c-danger); width: 7px; height: 7px; }
 .flow-port-neutral { border-color: var(--c-muted); }
 .flow-canvas .react-flow__handle-right { right: -1px; }
 .flow-canvas .react-flow__handle-left { left: -1px; }

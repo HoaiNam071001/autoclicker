@@ -106,6 +106,10 @@ export function PickElement(arg1) {
   return window['go']['main']['App']['PickElement'](arg1);
 }
 
+export function PickElementAt(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['PickElementAt'](arg1, arg2, arg3, arg4);
+}
+
 export function PixelColorAt(arg1, arg2) {
   return window['go']['main']['App']['PixelColorAt'](arg1, arg2);
 }

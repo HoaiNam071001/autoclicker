@@ -2,12 +2,11 @@
 // Tâm hình / vị trí điểm sửa ở overlay (nút 👁) hoặc ô Vị trí (MouseFields).
 import NumInput from '../NumInput';
 import Segmented from '../Segmented';
-import { Switch } from '../RunSettings';
 import { updateStep } from '../../store';
 import { fmtPoint, usesVar } from '../../anchor';
 import { SHAPES, type Shape } from '../../flow/shape';
 import { Step, StepPoint } from '../../types';
-import { Field, hint, NumField } from './shared';
+import { Field, NumField, SwitchField } from './shared';
 
 export function PathFields({ step: s }: { step: Step }) {
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
@@ -33,8 +32,8 @@ export function PathFields({ step: s }: { step: Step }) {
           <NumInput value={s.shapeH || s.shapeW || 0} min={4} unit="px" onChange={(shapeH) => set({ shapeH: shapeH === s.shapeW ? undefined : shapeH })} />
         </Field>}
       </> : <PathPoints step={s} />}
-      <NumField label="Vẽ cả nét trong" step={s} field="dragMs" unit="ms" min={1} />
-      <span className={`col-span-2 -mt-1 ${hint}`}>Giữ chuột từ đầu tới cuối – một nét liền. Bấm 👁 ở đầu để xem / kéo {shape ? 'tâm hình' : 'các điểm'} trên màn hình.</span>
+      <NumField label="Thời gian vẽ" step={s} field="dragMs" unit="ms" min={1}
+        info={`Giữ chuột từ đầu tới cuối – một nét liền. Bấm 👁 ở đầu để xem / kéo ${shape ? 'tâm hình' : 'các điểm'} trên màn hình.`} />
     </>
   );
 }
@@ -53,8 +52,8 @@ const shifted = (p: StepPoint | undefined, dx: number, dy: number): StepPoint =>
 function PathPoints({ step: s }: { step: Step }) {
   const set = (points: StepPoint[]) => updateStep(s.id, { points });
   return (
-    <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-      <span className="flex items-center justify-between">Các điểm (đi lần lượt)<span className="text-xs">{s.points.length} điểm</span></span>
+    <>
+    <Field label="Các điểm (đi lần lượt)" wide group side={<span className="text-xs text-muted">{s.points.length} điểm</span>}>
       <ol className="flex flex-col gap-1">
         {s.points.map((p, i) => (
           <li key={i} className="flex h-8 items-center gap-2 rounded-control border border-line bg-field px-2.5">
@@ -67,13 +66,10 @@ function PathPoints({ step: s }: { step: Step }) {
           </li>
         ))}
       </ol>
-      <div className="flex items-center gap-3">
-        <button onClick={() => set([...s.points, shifted(s.points[s.points.length - 1], 80, 40)])}
-          className="h-8 rounded-control border border-dashed border-line-strong px-3 text-[13px] text-ink hover:bg-hover">+ Thêm điểm</button>
-        <label className="ml-auto flex items-center gap-2 text-ink">
-          <Switch on={!!s.closed} onChange={(on) => updateStep(s.id, { closed: on || undefined })} label="Khép kín" />Khép kín
-        </label>
-      </div>
-    </div>
+      <button onClick={() => set([...s.points, shifted(s.points[s.points.length - 1], 80, 40)])}
+        className="h-8 w-fit rounded-control border border-dashed border-line-strong px-3 text-[13px] text-ink hover:bg-hover">+ Thêm điểm</button>
+    </Field>
+    <SwitchField label="Khép kín" help="Vẽ thêm đoạn từ điểm cuối về điểm đầu" on={!!s.closed} onChange={(on) => updateStep(s.id, { closed: on || undefined })} />
+    </>
   );
 }

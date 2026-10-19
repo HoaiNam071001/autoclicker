@@ -35,6 +35,10 @@ export const Stop = ({ className = 'h-3 w-3' }: P) => (
 export const Loop = ({ className = 'h-[15px] w-[15px]' }: P) => (
   <svg viewBox="0 0 24 24" className={className} {...base} strokeWidth={1.8}><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3" /></svg>
 );
+// Chạy node kế rồi dừng (debug, F10) – thanh mini
+export const StepOver = ({ className = 'h-3.5 w-3.5' }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} strokeWidth={1.9}><path d="M4 14a8 8 0 0 1 15-4M19 4v6h-6" /><circle cx="12" cy="19" r="1.6" /></svg>
+);
 export const Power = ({ className = 'h-4 w-4' }: P) => (
   <svg viewBox="0 0 24 24" className={className} {...base}><path d="M12 3v8M6.3 6.3a8 8 0 1 0 11.4 0" /></svg>
 );
@@ -48,6 +52,19 @@ export const Monitor = ({ className = 'h-3.5 w-3.5' }: P) => (
   <svg viewBox="0 0 24 24" className={className} {...base}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
 );
 // Thu gọn / mở rộng thanh bên: khung có cột trái, mũi tên theo hướng
+// Thư viện: Mẫu thử, Mở file, Lưu, mũi tên thu gọn
+export const Grid = ({ className = 'h-[15px] w-[15px]' }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} strokeWidth={1.8}><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+);
+export const Folder = ({ className = 'h-[15px] w-[15px]' }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} strokeWidth={1.8}><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+);
+export const Save = ({ className = 'h-[15px] w-[15px]' }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} strokeWidth={1.8}><path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 3v5h7V3M7 21v-7h10v7" /></svg>
+);
+export const Chevron = ({ className = 'h-[11px] w-[11px]', open = false }: P & { open?: boolean }) => (
+  <svg viewBox="0 0 24 24" className={`${className} transition-transform ${open ? 'rotate-90' : ''}`} {...base} strokeWidth={2.4}><path d="M9 6l6 6-6 6" /></svg>
+);
 export const SidebarToggle = ({ className = 'h-4 w-4', open = true }: P & { open?: boolean }) => (
   <svg viewBox="0 0 24 24" className={className} {...base} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" /><path d={open ? 'M15.5 10l-2 2 2 2' : 'M13.5 10l2 2-2 2'} />
