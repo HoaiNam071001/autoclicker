@@ -24,7 +24,7 @@ func runFile(t *testing.T, trash *devicetest.FakeTrash, allow bool, steps ...mod
 	for i := range steps {
 		steps[i].Ref = "n" + string(rune('1'+i))
 	}
-	e := New(&devicetest.FakeInput{}, scripttest.Linear(model.Script{Loops: 1, Steps: steps}), Options{AllowDelete: allow})
+	e := New(&devicetest.FakeInput{}, scripttest.Linear(model.Script{Loops: 1, Steps: steps}), Options{AllowDanger: allow})
 	e.trash = trash
 	res := map[string]model.StepResult{}
 	e.onNode = func(r model.StepResult) { res[r.Ref] = r }

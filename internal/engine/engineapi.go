@@ -25,13 +25,13 @@ type Options struct {
 	StepMode    bool                   // dừng trước mỗi node (chạy từng node)
 	KeepShots   bool                   // chụp màn hình lúc node thất bại (lịch sử chạy)
 	Browser     web.Browser            // node web + node Mở bằng Chrome của app; nil = không có (node web lỗi code browser)
-	AllowDelete bool                   // cho node Tệp / thư mục xoá vào / dọn Thùng rác – runner đặt khi người dùng đã xác nhận (script.DeleteOps)
+	AllowDanger bool                   // cho thao tác nguy hiểm (xoá file, buộc thoát app, đóng cửa sổ) – runner đặt khi người dùng đã xác nhận (script.DangerOps)
 }
 
 // New – engine cho một lần chạy kịch bản sc. in = nil khi không thao tác chuột / phím (Thử node, Thử tìm).
 func New(in device.Input, sc model.Script, o Options) *Engine {
 	e := newEngine(in, sc, o.OnProgress)
-	e.screen, e.displays, e.onNode, e.debug, e.browser, e.allowDelete = o.Screen, o.Displays, o.OnNode, o.Debug, o.Browser, o.AllowDelete
+	e.screen, e.displays, e.onNode, e.debug, e.browser, e.allowDanger = o.Screen, o.Displays, o.OnNode, o.Debug, o.Browser, o.AllowDanger
 	e.step.Store(o.StepMode)
 	if o.KeepShots {
 		e.shots = map[string]image.Image{}

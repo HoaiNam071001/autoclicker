@@ -48,7 +48,7 @@ const (
 var ClipOps = []string{ClipRead, ClipWrite, ClipImage}
 
 // Thao tác của node Tệp / thư mục (Step.FileOp). trash / emptyTrash là thao tác xoá – chạy phải được người dùng xác nhận
-// trước (script.DeleteOps, RunOptions.ConfirmDelete).
+// trước (script.DangerOps, RunOptions.ConfirmDanger).
 const (
 	FileWrite      = ""           // ghi Text vào FilePath (FileAppend: thêm vào cuối)
 	FileRow        = "row"        // thêm một dòng Cells vào file .csv / .xlsx (chưa có thì tạo)

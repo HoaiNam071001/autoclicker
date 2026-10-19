@@ -18,7 +18,7 @@ import (
 
 // WaitProgress – đang chờ (event engine:progress, trường wait): thanh mini vẽ vòng tiến độ theo thời gian chờ.
 type WaitProgress struct {
-	Kind      string `json:"kind"` // image | text | pixel | web | cond | time (chờ đến giờ)
+	Kind      string `json:"kind"` // image | text | pixel | web | cond | time (chờ đến giờ) | window | app
 	ElapsedMs int64  `json:"elapsedMs"`
 	TimeoutMs int64  `json:"timeoutMs"`
 	Best      int    `json:"best"` // % khớp tốt nhất tới giờ (pixel: 100 = đúng màu)

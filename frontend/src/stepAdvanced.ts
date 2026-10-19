@@ -8,6 +8,7 @@ import type { SysOp } from './flow/system';
 import type { IfPassed } from './flow/waitUntil';
 import type { Shape } from './flow/shape';
 import type { WinMatch, WinOp, WinPreset } from './flow/window';
+import type { AppOp } from './flow/app';
 import type { KV, Rect } from './types';
 
 export interface AdvancedFields {
@@ -54,4 +55,9 @@ export interface AdvancedFields {
   winMatch?: WinMatch; // bỏ trống = chứa (không phân biệt hoa thường, dấu)
   winPreset?: WinPreset; // setBounds: bỏ trống = đúng winRect
   winRect?: Rect; // setBounds: khung đích (preset trái / giữa / phải: chỉ lấy w, h)
+  // ứng dụng (bước 26, internal/engine/app.go) – timeoutMs: chờ app chạy / thoát
+  appOp?: AppOp; // bỏ trống = kiểm tra đang chạy (cổng yes / no)
+  appName?: string; // tên app / tên exe / bundle id; nhận {{biến}}
+  appMatch?: WinMatch; // như winMatch
+  appForce?: boolean; // thoát: quá giờ chưa thoát thì buộc thoát
 }

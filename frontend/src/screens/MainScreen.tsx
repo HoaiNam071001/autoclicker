@@ -10,7 +10,7 @@ import { inputViews, runSections } from '../scriptInputs';
 import RunDialog from '../components/inputs/RunDialog';
 import { newScript, openScript, save, useFile } from '../scriptFile';
 import SaveChangesDialog from '../components/SaveChangesDialog';
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
+import DangerConfirmDialog from '../components/DangerConfirmDialog';
 import TitleBar from '../components/TitleBar';
 import Library from '../components/Library';
 import FlowEditor from '../components/flow/FlowEditor';
@@ -94,7 +94,7 @@ export default function MainScreen() {
         {draftAt && dirty && <span title="Bản nháp lưu trên máy – mở lại app vẫn còn">Bản nháp tự lưu lúc <span className="font-mono">{clock(draftAt)}</span></span>}
       </StatusBar>
       <SaveChangesDialog />
-      <DeleteConfirmDialog />
+      <DangerConfirmDialog />
       {runForm.open && (
         <RunDialog scriptName={script.name} inputs={inputViews(script)} sections={runSections(script)}
           presets={runForm.memory.presets ?? []} initialValues={runForm.memory.last} initialPreset={runForm.memory.lastPreset} initialRemember={!!runForm.memory.autoRun}

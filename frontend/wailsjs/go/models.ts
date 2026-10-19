@@ -213,18 +213,18 @@ export namespace engine {
 
 export namespace main {
 	
-	export class DeleteCheck {
-	    ops: script.DeleteOp[];
+	export class DangerCheck {
+	    ops: script.DangerOp[];
 	    fingerprint: string;
 	    confirmed: boolean;
 	
 	    static createFrom(source: any = {}) {
-	        return new DeleteCheck(source);
+	        return new DangerCheck(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ops = this.convertValues(source["ops"], script.DeleteOp);
+	        this.ops = this.convertValues(source["ops"], script.DangerOp);
 	        this.fingerprint = source["fingerprint"];
 	        this.confirmed = source["confirmed"];
 	    }
@@ -290,7 +290,7 @@ export namespace main {
 	    from?: string;
 	    only?: boolean;
 	    step?: boolean;
-	    confirmDelete?: string;
+	    confirmDanger?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new RunOptions(source);
@@ -304,7 +304,7 @@ export namespace main {
 	        this.from = source["from"];
 	        this.only = source["only"];
 	        this.step = source["step"];
-	        this.confirmDelete = source["confirmDelete"];
+	        this.confirmDanger = source["confirmDanger"];
 	    }
 	}
 	export class ScriptFile {
@@ -960,6 +960,10 @@ export namespace model {
 	    winMatch?: string;
 	    winPreset?: string;
 	    winRect?: Rect;
+	    appOp?: string;
+	    appName?: string;
+	    appMatch?: string;
+	    appForce?: boolean;
 	    cond?: Cond;
 	    cases?: Case[];
 	    value?: string;
@@ -1073,6 +1077,10 @@ export namespace model {
 	        this.winMatch = source["winMatch"];
 	        this.winPreset = source["winPreset"];
 	        this.winRect = this.convertValues(source["winRect"], Rect);
+	        this.appOp = source["appOp"];
+	        this.appName = source["appName"];
+	        this.appMatch = source["appMatch"];
+	        this.appForce = source["appForce"];
 	        this.cond = this.convertValues(source["cond"], Cond);
 	        this.cases = this.convertValues(source["cases"], Case);
 	        this.value = source["value"];
@@ -1261,14 +1269,15 @@ export namespace samples {
 
 export namespace script {
 	
-	export class DeleteOp {
+	export class DangerOp {
 	    ref: string;
 	    op: string;
-	    folder: string;
-	    pattern: string;
+	    folder?: string;
+	    pattern?: string;
+	    target?: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new DeleteOp(source);
+	        return new DangerOp(source);
 	    }
 	
 	    constructor(source: any = {}) {
@@ -1277,6 +1286,7 @@ export namespace script {
 	        this.op = source["op"];
 	        this.folder = source["folder"];
 	        this.pattern = source["pattern"];
+	        this.target = source["target"];
 	    }
 	}
 

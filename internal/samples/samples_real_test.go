@@ -62,7 +62,7 @@ func runSample(t *testing.T, id, sandbox string) {
 	defer br.Close()
 	eng := engine.New(in, sc, engine.Options{
 		Screen: device.MainScreen(), Displays: device.Displays(), Browser: br,
-		AllowDelete: true, // chạy thật là người dùng chủ động (AUTOCLICKER_REAL) – mẫu chỉ xoá file nó tự tạo
+		AllowDanger: true, // chạy thật là người dùng chủ động (AUTOCLICKER_REAL) – mẫu chỉ xoá file / thoát app nó tự mở
 		OnNode: func(r model.StepResult) {
 			last = r
 			msg := ""

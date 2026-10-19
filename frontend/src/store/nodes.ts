@@ -48,7 +48,7 @@ export function insertNode(step: Step, notice: (ref: string) => string) {
 
 // Thêm node không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở, chờ ảnh…) – mặc định ở flow/defaults (giống NewStep).
 // patch: sửa thêm sau mặc định (vd node Mở bằng Chrome của app).
-export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'waitUntil' | 'path' | 'elementRead' | WebType>, patch: Partial<Step> = {}) {
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'waitUntil' | 'path' | 'elementRead' | WebType>, patch: Partial<Step> = {}) {
   // phần phụ thuộc kịch bản ghép thêm vào bảng mặc định chung (flow/defaults)
   const dynamic: Partial<Step> = type === 'clickImage' ? { imageFrom: nearestFinder() }
     : type === 'waitPixel' ? { points: [centerPoint(script().region)] }
@@ -70,7 +70,9 @@ function nearestFinder(): string | undefined {
 }
 
 export function updateStep(id: string, patch: Partial<Step>) {
-  setSteps(script().steps.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  const steps = script().steps.map((s) => (s.id === id ? { ...s, ...patch } : s));
+  // appOp quyết định cổng ra (Ứng dụng kiểm tra: yes / no) → bỏ cạnh từ cổng không còn
+  updateScript('appOp' in patch ? { steps, edges: pruneEdges(steps, script().edges) } : { steps });
 }
 
 // Trường số lấy từ biến (F5c): bật / tắt (toggleNumVar), sửa biểu thức (withNumVar).

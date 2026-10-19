@@ -33,7 +33,7 @@ type Info struct {
 	Description string   `json:"description"`
 	App         string   `json:"app"`   // kiểu app: Cơ bản, Form, Shop, Chat…
 	Level       int      `json:"level"` // 1 dễ – 3 khó
-	Page        string   `json:"page"`  // trang sân thử (vd click.html) hoặc URL web thật
+	Page        string   `json:"page"`  // trang sân thử (vd click.html) hoặc URL web thật; "" = mẫu chỉ dùng app của hệ điều hành
 	Real        bool     `json:"real"`  // chạy trên web thật – có thể hỏng khi trang đổi giao diện
 	Prep        string   `json:"prep,omitempty"`
 	Steps       []string `json:"steps"` // các loại bước có trong mẫu, theo thứ tự xuất hiện

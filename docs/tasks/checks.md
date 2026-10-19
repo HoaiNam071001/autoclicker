@@ -3,6 +3,14 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 26 A1–A3 – Node Ứng dụng + xác nhận thao tác nguy hiểm · [phase3/26-cua-so-ung-dung.md](phase3/26-cua-so-ung-dung.md)
+
+- [ ] Mẫu thử **Ứng dụng – mở Notepad, gõ chữ rồi thoát** (đóng Notepad trước): lần đầu hiện hộp *Kịch bản này sẽ thoát app / đóng cửa sổ* liệt kê n6; Cho phép → Notepad mở, có dòng chữ rồi tự tắt; chạy lại không hỏi nữa. Notepad đang mở sẵn → đi nhánh Đang chạy, dừng báo lỗi, không đụng Notepad
+- [ ] Thêm node Ứng dụng (Ctrl+K → Ứng dụng): thẻ có cổng *Đang chạy* / *Không chạy*; đổi sang Thoát → cổng Thành công / Thất bại (cạnh cũ bỏ); ô App hiện ● Đang chạy · n cửa sổ / ○ Không chạy; *Chọn từ app đang chạy…* liệt kê app (Chrome một dòng), gõ lọc không dấu
+- [ ] Thoát app đang hỏi lưu (Notepad cũ / Word có chữ chưa lưu) không bật *Quá giờ thì buộc thoát* → hết giờ cổng Thất bại, app vẫn mở hộp hỏi lưu; bật → app bị tắt
+- [ ] Kịch bản có node Tệp xoá file (đã đồng ý trước đây): hỏi lại một lần (file đồng ý đổi tên `danger-consent.json`)
+- [ ] App ghi `explorer.exe` + Thoát → báo lỗi ngay khi bấm Chạy, không chạy
+
 ## 26 W1–W3a – Node Cửa sổ (Windows) · [phase3/26-cua-so-ung-dung.md](phase3/26-cua-so-ung-dung.md)
 
 - [ ] Mẫu thử **Cửa sổ – đặt 1280 × 800 bên trái rồi chụp**: cửa sổ trình duyệt nhảy về góc trái 1280 × 800; thu nhỏ / kéo sang chỗ khác / phóng to rồi chạy lại vẫn ra như vậy; lời kết thúc ghi khung + cỡ ảnh khớp

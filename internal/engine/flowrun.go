@@ -199,6 +199,7 @@ func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) (res mode
 			port, out, err = e.runControl(ctx, rs, logf)
 		} else {
 			out, err = e.runStep(ctx, rs, wait)
+			port = actionPort(rs, out)
 		}
 		if err == nil {
 			res.Status, res.Port, res.Output = model.StatusSuccess, port, out
@@ -253,7 +254,7 @@ func errCode(err error) string {
 		return model.ErrNetwork
 	case errors.As(err, &late):
 		return model.ErrTimeout
-	case errors.Is(err, device.ErrNoPermission), errors.Is(err, device.ErrNoAccessibility), errors.Is(err, errDeleteNotAllowed):
+	case errors.Is(err, device.ErrNoPermission), errors.Is(err, device.ErrNoAccessibility), errors.Is(err, errDangerNotAllowed):
 		return model.ErrPermission
 	}
 	return model.ErrInternal

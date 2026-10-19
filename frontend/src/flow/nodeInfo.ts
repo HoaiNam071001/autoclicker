@@ -39,6 +39,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   webRead: { desc: 'Đọc chữ, giá trị hoặc thuộc tính của phần tử trong trang web vào biến.', use: 'Lấy giá, mã đơn, số dư, link để node sau dùng hoặc so sánh.' },
   webScroll: { desc: 'Cuộn trang web tới phần tử, cuộn trong một khung, hoặc cuộn tới khi thấy phần tử.', use: 'Đưa nút cuối trang vào tầm nhìn, lăn feed tới bài cần tìm.' },
   window: { desc: 'Đưa cửa sổ lên trước, chờ mở / đóng, đặt vị trí + cỡ, thu nhỏ hay đóng.', use: 'Đầu kịch bản: cố định cửa sổ để toạ độ click, ảnh mẫu không lệch giữa các lần chạy.' },
+  app: { desc: 'Kiểm tra app đang chạy (rẽ nhánh), chờ app mở xong / thoát hẳn, thoát hay buộc thoát app.', use: 'App chưa chạy thì Mở rồi chờ có cửa sổ; cuối kịch bản tắt app.' },
   if: { desc: 'Kiểm tra điều kiện (thấy chữ / ảnh / màu, so giá trị) rồi đi nhánh Đúng hoặc Sai.', use: 'Đã đăng nhập thì bỏ qua bước đăng nhập; hết hàng thì dừng.' },
   switch: { desc: 'So một giá trị (input, kết quả node trước) với nhiều trường hợp, mỗi trường hợp một nhánh.', use: 'Rẽ theo trạng thái đơn hàng, theo lựa chọn nhập lúc Chạy.' },
   switchScreen: { desc: 'Xem màn hình đang hiện gì (theo chữ / ảnh) rồi đi nhánh tương ứng.', use: 'Trang có thể ra nhiều kiểu: màn đăng nhập, captcha, trang chính…' },

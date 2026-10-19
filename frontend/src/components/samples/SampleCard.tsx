@@ -27,8 +27,8 @@ export default function SampleCard({ sample, ready, onPick, onOpenPage }: {
       </div>
       <div className="mt-auto flex items-center gap-2 pt-1">
         <span className="flex-1 truncate font-mono text-[11px] text-muted" title={sample.page}>{sample.page}</span>
-        <button disabled={!ready} title={off ?? 'Mở trang đích trong trình duyệt'} onClick={onOpenPage}
-          className="h-8 rounded-control px-2.5 text-[13px] text-muted enabled:hover:bg-hover enabled:hover:text-ink disabled:opacity-60">Mở trang</button>
+        {sample.page && <button disabled={!ready} title={off ?? 'Mở trang đích trong trình duyệt'} onClick={onOpenPage}
+          className="h-8 rounded-control px-2.5 text-[13px] text-muted enabled:hover:bg-hover enabled:hover:text-ink disabled:opacity-60">Mở trang</button>}
         <button disabled={!ready} title={off ?? 'Mở bản sao trong trình soạn (chưa lưu)'} onClick={onPick}
           className="btn-primary h-8 rounded-control px-3 text-[13px] font-medium disabled:opacity-60">Dùng mẫu</button>
       </div>

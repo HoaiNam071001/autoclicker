@@ -79,6 +79,10 @@ func portsOf(s Step) []string {
 		return []string{}
 	case StepSetVar:
 		return []string{PortSuccess}
+	case StepApp:
+		if s.AppOp == AppCheck {
+			return []string{PortYes, PortNo}
+		}
 	}
 	return []string{PortSuccess, PortFail}
 }

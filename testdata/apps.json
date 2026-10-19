@@ -1,0 +1,20 @@
+{
+  "_doc": "Chọn app của node Ứng dụng (bước 26): MatchApps (internal/model/app.go) ↔ matchApps (frontend/src/flow/app.ts). want = chỉ số mọi tiến trình khớp (“error” = regex sai).",
+  "apps": [
+    { "name": "chrome", "id": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", "pid": 10, "windows": 0 },
+    { "name": "chrome", "id": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", "pid": 11, "windows": 2 },
+    { "name": "Notepad", "id": "C:\\Program Files\\WindowsApps\\Notepad\\Notepad.exe", "pid": 20, "windows": 1 },
+    { "name": "Zalo", "id": "", "pid": 30, "windows": 0 },
+    { "name": "TextEdit", "id": "com.apple.TextEdit", "pid": 40, "windows": 1 }
+  ],
+  "cases": [
+    { "app": "chrome.exe", "match": "", "want": [0, 1] },
+    { "app": "CHROME", "match": "exact", "want": [0, 1] },
+    { "app": "note", "match": "", "want": [2] },
+    { "app": "note", "match": "exact", "want": [] },
+    { "app": "com.apple.textedit", "match": "exact", "want": [4] },
+    { "app": "^za", "match": "regex", "want": [3] },
+    { "app": "telegram", "match": "", "want": [] },
+    { "app": "(", "match": "regex", "want": "error" }
+  ]
+}

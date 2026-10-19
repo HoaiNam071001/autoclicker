@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
-import { DeleteCheck, RunScript, ValidateScript } from '../wailsjs/go/main/App';
-import { askDelete } from './deleteConfirm';
+import { DangerCheck, RunScript, ValidateScript } from '../wailsjs/go/main/App';
+import { askDanger } from './dangerConfirm';
 import { main, model } from '../wailsjs/go/models';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { Script } from './types';
@@ -19,7 +19,7 @@ export type Progress = {
   paused: boolean;
   retry?: number; // đang thử lại lần thứ mấy (0 / trống = lần đầu)
   retries?: number; // số lần thử lại tối đa của bước hiện tại
-  wait?: { kind: 'image' | 'text' | 'pixel' | 'web' | 'cond' | 'time' | 'window'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (internal/engine/imagestep.go)
+  wait?: { kind: 'image' | 'text' | 'pixel' | 'web' | 'cond' | 'time' | 'window' | 'app'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (internal/engine/imagestep.go)
   break?: 'breakpoint' | 'step'; // debug: đang dừng trước node nodeId (Tiếp / F10)
   from?: { ref: string; port: string }; // node vừa chạy + cổng đã đi tới node này
   counter?: { ref: string; count: number; max: number }; // node Đếm gần nhất còn lượt (đang trong vòng lặp của nó)
@@ -75,13 +75,13 @@ export async function runScript(script: Script, countdown: boolean, values: Reco
   if (state.running || !inWails) return;
   const sc = model.Script.createFrom(debug.from ? { ...script, start: debug.from } : script);
   set({ preset });
-  let confirmDelete = ''; // kịch bản có thao tác xoá chưa đồng ý → hỏi (deleteConfirm.ts), Go ghi nhớ khi chạy
+  let confirmDanger = ''; // kịch bản có thao tác nguy hiểm chưa đồng ý → hỏi (dangerConfirm.ts), Go ghi nhớ khi chạy
   try {
     await ValidateScript(sc, values);
-    const chk = await DeleteCheck(sc, values, path);
+    const chk = await DangerCheck(sc, values, path);
     if (chk.ops?.length && !chk.confirmed) {
-      if (!(await askDelete(chk.ops))) return;
-      confirmDelete = chk.fingerprint;
+      if (!(await askDanger(chk.ops))) return;
+      confirmDanger = chk.fingerprint;
     }
   } catch (e) {
     set({ lastError: errorText(e), stopReason: '' });
@@ -89,7 +89,7 @@ export async function runScript(script: Script, countdown: boolean, values: Reco
   }
   await setWindowMode('minibar');
   try {
-    await RunScript(sc, values, main.RunOptions.createFrom({ countdown: countdown ? COUNTDOWN_SEC : 0, path, source: 'user', confirmDelete, ...debug }));
+    await RunScript(sc, values, main.RunOptions.createFrom({ countdown: countdown ? COUNTDOWN_SEC : 0, path, source: 'user', confirmDanger, ...debug }));
   } catch (e) {
     set({ lastError: errorText(e) });
   }

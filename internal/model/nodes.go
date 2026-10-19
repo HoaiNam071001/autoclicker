@@ -1,6 +1,6 @@
 package model
 
-// Cổng ra của node điều khiển (ngoài success / fail ở flow.go).
+// Cổng ra của node điều khiển + node Ứng dụng kiểm tra (ngoài success / fail ở flow.go).
 const (
 	PortTrue    = "true"
 	PortFalse   = "false"
@@ -8,6 +8,8 @@ const (
 	PortNone    = "none"    // switchScreen: hết giờ không case nào hiện
 	PortNext    = "next"    // counter: còn lượt
 	PortDone    = "done"    // counter: hết lượt
+	PortYes     = "yes"     // app kiểm tra: đang chạy
+	PortNo      = "no"      // app kiểm tra: không chạy
 	CasePrefix  = "case:"
 )
 

@@ -17,7 +17,7 @@ export function ClearDraft():Promise<void>;
 
 export function ConfirmQuit():Promise<void>;
 
-export function DeleteCheck(arg1:model.Script,arg2:Record<string, any>,arg3:string):Promise<main.DeleteCheck>;
+export function DangerCheck(arg1:model.Script,arg2:Record<string, any>,arg3:string):Promise<main.DangerCheck>;
 
 export function Displays():Promise<Array<main.DisplayInfo>>;
 

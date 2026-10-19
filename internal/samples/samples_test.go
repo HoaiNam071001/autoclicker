@@ -32,7 +32,7 @@ func TestSamplesValid(t *testing.T) {
 		if info.Name == "" || info.Description == "" || info.App == "" || info.Level < 1 || info.Level > 3 {
 			t.Errorf("%s: thiếu tên / mô tả / kiểu app / độ khó 1–3: %+v", info.ID, info)
 		}
-		if !info.Real {
+		if !info.Real && info.Page != "" { // không trang = mẫu chỉ dùng app của hệ điều hành (Notepad…)
 			if _, err := pageFS.ReadFile("pages/" + info.Page); err != nil {
 				t.Errorf("%s: trang sân thử %q không có", info.ID, info.Page)
 			}

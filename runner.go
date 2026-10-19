@@ -52,7 +52,7 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 	if err := script.ValidateScript(sc, screen); err != nil {
 		return err
 	}
-	canDelete, err := allowDelete(sc, opt.Path, opt.ConfirmDelete)
+	canDanger, err := allowDanger(sc, opt.Path, opt.ConfirmDanger)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (a *App) RunScript(sc model.Script, values map[string]any, opt RunOptions) 
 	br := web.NewChrome(profile, in.Move) // nối lười – kịch bản không có node web thì không đụng trình duyệt
 	defer br.Close()
 	eng := engine.New(in, sc, engine.Options{
-		Screen: screen, Displays: device.Displays(), Debug: opt.Source == SourceUser, StepMode: opt.Step, KeepShots: true, Browser: br, AllowDelete: canDelete,
+		Screen: screen, Displays: device.Displays(), Debug: opt.Source == SourceUser, StepMode: opt.Step, KeepShots: true, Browser: br, AllowDanger: canDanger,
 		OnProgress: func(p engine.Progress) { runtime.EventsEmit(a.ctx, "engine:progress", p) },
 		OnNode: func(r model.StepResult) {
 			rec.Add(r, types[r.NodeID])
@@ -217,8 +217,8 @@ type RunOptions struct {
 	From      string `json:"from,omitempty"`   // debug: chạy một vòng bắt đầu từ node này thay cho start
 	Only      bool   `json:"only,omitempty"`   // cùng From: chỉ chạy riêng node From (RunNode cho AI – 31c)
 	Step      bool   `json:"step,omitempty"`   // debug: dừng trước mỗi node, Tiếp / F10 chạy node kế
-	// dấu vân tay thao tác xoá người dùng vừa đồng ý (DeleteCheck) – chạy được và ghi nhớ; trống = chỉ chạy khi đã đồng ý trước đó
-	ConfirmDelete string `json:"confirmDelete,omitempty"`
+	// dấu vân tay thao tác nguy hiểm người dùng vừa đồng ý (DangerCheck) – chạy được và ghi nhớ; trống = chỉ chạy khi đã đồng ý trước đó
+	ConfirmDanger string `json:"confirmDanger,omitempty"`
 }
 
 // ListRuns – lịch sử chạy của kịch bản (tên + đường dẫn file như lúc chạy), mới nhất trước.

@@ -19,6 +19,8 @@ const PORTS: Record<string, Omit<PortView, 'id'>> = {
   none: { label: 'Không thấy', kind: 'neutral' },
   next: { label: 'Còn lượt', kind: 'neutral' },
   done: { label: 'Hết lượt', kind: 'neutral' },
+  yes: { label: 'Đang chạy', kind: 'neutral' },
+  no: { label: 'Không chạy', kind: 'neutral' },
 };
 export function portView(id: string, s?: Pick<Step, 'type' | 'cases'>): PortView {
   if (id.startsWith(CASE_PREFIX)) {
@@ -158,6 +160,8 @@ function ownOutputs(s: Step): OutputField[] {
       { key: 'left', desc: 'X góc trên trái' }, { key: 'top', desc: 'Y góc trên trái' }, { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' },
       { key: 'x', desc: 'X tâm cửa sổ' }, { key: 'y', desc: 'Y tâm cửa sổ' }, { key: 'display', desc: 'màn thứ mấy (từ 1)' },
       { key: 'minimized', desc: 'đang thu nhỏ (true / false)' }, { key: 'pid', desc: 'mã tiến trình' }];
+    case 'app': return [{ key: 'running', desc: 'đang chạy (true / false)' }, { key: 'pid', desc: 'mã tiến trình' }, { key: 'name', desc: 'tên app' },
+      { key: 'id', desc: 'đường dẫn exe / bundle id' }, { key: 'windows', desc: 'số cửa sổ đang mở' }];
     case 'system': return [{ key: 'volume', desc: 'âm lượng sau khi chạy (%)' }, { key: 'muted', desc: 'đang tắt tiếng (true / false)' }];
     case 'file': return s.fileOp === 'trash' ? [{ key: 'count', desc: 'số file đã xoá' }, { key: 'files', desc: 'tên các file đã xoá' }]
       : s.fileOp === 'emptyTrash' ? [] : s.fileOp === 'row' ? [{ key: 'path', desc: 'đường dẫn file' }, { key: 'rows', desc: 'số dòng sau khi thêm' }]

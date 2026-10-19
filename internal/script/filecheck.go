@@ -1,9 +1,6 @@
 package script
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"path/filepath"
 	"strings"
 
@@ -41,33 +38,4 @@ func checkFileStep(i int, s model.Step) error {
 		}
 	}
 	return nil
-}
-
-// DeleteOp – một thao tác xoá trong kịch bản (node Tệp / thư mục trash / emptyTrash) – hiện cho người dùng xác nhận.
-type DeleteOp struct {
-	Ref     string `json:"ref"`
-	Op      string `json:"op"`      // trash | emptyTrash
-	Folder  string `json:"folder"`  // trash: thư mục (có thể còn biến node)
-	Pattern string `json:"pattern"` // trash: mẫu tên file
-}
-
-// DeleteOps – thao tác xoá của các node đang bật, theo thứ tự trong mảng (input đã thay). Fingerprint đổi khi thư mục /
-// mẫu tên / thao tác đổi → phải xác nhận lại.
-func DeleteOps(sc model.Script) (ops []DeleteOp, fingerprint string) {
-	for _, s := range sc.Steps {
-		if !s.Enabled || s.Type != model.StepFile || (s.FileOp != model.FileTrash && s.FileOp != model.FileEmptyTrash) {
-			continue
-		}
-		op := DeleteOp{Ref: s.Ref, Op: s.FileOp}
-		if s.FileOp == model.FileTrash {
-			op.Folder, op.Pattern = strings.TrimSpace(s.FilePath), strings.TrimSpace(s.FilePattern)
-		}
-		ops = append(ops, op)
-	}
-	if len(ops) == 0 {
-		return nil, ""
-	}
-	b, _ := json.Marshal(ops)
-	h := sha256.Sum256(b)
-	return ops, hex.EncodeToString(h[:8])
 }

@@ -16,15 +16,15 @@ import (
 )
 
 // Node Tệp / thư mục (bước 35 N4): ghi file chữ, thêm dòng csv / xlsx, tạo thư mục, xoá file vào Thùng rác, dọn Thùng rác.
-// Xoá chỉ chạy khi người dùng đã xác nhận (Options.AllowDelete – script.DeleteOps); thư mục hệ thống / thư mục người
+// Xoá chỉ chạy khi người dùng đã xác nhận (Options.AllowDanger – script.DangerOps); thư mục hệ thống / thư mục người
 // dùng bị chặn (guardPath).
 
 func (e *Engine) fileStep(ctx context.Context, s model.Step) (map[string]any, error) {
 	if err := e.gate.wait(ctx); err != nil {
 		return nil, err
 	}
-	if (s.FileOp == model.FileTrash || s.FileOp == model.FileEmptyTrash) && !e.allowDelete {
-		return nil, fmt.Errorf("%w: thao tác xoá chưa được xác nhận – bấm Chạy trong app để xác nhận", errDeleteNotAllowed)
+	if (s.FileOp == model.FileTrash || s.FileOp == model.FileEmptyTrash) && !e.allowDanger {
+		return nil, dangerErr("thao tác xoá")
 	}
 	if s.FileOp == model.FileEmptyTrash {
 		return map[string]any{}, e.trash.EmptyTrash()
@@ -59,8 +59,7 @@ func (e *Engine) fileStep(ctx context.Context, s model.Step) (map[string]any, er
 // utf8BOM – đầu file CSV mới: Excel đọc đúng UTF-8 (tiếng Việt).
 const utf8BOM = "\xEF\xBB\xBF"
 
-// errDeleteNotAllowed – xoá khi chưa xác nhận: lỗi code permission (flowrun errCode).
-var errDeleteNotAllowed = fmt.Errorf("chưa cho phép xoá")
+
 
 func writeText(p, text string, appendTo bool) (map[string]any, error) {
 	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {

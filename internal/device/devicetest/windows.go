@@ -68,11 +68,13 @@ func (f *FakeWindows) Close(id uint64) error {
 
 func (f *FakeWindows) WorkArea(model.Rect) model.Rect { return f.Work }
 
-// FakeApps – app giả: Quit / ForceQuit bỏ app khỏi Apps và ghi Log ("quit 10", "force 10").
+// FakeApps – app giả: Quit / ForceQuit bỏ app khỏi Apps và ghi Log ("quit 10", "force 10"). AskSave: Quit chỉ ghi Log,
+// app vẫn chạy (như app đang hỏi lưu).
 type FakeApps struct {
-	mu   sync.Mutex
-	Apps []model.AppInfo
-	Log  []string
+	mu      sync.Mutex
+	Apps    []model.AppInfo
+	Log     []string
+	AskSave bool
 }
 
 func (f *FakeApps) List() ([]model.AppInfo, error) {
@@ -81,8 +83,28 @@ func (f *FakeApps) List() ([]model.AppInfo, error) {
 	return append([]model.AppInfo(nil), f.Apps...), nil
 }
 
-func (f *FakeApps) Quit(pid int) error      { return f.remove(pid, "quit") }
+func (f *FakeApps) Quit(pid int) error {
+	if f.AskSave {
+		f.mu.Lock()
+		defer f.mu.Unlock()
+		f.Log = append(f.Log, fmt.Sprintf("quit %d", pid))
+		return nil
+	}
+	return f.remove(pid, "quit")
+}
+
 func (f *FakeApps) ForceQuit(pid int) error { return f.remove(pid, "force") }
+
+// SetWindows đổi số cửa sổ của tiến trình pid (app vừa mở cửa sổ) – an toàn khi engine đang đọc.
+func (f *FakeApps) SetWindows(pid, n int) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	for i := range f.Apps {
+		if f.Apps[i].PID == pid {
+			f.Apps[i].Windows = n
+		}
+	}
+}
 
 func (f *FakeApps) remove(pid int, op string) error {
 	f.mu.Lock()

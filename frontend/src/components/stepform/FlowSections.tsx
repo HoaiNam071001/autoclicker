@@ -6,6 +6,7 @@ import { footerBtn, footerRow, Section } from './InspectorParts';
 import { nodeViews, outputsOf } from '../../flow/view';
 import { outputsSummary, portsSummary, retrySummary } from '../../flow/summary';
 import { runRows } from '../../flow/run';
+import { PORT_FAIL } from '../../flow/model';
 import { connectPort, disconnectPort, removeStep, selectStep, setStart, updateStep, useScript } from '../../store';
 import { useRunLog } from '../../runStore';
 import { CAN_FAIL, Step } from '../../types';
@@ -22,7 +23,7 @@ export default function FlowSections({ step: s }: { step: Step }) {
   const outputs = outputsOf(s);
   return (
     <>
-      {CAN_FAIL.includes(s.type) && (
+      {CAN_FAIL.includes(s.type) && view.ports.some((p) => p.id === PORT_FAIL) && ( // Ứng dụng kiểm tra: chỉ có yes / no
         <Section title="Khi thất bại" scope={s.type} summary={retrySummary(s.retry)}>
           <RetryPanel value={{ count: s.retry?.count ?? 0, delayMs: s.retry?.delayMs ?? 0 }}
             onChange={(r) => updateStep(s.id, { retry: r.count ? r : undefined })} />

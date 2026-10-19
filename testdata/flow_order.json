@@ -244,5 +244,56 @@
       "x",
       "z"
     ]
+  },
+  {
+    "name": "Ứng dụng kiểm tra: cổng yes trước no; thao tác khác success / fail",
+    "script": {
+      "start": "a",
+      "steps": [
+        {
+          "id": "a",
+          "type": "app"
+        },
+        {
+          "id": "c",
+          "type": "wait"
+        },
+        {
+          "id": "b",
+          "type": "app",
+          "appOp": "quit"
+        },
+        {
+          "id": "d",
+          "type": "wait"
+        }
+      ],
+      "edges": [
+        {
+          "id": "1",
+          "from": "a",
+          "port": "no",
+          "to": "c"
+        },
+        {
+          "id": "2",
+          "from": "a",
+          "port": "yes",
+          "to": "b"
+        },
+        {
+          "id": "3",
+          "from": "b",
+          "port": "fail",
+          "to": "d"
+        }
+      ]
+    },
+    "order": [
+      "a",
+      "b",
+      "d",
+      "c"
+    ]
   }
 ]

@@ -7,7 +7,7 @@ export const PORT_FAIL = 'fail';
 export const CASE_PREFIX = 'case:';
 
 // Node cần để biết cổng ra: loại + case (switch).
-export type PortShape = Pick<Step, 'type' | 'cases'>;
+export type PortShape = Pick<Step, 'type' | 'cases' | 'appOp'>;
 
 // Cổng ra hợp lệ theo thứ tự trên thẻ (trên → dưới) – cùng công thức portsOf (flow.go).
 export function portsOf(s: PortShape): string[] {
@@ -19,6 +19,7 @@ export function portsOf(s: PortShape): string[] {
     case 'counter': return ['next', 'done'];
     case 'end': return [];
     case 'setVar': return [PORT_SUCCESS];
+    case 'app': if (!s.appOp) return ['yes', 'no'];
     default: return [PORT_SUCCESS, PORT_FAIL];
   }
 }
@@ -31,7 +32,7 @@ export const findsImage = (s: Pick<Step, 'type' | 'imageSource'>) =>
 export const edgeOut = (edges: Edge[], from: string, port: string) => edges.find((e) => e.from === from && e.port === port)?.to ?? '';
 
 // Các node theo thứ tự hiển thị (xem trước, danh sách trong form Chạy).
-export const orderedSteps = <S extends Pick<Step, 'id' | 'type' | 'cases'>>(sc: { steps: S[]; start: string; edges: Edge[] }): S[] => {
+export const orderedSteps = <S extends Pick<Step, 'id' | 'type' | 'cases' | 'appOp'>>(sc: { steps: S[]; start: string; edges: Edge[] }): S[] => {
   const byId = new Map(sc.steps.map((s) => [s.id, s]));
   return flowOrder(sc).map((id) => byId.get(id)!);
 };
@@ -39,7 +40,7 @@ export const orderedSteps = <S extends Pick<Step, 'id' | 'type' | 'cases'>>(sc: 
 // Thứ tự hiển thị: duyệt sâu từ start, mỗi node đi các cổng theo thứ tự portsOf (nhánh success trước), node đã gặp bỏ qua;
 // node không đi tới được xếp cuối theo thứ tự trong mảng.
 // Đồ thị tối thiểu để duyệt: node chỉ cần id + loại (cổng ra theo loại).
-export type FlowShape = { start: string; steps: Pick<Step, 'id' | 'type' | 'cases'>[]; edges: Edge[] };
+export type FlowShape = { start: string; steps: Pick<Step, 'id' | 'type' | 'cases' | 'appOp'>[]; edges: Edge[] };
 
 export function flowOrder(sc: FlowShape): string[] {
   const byId = new Map(sc.steps.map((s) => [s.id, s]));

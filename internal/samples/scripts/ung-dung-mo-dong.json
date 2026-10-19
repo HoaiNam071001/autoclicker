@@ -1,0 +1,70 @@
+{
+ "meta": {
+  "name": "Ứng dụng – mở Notepad, gõ chữ rồi thoát",
+  "description": "Kiểm tra Notepad đang chạy chưa → chưa thì Mở → chờ Notepad có cửa sổ → gõ một dòng → thoát, quá 3 s chưa thoát (Notepad hỏi lưu) thì buộc thoát, bỏ chữ vừa gõ. Đúng: lần đầu hiện hộp xác nhận “buộc thoát notepad.exe”; Notepad mở, có dòng chữ rồi tự tắt; lời kết thúc ghi pid. Notepad đang mở sẵn thì đi nhánh “Đang chạy” và dừng, không đụng vào.",
+  "app": "Cửa sổ / app",
+  "level": 1,
+  "real": false,
+  "prep": "Hiện chỉ chạy trên Windows (macOS làm sau – dùng TextEdit). Đóng Notepad trước khi chạy. Notepad Windows 11 có thể giữ lại tab chưa lưu ở lần mở sau – đóng tab đó là xong."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "app",
+    "appName": "notepad.exe",
+    "appMatch": "exact",
+    "delayAfter": 0
+   },
+   {
+    "type": "open",
+    "target": "notepad",
+    "delayAfter": 0
+   },
+   {
+    "type": "app",
+    "appOp": "waitStart",
+    "appName": "notepad.exe",
+    "appMatch": "exact",
+    "timeoutMs": 15000,
+    "delayAfter": 500
+   },
+   {
+    "type": "window",
+    "winApp": "notepad.exe",
+    "timeoutMs": 5000
+   },
+   {
+    "type": "type",
+    "text": "Mẫu thử autoclicker – dòng này sẽ không được lưu",
+    "delayAfter": 800
+   },
+   {
+    "type": "app",
+    "appOp": "quit",
+    "appName": "notepad.exe",
+    "appMatch": "exact",
+    "appForce": true,
+    "timeoutMs": 3000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã mở Notepad (pid {{n3.output.pid}}, {{n3.output.windows}} cửa sổ), gõ chữ rồi thoát"
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Notepad đang mở – lưu và đóng Notepad rồi chạy lại mẫu (mẫu buộc thoát Notepad, bỏ chữ chưa lưu)"
+   }
+  ],
+  "edges": [
+   { "from": "s1", "port": "no", "to": "s2" },
+   { "from": "s1", "port": "yes", "to": "s8" },
+   { "from": "s2", "port": "success", "to": "s3" },
+   { "from": "s3", "port": "success", "to": "s4" },
+   { "from": "s4", "port": "success", "to": "s5" },
+   { "from": "s5", "port": "success", "to": "s6" },
+   { "from": "s6", "port": "success", "to": "s7" }
+  ]
+ }
+}

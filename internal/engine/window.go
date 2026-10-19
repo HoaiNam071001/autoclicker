@@ -9,15 +9,18 @@ import (
 )
 
 // Node Cửa sổ (bước 26): tìm cửa sổ khớp WinApp + WinTitle (model.MatchWindow – trên cùng trước), chờ tới TimeoutMs
-// theo nhịp winPollMs, rồi focus / đặt khung / thu nhỏ… qua device.Windows. Output khung theo quy ước chỗ thấy
+// theo nhịp pollMs, rồi focus / đặt khung / thu nhỏ… qua device.Windows. Output khung theo quy ước chỗ thấy
 // (x, y = tâm) để node Chụp màn hình / Click theo ảnh lấy khung cửa sổ qua imageFrom.
 
-// winPollMs – nhịp đọc lại danh sách cửa sổ khi chờ.
-const winPollMs = 200
+// pollMs – nhịp đọc lại danh sách cửa sổ / app khi chờ.
+const pollMs = 200
 
 func (e *Engine) windowStep(ctx context.Context, s model.Step) (map[string]any, error) {
 	if err := e.gate.wait(ctx); err != nil {
 		return nil, err
+	}
+	if s.WinOp == model.WinClose && !e.allowDanger {
+		return nil, dangerErr("đóng cửa sổ")
 	}
 	if s.WinOp == model.WinWaitClose {
 		return map[string]any{}, e.waitWindowGone(ctx, s)
@@ -66,8 +69,9 @@ func (e *Engine) findWindow(s model.Step) (model.WindowInfo, bool, error) {
 	return wins[i], true, nil
 }
 
-// pollWindow gọi done mỗi winPollMs tới khi done trả true hoặc hết TimeoutMs (lỗi theo late).
-func (e *Engine) pollWindow(ctx context.Context, s model.Step, done func() (bool, error), late func() error) error {
+// pollUntil gọi done mỗi pollMs tới khi done trả true hoặc hết TimeoutMs (lỗi theo late); kind = Wait.Kind của tiến
+// độ (window | app). Dùng chung node Cửa sổ / Ứng dụng.
+func (e *Engine) pollUntil(ctx context.Context, s model.Step, kind string, done func() (bool, error), late func() error) error {
 	start := time.Now()
 	defer e.update(true, func(p *Progress) { p.Wait = nil })
 	for first := true; ; first = false {
@@ -83,9 +87,9 @@ func (e *Engine) pollWindow(ctx context.Context, s model.Step, done func() (bool
 			return late()
 		}
 		e.update(first, func(p *Progress) {
-			p.Wait = &WaitProgress{Kind: "window", ElapsedMs: elapsed.Milliseconds(), TimeoutMs: int64(s.TimeoutMs)}
+			p.Wait = &WaitProgress{Kind: kind, ElapsedMs: elapsed.Milliseconds(), TimeoutMs: int64(s.TimeoutMs)}
 		})
-		if err := Sleep(ctx, winPollMs); err != nil {
+		if err := Sleep(ctx, pollMs); err != nil {
 			return err
 		}
 	}
@@ -94,7 +98,7 @@ func (e *Engine) pollWindow(ctx context.Context, s model.Step, done func() (bool
 // waitWindow chờ tới khi có cửa sổ khớp. Hết giờ: chờ mở → timeout, thao tác khác → not_found.
 func (e *Engine) waitWindow(ctx context.Context, s model.Step) (model.WindowInfo, error) {
 	var w model.WindowInfo
-	err := e.pollWindow(ctx, s, func() (bool, error) {
+	err := e.pollUntil(ctx, s, "window", func() (bool, error) {
 		var ok bool
 		var err error
 		w, ok, err = e.findWindow(s)
@@ -110,7 +114,7 @@ func (e *Engine) waitWindow(ctx context.Context, s model.Step) (model.WindowInfo
 }
 
 func (e *Engine) waitWindowGone(ctx context.Context, s model.Step) error {
-	return e.pollWindow(ctx, s, func() (bool, error) {
+	return e.pollUntil(ctx, s, "window", func() (bool, error) {
 		_, ok, err := e.findWindow(s)
 		return !ok, err
 	}, func() error {

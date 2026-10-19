@@ -115,6 +115,8 @@ func VarFields(s *model.Step) []VarField {
 	case model.StepWindow:
 		add("winApp", &s.WinApp, false)
 		add("winTitle", &s.WinTitle, false)
+	case model.StepApp:
+		add("appName", &s.AppName, false)
 	case model.StepScreenshot:
 		add("saveDir", &s.SaveDir, false)
 		add("fileName", &s.FileName, false)

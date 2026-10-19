@@ -8,6 +8,7 @@ import { fmtHTTP } from '../../flow/http';
 import { fmtFile } from '../../flow/file';
 import { fmtSystem } from '../../flow/system';
 import { fmtWindow } from '../../flow/window';
+import { fmtApp } from '../../flow/app';
 import { fmtWaitUntil } from '../../flow/waitUntil';
 import { pathVertices } from '../../flow/shape';
 import { fmtKey } from '../../keys';
@@ -41,6 +42,7 @@ function bubbleOf(s: Step): string | null {
       return `${stepLabel(s)}: ${fmtSelectors(s.selectors)} – vị trí biết khi chạy thật`;
     case 'waitUntil': return `⏰ Chờ ${fmtWaitUntil(s)} – xem trước không chờ thật`;
     case 'system': return `🔊 ${fmtSystem(s)}`;
+    case 'app': return `🧩 Ứng dụng: ${fmtApp(s)} – xem trước không đụng app thật`;
     case 'window': return `🪟 Cửa sổ: ${fmtWindow(s)} – xem trước không đổi cửa sổ thật`;
     case 'file': return `📄 ${fmtFile(s)}`;
     case 'http': return `🌐 ${fmtHTTP(s)} – kết quả biết khi chạy thật`;

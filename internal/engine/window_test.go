@@ -29,7 +29,7 @@ func winEngine() (*Engine, *devicetest.FakeWindows) {
 		},
 		Work: model.Rect{X: 0, Y: 0, W: 1920, H: 1040},
 	}
-	e := New(&devicetest.FakeInput{}, model.Script{}, Options{Displays: []model.Rect{{W: 1920, H: 1080}, {X: 1920, W: 1280, H: 1024}}})
+	e := New(&devicetest.FakeInput{}, model.Script{}, Options{AllowDanger: true, Displays: []model.Rect{{W: 1920, H: 1080}, {X: 1920, W: 1280, H: 1024}}})
 	e.wins = fw
 	return e, fw
 }

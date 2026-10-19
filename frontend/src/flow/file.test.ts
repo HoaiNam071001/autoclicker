@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { deleteOpText, fmtFile, folderOf, isDeleteOp } from './file';
+import { fmtFile, folderOf, isDeleteOp } from './file';
 
 it('fmtFile', () => {
   expect(fmtFile({ filePath: '~/Documents/nhat-ky.txt' })).toBe('ghi nhat-ky.txt');
@@ -17,8 +17,6 @@ it('folderOf', () => {
   expect(folderOf('{{thu_muc}}')).toBe('{{thu_muc}}');
 });
 
-it('deleteOpText / isDeleteOp', () => {
+it('isDeleteOp', () => {
   expect(isDeleteOp('trash') && isDeleteOp('emptyTrash') && !isDeleteOp('row') && !isDeleteOp(undefined)).toBe(true);
-  expect(deleteOpText({ ref: 'n1', op: 'trash', folder: '~/Downloads', pattern: '*.png' })).toContain('“*.png” trong ~/Downloads');
-  expect(deleteOpText({ ref: 'n2', op: 'emptyTrash', folder: '', pattern: '' })).toContain('không khôi phục');
 });

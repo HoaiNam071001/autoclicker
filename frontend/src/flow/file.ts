@@ -1,5 +1,5 @@
-// Node Tệp / thư mục (bước 35 N4) – nhãn thao tác, dòng chi tiết thẻ, chữ thao tác xoá cho hộp xác nhận.
-// Chạy ở internal/engine/file.go; thao tác xoá liệt kê ở script.DeleteOps.
+// Node Tệp / thư mục (bước 35 N4) – nhãn thao tác, dòng chi tiết thẻ. Chạy ở internal/engine/file.go; thao tác xoá
+// cần xác nhận (flow/danger.ts – script.DangerOps).
 import type { Step } from '../types';
 
 // '' = ghi chữ (khớp model.FileOps)
@@ -25,9 +25,3 @@ export function fmtFile(s: Pick<Step, 'fileOp' | 'filePath' | 'fileAppend' | 'ce
   }
   return `${s.fileAppend ? 'thêm vào cuối' : 'ghi'} ${name}`;
 }
-
-// Một thao tác xoá (khớp script.DeleteOp) → câu cho hộp xác nhận.
-export type DeleteOp = { ref: string; op: string; folder: string; pattern: string };
-export const deleteOpText = (d: DeleteOp) => (d.op === 'emptyTrash'
-  ? 'Dọn Thùng rác – xoá hẳn mọi thứ trong Thùng rác, không khôi phục được'
-  : `Chuyển các file khớp “${d.pattern}” trong ${d.folder} vào Thùng rác (khôi phục được)`);

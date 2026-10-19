@@ -53,6 +53,7 @@ const GROUPS: PaletteGroup[] = [
     cat: 'app', items: [
       { icon: 'open', label: 'Mở URL / app', info: NODE_INFO.open, keywords: 'url web link trinh duyet ung dung open youtube', run: () => addStep('open') },
       { icon: 'window', label: 'Cửa sổ', info: NODE_INFO.window, keywords: 'window cua so ung dung focus dua len truoc dat vi tri co kich thuoc thu nho phong to dong cho mo', run: () => addStep('window') },
+      { icon: 'app', label: 'Ứng dụng', info: NODE_INFO.app, keywords: 'app ung dung chuong trinh dang chay kiem tra cho mo thoat tat buoc thoat kill quit process tien trinh', run: () => addStep('app') },
       { icon: 'elementRead', label: 'Đọc phần tử', info: NODE_INFO.elementRead, keywords: 'doc phan tu accessibility chrome thuong app gia tri o nhap gia tien lay du lieu', run: () => addStep('elementRead') },
     ],
   },

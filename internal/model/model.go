@@ -26,6 +26,7 @@ const (
 	StepWaitUntil  = "waitUntil"  // chờ đến giờ At (hôm nay / ngày giờ), tuỳ chọn canh giờ chuẩn NTP (engine/waituntil.go)
 	StepPath       = "path"       // vẽ: giữ chuột đi qua Points (đường gấp khúc) hoặc hình Shape quanh Points[0] trong DragMs (engine/draw.go)
 	StepWindow     = "window"     // WinOp: focus / chờ mở · đóng / đặt khung / thu nhỏ… cửa sổ khớp WinApp + WinTitle (engine/window.go)
+	StepApp        = "app"        // AppOp: kiểm tra đang chạy (cổng yes / no) / chờ chạy · thoát / thoát app khớp AppName (engine/app.go)
 	StepFile       = "file"       // FileOp: ghi file / thêm dòng csv · xlsx / tạo thư mục / xoá vào Thùng rác / dọn Thùng rác (engine/file.go)
 
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
@@ -49,7 +50,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
@@ -177,6 +178,11 @@ type Step struct {
 	WinMatch  string `json:"winMatch,omitempty"`  // NameMatches: "" = chứa (không phân biệt hoa thường, dấu) | exact | regex
 	WinPreset string `json:"winPreset,omitempty"` // setBounds: WinPresets – "" = đúng WinRect | center | left | right | full
 	WinRect   *Rect  `json:"winRect,omitempty"`   // setBounds: khung đích (preset center / left / right: chỉ lấy w, h)
+	// Ứng dụng (bước 26, engine/app.go) – TimeoutMs: chờ app chạy / thoát
+	AppOp    string `json:"appOp,omitempty"`    // AppOps: "" = kiểm tra đang chạy (cổng yes / no) | waitStart | waitQuit | quit | forceQuit
+	AppName  string `json:"appName,omitempty"`  // tên app / bundle id / tên exe; nhận {{biến}}
+	AppMatch string `json:"appMatch,omitempty"` // NameMatches như WinMatch
+	AppForce bool   `json:"appForce,omitempty"` // quit: quá TimeoutMs chưa thoát thì buộc thoát
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>

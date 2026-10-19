@@ -22,8 +22,8 @@ export function ConfirmQuit() {
   return window['go']['main']['App']['ConfirmQuit']();
 }
 
-export function DeleteCheck(arg1, arg2, arg3) {
-  return window['go']['main']['App']['DeleteCheck'](arg1, arg2, arg3);
+export function DangerCheck(arg1, arg2, arg3) {
+  return window['go']['main']['App']['DangerCheck'](arg1, arg2, arg3);
 }
 
 export function Displays() {
