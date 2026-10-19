@@ -82,7 +82,18 @@ func windowTitle(h uintptr) string {
 }
 
 // processName – tên tệp chạy của tiến trình, bỏ .exe (chrome, msedge, notepad); không mở được → "".
-func processName(pid uint32) string {
+func processName(pid uint32) string { return exeName(processPath(pid)) }
+
+func exeName(path string) string {
+	if path == "" {
+		return ""
+	}
+	base := filepath.Base(path)
+	return strings.TrimSuffix(base, filepath.Ext(base))
+}
+
+// processPath – đường dẫn đầy đủ tệp chạy; tiến trình hệ thống / đã thoát → "".
+func processPath(pid uint32) string {
 	const queryLimited = 0x1000 // PROCESS_QUERY_LIMITED_INFORMATION – đọc được cả tiến trình của người dùng khác quyền
 	h, _, _ := procOpenProcess.Call(queryLimited, 0, uintptr(pid))
 	if h == 0 {
@@ -94,8 +105,7 @@ func processName(pid uint32) string {
 	if r, _, _ := procQueryFullProcessName.Call(h, 0, uintptr(unsafe.Pointer(&buf[0])), uintptr(unsafe.Pointer(&n))); r == 0 {
 		return ""
 	}
-	base := filepath.Base(syscall.UTF16ToString(buf[:n]))
-	return strings.TrimSuffix(base, filepath.Ext(base))
+	return syscall.UTF16ToString(buf[:n])
 }
 
 // windowMatches – app khớp tên tệp chạy (chrome / chrome.exe), cả tiêu đề, hoặc đuôi tiêu đề “… - Google Chrome”
