@@ -58,7 +58,7 @@ Người dùng gõ trên Claude: *"tạo kịch bản mở bài Tinh Hà Say 2 t
 | # | Bước | Loại | Input | Cần bước |
 |---|---|---|---|---|
 | 1 | Mở `facebook.com/{{profile}}` | `open` | `profile` | 21b, 23 |
-| 2 | Đưa Chrome lên trước | `focusWindow` | | 26 |
+| 2 | Đưa Chrome lên trước | `window` (focus) | | 26 |
 | 3 | Chờ nút "Nhắn tin" (thử lại 2 lần) | `waitImage` | `wait_s` | 25, 25b |
 | 4 | Click nút | `clickImage` | `click_delay` | 25 |
 | 5 | Gõ "xin chào {{M1}} và {{M2}}" | `type` | `M1`, `M2` | có sẵn + 21b |

@@ -1,0 +1,45 @@
+# 26. Cửa sổ + Ứng dụng
+
+- [ ] **26. Node Cửa sổ (`window`) + Ứng dụng (`app`)** *(người dùng yêu cầu, 2026-10-19 – mở rộng 26 "Focus cửa sổ theo tên"; `focusWindow` gộp thành thao tác `focus` của node Cửa sổ)* – Cho flow (và AI qua MCP) cố định môi trường trước khi thao tác: app đã chạy chưa, cửa sổ đã hiện chưa, đặt cửa sổ về vị trí / cỡ cố định để toạ độ, ảnh mẫu, vùng chụp không lệch giữa các lần chạy.
+  - Theo chốt 35 (ít node nền): 2 node, mỗi node nhiều thao tác (`winOp`, `appOp`) – không mỗi việc một node. Output chuẩn của 20 F5c ngay từ đầu. Thêm theo skill `add-node-type`.
+  - UI khung `focusWindow` có từ 27b → đổi thành node Cửa sổ, bỏ nhãn *Sắp có*.
+  - **Cần chốt trước khi code** (skill `new-request`):
+    - [ ] Tên trường: `winApp` / `winTitle` riêng hay dùng lại `elementApp`? Đề xuất: trường riêng – `elementApp` "" = app trên cùng, còn node Cửa sổ `winApp` "" + `winTitle` "" là lỗi validate (tránh focus nhầm)
+    - [ ] App kiểm tra đang chạy: cổng `yes` / `no` (giống Nếu) hay chỉ output `running` rồi nối Nếu? Đề xuất: cổng `yes` / `no` – flow AI sinh ra ngắn hơn một node
+    - [ ] Buộc thoát (`forceQuit`) / đóng cửa sổ: hỏi xác nhận lần chạy đầu như thao tác xoá (35 N4)? Đề xuất: có – tổng quát `DeleteCheck` thành thao tác nguy hiểm (`script.DangerOps`), dùng chung dấu vân tay + `store/deleteconsent.go`
+    - [ ] Toạ độ cửa sổ: điểm (point) như robotgo hay pixel thật? Đề xuất: cùng hệ toạ độ với điểm click (robotgo), đổi Retina / DPI ở một chỗ như 17, 25
+  - **Node Cửa sổ (`window`)**
+    - `winOp`:
+      - `""` focus – đưa cửa sổ lên trước (bỏ thu nhỏ nếu đang thu nhỏ); không thấy → chờ tới `timeoutMs`, hết giờ → `fail` code `not_found`
+      - `waitOpen` / `waitClose` – chờ cửa sổ khớp hiện / mất, hết giờ → `fail` code `timeout`
+      - `setBounds` – đặt vị trí + cỡ: `winPreset` "" (dùng `winRect` x, y, w, h) / `center` / `left` / `right` / `full` (vùng làm việc, không đè thanh menu / taskbar) trên màn `display` (0 = màn đang chứa cửa sổ). App không cho đổi cỡ (cỡ cố định) → đặt được vị trí thì vẫn `success`, output ghi cỡ thật
+      - `minimize` / `maximize` / `restore` / `close` (đóng như bấm nút ×, app có thể hỏi lưu – không tự bấm)
+      - `read` – chỉ đọc thông tin cửa sổ, không đổi gì
+    - Chọn cửa sổ: `winApp` (tên app / bundle id / tên exe, nhận `{{biến}}`) + `winTitle` (nhận biến) theo `winMatch` `contains` (mặc định, không phân biệt hoa thường, không dấu) / `exact` / `regex`. Nhiều cửa sổ khớp → cửa sổ trên cùng. Logic chọn là hàm thuần `MatchWindow` ↔ `matchWindow`, test chung `testdata/windows.json`
+    - Output: `title, app, pid, x, y, w, h, display, minimized` + `HasFoundBox` true → node Chụp màn hình / Click theo ảnh dùng được khung cửa sổ qua `imageFrom` (không cần gõ `{{n2.output.x}}`)
+    - Bỏ qua cửa sổ của chính autoclicker (overlay / thanh mini) khi tìm
+  - **Node Ứng dụng (`app`)**
+    - `appOp`:
+      - `""` kiểm tra đang chạy → cổng `yes` / `no`
+      - `waitStart` – chờ app chạy và có ít nhất một cửa sổ (app vừa mở chưa có cửa sổ thì click vẫn trượt); hết giờ → `fail` code `timeout`
+      - `waitQuit` – chờ app thoát hẳn
+      - `quit` – thoát bình thường (macOS `terminate`, Windows `WM_CLOSE` tới mọi cửa sổ); quá `timeoutMs` chưa thoát → `fail` code `timeout`, hoặc `appForce` true thì buộc thoát
+      - `forceQuit` – buộc thoát (mất dữ liệu chưa lưu – qua xác nhận lần đầu)
+    - `appName`: tên / bundle id / tên exe, nhận `{{biến}}`; so khớp như `winApp` (dùng chung hàm)
+    - Output: `running, pid, name, id` (bundle id / đường dẫn exe), `windows` (số cửa sổ)
+    - Chặn: không thoát autoclicker, Finder / Dock / SystemUIServer, `explorer.exe`, tiến trình hệ thống → lỗi validate `invalid`
+    - Mở app vẫn là việc của node Mở – node này không mở app (tránh hai node làm cùng việc)
+  - [ ] W0. Go `internal/device`: interface `Windows` (`List() []WindowInfo`, `Focus`, `SetBounds`, `SetState`, `Close`) + `Apps` (`List`, `Quit`, `ForceQuit`) + bản giả trong `devicetest`
+    - macOS: danh sách qua `CGWindowListCopyWindowInfo` (tên cửa sổ cần Screen Recording – thiếu quyền thì `title` rỗng, báo `ErrNoScreenRecording` để UI nhắc), đổi vị trí / cỡ / thu nhỏ / đóng qua AX (`AXPosition`, `AXSize`, `AXMinimized`, nút đóng – đã có quyền Accessibility), focus = `NSRunningApplication activate` + `AXRaise`; app qua `NSWorkspace runningApplications`
+    - Windows (cùng 17–18, cần máy Windows): `EnumWindows`, `SetWindowPos`, `ShowWindow`, `SetForegroundWindow` (Windows chặn đưa lên trước khi app không có focus – dùng mẹo nhấn Alt / `AttachThreadInput`, ghi rõ trong code), `CreateToolhelp32Snapshot`, `TerminateProcess`
+  - [ ] W1. Model + engine Cửa sổ: `focus`, `waitOpen`, `waitClose`, `read` (`engine/window.go`), chờ theo nhịp đọc lại ~200 ms, tôn trọng `ctx`
+  - [ ] W2. `setBounds` + preset (hàm thuần `WindowPreset` ↔ `windowPreset` theo vùng làm việc của màn – test chung `testdata/window_presets.json`), `minimize` / `maximize` / `restore` / `close`
+  - [ ] W3. UI Cửa sổ: chọn từ danh sách cửa sổ đang mở (app + tiêu đề, gõ lọc không dấu), nút *Lấy vị trí hiện tại* (điền `winRect` từ cửa sổ đang chọn), overlay vẽ khung đích của `setBounds`; Xem trước vẽ khung, không đổi cửa sổ thật
+  - [ ] A1. Model + engine Ứng dụng: đủ `appOp`, cổng `yes` / `no` trong `PortsOf` ↔ `portsOf`
+  - [ ] A2. An toàn: `forceQuit`, `quit` + `appForce`, `close` đi qua thao tác nguy hiểm (theo câu chốt ở trên); danh sách chặn ở Go
+  - [ ] A3. UI Ứng dụng: chọn từ danh sách app đang chạy, trạng thái đang chạy / không chạy cạnh ô tên
+  - [ ] Mẫu thử (quy ước 33): `cua-so-dat-co` – Mở sân thử bằng Chrome → Chờ cửa sổ → đặt 1280×800 ở `left` → Chụp màn hình theo khung cửa sổ → kiểm ảnh đúng cỡ; `ung-dung-mo-dong` – app có sẵn của hệ điều hành (TextEdit / Notepad): kiểm tra → `no` → Mở → `waitStart` → gõ chữ → `quit` + `appForce` (bỏ lưu)
+  - [ ] Chuẩn bị cho MCP (31): `ListWindows` / `ListApps` là hàm Go dùng chung cho UI, node và tool `list_windows` / `list_apps` (31b); `steptypes.go` ghi rõ dùng `window setBounds` trước khi click toạ độ cứng để AI làm theo; `autoclicker://guide` thêm mẫu mở đầu chuẩn: App chạy? → Mở → Chờ app → Đặt cửa sổ
+  - Sau / không làm ở bước này: neo điểm theo cửa sổ (điểm tính từ góc cửa sổ – nối với 29), di cửa sổ sang Space / desktop ảo khác, trigger khi cửa sổ mở (22)
+  - Xong khi: flow *App Zalo chạy?* → `no` → Mở Zalo → Chờ app → Đặt cửa sổ 1280×800 góc trái → click toạ độ chạy đúng dù trước đó cửa sổ Zalo đang thu nhỏ, ở màn phụ hoặc đổi cỡ; tắt app rồi chạy lại vẫn đúng
+  - Kiểm tra tay: ghi vào [checks.md](../checks.md) khi xong code – thiếu quyền Screen Recording (tiêu đề rỗng, có nhắc), app một cửa sổ cỡ cố định, hai màn hình khác tỷ lệ Retina, app hỏi lưu khi `quit`
