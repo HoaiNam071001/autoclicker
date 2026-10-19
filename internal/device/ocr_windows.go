@@ -4,9 +4,7 @@ import (
 	"errors"
 	"image"
 	"math"
-	"runtime"
 	"strings"
-	"sync"
 	"time"
 	"unicode/utf16"
 	"unsafe"
@@ -16,32 +14,18 @@ import (
 )
 
 // Đọc chữ trên Windows bằng Windows.Media.Ocr (có sẵn từ Windows 10, không cài thêm). Gói nhận chữ theo ngôn ngữ của
-// Windows – không có tiếng Việt: chữ có dấu thường đọc ra không dấu / sai dấu (xem vision.TextQuery.NoAccent).
-// Mọi lời gọi WinRT chạy trên một goroutine riêng giữ luồng OS (MTA) và giữ sẵn engine – engine dựng một lần.
+// Windows – không có tiếng Việt: chữ có dấu đọc sai dấu → dòng mang Approx (vision/fuzzy.go). Chạy trên luồng COM
+// (onCOM); engine + factory dựng một lần, chỉ dùng trên luồng đó.
 
 var (
 	iidOcrEngineStatics      = parseGUID("5bffa85a-3384-3540-9940-699120d428a8")
 	iidSoftwareBitmapFactory = parseGUID("c99feb69-2d62-4d47-a6b3-4fdb6a07fdf8")
 	iidMemoryBuffer          = parseGUID("fbc4dd2a-245b-11e4-af98-689423260cf8")
 	iidMemoryBufferByteAcc   = parseGUID("5b0d3235-4dba-4d44-865e-8f1d0e4fd04d")
+	ocrEngine, ocrBmpFactory *comObj // chỉ đụng trên luồng COM
 )
 
-type ocrJob struct {
-	img  *image.RGBA
-	done chan ocrDone
-}
-
-type ocrDone struct {
-	lines []vision.TextLine
-	err   error
-}
-
-var (
-	ocrOnce sync.Once
-	ocrJobs chan ocrJob
-)
-
-func readText(src image.Image) ([]vision.TextLine, error) {
+func readText(src image.Image) (lines []vision.TextLine, err error) {
 	b := src.Bounds()
 	if b.Dx() == 0 || b.Dy() == 0 {
 		return nil, nil
@@ -52,34 +36,20 @@ func readText(src image.Image) ([]vision.TextLine, error) {
 			img.Set(x, y, src.At(b.Min.X+x, b.Min.Y+y))
 		}
 	}
-	ocrOnce.Do(func() {
-		ocrJobs = make(chan ocrJob)
-		go ocrWorker()
+	onCOM(func() {
+		if ocrEngine == nil {
+			if ocrEngine, err = newOcrEngine(); err != nil {
+				return
+			}
+		}
+		if ocrBmpFactory == nil {
+			if ocrBmpFactory, err = activationFactory("Windows.Graphics.Imaging.SoftwareBitmap", iidSoftwareBitmapFactory); err != nil {
+				return
+			}
+		}
+		lines, err = recognize(ocrEngine, ocrBmpFactory, img)
 	})
-	done := make(chan ocrDone, 1)
-	ocrJobs <- ocrJob{img, done}
-	r := <-done
-	return r.lines, r.err
-}
-
-func ocrWorker() {
-	runtime.LockOSThread() // apartment WinRT gắn với luồng – không thả luồng này
-	rtInit()
-	var eng, bmpFactory *comObj
-	for job := range ocrJobs {
-		var err error
-		if eng == nil {
-			eng, err = newOcrEngine()
-		}
-		if err == nil && bmpFactory == nil {
-			bmpFactory, err = activationFactory("Windows.Graphics.Imaging.SoftwareBitmap", iidSoftwareBitmapFactory)
-		}
-		var lines []vision.TextLine
-		if err == nil {
-			lines, err = recognize(eng, bmpFactory, job.img)
-		}
-		job.done <- ocrDone{lines, err}
-	}
+	return lines, err
 }
 
 // newOcrEngine: theo ngôn ngữ người dùng; không có gói nào hợp thì lấy gói nhận chữ đầu tiên đã cài.

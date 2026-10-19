@@ -44,7 +44,8 @@ func (e *Engine) readArea(area model.Rect) ([]vision.TextLine, error) {
 	}
 	out := make([]vision.TextLine, len(lines))
 	for i, l := range lines {
-		out[i] = vision.TextLine{Text: l.Text, Box: conv(l.Box)}
+		out[i] = l // giữ mọi trường (Approx…), chỉ đổi khung sang toạ độ màn
+		out[i].Box, out[i].Words = conv(l.Box), nil
 		for _, w := range l.Words {
 			out[i].Words = append(out[i].Words, vision.TextWord{Start: w.Start, Len: w.Len, Box: conv(w.Box)})
 		}

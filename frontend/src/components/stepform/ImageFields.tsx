@@ -41,7 +41,7 @@ const FIND_NAME: Record<string, string> = { image: 'ảnh mẫu', text: 'chữ',
 const FIND_BY_HELP: Record<string, string> = {
   image: 'So từng điểm ảnh – dùng cho icon, nút không có chữ. Nút có chữ nên chọn “Chữ” hoặc “Phần tử”.',
   text: 'Đọc chữ trên màn hình (OCR) – không bị ảnh hưởng bởi theme sáng / tối, zoom, đổi màu khi rê chuột. Dùng khi nút / nhãn có chữ.',
-  element: 'Tìm qua Accessibility của macOS – chữ / nhãn / vai trò phần tử, chính xác hơn đọc chữ, có cả nút chỉ có icon. Dùng được với Chrome thường đã đăng nhập và app khác; cửa sổ phải đang hiện trên màn.',
+  element: 'Tìm qua Accessibility (macOS) / UI Automation (Windows) – chữ / nhãn / vai trò phần tử, chính xác hơn đọc chữ, có cả nút chỉ có icon. Dùng được với Chrome thường đã đăng nhập và app khác; cửa sổ phải đang hiện trên màn.',
 };
 
 export // Ảnh mẫu (hoặc chữ / phần tử) + thử tìm + độ khớp / chờ tối đa / vùng tìm – dùng cho Chờ ảnh và Click theo ảnh (tự tìm).

@@ -79,6 +79,24 @@ func TestElementReadTextLabelBelow(t *testing.T) {
 	}
 }
 
+// OCR Windows (dòng Approx) đọc sai dấu nhãn – đổi toạ độ ở readArea phải giữ Approx để tìm nhãn so gần đúng.
+func TestElementReadApproxLabel(t *testing.T) {
+	read := modeltest.Step(model.StepElementRead, func(s *model.Step) {
+		s.FindBy, s.FindText, s.ReadNear, s.ReadNumber, s.TimeoutMs, s.IntervalMs = model.FindByText, "Giá hiện tại", model.ReadNearRight, true, 500, 1
+	})
+	e := newEngine(nil, scripttest.Linear(model.Script{Loops: 1, Region: &model.Rect{X: 0, Y: 0, W: 400, H: 300}, Steps: []model.Step{read}}), nil)
+	e.scr = &fakeScreen{frames: []image.Image{frame(400, 300, 0)}}
+	label := words([]string{"Giå", "hién", "tai:", "1.329.000d"}, elemBox(10, 20, 30, 20), elemBox(45, 20, 35, 20), elemBox(85, 20, 30, 20), elemBox(130, 20, 90, 20))
+	label.Approx = true
+	e.ocr = &fakeOCR{reads: [][]vision.TextLine{{label}}}
+	if err := e.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	if out := e.results[e.sc.Steps[0].ID].Output; out["text"] != "1329000" {
+		t.Errorf("output %v", out)
+	}
+}
+
 // Chờ giá trị đổi: lần đọc đầu làm mốc; ảnh y hệt thì không OCR lại.
 func TestElementReadWaitsForChange(t *testing.T) {
 	read := modeltest.Step(model.StepElementRead, func(s *model.Step) {

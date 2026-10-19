@@ -176,7 +176,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strings"
 	"sync"
 	"time"
 	"unsafe"
@@ -291,6 +290,3 @@ func readPid(pid C.pid_t, name string) ([]element.Node, error) {
 	}
 	return out, nil
 }
-
-// oneLine gộp khoảng trắng (tên / nhãn hay có xuống dòng, tab). Value giữ nguyên – nội dung ô nhập nhiều dòng.
-func oneLine(s string) string { return strings.Join(strings.Fields(s), " ") }

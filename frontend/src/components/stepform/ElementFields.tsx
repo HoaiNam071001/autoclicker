@@ -23,7 +23,7 @@ export function ElementQueryFields({ step: s }: { step: Step }) {
         help={'text= chữ trên phần tử (chứa; text="Gửi" = đúng cả chuỗi), aria= nhãn (nút chỉ có icon), role=button[name="Gửi"] vai trò + tên.'}>
         {bad && <span className={errText}>{bad}</span>}
       </SelectorsField>
-      <Field label="App" wide group help="Tuỳ chọn: tên app (vd Google Chrome, Safari) hoặc bundle id. Cửa sổ phải đang hiện trên màn – thu nhỏ / ở desktop khác thì không đọc được; trình duyệt chỉ thấy tab đang mở.">
+      <Field label="App" wide group help="Tuỳ chọn: tên app (vd Google Chrome, Safari), bundle id (macOS) hoặc tên tệp chạy (Windows: chrome, msedge). Cửa sổ phải đang hiện trên màn – thu nhỏ / ở desktop khác thì không đọc được; trình duyệt chỉ thấy tab đang mở.">
         <VarTextInput value={s.elementApp ?? ''} onChange={(v) => set({ elementApp: v || undefined })} inputs={script.inputs ?? []} nodeVars={nodeVars}
           onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} rows={1} compact placeholder="trống = cửa sổ trên cùng" />
       </Field>

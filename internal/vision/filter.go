@@ -40,7 +40,7 @@ func (f ReadFilter) Apply(raw string) (string, bool) {
 // Một dấu . hoặc , duy nhất: theo sau đúng 3 chữ số = phân cách nghìn (cách viết tiền Việt: “1.000” = 1000), khác
 // = thập phân (“12,5” → 12.5). Có cả . và , thì dấu sau cùng là thập phân.
 func NormalizeNumber(s string) (string, bool) {
-	rs := []rune(s)
+	rs := ocrZeros([]rune(s))
 	i := 0
 	for i < len(rs) && !digit(rs[i]) {
 		i++
@@ -95,3 +95,17 @@ func NormalizeNumber(s string) (string, bool) {
 }
 
 func digit(r rune) bool { return r >= '0' && r <= '9' }
+
+// ocrZeros – bộ nhận chữ hay đọc số 0 thành chữ O (OCR Windows: “1.329.OOOd”): O / o đứng ngay sau chữ số, hoặc sau
+// dấu . / , có chữ số phía trước, là 0. Không đổi l / I → 1 (“15 lít”).
+func ocrZeros(rs []rune) []rune {
+	for j := 1; j < len(rs); j++ {
+		if rs[j] != 'O' && rs[j] != 'o' {
+			continue
+		}
+		if digit(rs[j-1]) || (rs[j-1] == '.' || rs[j-1] == ',') && j > 1 && digit(rs[j-2]) {
+			rs[j] = '0'
+		}
+	}
+	return rs
+}

@@ -2,12 +2,13 @@ package device
 
 import (
 	"errors"
+	"strings"
 
 	"autoclicker/internal/element"
 )
 
-// Phần tử màn hình (bước 37): đọc cây accessibility của app khác (macOS AX – element_darwin.go; Windows UIA làm ở
-// E5) để tìm / đọc / bấm phần tử ở Chrome thường và mọi app. Tách interface để test engine bằng cây giả.
+// Phần tử màn hình (bước 37): đọc cây accessibility của app khác (macOS AX – element_darwin.go; Windows UI Automation –
+// element_windows.go) để tìm / đọc / bấm phần tử ở Chrome thường và mọi app. Tách interface để test engine bằng cây giả.
 
 // ElementReader đọc các phần tử trong cửa sổ đang hiện của app (tên app hoặc bundle id; "" = app có cửa sổ trên cùng,
 // không tính app này), danh sách phẳng theo thứ tự đọc.
@@ -30,3 +31,6 @@ var (
 	// ErrAppNotFound – không có app đang chạy trùng tên / bundle id.
 	ErrAppNotFound = errors.New("không thấy app đang chạy với tên này")
 )
+
+// oneLine gộp khoảng trắng (tên / nhãn hay có xuống dòng, tab). Value giữ nguyên – nội dung ô nhập nhiều dòng.
+func oneLine(s string) string { return strings.Join(strings.Fields(s), " ") }

@@ -3,6 +3,12 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 37 E5 – Phần tử màn hình Windows · [phase3/37-phan-tu-man-hinh.md](phase3/37-phan-tu-man-hinh.md)
+
+- [ ] Windows, Chrome thường đã đăng nhập (Gmail / Facebook): node Đọc phần tử / Click theo phần tử đọc đúng chữ, bấm đúng nút; App ghi `chrome` hoặc `Google Chrome` đều được; Chọn trên màn sinh dòng tìm đúng phần tử
+- [ ] Windows: app khác (Notepad, File Explorer, VS Code) – Thử tìm thấy nút / ô; Chrome thu nhỏ → báo “không có cửa sổ đang hiện”; app chạy quyền admin (vd Task Manager) → báo không đọc được
+- [ ] Windows: Đọc phần tử *Lấy số* trên giá có chữ ₫ đọc bằng OCR (số 0 bị đọc thành chữ O vẫn ra số đúng)
+
 ## 25e – OCR Windows · [phase3/25e-ocr.md](phase3/25e-ocr.md)
 
 - [ ] Windows: node Chờ chữ / Click theo chữ trên trang tiếng Việt (vd Mẫu thử → **Click theo chữ**, **Bảng dữ liệu**): thấy đúng chữ dù OCR đọc sai dấu; *Thử tìm* không thấy thì danh sách “đọc được” hiện chữ không dấu / sai dấu (bình thường trên Windows). Chữ ngắn < 5 ký tự (vd “HUẾ”) có thể không thấy – dùng chữ dài hơn hoặc ảnh mẫu
