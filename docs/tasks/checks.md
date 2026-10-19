@@ -3,6 +3,10 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 18a – Build exe · [phase1-mvp.md](phase1-mvp.md)
+
+- [ ] GitHub → tab **Actions** → *Build Windows* → lần chạy mới nhất xanh → tải artifact `autoclicker-windows-…` (zip), giải nén, mở `autoclicker.exe` trên Windows (SmartScreen: More info → Run anyway): app mở, tạo kịch bản click 2 điểm chạy đúng, Lưu / mở lại được. Ghi lại lỗi gặp (thiếu WebView2, click lệch khi scale 125 %…)
+
 ## 38 – UI v3 – gọn · [phase3/38-ui-v3.md](phase3/38-ui-v3.md)
 
 - [ ] V4 Bảng thêm node (Ctrl+K) và hộp Mẫu thử: icon tô đúng màu nhóm, đọc rõ ở theme tối; lần chạy thất bại – canvas cuộn tới node lỗi, dòng "Flow · N node" không đè chữ lên thẻ

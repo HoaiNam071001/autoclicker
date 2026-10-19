@@ -83,3 +83,6 @@
   - Kiểm tra tay: xem [checks.md](checks.md)
   - [ ] Kiểm tra trên Windows ở scale 100% / 125% / 150% và 2 màn khác scale (cần máy Windows – làm cùng bước 18)
 - [ ] **18. Build & thử máy sạch** – `wails build` ra .exe, chạy trên máy chưa cài Go/Node.
+  - [x] 18a. Build `.exe` tự động *(người dùng yêu cầu 2026-10-19 – làm trước để chạy thử trên Windows dễ hơn, chưa cần máy Windows)*: `.github/workflows/build-windows.yml` – mỗi lần push (bỏ qua chỉ sửa docs) và bấm tay (*Run workflow*) build chéo trên Ubuntu bằng MinGW-w64 (`CGO_ENABLED=1` – wails tắt cgo khi build chéo, robotgo / gohook cần cgo), `wails build -platform windows/amd64 -skipbindings` (binding `frontend/wailsjs` đã commit) → artifact `autoclicker-windows-<commit>` giữ 30 ngày, tải ở tab Actions. Code không phải sửa: phần chỉ có ở macOS (OCR, cây phần tử) có bản `_other.go` báo *chưa hỗ trợ*. Đã build thử đúng lệnh này trên máy Linux cloud – ra exe
+    - Trên Windows lúc này: chạy được click / gõ / cuộn / mở / chờ ảnh / màu / flow / HTTP / file; **chưa có** tìm / đọc chữ OCR (Windows.Media.Ocr – 25e), phần tử màn hình (37 E5), Cửa sổ / Ứng dụng (26); chưa thử DPI ≠ 100 % (17). Exe chưa ký số → SmartScreen cảnh báo (*More info → Run anyway*); máy thiếu WebView2 thì app nhắc cài
+  - [ ] 18b. Thử trên máy Windows sạch + sửa lỗi riêng Windows (cùng phần Windows của 17) – cần máy Windows
