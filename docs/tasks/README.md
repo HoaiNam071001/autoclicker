@@ -120,7 +120,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 🧪 chờ kiểm tra tay | [25d. Web qua DOM – tìm phần tử bằng HTML, bấm bằng chuột thật](phase3/25d-web-dom.md) | 49 / 49 | [1 việc](checks.md) |
 | 🧪 chờ kiểm tra tay | [34. Thao tác giống người – di chuột, gõ, click, cuộn tự nhiên](phase3/34-giong-nguoi.md) | 7 / 7 | [5 việc](checks.md) |
 | 🧪 chờ kiểm tra tay | [35. Node nâng cao](phase3/35-node-nang-cao.md) | 9 / 9 | [9 việc](checks.md) |
-| 🟡 đang làm | [38. UI v3 – gọn: màu theo nhóm node, thẻ node nhỏ, inspector thu gọn](phase3/38-ui-v3.md) | 7 / 12 | [6 việc](checks.md) |
+| 🟡 đang làm | [38. UI v3 – gọn: màu theo nhóm node, thẻ node nhỏ, inspector thu gọn](phase3/38-ui-v3.md) | 8 / 12 | [6 việc](checks.md) |
 | 🟡 đang làm | [37. Tìm / đọc phần tử màn hình qua Accessibility](phase3/37-phan-tu-man-hinh.md) | 5 / 10 | [2 việc](checks.md) |
 | ⬜ chưa làm | [26. Focus cửa sổ theo tên](phase3/26-focus-cua-so.md) | 0 / 3 |  |
 | ⬜ chưa làm | [22. Hẹn giờ + thông báo + CLI / API local](phase3/22-hen-gio-cli-api.md) | 0 / 6 |  |

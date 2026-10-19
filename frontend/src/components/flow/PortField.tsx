@@ -23,24 +23,27 @@ export function PortsPanel({ node, nodes, edges, onConnect, onDisconnect, onJump
   const others = nodes.filter((n) => n.id !== node.id);
   return (
     <div className={body}>
-      <span className="text-xs text-muted">Chọn node đích, hoặc kéo từ chấm trên thẻ</span>
       {node.ports.map((p) => {
         const to = edges.find((e) => e.from === node.id && e.port === p.id)?.to ?? '';
         return (
-          <div key={p.id} className="flex flex-col gap-1.5">
-            <span className="flex items-center gap-2 text-muted"><span className={`h-2 w-2 rounded-full ${dot[p.kind]}`} />{p.label}</span>
-            <div className="flex gap-1.5">
-              <select value={to} onChange={(e) => (e.target.value ? onConnect(p.id, e.target.value) : onDisconnect(p.id))}
-                className={`${fieldBox} min-w-0 flex-1 text-[13px] text-ink outline-none`}>
-                <option value="">{p.kind === 'fail' ? '— Không nối: dừng kịch bản, báo lỗi' : '— Không nối: kết thúc kịch bản'}</option>
+          // hàng: chấm + tên cổng | ô chọn node đích (mã + tên) | → chọn node đích
+          <div key={p.id} className={row}>
+            <span className={`flex min-w-0 items-center gap-2 ${p.kind === 'fail' ? 'text-danger-text' : 'text-muted'}`}>
+              <span className={`h-2 w-2 flex-none rounded-full ${dot[p.kind]}`} /><span className="truncate" title={p.label}>{p.label}</span>
+            </span>
+            <span className="flex min-w-0 gap-1">
+              <select value={to} onChange={(e) => (e.target.value ? onConnect(p.id, e.target.value) : onDisconnect(p.id))} aria-label={`Node đích của cổng ${p.label}`}
+                className={`${fieldBox} min-w-0 flex-1 text-[13px] outline-none ${to ? 'text-ink' : 'text-muted'}`}>
+                <option value="">{p.kind === 'fail' ? '— dừng (lỗi)' : '— kết thúc'}</option>
                 {others.map((n) => <option key={n.id} value={n.id}>{n.ref} · {n.title}</option>)}
               </select>
               <button disabled={!to} onClick={() => onJump(to)} title="Chọn node đích" aria-label="Chọn node đích"
-                className="grid h-8 w-8 flex-none place-items-center rounded-control border border-line text-muted enabled:hover:bg-hover enabled:hover:text-ink disabled:opacity-40">→</button>
-            </div>
+                className="grid h-[34px] w-7 flex-none place-items-center rounded-control text-muted enabled:hover:bg-hover enabled:hover:text-ink disabled:opacity-30">→</button>
+            </span>
           </div>
         );
       })}
+      <span className="text-xs text-muted">Hoặc kéo từ chấm cổng trên thẻ sang node khác.</span>
     </div>
   );
 }
@@ -68,12 +71,13 @@ export function OutputsPanel({ refName, fields }: { refName: string; fields: Out
   };
   return (
     <div className={body}>
-      <span className="text-xs text-muted">Bấm để chép biến</span>
-      <div className="flex flex-col gap-1">
+      <span className="text-xs text-muted">Bấm để chép biến – rê để xem ý nghĩa</span>
+      {/* chip var-token (design v3): mô tả trong tooltip, vừa chép thì chip hiện ✓ */}
+      <div className="flex flex-wrap gap-1.5">
         {fields.map((f) => (
-          <button key={f.key} onClick={() => copy(f.key)} className="flex items-center gap-2 rounded-md px-1 py-0.5 text-left hover:bg-hover">
-            <span className="var-token">{`${refName}.output.${f.key}`}</span>
-            <span className="min-w-0 flex-1 truncate text-xs text-muted">{copied === f.key ? 'đã chép' : f.desc}</span>
+          <button key={f.key} onClick={() => copy(f.key)} title={f.desc}
+            className={`var-token inline-flex items-center gap-1 hover:ring-1 hover:ring-accent/40 ${copied === f.key ? 'ring-1 ring-accent' : ''}`}>
+            {`${refName}.output.${f.key}`}{copied === f.key && <span aria-label="đã chép">✓</span>}
           </button>
         ))}
       </div>
