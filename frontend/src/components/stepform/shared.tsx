@@ -2,7 +2,7 @@
 import { ReactNode, useMemo } from 'react';
 import NumInput, { fieldBox } from '../NumInput';
 import { Target } from '../icons';
-import PinButton, { KeyChip } from '../inputs/PinButton';
+import { KeyChip } from '../inputs/PinButton';
 import { FieldMenu, FieldMenuItem, MENU_ICON } from '../FieldMenu';
 import { defaultOf } from '../../flow/defaults';
 import VarTextInput from '../inputs/VarTextInput';
@@ -29,7 +29,7 @@ export type SetPoint = (i: number, p: Partial<StepPoint>) => void;
 export function PickButton({ step: s, title = 'Chọn lại trên màn hình' }: { step: Step; title?: string }) {
   return (
     <button aria-label={title} title={title} onClick={() => pickPointFor(s.id)}
-      className="grid h-8 w-9 flex-none place-items-center rounded-control border border-line text-muted hover:bg-hover hover:text-ink"><Target /></button>
+      className="grid h-[34px] w-[34px] flex-none place-items-center rounded-control border border-line text-muted hover:bg-hover hover:text-ink"><Target /></button>
   );
 }
 
@@ -88,8 +88,6 @@ export function NumField({ label, step: s, field, unit, prefix, min = 0, stepper
     </Field>
   );
 }
-
-export const PinSoon = () => <PinButton pinned={false} disabled title="Ghim toạ độ làm input – sắp có" />;
 
 export function TabBtn({ active, onClick, title, children }: { active: boolean; onClick: () => void; title?: string; children: ReactNode }) {
   return (

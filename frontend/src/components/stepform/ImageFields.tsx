@@ -221,8 +221,8 @@ export function WaitPixelFields({ step: s, setPoint }: { step: Step; setPoint: S
     <>
       {s.points[0] && (
         <PointSource step={s} index={0} setPoint={setPoint} label="Điểm">
-          <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
-            pick={<PickButton step={s} />} />
+          {(menu) => <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
+            pick={<PickButton step={s} />} menu={menu} />}
         </PointSource>
       )}
       <Field label="Màu cần chờ" wide group>

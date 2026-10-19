@@ -7,7 +7,7 @@ import { boundsOf, endpoints, refOf, setAnchor, setDragFromPrev, setDragRelative
 import { numVarOf, Step } from '../../types';
 import { usesVar } from '../../anchor';
 import PointSource from './PointSource';
-import { ButtonField, Field, hint, NumField, PickButton, PinSoon, SetPoint } from './shared';
+import { ButtonField, Field, hint, NumField, PickButton, SetPoint } from './shared';
 
 export const isMouse = (s: Step) => s.type === 'click' || s.type === 'double' || s.type === 'hold' || s.type === 'drag' || s.type === 'path';
 
@@ -23,9 +23,9 @@ export function MouseFields({ step: s, setPoint }: { step: Step; setPoint: SetPo
 
       {mouse && s.type !== 'drag' && !(s.type === 'path' && !s.shape) && s.points[0] && (
         <PointSource step={s} index={0} setPoint={setPoint}
-          label={<>{s.type === 'path' ? 'Tâm hình' : 'Vị trí'} {!usesVar(s.points[0]) && <span className="text-xs">(neo theo góc {region ? 'vùng' : 'màn hình'})</span>}</>}>
-          <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
-            pick={<PickButton step={s} />} trailing={<PinSoon />} bounds={boundsOf(region)} boundsLabel={region ? 'Vùng' : 'Màn hình'} />
+          label={s.type === 'path' ? 'Tâm hình' : 'Vị trí'}>
+          {(menu) => <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
+            pick={<PickButton step={s} />} menu={menu} bounds={boundsOf(region)} boundsLabel={region ? 'Vùng' : 'Màn hình'} />}
         </PointSource>
       )}
       {s.type === 'drag' && s.points.length >= 2 && <DragPoints step={s} setPoint={setPoint} />}
@@ -80,8 +80,8 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: SetPoint }) {
           </span>
         ) : (
           <PointSource step={s} index={0} setPoint={setPoint} label="Toạ độ A">
-            <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
-              pick={<PickButton step={s} title="Chọn lại A rồi B trên màn hình" />} grid={false} />
+            {(menu) => <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
+              pick={<PickButton step={s} title="Chọn lại A rồi B trên màn hình" />} menu={menu} grid={false} />}
           </PointSource>
         )}
       </div>
@@ -90,16 +90,17 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: SetPoint }) {
         <Segmented value={s.dragRelative ? 'rel' : 'pos'} onChange={(v) => setDragRelative(s.id, v === 'rel')} full
           options={[{ id: 'pos', label: 'Vị trí' }, { id: 'rel', label: 'Lệch so với A' }]} />
         <PointSource step={s} index={1} setPoint={setPoint} label={s.dragRelative ? 'Độ lệch B' : 'Toạ độ B'} relative={s.dragRelative}>
-          {s.dragRelative ? (
+          {(menu) => s.dragRelative ? (
             <div className="flex gap-2">
               {(['x', 'y'] as const).map((k) => (
                 <NumInput key={k} signed prefix={`Δ${k.toUpperCase()}`} value={s.points[1][k]} onChange={(v) => setPoint(1, { [k]: v })} className="flex-1" />
               ))}
               {s.dragFromPrev && <PickButton step={s} title="Chọn lại B trên màn hình" />}
+              {menu}
             </div>
           ) : (
             <AnchorField value={s.points[1]} onChange={(p) => setPoint(1, p)} onAnchor={(ax, ay) => setAnchor(s.id, 1, ax, ay)}
-              pick={s.dragFromPrev ? <PickButton step={s} title="Chọn lại B trên màn hình" /> : <span />} grid={false} />
+              pick={s.dragFromPrev ? <PickButton step={s} title="Chọn lại B trên màn hình" /> : <span />} menu={menu} grid={false} />
           )}
         </PointSource>
         {s.dragRelative && ends?.end && (

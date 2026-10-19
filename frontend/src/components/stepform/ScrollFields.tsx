@@ -38,14 +38,16 @@ export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetP
         {s.points[0] ? (
           <PointSource step={s} index={0} setPoint={setPoint}
             label={<>Đặt chuột tại <span className="text-xs">(không phải chỗ cuộn tới)</span></>}>
+            {(menu) => <>
             <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
-              pick={<PickButton step={s} />} />
+              pick={<PickButton step={s} />} menu={menu} />
             {!insideBounds(toScreen(s.points[0], region), boundsOf(region)) && (
               <span className="text-xs text-danger-text">
                 Điểm nằm ngoài {region ? 'vùng' : 'màn hình'} ({boundsOf(region).w} × {boundsOf(region).h}) – chuột không tới được, chạy sẽ báo lỗi.
                 Muốn cuộn xa hơn thì tăng số nấc / quãng cuộn.
               </span>
             )}
+            </>}
           </PointSource>
         ) : (
           <span className={`col-span-2 ${hint}`}>Cuộn ở chỗ chuột đang đứng – thường sau một bước click vào trang / danh sách cần cuộn.</span>

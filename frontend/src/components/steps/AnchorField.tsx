@@ -1,10 +1,12 @@
 // Ô vị trí có neo theo cạnh vùng (bước 29): mỗi trục neo riêng.
 // X: + = cách cạnh trái, − = cách cạnh phải; Y: + = cách cạnh trên, − = cách cạnh dưới. Gõ số âm là đổi neo.
 // Lưới 3×3 chọn neo (4 góc, giữa cạnh, tâm), "%" = theo tỷ lệ cạnh vùng (co giãn theo vùng).
-import { ReactNode } from 'react';
+// Có bounds (design v3): sơ đồ thu gọn thành một hàng tóm tắt khoảng cách, bấm mới mở sơ đồ + px / %.
+import { ReactNode, useState } from 'react';
+import { Chevron } from '../icons';
 import NumInput from '../NumInput';
 import { Target } from '../icons';
-import { fmtAxis, RATIO_SCALE, resolvePoint } from '../../anchor';
+import { anchorSummary, fmtAxis, RATIO_SCALE, resolvePoint } from '../../anchor';
 import { Anchor, Point, Rect, StepPoint } from '../../types';
 
 type Props = {
@@ -14,7 +16,7 @@ type Props = {
   onAnchor?: (ax: Anchor, ay: Anchor) => void;
   disabled?: boolean;
   pick?: ReactNode; // nút chọn trên màn hình (mặc định: nút mẫu không làm gì – màn #demo)
-  trailing?: ReactNode;
+  menu?: ReactNode; // nút ⋯ cuối hàng ô (lấy từ biến, px / % – PointSource)
   // Khung đang neo (vùng / màn hình, toạ độ robotgo): có thì hiện bản đồ thu nhỏ thay cho lưới 3×3 nhỏ.
   bounds?: Rect;
   boundsLabel?: string; // "Vùng" | "Màn hình"
@@ -38,7 +40,11 @@ export function anchorHint({ x, y, ax, ay }: StepPoint) {
   return `${part(x, axisOf(ax), 'trái', 'phải', 'giữa ngang')} · ${part(y, axisOf(ay), 'trên', 'dưới', 'giữa dọc')}`;
 }
 
-export default function AnchorField({ value: v, onChange, onAnchor, disabled, pick, trailing, bounds, boundsLabel = 'Vùng', grid = true }: Props) {
+// Mở / đóng sơ đồ nhớ chung trong phiên – chọn node khác vẫn giữ.
+let mapOpen = false;
+
+export default function AnchorField({ value: v, onChange, onAnchor, disabled, pick, menu, bounds, boundsLabel = 'Vùng', grid = true }: Props) {
+  const [open, setOpen] = useState(mapOpen);
   const ratio = v.ax === 'ratio';
   const setAxis = (k: 'x' | 'y', n: number) => {
     const r = parse(n, axisOf(k === 'x' ? v.ax : v.ay));
@@ -46,6 +52,7 @@ export default function AnchorField({ value: v, onChange, onAnchor, disabled, pi
   };
   const anchor = (ax: Anchor, ay: Anchor, demo: Partial<StepPoint> = {}) =>
     onAnchor ? onAnchor(ax, ay) : onChange({ ...v, ax, ay, ...demo });
+  const toggleRatio = () => (ratio ? anchor('start', 'start') : anchor('ratio', 'ratio', { x: RATIO_SCALE / 2, y: RATIO_SCALE / 2 }));
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex gap-2">
@@ -59,18 +66,47 @@ export default function AnchorField({ value: v, onChange, onAnchor, disabled, pi
         {!bounds && grid && <AnchorGrid value={v} onChange={(ax, ay) => anchor(ax, ay)} disabled={disabled} />}
         {pick ?? (
           <button disabled={disabled} title="Chọn trên màn hình" aria-label="Chọn trên màn hình"
-            className="grid h-8 w-8 flex-none place-items-center rounded-control border border-line text-muted enabled:hover:bg-hover enabled:hover:text-ink disabled:opacity-50"><Target /></button>
+            className="grid h-[34px] w-[34px] flex-none place-items-center rounded-control border border-line text-muted enabled:hover:bg-hover enabled:hover:text-ink disabled:opacity-50"><Target /></button>
         )}
-        {trailing}
+        {menu}
       </div>
-      {bounds && <AnchorMap value={v} bounds={bounds} label={boundsLabel} disabled={disabled} onAnchor={(ax, ay) => anchor(ax, ay)} />}
-      <span className="flex items-center gap-2 text-xs text-muted">
-        <span className="min-w-0 flex-1">{anchorHint(v)}</span>
-        <button disabled={disabled} onClick={() => (ratio ? anchor('start', 'start') : anchor('ratio', 'ratio', { x: RATIO_SCALE / 2, y: RATIO_SCALE / 2 }))}
-          title="Theo tỷ lệ: điểm co giãn theo vùng thay vì giữ khoảng cách tới cạnh"
-          className={`rounded-full border px-2 py-px font-mono text-[11px] disabled:opacity-50 ${ratio ? 'border-accent bg-accent-soft text-accent-text' : 'border-line enabled:hover:bg-hover'}`}>%</button>
-      </span>
+      {bounds ? (
+        <>
+          <button type="button" onClick={() => { mapOpen = !open; setOpen(!open); }} aria-expanded={open} aria-label={`Sơ đồ ${boundsLabel.toLowerCase()}`}
+            className="flex h-8 items-center gap-1.5 rounded-control px-2 text-left text-[12.5px] text-muted hover:bg-hover hover:text-ink">
+            <Chevron open={open} /><span className="flex-none whitespace-nowrap">Sơ đồ</span>
+            <span className="ml-auto min-w-0 truncate font-mono text-[11.5px]" title={anchorHint(v)}>{anchorSummary(v)}</span>
+          </button>
+          {open && (
+            <div className="flex flex-col gap-2 rounded-card bg-soft p-2.5">
+              <span className="text-xs text-muted">Bấm chấm để đổi neo</span>
+              <AnchorMap value={v} bounds={bounds} label={boundsLabel} disabled={disabled} onAnchor={(ax, ay) => anchor(ax, ay)} />
+              <span className="flex items-center gap-2 text-xs text-muted">
+                <span className="min-w-0 flex-1">{anchorHint(v)}</span>
+                <RatioToggle ratio={ratio} disabled={disabled} onToggle={toggleRatio} />
+              </span>
+            </div>
+          )}
+        </>
+      ) : (
+        <span className="flex items-center gap-2 text-xs text-muted">
+          <span className="min-w-0 flex-1">{anchorHint(v)}</span>
+          <RatioToggle ratio={ratio} disabled={disabled} onToggle={toggleRatio} />
+        </span>
+      )}
     </div>
+  );
+}
+
+// px / %: theo tỷ lệ thì điểm co giãn theo vùng thay vì giữ khoảng cách tới cạnh
+function RatioToggle({ ratio, disabled, onToggle }: { ratio: boolean; disabled?: boolean; onToggle: () => void }) {
+  const opt = 'px-2 py-px font-mono text-[11px]';
+  return (
+    <span role="radiogroup" aria-label="Đơn vị vị trí" title="Theo tỷ lệ: điểm co giãn theo vùng thay vì giữ khoảng cách tới cạnh"
+      className={`flex flex-none overflow-hidden rounded-full border border-line ${disabled ? 'opacity-50' : ''}`}>
+      <button role="radio" aria-checked={!ratio} disabled={disabled} onClick={() => ratio && onToggle()} className={`${opt} ${ratio ? 'enabled:hover:bg-hover' : 'bg-accent-soft text-accent-text'}`}>px</button>
+      <button role="radio" aria-checked={ratio} disabled={disabled} onClick={() => !ratio && onToggle()} className={`${opt} ${ratio ? 'bg-accent-soft text-accent-text' : 'enabled:hover:bg-hover'}`}>%</button>
+    </span>
   );
 }
 
