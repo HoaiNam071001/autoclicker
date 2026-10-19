@@ -5,6 +5,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 38 – UI v3 – gọn · [phase3/38-ui-v3.md](phase3/38-ui-v3.md)
 
+- [ ] V3b3 Inspector mọi loại node (`wails dev`): rê ⓘ cạnh nhãn hiện giải thích, không bị cắt mép; công tắc (Cả dòng, Bỏ qua dấu, Ghi nối tiếp, Vào clipboard, Giờ chuẩn, Khép kín…) bật / tắt đúng; báo lỗi đỏ vẫn hiện khi thiếu dữ liệu; theme tối đọc rõ
 - [ ] V3b2 Vị trí (`wails dev`): node Click – ⋯ cạnh X / Y → Lấy toạ độ từ biến, *Dùng số cố định* trở lại; hàng Sơ đồ mở / đóng, bấm chấm đổi neo giữ nguyên chỗ trên màn hình, px / % đổi đúng; chữ neo ở đầu khối đổi theo
 - [ ] V3b1 Ô nhập (`wails dev`): rê vào ô số hiện ⋯; Dùng biến… → ô biểu thức, ✕ trở lại số; Đặt làm input khi chạy → viền nét đứt, chip key, form Chạy hỏi giá trị; dùng chung input có sẵn; Về mặc định đúng theo loại node (Chờ 1000 ms, Mở 2000 ms…); − / + ở Số click; menu ⋯ gần đáy inspector mở lên trên
 - [ ] V3a Inspector (`wails dev`): mở / đóng các khối, chọn node cùng loại khác vẫn giữ khối đang mở; tóm tắt đúng khi đóng (Thời gian, Khi thất bại, Cổng ra); đổi loại node ở chữ màu dưới tên; nút ⓘ hiện mô tả, bấm ra ngoài đóng

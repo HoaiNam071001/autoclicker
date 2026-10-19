@@ -7,7 +7,7 @@ import { BODY_TYPES, hasBody, HTTP_METHODS, jsonBodyValid, type BodyType, type H
 import { Step } from '../../types';
 import { KVTable } from './KVTable';
 import { fieldBox } from '../NumInput';
-import { Field, hint, NumField, useNodeVars } from './shared';
+import { errText, Field, hint, NumField, useNodeVars } from './shared';
 
 export function HttpFields({ step: s }: { step: Step }) {
   const script = useScript();
@@ -20,7 +20,7 @@ export function HttpFields({ step: s }: { step: Step }) {
   const setMethod = (method: HttpMethod) => set(hasBody(method) && !s.bodyType ? { method, bodyType: 'json', body: s.body || '{\n  \n}' } : { method });
   return (
     <>
-      <div className="col-span-2 flex flex-col gap-1.5 text-muted">Gọi tới
+      <Field label="Gọi tới" wide group help="Biến trong URL chèn nguyên văn – giá trị có dấu cách / tiếng Việt đặt ở bảng Tham số (tự mã hoá).">
         <div className="flex items-start gap-1.5">
           <select value={s.method || 'GET'} onChange={(e) => setMethod(e.target.value as HttpMethod)} aria-label="Method"
             className={`${fieldBox} w-[92px] flex-none font-mono font-semibold text-ink`}>
@@ -30,8 +30,7 @@ export function HttpFields({ step: s }: { step: Step }) {
             <VarTextInput {...varProps} rows={1} compact value={s.url ?? ''} onChange={(url) => set({ url })} placeholder="https://api.example.com/…" />
           </div>
         </div>
-        <span className={hint}>Biến trong URL chèn nguyên văn – giá trị có dấu cách / tiếng Việt đặt ở bảng Tham số (tự mã hoá).</span>
-      </div>
+      </Field>
       <KVTable title="Tham số (query)" rows={s.query} onChange={(query) => set({ query })} keyHint="tim" valueHint="{{tu_khoa}}" varProps={varProps} />
       <KVTable title="Header" rows={s.headers} onChange={(headers) => set({ headers })} keyHint="Authorization" valueHint="{{token}}" varProps={varProps}
         help="Tên có token / key / auth / password → 🔒 không hiện trong lời báo lỗi." />
@@ -43,13 +42,13 @@ export function HttpFields({ step: s }: { step: Step }) {
         <div className="col-span-2 -mt-1.5 flex flex-col gap-1.5">
           <VarTextInput {...varProps} rows={6} value={s.body ?? ''} onChange={(v) => set({ body: v })}
             placeholder={body === 'json' ? '{\n  "ten": "{{ten}}",\n  "so_luong": 2\n}' : 'nội dung gửi đi'} />
-          {body === 'json' && <span className={`text-xs ${valid === false ? 'text-danger-text' : 'text-muted'}`}>
-            {valid === false ? 'JSON sai cú pháp – thiếu dấu nháy, dấu phẩy hoặc ngoặc' : 'Biến chữ đặt trong dấu nháy: "{{ten}}" – tự thoát dấu nháy, xuống dòng'}
+          {body === 'json' && <span className={valid === false ? errText : hint}>
+            {valid === false ? 'JSON sai cú pháp – thiếu dấu nháy, dấu phẩy hoặc ngoặc' : 'Biến chữ đặt trong dấu nháy: "{{ten}}"'}
           </span>}
         </div>
       )}
       {body === 'form' && <KVTable title="Trường form" rows={s.form} onChange={(form) => set({ form })} keyHint="email" valueHint="{{email}}" varProps={varProps} />}
-      <div className="col-span-2"><NumField label="Chờ phản hồi tối đa – quá giờ thì Thất bại" step={s} field="timeoutMs" unit="ms" min={1} /></div>
+      <NumField label="Chờ phản hồi" info="Chờ phản hồi tối đa – quá giờ thì đi cổng Thất bại" step={s} field="timeoutMs" unit="ms" min={1} />
       <div className="col-span-2 flex flex-col gap-1 rounded-card bg-soft px-3 py-2.5 text-xs text-muted">
         <span className="font-semibold text-ink">Đọc kết quả</span>
         <span><span className="font-mono text-ink">{`{{${s.ref}.output.status}}`}</span> mã HTTP · <span className="font-mono text-ink">{`{{${s.ref}.output.json.data.id}}`}</span> đọc sâu JSON (mảng đếm từ 0: <span className="font-mono">items.0</span>)</span>

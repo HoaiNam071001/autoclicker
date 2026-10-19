@@ -1,5 +1,5 @@
 // Phần dùng chung của inspector node: hàng trường (nhãn trái, ô phải), ô số có menu ⋯, nút chọn lại điểm, tab, hằng style.
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import NumInput, { fieldBox } from '../NumInput';
 import { Target } from '../icons';
 import { KeyChip } from '../inputs/PinButton';
@@ -10,10 +10,14 @@ import { pickPointFor, setNumVarExpr, setNumVarOn, updateStep, useScript } from 
 import { addInput, compatibleInputs, pinField, pinnedInput, pinToInput, setPinnedValue, unpinField } from '../../scriptInputs';
 import { MouseButton, numVarOf, NumVarField, ScrollDirection, Step, StepPoint } from '../../types';
 import Segmented from '../Segmented';
+import { Switch } from '../Switch';
 import { nodeVarOptions } from '../../flow/view';
 
 export const selectBox = `${fieldBox} w-full text-ink`;
 export const hint = 'text-xs text-muted';
+export const errText = 'text-xs text-danger-text'; // báo thiếu / sai ngay dưới ô (lỗi vẫn hiện chữ, không giấu vào ⓘ)
+// Chữ phụ bên phải nhãn ô chữ nhận biến
+export const varHint = <span className="text-xs text-muted">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>;
 // Ô chọn hướng cuộn (node Cuộn, Cuộn trang web).
 export const DIRECTION_OPTIONS: { id: ScrollDirection; label: string }[] = [{ id: 'up', label: '↑ Lên' }, { id: 'down', label: '↓ Xuống' }, { id: 'left', label: '← Trái' }, { id: 'right', label: '→ Phải' }];
 export const fmtSec = (ms?: number) => `${((ms ?? 0) / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} s`;
@@ -34,23 +38,62 @@ export function PickButton({ step: s, title = 'Chọn lại trên màn hình' }:
 }
 
 
-// Hàng trường design v3 (FieldKit): nhãn 112 px bên trái, ô bên phải. wide: nhãn ở trên, ô rộng hết hàng (ô chữ dài,
+// Hàng trường design v3 (FieldKit): nhãn 120 px bên trái (design 112 – nới để nhãn có ⓘ không gãy dòng), ô bên phải. wide: nhãn ở trên, ô rộng hết hàng (ô chữ dài,
 // cặp X / Y, danh sách). group: bên trong là nhóm nút (Segmented) – dùng <div>, vì <label> bọc nút thì bấm chữ nhãn
-// sẽ bấm luôn nút đầu. extra: chip dưới nhãn (key input đã ghim).
-export function Field({ label, children, wide = false, group = false, extra }: {
-  label: ReactNode; children: ReactNode; wide?: boolean; group?: boolean; extra?: ReactNode;
+// sẽ bấm luôn nút đầu. extra: chip dưới nhãn (key input đã ghim). help: giải thích trong ⓘ cạnh nhãn (thay dòng chữ dưới ô).
+export function Field({ label, children, wide = false, group = false, extra, help, side }: {
+  label: ReactNode; children: ReactNode; wide?: boolean; group?: boolean; extra?: ReactNode; help?: string;
+  side?: ReactNode; // chỉ khi wide: nội dung bên phải dòng nhãn (nút nhỏ, chữ phụ)
 }) {
-  const Tag = group ? 'div' : 'label';
-  const head = <span className="flex min-w-0 flex-col items-start gap-[3px] text-muted"><span className="max-w-full">{label}</span>{extra}</span>;
-  if (wide) return <Tag className="col-span-2 flex flex-col gap-1.5">{head}{children}</Tag>;
-  return <Tag className="col-span-2 grid grid-cols-[112px_minmax(0,1fr)] items-center gap-2.5">{head}{children}</Tag>;
+  const Tag = group || help ? 'div' : 'label';
+  const name = <span className="inline-flex max-w-full items-center gap-1">{label}{help && <InfoTip text={help} />}</span>;
+  if (wide) {
+    return (
+      <Tag className="col-span-2 flex flex-col gap-1.5">
+        <span className="flex min-w-0 items-center gap-2 text-muted"><span className="min-w-0 flex-1">{name}</span>{side}</span>
+        {extra}{children}
+      </Tag>
+    );
+  }
+  return (
+    <Tag className="col-span-2 grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2.5">
+      <span className="flex min-w-0 flex-col items-start gap-[3px] text-muted">{name}{extra}</span>
+      {children}
+    </Tag>
+  );
+}
+
+// Hàng công tắc: nhãn trái, công tắc phải (thay "công tắc + câu dài").
+export function SwitchField({ label, on, onChange, help }: { label: string; on: boolean; onChange: (on: boolean) => void; help?: string }) {
+  return <Field label={label} group help={help}><Switch on={on} onChange={onChange} label={label} /></Field>;
+}
+
+// ⓘ nhỏ cạnh nhãn: rê / focus hiện giải thích (design v3 – thay dòng chữ dài dưới ô). Tooltip fixed theo ⓘ – inspector
+// cuộn (overflow) sẽ cắt nếu absolute; canh trái phải để không tràn cửa sổ.
+export function InfoTip({ text }: { text: string }) {
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const show = (e: { currentTarget: HTMLElement }) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setPos({ left: Math.min(Math.max(r.left - 24, 8), window.innerWidth - 238), top: r.bottom + 6 });
+  };
+  return (
+    <span tabIndex={0} aria-label={text} onMouseEnter={show} onFocus={show} onMouseLeave={() => setPos(null)} onBlur={() => setPos(null)}
+      className={`inline-grid flex-none cursor-help place-items-center outline-none ${pos ? 'text-accent-text' : 'text-faint'}`}>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg>
+      {pos && (
+        <span role="tooltip" style={pos} className="pointer-events-none fixed z-50 w-[230px] rounded-[8px] bg-ink px-2.5 py-2 text-xs leading-snug font-normal text-bg shadow-[0_8px_24px_rgb(0_0_0/.18)]">{text}</span>
+      )}
+    </span>
+  );
 }
 
 // Ô số trong inspector (design v3 FieldKit). Nút ⋯ trong ô: dùng biến (F5c – ô thành biểu thức, vd {{n2.output.count}} + 1),
 // đặt làm input khi chạy (bước 21b – ghim: viền nét đứt, chip key dưới nhãn, sửa số = sửa mặc định của input; dùng chung
 // input cùng kiểu đã có), về mặc định của loại node (flow/defaults). stepper: số nguyên nhỏ có − / +.
-export function NumField({ label, step: s, field, unit, prefix, min = 0, stepper = false, help }: {
-  label: string; step: Step; field: NumVarField; unit?: string; prefix?: string; min?: number; stepper?: boolean; help?: string;
+export function NumField({ label, step: s, field, unit, prefix, min = 0, stepper = false, help, info }: {
+  label: string; step: Step; field: NumVarField; unit?: string; prefix?: string; min?: number; stepper?: boolean;
+  help?: string; // "Ô này dùng để làm gì" cuối menu ⋯
+  info?: string; // ⓘ cạnh nhãn
 }) {
   const script = useScript();
   const nodeVars = useNodeVars(s.id);
@@ -68,7 +111,7 @@ export function NumField({ label, step: s, field, unit, prefix, min = 0, stepper
     ...(def !== undefined && def !== value && !inp ? [{ label: `Về mặc định (${def}${unit ? ` ${unit}` : ''})`, icon: MENU_ICON.reset, onClick: () => updateStep(s.id, { [field]: def }) }] : []),
   ];
   return (
-    <Field label={label} group extra={inp && <KeyChip k={inp.key} />}>
+    <Field label={label} group help={info} extra={inp && <KeyChip k={inp.key} />}>
       {expr !== undefined ? (
         <span className="flex min-w-0 items-center gap-1">
           <span className="min-w-0 flex-1">
@@ -102,7 +145,7 @@ export function TabBtn({ active, onClick, title, children }: { active: boolean; 
 // Nút chuột của node bấm (click, click theo ảnh, click phần tử web).
 export function ButtonField({ step: s }: { step: Step }) {
   return (
-    <Field label="Nút chuột" wide group>
+    <Field label="Nút chuột" group>
       <Segmented value={s.button} onChange={(button: MouseButton) => updateStep(s.id, { button })} full label="Nút chuột"
         options={[{ id: 'left', label: 'Trái' }, { id: 'right', label: 'Phải' }, { id: 'center', label: 'Giữa' }]} />
     </Field>

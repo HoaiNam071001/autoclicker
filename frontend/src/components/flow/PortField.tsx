@@ -11,7 +11,7 @@ const dot: Record<PortKind, string> = { ok: 'bg-ok', fail: 'bg-danger', neutral:
 // Mỗi panel chỉ là nội dung – tên khối + tóm tắt nằm ở Section (stepform/InspectorParts) bên ngoài.
 const body = 'flex flex-col gap-2.5';
 // Hàng nhãn trái + ô phải – như Field (stepform/shared, design v3)
-const row = 'grid grid-cols-[112px_minmax(0,1fr)] items-center gap-2.5';
+const row = 'grid grid-cols-[120px_minmax(0,1fr)] items-center gap-2.5';
 
 export function PortsPanel({ node, nodes, edges, onConnect, onDisconnect, onJump }: {
   node: FlowNodeView; nodes: FlowNodeView[]; edges: FlowEdgeView[];

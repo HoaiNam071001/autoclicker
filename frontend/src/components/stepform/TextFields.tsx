@@ -4,7 +4,7 @@ import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
 import { Step } from '../../types';
 import { WEB_BASIC_NOTE } from '../../flow/web';
-import { Field, hint, selectBox, useNodeVars } from './shared';
+import { errText, Field, hint, selectBox, useNodeVars, varHint } from './shared';
 
 // Trình duyệt gợi ý cho bước Mở (Windows: open.go đổi sang tên lệnh chrome / msedge / firefox)
 const APP_BROWSER = '__app'; // giá trị ô chọn cho Step.webBrowser (bước 25d) – không phải tên app
@@ -16,29 +16,20 @@ export function OpenFields({ step: s }: { step: Step }) {
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   return (
           <>
-        <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-          <span className="flex items-center justify-between">URL, đường dẫn hoặc tên app
-            <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
-          </span>
+        <Field label="URL / app" wide group side={varHint}
+          help="URL, đường dẫn file hoặc tên app. Vd youtube.com/… (tự thêm https://), Spotify, đường dẫn file / app. Biến trong URL tự mã hoá (dấu cách, tiếng Việt).">
           <VarTextInput value={s.target ?? ''} onChange={(target) => set({ target })} inputs={script.inputs ?? []} nodeVars={nodeVars} rows={2}
             placeholder="youtube.com/results?search_query={{bai_hat}}" onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
-          <span className={hint}>
-            Vd <span className="font-mono">youtube.com/…</span> (tự thêm https://), <span className="font-mono">Spotify</span>, đường dẫn file / app.
-            Biến trong URL tự mã hoá (dấu cách, tiếng Việt).
-          </span>
-        </div>
-        <Field label="Mở bằng" wide>
+        </Field>
+        <Field label="Mở bằng" group help={s.webBrowser
+          ? 'Chrome / Edge / Brave với profile riêng của app (lần đầu phải đăng nhập lại trang, sau đó tự nhớ); đang mở thì mở tab mới. Chỉ mở URL / file. ' + WEB_BASIC_NOTE
+          : 'Không chờ trang tải xong – đặt “Chờ sau khi xong” đủ lâu (mặc định 2 s).'}>
           <select value={s.webBrowser ? APP_BROWSER : s.app ?? ''} className={selectBox}
             onChange={(e) => set(e.target.value === APP_BROWSER ? { webBrowser: true } : { webBrowser: undefined, app: e.target.value })}>
             <option value="">Mặc định của máy</option>
             <option value={APP_BROWSER}>Chrome của app – node web điều khiển được</option>
             {[...BROWSERS, ...(s.app && !BROWSERS.includes(s.app) ? [s.app] : [])].map((b) => <option key={b}>{b}</option>)}
           </select>
-          <span className={hint}>
-            {s.webBrowser
-              ? 'Chrome / Edge / Brave với profile riêng của app (lần đầu phải đăng nhập lại trang, sau đó tự nhớ); đang mở thì mở tab mới. Chỉ mở URL / file. ' + WEB_BASIC_NOTE
-              : 'Không chờ trang tải xong – đặt “Chờ sau bước” đủ lâu (mặc định 2 s).'}
-          </span>
         </Field>
       </>
   );
@@ -49,16 +40,11 @@ export function TypeFields({ step: s }: { step: Step }) {
   const nodeVars = useNodeVars(s.id);
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   return (
-          <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-        <span className="flex items-center justify-between">Nội dung gõ
-          <span className="text-xs">gõ <span className="font-mono">{'{{'}</span> để chèn biến</span>
-        </span>
-        <VarTextInput value={s.text} onChange={(text) => set({ text })} inputs={script.inputs ?? []} nodeVars={nodeVars}
-          onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
-        <span className={`text-xs ${s.text ? '' : 'text-danger-text'}`}>
-          {s.text ? `${[...s.text].length} ký tự · ` : 'Chưa nhập nội dung – chạy sẽ báo lỗi · '}
-          Gõ vào ô đang focus – thường đặt sau một bước click. Tắt bộ gõ tiếng Việt khi chạy. <span className="font-mono">{'\\{{'}</span> để gõ ra <span className="font-mono">{'{{'}</span>.
-        </span>
-      </div>
+    <Field label="Nội dung gõ" wide group side={varHint}
+      help="Gõ vào ô đang focus – thường đặt sau một bước click. Tắt bộ gõ tiếng Việt khi chạy. \{{ để gõ ra {{.">
+      <VarTextInput value={s.text} onChange={(text) => set({ text })} inputs={script.inputs ?? []} nodeVars={nodeVars}
+        onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
+      {s.text ? <span className={hint}>{[...s.text].length} ký tự</span> : <span className={errText}>Chưa nhập nội dung – chạy sẽ báo lỗi</span>}
+    </Field>
   );
 }

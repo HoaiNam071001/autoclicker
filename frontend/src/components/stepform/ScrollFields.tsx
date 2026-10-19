@@ -7,7 +7,7 @@ import { boundsOf, endpoints, setAnchor, setScrollAt, toScreen, updateStep, useS
 import { pinnedInput, setPinnedValue } from '../../scriptInputs';
 import { insideBounds } from '../../anchor';
 import { SCROLL_NOTCH_PX, ScrollDirection, Step } from '../../types';
-import { DIRECTION_OPTIONS, Field, hint, NumField, PickButton, SetPoint } from './shared';
+import { DIRECTION_OPTIONS, errText, Field, NumField, PickButton, SetPoint } from './shared';
 import PointSource from './PointSource';
 
 export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetPoint }) {
@@ -21,7 +21,7 @@ export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetP
             options={DIRECTION_OPTIONS} />
         </Field>
         <NumField label="Số nấc" step={s} field="amount" unit="nấc" min={1} stepper />
-        <Field label="Quãng cuộn ≈">
+        <Field label="Quãng cuộn ≈" help={`Gõ px, tự đổi ra nấc (${SCROLL_NOTCH_PX} px / nấc). Cuộn dài hơn màn hình cũng được.`}>
           <NumInput value={(s.amount ?? 0) * SCROLL_NOTCH_PX} unit="px" min={SCROLL_NOTCH_PX} pinned={!!pinnedInput(script, s.id, 'amount')}
             onChange={(px) => {
               const amount = Math.max(1, Math.round(px / SCROLL_NOTCH_PX));
@@ -29,34 +29,30 @@ export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetP
               if (inp) setPinnedValue(s.id, 'amount', amount);
               else set({ amount });
             }} />
-          <span className={hint}>Gõ px, tự đổi ra nấc ({SCROLL_NOTCH_PX} px / nấc). Cuộn dài hơn màn hình cũng được.</span>
         </Field>
-        <Field label="Cuộn tại" wide group>
+        <Field label="Cuộn tại" group help={s.points.length ? 'Đặt chuột tại điểm rồi lăn (không phải chỗ cuộn tới).' : 'Cuộn ở chỗ chuột đang đứng – thường sau một bước click vào trang / danh sách cần cuộn.'}>
           <Segmented value={s.points.length ? 'point' : 'mouse'} onChange={(v) => setScrollAt(s.id, v === 'point')} full label="Cuộn tại"
             options={[{ id: 'mouse', label: 'Chuột' }, { id: 'point', label: 'Điểm' }]} />
         </Field>
         {s.points[0] ? (
           <PointSource step={s} index={0} setPoint={setPoint}
-            label={<>Đặt chuột tại <span className="text-xs">(không phải chỗ cuộn tới)</span></>}>
+            label="Đặt chuột tại">
             {(menu) => <>
             <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
               pick={<PickButton step={s} />} menu={menu} />
             {!insideBounds(toScreen(s.points[0], region), boundsOf(region)) && (
-              <span className="text-xs text-danger-text">
+              <span className={errText}>
                 Điểm nằm ngoài {region ? 'vùng' : 'màn hình'} ({boundsOf(region).w} × {boundsOf(region).h}) – chuột không tới được, chạy sẽ báo lỗi.
                 Muốn cuộn xa hơn thì tăng số nấc / quãng cuộn.
               </span>
             )}
             </>}
           </PointSource>
-        ) : (
-          <span className={`col-span-2 ${hint}`}>Cuộn ở chỗ chuột đang đứng – thường sau một bước click vào trang / danh sách cần cuộn.</span>
-        )}
-        <div className="col-span-2 flex flex-col gap-1.5 text-muted">
-          <span>Cuộn tới đâu</span>
+        ) : null}
+        <Field label="Cuộn tới đâu" wide group>
           <ScrollMap bounds={boundsOf(region)} label={region ? 'Vùng' : 'Màn hình'} direction={s.direction ?? 'down'} amount={s.amount ?? 0}
             at={endpoints(script, region).get(s.id)?.start ?? null} />
-        </div>
+        </Field>
       </>
   );
 }

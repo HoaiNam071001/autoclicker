@@ -2,7 +2,7 @@
 // Mọi thay đổi chỉ là state cục bộ của màn mẫu.
 import { ReactNode, useState } from 'react';
 import { StepIcon } from '../components/icons';
-import { Switch } from '../components/RunSettings';
+import { Switch } from '../components/Switch';
 import NumInput from '../components/NumInput';
 import PinButton, { KeyChip } from '../components/inputs/PinButton';
 import VarTextInput from '../components/inputs/VarTextInput';

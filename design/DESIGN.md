@@ -72,7 +72,7 @@ v3 giữ nguyên nguyên tắc v2 (một màu nhấn cho trạng thái, gradient
 
 Một kiểu ô cho mọi trường của inspector; các nút phụ (biến, ghim input, về mặc định) gom vào **menu ⋯ trong ô** thay vì nút {x} / ghim nằm ngoài ô (v2 – làm ô số hẹp, cắt chữ).
 
-- **Hàng:** lưới `112px 1fr`, gap 10, nhãn `muted` bên trái (rê hàng: nhãn `ink`). Ô cao **34**, bo 7, nền `field`, viền `line`; số mono 13, đơn vị `muted` 12 sát phải trong ô.
+- **Hàng:** lưới `112px 1fr` (code dùng **120 px** – nhãn có ⓘ không gãy dòng), gap 10, nhãn `muted` bên trái (rê hàng: nhãn `ink`). Ô cao **34**, bo 7, nền `field`, viền `line`; số mono 13, đơn vị `muted` 12 sát phải trong ô.
 - **Rê chuột:** viền `line-strong`, hiện nút **⋯** 26×26 (nền `soft`) ở mép phải trong ô. Mở menu: viền ô `accent`, nút ⋯ nền `accent-soft` chữ `accent-text`.
 - **Menu ⋯** (rộng 226, bo 9, mục cao 36, icon 15 `muted`): *Dùng biến…* · *Đặt làm input khi chạy* · *Về mặc định (120 ms)* · *Ô này dùng để làm gì* (chữ `muted`, mở giải thích). Mục nào không áp dụng thì không hiện.
 - **Đang dùng biến:** trong ô chỉ còn chip `var-token` (`{{vars.clickGap}}`, cắt `…`) + nút ✕ 24 "Bỏ biến" bên phải.
@@ -81,6 +81,7 @@ Một kiểu ô cho mọi trường của inspector; các nút phụ (biến, gh
 - **Số nguyên nhỏ** (Số click, số lần thử…): ô có nút **− / +** 34×34 hai đầu, số giữa căn giữa.
 - **Cặp X / Y** (vị trí): nhãn ở **trên** (kèm ⓘ, phải ghi neo "neo trên-trái" `muted` 12), dưới là 2 ô X / Y chia đều + nút chọn trên màn hình 34 + nút ⋯ (Số / Biến, neo…). **Sơ đồ màn hình thu gọn** thành một hàng nút "Sơ đồ màn hình · cách trái 812, trên 436"; mở ra: khung `soft` có sơ đồ, chọn neo 4 góc (↖ ↗ ↙ ↘), px / %.
 - **Chữ có biến:** ô **tự cao** theo nội dung (min 34, line-height 1.85), biến là chip `var-token` trong dòng.
+- **Giải thích:** ⓘ `faint` cạnh nhãn, rê / focus hiện tooltip (fixed, không bị inspector cắt) – thay dòng chữ dài dưới ô; **lỗi / thiếu dữ liệu vẫn hiện chữ đỏ dưới ô** (không giấu vào ⓘ). Công tắc: hàng nhãn trái + công tắc (`SwitchField`). Nút chọn 2–3 mục dài, ô chữ dài: nhãn trên.
 - **Dropdown:** cùng khung ô 34, chữ cắt `…`, mũi tên ▾ 12 `muted` bên phải.
 - Theme tối: canvas vẽ bằng bảng trung tính cũ – dùng token Slate tương ứng (`field`, `line`, `line-strong`, `accent-soft`…).
 

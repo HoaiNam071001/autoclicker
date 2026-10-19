@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { Displays } from '../../../wailsjs/go/main/App';
 import NumInput from '../NumInput';
 import { Region } from '../icons';
-import { Switch } from '../RunSettings';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
@@ -12,7 +11,7 @@ import { inWails } from '../../windowMode';
 import { nodeTitle } from '../../flow/view';
 import { DEFAULT_SHOT_DIR, hasFoundBox, SHOT_AREAS, type ShotArea } from '../../flow/shot';
 import { Rect, Step } from '../../types';
-import { Field, hint, selectBox, useNodeVars } from './shared';
+import { Field, hint, selectBox, SwitchField, useNodeVars } from './shared';
 
 type Display = { index: number; rect: Rect; main: boolean };
 
@@ -36,21 +35,13 @@ export function ShotFields({ step: s }: { step: Step }) {
         {area === 'rect' && <RectPicker step={s} onChange={(shotRect) => set({ shotRect })} />}
         {area === 'node' && <NodePicker step={s} onChange={(imageFrom) => set({ imageFrom })} />}
       </Field>
-      <div className="col-span-2 flex flex-col gap-1.5 text-muted">Lưu vào thư mục
+      <Field label="Thư mục lưu" wide group help={`Trống = ~/${DEFAULT_SHOT_DIR} · chưa có thì tự tạo`}>
         <VarTextInput {...varProps} value={s.saveDir ?? ''} onChange={(v) => set({ saveDir: v || undefined })} placeholder={DEFAULT_SHOT_DIR} />
-        <span className={hint}>Trống = <span className="font-mono">~/{DEFAULT_SHOT_DIR}</span> · chưa có thì tự tạo</span>
-      </div>
-      <div className="col-span-2 flex flex-col gap-1.5 text-muted">Tên file
+      </Field>
+      <Field label="Tên file" wide group help="Tự thêm .png · trùng tên thì thêm (2), không ghi đè">
         <VarTextInput {...varProps} value={s.fileName ?? ''} onChange={(v) => set({ fileName: v || undefined })} placeholder="autoclicker-<ngày>-<giờ>" />
-        <span className={hint}>Tự thêm <span className="font-mono">.png</span> · trùng tên thì thêm (2), không ghi đè</span>
-      </div>
-      <div className="col-span-2 flex flex-col gap-1">
-        <label className="flex items-center gap-2 text-ink">
-          <Switch on={!!s.toClipboard} onChange={(on) => set({ toClipboard: on || undefined })} label="Chép ảnh vào clipboard" />
-          Chép ảnh vào clipboard
-        </label>
-        <span className={`pl-11 ${hint}`}>Dán (Cmd/Ctrl+V) thẳng vào chat, email, Paint…</span>
-      </div>
+      </Field>
+      <SwitchField label="Vào clipboard" help="Dán (Cmd/Ctrl+V) thẳng vào chat, email, Paint…" on={!!s.toClipboard} onChange={(on) => set({ toClipboard: on || undefined })} />
     </>
   );
 }

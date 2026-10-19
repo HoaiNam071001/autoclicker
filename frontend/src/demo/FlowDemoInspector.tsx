@@ -3,7 +3,7 @@
 // Mọi thay đổi chỉ là state của màn mẫu.
 import { useState } from 'react';
 import { TabBtn } from '../components/stepform/shared';
-import { Switch } from '../components/RunSettings';
+import { Switch } from '../components/Switch';
 import NumInput from '../components/NumInput';
 import InputsPanel from '../components/inputs/InputsPanel';
 import { InputView } from '../components/inputs/model';

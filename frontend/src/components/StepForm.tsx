@@ -3,7 +3,7 @@
 // trường theo loại nằm ở components/stepform/.
 import { ReactNode, useState } from 'react';
 import { Eye } from './icons';
-import { Switch } from './RunSettings';
+import { Switch } from './Switch';
 import { openOverlay } from '../windowMode';
 import { changeStepType, toggleStep, updateStep, useScript } from '../store';
 import { isControl, numVarOf, STEP_LABEL, Step, stepLabel, StepPoint, StepType } from '../types';
@@ -139,8 +139,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'type' && <TypeFields step={s} />}
       {s.type === 'key' && <KeyFields step={s} />}
       {isMouse(s) && <JitterField step={s} />}
-      {usesHuman(s) && <HumanNodeField value={s.human} scriptLevel={script.human} className="col-span-2"
-        onChange={(human) => updateStep(s.id, { human })} />}
+      {usesHuman(s) && <HumanNodeField value={s.human} scriptLevel={script.human} onChange={(human) => updateStep(s.id, { human })} />}
     </>
   );
 }

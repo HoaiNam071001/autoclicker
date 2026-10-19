@@ -3,7 +3,7 @@
 // App thật: runForm.ts (giá trị lần trước, preset lưu trên máy, Go kiểm tra – resolveInputs); màn #demo dùng dữ liệu mẫu.
 import { useEffect, useMemo, useState } from 'react';
 import { Play, Trash } from '../icons';
-import { Switch } from '../RunSettings';
+import { Switch } from '../Switch';
 import { fmtValue, InputValue, InputView, splitVars } from './model';
 
 export type RunSection = { steps: string; title: string; keys: string[]; template?: string }; // template: câu có {{biến}} để xem trước

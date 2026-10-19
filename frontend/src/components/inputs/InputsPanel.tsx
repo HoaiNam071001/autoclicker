@@ -5,7 +5,7 @@ import { closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useS
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Trash } from '../icons';
-import { Switch } from '../RunSettings';
+import { Switch } from '../Switch';
 import { fieldBox } from '../NumInput';
 import { fmtValue, INPUT_TYPE_LABEL, InputType, InputView, ScriptInput } from './model';
 

@@ -46,12 +46,11 @@ export function MouseFields({ step: s, setPoint }: { step: Step; setPoint: SetPo
 export function JitterField({ step: s }: { step: Step }) {
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   return (
-          <Field label="Ngẫu nhiên vị trí" wide>
-        <NumInput prefix="±" value={s.jitterPx} unit="px" onChange={(v) => set({ jitterPx: v })} />
-        <span className={hint}>
-          {s.jitterPx > 0 ? `Mỗi lần ${s.type === 'drag' ? 'kéo, A và B' : 'click'} lệch trong ô ${2 * s.jitterPx + 1}×${2 * s.jitterPx + 1} px` : 'Tắt (0)'}
-        </span>
-      </Field>
+    <Field label="Lệch vị trí" help={s.jitterPx > 0
+      ? `Mỗi lần ${s.type === 'drag' ? 'kéo, A và B' : 'click'} lệch trong ô ${2 * s.jitterPx + 1}×${2 * s.jitterPx + 1} px`
+      : `Mỗi lần ${s.type === 'drag' ? 'kéo' : 'click'} lệch ngẫu nhiên quanh điểm – 0 = tắt`}>
+      <NumInput prefix="±" value={s.jitterPx} unit="px" onChange={(v) => set({ jitterPx: v })} />
+    </Field>
   );
 }
 
