@@ -52,7 +52,7 @@ func (a *App) CaptureTemplate(r model.Rect) (TemplateShot, error) {
 			return err
 		}
 		png, err := vision.EncodePNG(img)
-		shot = TemplateShot{Png: png, Scale: vision.ImageScale(img, r), W: r.W, H: r.H}
+		shot = TemplateShot{Png: png, Scale: device.TemplateScale(img, r), W: r.W, H: r.H}
 		return err
 	})
 	return shot, err

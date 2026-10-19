@@ -8,7 +8,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 - **Đang làm:** **38** – UI v3 gọn ([phase3/38-ui-v3.md](phase3/38-ui-v3.md)): **xong code** (màu 7 nhóm node, thẻ node 168, khung app + nút Chạy tách đôi, inspector thu gọn + ô nhập có menu ⋯), còn kiểm tra tay. **37** – phần tử màn hình qua Accessibility ([phase3/37-phan-tu-man-hinh.md](phase3/37-phan-tu-man-hinh.md)): **E0** (đọc cây AX macOS – Chrome thường, Finder, Electron) + **E1** (tìm theo text= / aria= / role=, chỗ thứ N, lọc vùng), **E2** (Chờ / Click theo phần tử + điều kiện *thấy phần tử* ở engine; node **Đọc phần tử** có inspector; 3 mẫu thử trên `element.html`), **E3** (UI Tìm theo: Phần tử, Chọn trên màn, Thử tìm), **E4** (đọc chữ cạnh nhãn bằng OCR, lọc mẫu, lấy số, chờ giá trị đổi) xong code; còn E5 (Windows), chạy thật mẫu, chuẩn bị MCP. **35** – node nâng cao ([phase3/35-node-nang-cao.md](phase3/35-node-nang-cao.md)): **xong code** (N0 mô tả node, Chụp màn hình, Clipboard, HTTP, Tệp / thư mục, Âm lượng, Chờ đến giờ, Vẽ đường, mẫu thử), còn kiểm tra tay. **34** – thao tác giống người ([phase3/34-giong-nguoi.md](phase3/34-giong-nguoi.md)): **xong code** (H1–H5, Xem trước đi theo đường cong), còn kiểm tra tay. 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3, F5, F5b (toạ độ nhận biến), **F5c** (output mọi node + ô số nhận biến) xong code – 32 (tách Go) xong code. **33** (kịch bản mẫu để test) xong code – 31 mẫu chạy thật qua 31/31; **25d** (web qua DOM): D0 đo toạ độ 0–2 px trên Retina, **D0–D4 xong code** (node Chờ / Click / Gõ / Đọc / Cuộn phần tử web qua Chrome của app; chờ khung đứng yên + thử hover, iframe, `role=`; inspector có trạng thái kết nối, Chọn phần tử trên trang, Thử tìm; chạy nền theo từng node – Chrome bị che / thu nhỏ vẫn chạy; `PageOutline` cây rút gọn cho AI), còn kiểm tra tay. Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. **18a** build exe qua GitHub Actions xong; bước 17 (phần Windows) và 18b hoãn: chưa có máy Windows
 - **Tiếp theo:** **20 F6** → F7 → 26 … → 36 (việc qua Chrome của app – cuối plan) (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. **Đã có máy Windows (2026-10-19)**: phần Windows làm + test trên máy Windows bằng Claude Code ([docs/windows-dev.md](../windows-dev.md)) – 17 (DPI), 18b, 37 E5 (UI Automation), OCR Windows (25e), 26 W0
-- **Cập nhật lần cuối:** 2026-10-19 (18a – build exe qua GitHub Actions)
+- **Cập nhật lần cuối:** 2026-10-19 (17 / 18b – thử thật trên Windows 125 %: DPI aware khi không có manifest, ảnh mẫu co giãn theo DPI màn)
 
 ## Tính năng của hệ thống
 
@@ -90,7 +90,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 |---|---|---|---|
 | ✅ | Giao diện v2, theme sáng / tối | Kiểu Windows 11; UI dựng sẵn cho tính năng *Sắp có* | [27](phase3/27-ui-v2.md), [27b](phase3/27b-ui-sap-co.md) |
 | 🧪 | Giao diện v3 – gọn | Màu theo 7 nhóm node, thẻ node nhỏ (168), inspector thu gọn có tóm tắt, nút Chạy tách đôi + menu; theme tối giữ Slate | [38](phase3/38-ui-v3.md) |
-| 🟡 | Đa màn hình / DPI | macOS xong (chờ kiểm tra tay 2 màn); Windows chưa thử | [17](phase1-mvp.md) |
+| 🟡 | Đa màn hình / DPI | macOS xong (chờ kiểm tra tay 2 màn); Windows 125 % thử thật qua (chuột, chụp, ảnh mẫu), còn 100 % / 150 % / 2 màn | [17](phase1-mvp.md) |
 | 🧪 | Bản Windows (.exe) | **18a**: GitHub Actions build exe mỗi lần push (tab Actions → Artifacts); chưa có OCR / phần tử màn hình / Cửa sổ trên Windows; thử máy sạch + DPI cần máy Windows (18b) | [18](phase1-mvp.md) |
 
 ## Tổng quan theo bước
@@ -98,7 +98,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 > Bảng tự sinh – sau khi tick chạy `python3 scripts/tasks-index.py`. Bấm tên bước để mở file chi tiết.
 
 <!-- index:start -->
-**34 / 49 bước xong code** · 🧪 **[80 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
+**34 / 49 bước xong code** · 🧪 **[82 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
 
 ### Phase 3 – Design v2 & tự động hoá (theo thứ tự làm)
 
@@ -153,7 +153,7 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | ✅ xong | [14. Danh sách bước](phase1-mvp.md) | 5 / 5 |  |
 | ✅ xong | [15. Form cấu hình bước](phase1-mvp.md) | 5 / 5 |  |
 | ✅ xong | [16. Cài đặt chạy](phase1-mvp.md) | 7 / 7 |  |
-| 🟡 đang làm | [17. DPI & đa màn hình](phase1-mvp.md) | 6 / 7 | [2 việc](checks.md) |
+| 🟡 đang làm | [17. DPI & đa màn hình](phase1-mvp.md) | 9 / 10 | [4 việc](checks.md) |
 | 🟡 đang làm | [18. Build & thử máy sạch](phase1-mvp.md) | 3 / 4 |  |
 | ✅ xong | [19. Ngẫu nhiên hoá](phase2.md) | 5 / 5 |  |
 | ✅ xong | [19b. Xem trước kịch bản](phase2.md) | 4 / 4 |  |

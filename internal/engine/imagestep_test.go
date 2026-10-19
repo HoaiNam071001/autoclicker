@@ -33,6 +33,8 @@ func (f *fakeScreen) Capture(r model.Rect) (image.Image, error) {
 	return f.frames[min(len(f.shots)-1, len(f.frames)-1)], nil
 }
 
+func (f *fakeScreen) DPIScale(model.Rect) float64 { return 1 }
+
 func (f *fakeScreen) Pixel(x, y int) (color.RGBA, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

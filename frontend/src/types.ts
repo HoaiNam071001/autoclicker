@@ -122,7 +122,7 @@ export interface Step extends AdvancedFields {
   scrollIn?: string[]; // webScroll until: khung cuộn (như selectors), trống = giữa trang; nhận {{biến}}
   // chờ ảnh / click theo ảnh / chờ pixel (bước 25, internal/engine/imagestep.go)
   template?: string; // ảnh mẫu PNG base64
-  templateScale?: number; // px ảnh mẫu / 1 đơn vị toạ độ lúc chụp (Retina 2)
+  templateScale?: number; // px ảnh mẫu / 1 px logic lúc chụp (Retina 2, Windows 125 % 1,25)
   threshold?: number; // % khớp tối thiểu
   timeoutMs?: number; // chờ tối đa
   intervalMs?: number; // kiểm tra mỗi

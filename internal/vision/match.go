@@ -256,17 +256,20 @@ func ImageScale(img image.Image, r model.Rect) float64 {
 
 // MatchScaled đưa mẫu và ảnh chụp về cùng tỷ lệ px (mẫu chụp ở màn 1x, chạy trên Retina…) rồi tìm. Luôn thu nhỏ
 // bên nét hơn (trung bình theo ô ≈ cách màn 1x vẽ) thay vì phóng to bên kia – phóng to làm mẫu nhoè, độ khớp tụt.
+// tplScale và độ nét so sánh theo px ảnh / 1 px logic (đơn vị app vẽ giao diện): = ImageScale × dpi, dpi = độ nét màn
+// chứa vùng ngoài phần toạ độ đã gồm (Windows: DPI / 96 vì toạ độ là px thật; macOS 1 – toạ độ điểm đã gồm Retina).
 // Trả kết quả theo px ảnh chụp và tỷ lệ px / toạ độ của ảnh chụp.
-func MatchScaled(img image.Image, area model.Rect, tpl Gray, tplScale float64) (Match, float64) {
+func MatchScaled(img image.Image, area model.Rect, tpl Gray, tplScale, dpi float64) (Match, float64) {
 	sc := ImageScale(img, area)
 	g := ToGray(img)
-	if tplScale <= 0 || math.Abs(sc-tplScale) <= 0.01 {
+	eff := sc * max(dpi, 0.01)
+	if tplScale <= 0 || math.Abs(eff-tplScale) <= 0.01 {
 		return findTemplate(g, tpl), sc
 	}
-	if k := tplScale / sc; k > 1 { // mẫu nét hơn ảnh chụp → thu nhỏ mẫu
+	if k := tplScale / eff; k > 1 { // mẫu nét hơn ảnh chụp → thu nhỏ mẫu
 		return findTemplate(g, tpl.resize(int(math.Round(float64(tpl.w)/k)), int(math.Round(float64(tpl.h)/k)))), sc
 	}
-	k := sc / tplScale // ảnh chụp nét hơn → thu nhỏ ảnh chụp, đổi kết quả về px ảnh chụp
+	k := eff / tplScale // ảnh chụp nét hơn → thu nhỏ ảnh chụp, đổi kết quả về px ảnh chụp
 	m := findTemplate(g.resize(int(math.Round(float64(g.w)/k)), int(math.Round(float64(g.h)/k))), tpl)
 	return Match{X: int(math.Round(float64(m.X) * k)), Y: int(math.Round(float64(m.Y) * k)),
 		W: int(math.Round(float64(m.W) * k)), H: int(math.Round(float64(m.H) * k)), Score: m.Score}, sc

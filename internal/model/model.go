@@ -106,7 +106,7 @@ type Step struct {
 	ScrollIn   []string `json:"scrollIn,omitempty"` // webScroll until: cách tìm khung cuộn (như Selectors); nhận {{biến}}
 	// Chờ ảnh / click theo ảnh / chờ pixel (bước 25)
 	Template      string  `json:"template,omitempty"`      // ảnh mẫu PNG (base64)
-	TemplateScale float64 `json:"templateScale,omitempty"` // px ảnh mẫu trên 1 đơn vị toạ độ lúc chụp (Retina = 2) – tìm trên màn tỷ lệ khác thì co giãn
+	TemplateScale float64 `json:"templateScale,omitempty"` // px ảnh mẫu trên 1 px logic lúc chụp (Retina = 2, Windows 125 % = 1,25) – tìm trên màn tỷ lệ khác thì co giãn
 	Threshold     int     `json:"threshold,omitempty"`     // % khớp tối thiểu (1–100)
 	TimeoutMs     int     `json:"timeoutMs,omitempty"`     // chờ tối đa
 	IntervalMs    int     `json:"intervalMs,omitempty"`    // kiểm tra mỗi

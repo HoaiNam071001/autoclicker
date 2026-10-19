@@ -8,3 +8,8 @@
   - [ ] Node web: cuộn tới phần tử bằng bánh xe chuột thật giữa trang + đọc lại khung đến khi lọt viewport, thay `scrollIntoView` *(chuyển từ 34 H3b)*
   - [ ] Mẫu thử web cho 35: vào trang cá nhân FB (Mở URL + Click phần tử web), săn sale Shopee (web DOM + 34) *(chuyển từ 35)*
   - [ ] MCP 31b `describe_screen`: thêm phần tử trang web khi là Chrome của app (`PageOutline` đã có ở 25d D4c) *(chuyển từ 31)*
+
+## Lỗi riêng Windows (thử 2026-10-19, `TestRealSamples`, màn 1920×1080 scale 125 %)
+
+- [ ] `web-cuon-trong-khung`: “đã lăn 17 lần, thấy CỘT 12 nhưng chưa vào khung nhìn” – lăn ngang trong khung không tới (robotgo Windows lăn ngang bằng `MOUSEEVENTF_HWHEEL`; xem hướng / Chrome có nhận không)
+- [ ] `web-thanh-toan-iframe`: tick ô đồng ý trong iframe được, nút “Thanh toán” báo “nằm ngoài khung trang” sau 5 s – có thể do khung nhìn thấp (màn 864 px logic) mà phần tử trong iframe không được cuộn vào

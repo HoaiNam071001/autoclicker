@@ -138,7 +138,7 @@ func (e *Engine) findImage(ctx context.Context, s model.Step) (hit, error) {
 		if err != nil {
 			return false, 0, err
 		}
-		m, sc := vision.MatchScaled(img, area, tpl, s.TemplateScale)
+		m, sc := vision.MatchScaled(img, area, tpl, s.TemplateScale, e.scr.DPIScale(area))
 		score := int(math.Round(m.Score * 100))
 		if score >= miss.Score {
 			miss = FindResult{Score: score, Area: area, X: area.X + int(float64(m.X)/sc), Y: area.Y + int(float64(m.Y)/sc),

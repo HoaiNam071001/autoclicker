@@ -68,6 +68,8 @@ func (s *snapshot) Capture(r model.Rect) (image.Image, error) {
 
 func (s *snapshot) Pixel(x, y int) (color.RGBA, error) { return s.scr.Pixel(x, y) }
 
+func (s *snapshot) DPIScale(r model.Rect) float64 { return s.scr.DPIScale(r) }
+
 func (s *snapshot) ReadText(img image.Image) ([]vision.TextLine, error) {
 	if l, ok := s.texts[img]; ok {
 		return l, nil
@@ -170,7 +172,7 @@ func (e *Engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, 
 		if err != nil {
 			return part, err
 		}
-		m, k := vision.MatchScaled(img, area, tpl, probe.TemplateScale)
+		m, k := vision.MatchScaled(img, area, tpl, probe.TemplateScale, snap.DPIScale(area))
 		score := int(math.Round(m.Score * 100))
 		box := model.Rect{X: area.X + int(float64(m.X)/k), Y: area.Y + int(float64(m.Y)/k), W: int(float64(m.W) / k), H: int(float64(m.H) / k)}
 		ok = score >= max(c.Threshold, 1)

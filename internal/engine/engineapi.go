@@ -94,7 +94,7 @@ func (e *Engine) FindOnce(s model.Step) (FindResult, error) {
 	if err != nil {
 		return FindResult{}, err
 	}
-	m, k := vision.MatchScaled(shot, area, vision.ToGray(tpl), s.TemplateScale)
+	m, k := vision.MatchScaled(shot, area, vision.ToGray(tpl), s.TemplateScale, e.scr.DPIScale(area))
 	res := FindResult{
 		Score: int(math.Round(m.Score * 100)), Area: area, Ms: int(time.Since(start).Milliseconds()),
 		X: area.X + int(float64(m.X)/k), Y: area.Y + int(float64(m.Y)/k), W: int(float64(m.W) / k), H: int(float64(m.H) / k),

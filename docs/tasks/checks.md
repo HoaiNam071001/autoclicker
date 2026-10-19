@@ -3,6 +3,11 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 17 – DPI Windows · [phase1-mvp.md](phase1-mvp.md)
+
+- [ ] Windows 125 % (sửa 2026-10-19 – ảnh mẫu co giãn theo DPI màn): chụp lại ảnh mẫu đã chụp trên Windows trước bản này; chụp ảnh mẫu một nút ở 125 % → đổi scale sang 100 % (Settings → Display) → Thử tìm / chạy vẫn thấy; ảnh mẫu trong inspector hiện đúng cỡ nhìn trên màn. Có 2 màn khác scale: chụp ở màn này, tìm ở màn kia
+- [ ] Windows 150 % / 100 %: `AUTOCLICKER_REAL=1 go test ./internal/device/ -run Real -v` qua (chuột đọc lại đúng, DPI in ra đúng scale)
+
 ## 18a – Build exe · [phase1-mvp.md](phase1-mvp.md)
 
 - [ ] Windows cửa sổ trong suốt (sửa 2026-10-19): mở overlay → nhìn xuyên thấy màn hình thật (nền tối mờ); Xem trước với *Nền: Không* và *Nền: Trang web* đều thấy màn hình phía sau; màn chính vẫn nền đặc, kéo / đổi cỡ / phóng to cửa sổ như cũ; thanh mini trong suốt quanh viền

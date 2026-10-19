@@ -2,6 +2,7 @@ package device
 
 import (
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +16,9 @@ import (
 func TestRealElements(t *testing.T) {
 	if os.Getenv("AUTOCLICKER_REAL") != "1" {
 		t.Skip("đặt AUTOCLICKER_REAL=1 để chạy với app thật")
+	}
+	if runtime.GOOS != "darwin" {
+		t.Skip("cây phần tử Windows (UI Automation) làm ở bước 37 E5")
 	}
 	app := os.Getenv("AUTOCLICKER_APP")
 	for round := 1; round <= 2; round++ {

@@ -19,9 +19,16 @@ import (
 type Screen interface {
 	Capture(r model.Rect) (image.Image, error)
 	Pixel(x, y int) (color.RGBA, error)
+	// DPIScale – độ nét của màn chứa r ngoài phần toạ độ đã gồm (xem vision.MatchScaled): Windows DPI / 96, macOS 1.
+	DPIScale(r model.Rect) float64
 }
 
 type RobotgoScreen struct{}
+
+func (RobotgoScreen) DPIScale(r model.Rect) float64 { return DPIScale(r) }
+
+// TemplateScale – px ảnh mẫu / 1 px logic khi chụp img ở vùng r (ghi vào Step.TemplateScale).
+func TemplateScale(img image.Image, r model.Rect) float64 { return vision.ImageScale(img, r) * DPIScale(r) }
 
 // Capture chụp vùng r (nằm gọn trong một màn hình, xem captureArea). Ưu tiên cách chụp không dính cửa sổ app (thanh mini
 // đang chạy, overlay) và con trỏ chuột – không thì thanh mini che mất chỗ cần tìm.
