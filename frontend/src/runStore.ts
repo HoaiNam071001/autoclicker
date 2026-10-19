@@ -49,15 +49,25 @@ export async function loadHistory() {
   set({ history });
 }
 
+// Đọc một lần chạy trong lịch sử của kịch bản đang mở (không mở bảng Nhật ký) – hộp thoại Lịch sử chạy xem trước.
+export async function fetchRun(id: string): Promise<{ summary: RunSummary; results: StepResult[] } | null> {
+  const rec = await GetRun(ownerNow().name, ownerNow().path, id).catch(() => null);
+  if (!rec) return null;
+  const { results, inputs: _, truncated: __, ...summary } = rec as unknown as RunSummary & { results: StepResult[]; inputs: unknown; truncated: number };
+  return { summary: summary as RunSummary, results: results ?? [] };
+}
+
+// Mở lần chạy lên bảng Nhật ký + tô đường đã đi trên canvas.
 export async function openRun(id: string) {
   const owner = ownerNow();
-  const rec = await GetRun(owner.name, owner.path, id).catch(() => null);
-  if (!rec) return;
-  const { results, inputs: _, truncated: __, ...summary } = rec as unknown as RunSummary & { results: StepResult[]; inputs: unknown; truncated: number };
-  set({ results: results ?? [], summary: summary as RunSummary, live: false, open: true, owner });
+  const run = await fetchRun(id);
+  if (run) set({ ...run, live: false, open: true, owner });
 }
 
 export const closeRunLog = () => set({ open: false });
+
+// Ảnh lúc lỗi của lần chạy id bất kỳ trong lịch sử kịch bản đang mở.
+export const runShotUrl = (id: string, shot: string) => RunShot(ownerNow().name, ownerNow().path, id, shot).catch(() => '');
 
 export const shotUrl = (shot: string) =>
   state.summary ? RunShot(state.owner.name, state.owner.path, state.summary.id, shot).catch(() => '') : Promise.resolve('');

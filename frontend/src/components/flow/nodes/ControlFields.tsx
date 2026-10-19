@@ -1,5 +1,6 @@
 // Inspector node điều khiển của flow (bước 20 F3): Nếu, Switch theo giá trị, Switch theo màn hình, Đếm, Kết thúc,
 // Đặt biến. Chỉ hiển thị: nhận node + set(patch) – app thật nối store (stepform/ControlSection), màn mẫu nối state cục bộ.
+import Select from '../../Select';
 import NumInput, { fieldBox } from '../../NumInput';
 import Segmented from '../../Segmented';
 import { errText, Field, hint } from '../../stepform/shared';
@@ -88,9 +89,8 @@ function SwitchFields({ ctx }: { ctx: CondCtx }) {
       <CaseList ctx={ctx} last="không case nào khớp → cổng Khác">
         {(c, i) => (
           <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-2">
-            <select value={c.op ?? 'eq'} onChange={(e) => setCase(i, { op: e.target.value as CaseOp })} aria-label="Cách so" className={textBox}>
-              {CASE_OPS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-            </select>
+            <Select value={c.op ?? 'eq'} onChange={(op) => setCase(i, { op })} aria-label="Cách so" className={textBox}
+              options={CASE_OPS.map((o) => ({ value: o.id, label: o.label }))} />
             <VarTextInput value={c.match ?? ''} onChange={(match) => setCase(i, { match })} rows={1} placeholder={c.op === 'regex' ? '(?i)lỗi|error' : 'giá trị'} {...vars} />
           </div>
         )}

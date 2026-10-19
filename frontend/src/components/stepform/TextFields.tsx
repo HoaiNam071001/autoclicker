@@ -1,4 +1,5 @@
 // Node mở URL / app và node gõ chữ – ô chữ nhận {{biến}}.
+import Select from '../Select';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
@@ -24,12 +25,10 @@ export function OpenFields({ step: s }: { step: Step }) {
         <Field label="Mở bằng" group help={s.webBrowser
           ? 'Chrome / Edge / Brave với profile riêng của app (lần đầu phải đăng nhập lại trang, sau đó tự nhớ); đang mở thì mở tab mới. Chỉ mở URL / file. ' + WEB_BASIC_NOTE
           : 'Không chờ trang tải xong – đặt “Chờ sau khi xong” đủ lâu (mặc định 2 s).'}>
-          <select value={s.webBrowser ? APP_BROWSER : s.app ?? ''} className={selectBox}
-            onChange={(e) => set(e.target.value === APP_BROWSER ? { webBrowser: true } : { webBrowser: undefined, app: e.target.value })}>
-            <option value="">Mặc định của máy</option>
-            <option value={APP_BROWSER}>Chrome của app – node web điều khiển được</option>
-            {[...BROWSERS, ...(s.app && !BROWSERS.includes(s.app) ? [s.app] : [])].map((b) => <option key={b}>{b}</option>)}
-          </select>
+          <Select value={s.webBrowser ? APP_BROWSER : s.app ?? ''} className={selectBox} aria-label="Mở bằng"
+            onChange={(v) => set(v === APP_BROWSER ? { webBrowser: true } : { webBrowser: undefined, app: v })}
+            options={[{ value: '', label: 'Mặc định của máy' }, { value: APP_BROWSER, label: 'Chrome của app – node web điều khiển được' },
+              ...[...BROWSERS, ...(s.app && !BROWSERS.includes(s.app) ? [s.app] : [])].map((b) => ({ value: b, label: b }))]} />
         </Field>
       </>
   );

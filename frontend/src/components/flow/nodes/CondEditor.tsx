@@ -1,6 +1,7 @@
 // Sửa một điều kiện (node Nếu / case Switch theo màn hình, bước 20 F3): thấy chữ / thấy ảnh / màu pixel / so giá trị /
 // nhóm và – hoặc lồng nhau. Chỉ hiển thị: đọc cond qua props, trả phần sửa node qua set (flow/cond.ts tính);
 // khoanh ảnh, chọn điểm, lấy màu là tools (app thật nối imageSteps / store, màn mẫu bỏ trống → nút tắt).
+import Select from '../../Select';
 import { ReactNode, useState } from 'react';
 import NumInput, { fieldBox } from '../../NumInput';
 import Segmented from '../../Segmented';
@@ -69,15 +70,14 @@ export default function CondEditor({ ctx, at, screenOnly = false }: { ctx: CondC
     <>
       <Row label={nested ? undefined : 'Điều kiện'}>
         <div className="flex gap-1.5">
-          <select value={multi ? 'multi' : c.kind} aria-label="Loại điều kiện" className={`${selectBox} min-w-0 flex-1`}
-            onChange={(e) => {
-              const v = e.target.value;
-              if (v === 'multi') replace({ kind: 'all', conds: [c, emptyCond('text')] });
-              else if (v !== c.kind) replace(emptyCond(v as CondKind));
-            }}>
-            {kinds.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-            {!nested && <option value="multi">Nhiều điều kiện (và / hoặc)</option>}
-          </select>
+          <div className="min-w-0 flex-1">
+            <Select value={multi ? 'multi' : c.kind} aria-label="Loại điều kiện" className={selectBox}
+              onChange={(v) => {
+                if (v === 'multi') replace({ kind: 'all', conds: [c, emptyCond('text')] });
+                else if (v !== c.kind) replace(emptyCond(v as CondKind));
+              }}
+              options={[...kinds.map((o) => ({ value: o.id as string, label: o.label })), ...(nested ? [] : [{ value: 'multi', label: 'Nhiều điều kiện (và / hoặc)' }])]} />
+          </div>
           {nested && (
             <button onClick={() => set(patchRoot(s, at, (root) => removeCondAt(root, at.path)))} aria-label="Bỏ điều kiện này" title="Bỏ điều kiện này"
               className="grid h-8 w-8 flex-none place-items-center rounded-control border border-line text-muted hover:bg-hover hover:text-danger-text"><Trash /></button>
@@ -151,9 +151,8 @@ export default function CondEditor({ ctx, at, screenOnly = false }: { ctx: CondC
       {c.kind === 'value' && (
         <Row label="So sánh" help="Mỗi vế gõ chữ hoặc {{biến}}. Bằng / khác / chứa không phân biệt hoa thường; lớn / nhỏ so số.">
           {textInput(c.left ?? '', (left) => upd({ left }), '{{n2.output.text}}')}
-          <select value={c.op ?? 'eq'} onChange={(e) => upd({ op: e.target.value as CondOp })} className={selectBox} aria-label="Phép so">
-            {OPS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-          </select>
+          <Select value={c.op ?? 'eq'} onChange={(op) => upd({ op })} className={selectBox} aria-label="Phép so"
+            options={OPS.map((o) => ({ value: o.id, label: o.label }))} />
           {c.op !== 'empty' && textInput(c.right ?? '', (right) => upd({ right }), 'Lan')}
         </Row>
       )}

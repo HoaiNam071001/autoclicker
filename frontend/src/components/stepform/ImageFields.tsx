@@ -1,4 +1,5 @@
 // Node chờ ảnh / chữ, click theo ảnh / chữ, chờ màu pixel (bước 25, 25e): ảnh mẫu / chữ, thử tìm, nguồn chỗ thấy, màu.
+import Select from '../Select';
 import { useEffect, useState } from 'react';
 import NumInput, { fieldBox } from '../NumInput';
 import Segmented from '../Segmented';
@@ -181,11 +182,9 @@ export function ClickImageFields({ step: s }: { step: Step }) {
         <Segmented value={byNode ? 'node' : 'search'} onChange={(imageSource: 'node' | 'search') => set({ imageSource })} full
           options={[{ id: 'node', label: 'Chỗ node khác thấy' }, { id: 'search', label: 'Tự tìm' }]} label="Click vào" />
         {byNode && (
-          <select value={src ? src.id : ''} onChange={(e) => set({ imageFrom: e.target.value || undefined })}
-            className={`${selectBox} ${src ? '' : 'border-danger'}`}>
-            <option value="">— chọn node tìm ảnh / chữ —</option>
-            {sources.map((x) => <option key={x.id} value={x.id}>{x.ref} · {nodeTitle(x)}</option>)}
-          </select>
+          <Select value={src ? src.id : ''} onChange={(v) => set({ imageFrom: v || undefined })} aria-label="Node lấy chỗ thấy"
+            className={`${selectBox} ${src ? '' : 'border-danger'}`} placeholder="— chọn node tìm ảnh / chữ —"
+            options={sources.map((x) => ({ value: x.id, label: `${x.ref} · ${nodeTitle(x)}` }))} />
         )}
         <span className={`text-xs ${byNode && !src ? 'text-danger-text' : 'text-muted'}`}>
           {!byNode ? `Tự tìm ${FIND_NAME[s.findBy || 'image']} lúc chạy (chờ như Chờ ${FIND_NAME[s.findBy || 'image']}) rồi click vào giữa`

@@ -1,6 +1,7 @@
 // Phần inspector cho các loại bước chưa làm logic (bước 27b) – mỗi khối nhận value / onChange để bước làm logic
 // nối thẳng vào store: cuộn, mở URL / app (23), chờ ảnh, click theo ảnh, chờ pixel (25), khi hết giờ (25b),
 // focus cửa sổ (26), nhóm bước (20).
+import Select from '../Select';
 import { ReactNode } from 'react';
 import NumInput, { fieldBox } from '../NumInput';
 import Segmented from '../Segmented';
@@ -64,9 +65,8 @@ export function OpenFields({ value: v, onChange, pinKey }: Ctl<OpenData> & { pin
         <span className="text-xs">Nhận biến, vd <span className="font-mono">facebook.com/{'{{profile}}'}</span></span>
       </Field>
       <Field label="Mở bằng" wide>
-        <select value={v.app} onChange={(e) => onChange({ ...v, app: e.target.value })} className={textBox}>
-          <option value="">Mặc định của máy</option><option>Google Chrome</option><option>Microsoft Edge</option><option>Firefox</option>
-        </select>
+        <Select value={v.app} onChange={(app) => onChange({ ...v, app })} className={textBox} aria-label="Mở bằng"
+          options={[{ value: '', label: 'Mặc định của máy' }, ...['Google Chrome', 'Microsoft Edge', 'Firefox'].map((b) => ({ value: b, label: b }))]} />
       </Field>
     </Grid>
   );
@@ -200,10 +200,10 @@ export function OnTimeoutFields({ value: v, onChange, inGroup }: Ctl<OnTimeout> 
             <NumInput value={v.retries} min={1} onChange={(retries) => onChange({ ...v, retries })} className="w-[72px]" />
           </label>
           <label className="flex items-center justify-between text-muted">Thử hết vẫn không thấy
-            <select value={v.then} onChange={(e) => onChange({ ...v, then: e.target.value as OnTimeout['then'] })} className={`${fieldBox} w-[150px] text-ink`}>
-              {inGroup && <option value="skipGroup">Bỏ qua nhóm</option>}
-              <option value="stop">Dừng kịch bản</option>
-            </select>
+            <div className="w-[150px]">
+              <Select value={v.then as string} onChange={(t) => onChange({ ...v, then: t as OnTimeout['then'] })} className={`${fieldBox} text-ink`} aria-label="Hết giờ thì"
+                options={[...(inGroup ? [{ value: 'skipGroup', label: 'Bỏ qua nhóm' }] : []), { value: 'stop', label: 'Dừng kịch bản' }]} />
+            </div>
           </label>
         </>
       )}
