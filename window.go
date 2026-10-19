@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/go-vgo/robotgo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"autoclicker/internal/device"
@@ -158,7 +157,7 @@ func (a *App) SetOverlayDisplay(i int) error {
 // Wails chỉ đặt được vị trí tương đối theo màn hiện tại → cộng độ lệch giữa 2 màn. Thu nhỏ cửa sổ trước
 // để nó nằm gọn trong màn đích (Wails lấy "màn hiện tại" là màn chứa phần lớn cửa sổ); người gọi tự đặt lại cỡ.
 func (a *App) moveToDisplay(i int) bool {
-	ds := device.RawDisplays()
+	ds := device.Displays()
 	cur := a.winDisp
 	if i < 0 || i >= len(ds) || cur < 0 || cur >= len(ds) || cur == i {
 		return false
@@ -172,25 +171,25 @@ func (a *App) moveToDisplay(i int) bool {
 // detectDisplay đoán màn đang chứa cửa sổ: Wails chỉ cho biết cỡ màn hiện tại (không có vị trí) → so cỡ;
 // nhiều màn cùng cỡ (hoặc cỡ không khớp – Windows scale) thì lấy màn có chuột (vừa bấm nút trong cửa sổ).
 func (a *App) detectDisplay() int {
-	ds := device.RawDisplays()
+	ds := device.Displays()
 	if len(ds) <= 1 {
 		return 0
 	}
 	w, h, _ := a.currentScreenSize()
-	mx, my := robotgo.Location()
-	return pickDisplay(ds, device.Displays(), w, h, model.Point{X: mx, Y: my})
+	mx, my := device.Location()
+	return pickDisplay(ds, w, h, model.Point{X: mx, Y: my})
 }
 
-// pickDisplay: raw – khung màn theo đơn vị cửa sổ, scaled – theo toạ độ chuột robotgo (cùng thứ tự).
-func pickDisplay(raw, scaled []model.Rect, w, h int, mouse model.Point) int {
+// pickDisplay: ds – khung các màn (cùng hệ với chuột và cửa sổ Wails – device.Displays).
+func pickDisplay(ds []model.Rect, w, h int, mouse model.Point) int {
 	under := -1
-	for i, r := range scaled {
+	for i, r := range ds {
 		if mouse.X >= r.X && mouse.X < r.X+r.W && mouse.Y >= r.Y && mouse.Y < r.Y+r.H {
 			under = i
 		}
 	}
 	var same []int
-	for i, r := range raw {
+	for i, r := range ds {
 		if r.W == w && r.H == h {
 			same = append(same, i)
 		}
@@ -228,10 +227,10 @@ func (a *App) currentScreenSize() (int, int, error) {
 	return 0, 0, fmt.Errorf("không tìm thấy màn hình")
 }
 
-// MousePos trả vị trí chuột theo robotgo (toạ độ màn hình thật).
+// MousePos trả vị trí chuột theo toạ độ click (device.Location – Windows: pixel thật).
 // Overlay so với clientX/Y để đo độ lệch giữa toạ độ trong cửa sổ và toạ độ click.
 func (a *App) MousePos() model.Point {
-	x, y := robotgo.Location()
+	x, y := device.Location()
 	return model.Point{X: x, Y: y}
 }
 

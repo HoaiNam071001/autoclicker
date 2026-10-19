@@ -2,6 +2,7 @@ package script
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 
 	"autoclicker/internal/element"
@@ -14,6 +15,31 @@ func checkElementFind(i int, s model.Step) error {
 		return stepErr(i, s, "selectors", "%v", err)
 	}
 	return checkFindWait(i, s)
+}
+
+// checkElementRead – node Đọc phần tử: tìm bằng cây phần tử, hoặc tìm nhãn bằng OCR (37 E4 – khi đó phải đọc cạnh nhãn);
+// mẫu lọc phải là regex đọc được.
+func checkElementRead(i int, s model.Step) error {
+	if s.FindBy == model.FindByText {
+		if strings.TrimSpace(s.FindText) == "" {
+			return stepErr(i, s, "findText", "chưa nhập chữ của nhãn cần tìm")
+		}
+		if s.ReadNear == "" {
+			return stepErr(i, s, "readNear", "tìm nhãn bằng chữ (OCR) thì phải chọn đọc bên phải / bên dưới nhãn")
+		}
+		if err := checkFindWait(i, s); err != nil {
+			return err
+		}
+	} else if err := checkElementFind(i, s); err != nil {
+		return err
+	}
+	if s.ReadSpan < 0 || s.ReadSpan > 2000 {
+		return stepErr(i, s, "readSpan", "khoảng đọc phải trong 0–2000 px")
+	}
+	if _, err := regexp.Compile(s.ReadPattern); err != nil {
+		return stepErr(i, s, "readPattern", "mẫu lọc sai: %v", err)
+	}
+	return nil
 }
 
 // checkElementSelectors – cách tìm phần tử màn hình (bước 37): có ít nhất một dòng, dòng không có {{biến}} phải đọc được

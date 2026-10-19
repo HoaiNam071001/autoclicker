@@ -1,4 +1,5 @@
-// Hộp thoại Mẫu thử (bước 33): kịch bản mẫu đơn giản để test từng loại bước, lọc theo loại bước / kiểu app + ô tìm.
+// Hộp thoại Mẫu thử (bước 33): kịch bản mẫu đơn giản để test từng loại bước, lọc theo loại bước / kiểu app (ô chọn
+// cùng hàng ô tìm – danh sách mẫu chiếm phần lớn chiều cao) + ô tìm.
 // Chỉ hiển thị – nạp danh sách / mở mẫu ở Samples.tsx (app thật) hoặc dữ liệu giả (#demo).
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { StepIcon, StepIconName, STEP_ICON } from '../icons';
@@ -6,6 +7,7 @@ import { categoryOfType } from '../../flow/category';
 import { fieldBox } from '../NumInput';
 import { ALL, appsOf, filterSamples, Sample, SampleFilter, stepCounts, stepName } from '../../samples/filter';
 import SampleCard from './SampleCard';
+import Select from '../Select';
 
 export type SamplesDialogProps = {
   samples: Sample[] | null; // null = đang nạp
@@ -27,7 +29,6 @@ export default function SamplesDialog({ samples, error, ready, onPick, onOpenPag
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
-  const toggle = (k: 'step' | 'app', v: string) => setF({ ...f, [k]: f[k] === v ? '' : v });
   return (
     <div className="fixed inset-0 z-40 flex items-start justify-center bg-black/25 px-4 pt-[6vh]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-label="Mẫu thử" className="flex max-h-[86vh] w-[820px] max-w-full flex-col overflow-hidden rounded-panel border border-line bg-surface text-ink shadow-[0_16px_48px_rgb(0_0_0/.22)]">
@@ -40,20 +41,22 @@ export default function SamplesDialog({ samples, error, ready, onPick, onOpenPag
             <button disabled={!ready} onClick={() => onOpenPage('')} className="h-8 shrink-0 rounded-control border border-line px-2.5 text-[13px] enabled:hover:bg-hover disabled:opacity-60">Mở sân thử</button>
             <button onClick={onClose} aria-label="Đóng" className="h-8 w-8 shrink-0 rounded-control text-muted hover:bg-hover hover:text-ink">✕</button>
           </div>
-          <label className={fieldBox}>
-            <input autoFocus value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} placeholder="Tìm mẫu (không dấu cũng được)…" className="w-full bg-transparent text-ink outline-none" />
-          </label>
-          <ChipRow label="Kiểu">
-            {apps.map((a) => <Chip key={a} on={f.app === a} onClick={() => toggle('app', a)}>{a}</Chip>)}
-          </ChipRow>
-          <ChipRow label="Bước">
-            {steps.map(({ type, count }) => (
-              <Chip key={type} on={f.step === type} onClick={() => toggle('step', type)}>
-                {type in STEP_ICON && <span className={`cat-${categoryOfType(type)} grid`}><StepIcon type={type as StepIconName} className="h-3.5 w-3.5 text-cat" /></span>}
-                {stepName(type)} <span className="font-mono text-[11px] opacity-70">{count}</span>
-              </Chip>
-            ))}
-          </ChipRow>
+          <div className="flex flex-wrap gap-2">
+            <label className={`${fieldBox} min-w-[220px] flex-1`}>
+              <input autoFocus value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} placeholder="Tìm mẫu (không dấu cũng được)…" className="w-full bg-transparent text-ink outline-none" />
+            </label>
+            <div className="w-[170px]">
+              <Select value={f.app} onChange={(app) => setF({ ...f, app })} aria-label="Lọc theo kiểu" className={`${fieldBox} text-[13px] text-ink`}
+                options={[{ value: '', label: 'Kiểu: tất cả' }, ...apps.map((a) => ({ value: a, label: a }))]} />
+            </div>
+            <div className="w-[210px]">
+              <Select value={f.step} onChange={(step) => setF({ ...f, step })} aria-label="Lọc theo bước" className={`${fieldBox} text-[13px] text-ink`} menuWidth={240}
+                options={[{ value: '', label: 'Bước: tất cả' }, ...steps.map(({ type, count }) => ({
+                  value: type, label: stepName(type), sub: String(count),
+                  icon: type in STEP_ICON ? <span className={`cat-${categoryOfType(type)} grid`}><StepIcon type={type as StepIconName} className="h-3.5 w-3.5 text-cat" /></span> : <span className="w-3.5" />,
+                }))]} />
+            </div>
+          </div>
         </div>
         <div className="grid flex-1 grid-cols-1 content-start gap-3 overflow-y-auto bg-bg p-[18px] sm:grid-cols-2">
           {error ? <Empty>Không nạp được danh sách mẫu: {error}</Empty>
@@ -64,24 +67,6 @@ export default function SamplesDialog({ samples, error, ready, onPick, onOpenPag
         <div className="border-t border-line px-[18px] py-2 text-xs text-muted">{shown.length} / {list.length} mẫu</div>
       </div>
     </div>
-  );
-}
-
-function ChipRow({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <span className="w-10 shrink-0 pt-1 text-xs text-muted">{label}</span>
-      <div className="flex flex-wrap gap-1">{children}</div>
-    </div>
-  );
-}
-
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
-  return (
-    <button onClick={onClick} aria-pressed={on}
-      className={`flex h-7 items-center gap-1 rounded-full border px-2.5 text-xs ${on ? 'border-accent bg-accent-soft text-accent-text' : 'border-line text-muted hover:bg-hover hover:text-ink'}`}>
-      {children}
-    </button>
   );
 }
 

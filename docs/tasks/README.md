@@ -6,9 +6,9 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 
 > Cập nhật mục này mỗi khi xong / bắt đầu một bước.
 
-- **Đang làm:** **38** – UI v3 gọn ([phase3/38-ui-v3.md](phase3/38-ui-v3.md)): **xong code** (màu 7 nhóm node, thẻ node 168, khung app + nút Chạy tách đôi, inspector thu gọn + ô nhập có menu ⋯), còn kiểm tra tay. **37** – phần tử màn hình qua Accessibility ([phase3/37-phan-tu-man-hinh.md](phase3/37-phan-tu-man-hinh.md)): **E0** (đọc cây AX macOS – Chrome thường, Finder, Electron) + **E1** (tìm theo text= / aria= / role=, chỗ thứ N, lọc vùng), **E2** (Chờ / Click theo phần tử + điều kiện *thấy phần tử* ở engine; node **Đọc phần tử** có inspector; 3 mẫu thử trên `element.html`), **E3** (UI Tìm theo: Phần tử, Chọn trên màn, Thử tìm) xong code; tiếp E4 (dự phòng OCR cạnh nhãn). **35** – node nâng cao ([phase3/35-node-nang-cao.md](phase3/35-node-nang-cao.md)): **xong code** (N0 mô tả node, Chụp màn hình, Clipboard, HTTP, Tệp / thư mục, Âm lượng, Chờ đến giờ, Vẽ đường, mẫu thử), còn kiểm tra tay. **34** – thao tác giống người ([phase3/34-giong-nguoi.md](phase3/34-giong-nguoi.md)): **xong code** (H1–H5, Xem trước đi theo đường cong), còn kiểm tra tay. 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3, F5, F5b (toạ độ nhận biến), **F5c** (output mọi node + ô số nhận biến) xong code – 32 (tách Go) xong code. **33** (kịch bản mẫu để test) xong code – 31 mẫu chạy thật qua 31/31; **25d** (web qua DOM): D0 đo toạ độ 0–2 px trên Retina, **D0–D4 xong code** (node Chờ / Click / Gõ / Đọc / Cuộn phần tử web qua Chrome của app; chờ khung đứng yên + thử hover, iframe, `role=`; inspector có trạng thái kết nối, Chọn phần tử trên trang, Thử tìm; chạy nền theo từng node – Chrome bị che / thu nhỏ vẫn chạy; `PageOutline` cây rút gọn cho AI), còn kiểm tra tay. Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. Bước 17 (phần Windows) và 18 hoãn: chưa có máy Windows
-- **Tiếp theo:** **37 E4** (dự phòng OCR cạnh nhãn + lọc mẫu) → F6 → F7 → 26 … → 36 (việc qua Chrome của app – cuối plan) (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. Khi có máy Windows: quay lại 17–18
-- **Cập nhật lần cuối:** 2026-10-19 (37 E3 – Tìm theo: Phần tử, Chọn trên màn)
+- **Đang làm:** **38** – UI v3 gọn ([phase3/38-ui-v3.md](phase3/38-ui-v3.md)): **xong code** (màu 7 nhóm node, thẻ node 168, khung app + nút Chạy tách đôi, inspector thu gọn + ô nhập có menu ⋯), còn kiểm tra tay. **37** – phần tử màn hình qua Accessibility ([phase3/37-phan-tu-man-hinh.md](phase3/37-phan-tu-man-hinh.md)): **E0** (đọc cây AX macOS – Chrome thường, Finder, Electron) + **E1** (tìm theo text= / aria= / role=, chỗ thứ N, lọc vùng), **E2** (Chờ / Click theo phần tử + điều kiện *thấy phần tử* ở engine; node **Đọc phần tử** có inspector; 3 mẫu thử trên `element.html`), **E3** (UI Tìm theo: Phần tử, Chọn trên màn, Thử tìm), **E4** (đọc chữ cạnh nhãn bằng OCR, lọc mẫu, lấy số, chờ giá trị đổi) xong code; còn E5 (Windows), chạy thật mẫu, chuẩn bị MCP. **35** – node nâng cao ([phase3/35-node-nang-cao.md](phase3/35-node-nang-cao.md)): **xong code** (N0 mô tả node, Chụp màn hình, Clipboard, HTTP, Tệp / thư mục, Âm lượng, Chờ đến giờ, Vẽ đường, mẫu thử), còn kiểm tra tay. **34** – thao tác giống người ([phase3/34-giong-nguoi.md](phase3/34-giong-nguoi.md)): **xong code** (H1–H5, Xem trước đi theo đường cong), còn kiểm tra tay. 20 – flow kiểu n8n ([phase3/20-flow.md](phase3/20-flow.md)): F0, F4a, F1, F2, F4b, F3, F5, F5b (toạ độ nhận biến), **F5c** (output mọi node + ô số nhận biến) xong code – 32 (tách Go) xong code. **33** (kịch bản mẫu để test) xong code – 31 mẫu chạy thật qua 31/31; **25d** (web qua DOM): D0 đo toạ độ 0–2 px trên Retina, **D0–D4 xong code** (node Chờ / Click / Gõ / Đọc / Cuộn phần tử web qua Chrome của app; chờ khung đứng yên + thử hover, iframe, `role=`; inspector có trạng thái kết nối, Chọn phần tử trên trang, Thử tìm; chạy nền theo từng node – Chrome bị che / thu nhỏ vẫn chạy; `PageOutline` cây rút gọn cho AI), còn kiểm tra tay. Việc chờ kiểm tra tay: [checks.md](checks.md). 30 còn ánh xạ theo 4 điểm mốc. **18a** build exe qua GitHub Actions xong; bước 17 (phần Windows) và 18b hoãn: chưa có máy Windows
+- **Tiếp theo:** **20 F6** → F7 → 26 … → 36 (việc qua Chrome của app – cuối plan) (bảng thứ tự đầu Phase 3; 25c đã gộp vào 20 F5); MCP cho AI (31) làm sau 22, các bước trước nhớ làm mục *Chuẩn bị cho MCP*. **Đã có máy Windows (2026-10-19)**: phần Windows làm + test trên máy Windows bằng Claude Code ([docs/windows-dev.md](../windows-dev.md)) – 17 (DPI), 18b, 37 E5 (UI Automation), OCR Windows (25e), 26 W0
+- **Cập nhật lần cuối:** 2026-10-19 (18a – build exe qua GitHub Actions)
 
 ## Tính năng của hệ thống
 
@@ -44,9 +44,9 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 🧪 | Thao tác giống người | Chuột đi đường cong có tăng / giảm tốc, nhịp gõ / click / cuộn tự nhiên – bật sẵn mức vừa | [34](phase3/34-giong-nguoi.md) |
 | 🧪 | Chụp màn hình, clipboard, HTTP | Đợt 1 node nâng cao: chụp màn / vùng ra file, đọc / ghi clipboard, gọi API | [35](phase3/35-node-nang-cao.md) |
 | 🧪 | Tệp / thư mục, âm lượng, chờ đến giờ, vẽ đường | Đợt 2 node nâng cao (xoá vào Thùng rác); Bluetooth hoãn | [35](phase3/35-node-nang-cao.md) |
-| ⬜ | Focus cửa sổ theo tên | Đưa app lên trước | [26](phase3/26-focus-cua-so.md) |
+| ⬜ | Cửa sổ + Ứng dụng | Node Cửa sổ (focus, chờ mở / đóng, đặt vị trí + cỡ, thu nhỏ / phóng to / đóng, đọc) + node Ứng dụng (đang chạy? cổng yes / no, chờ chạy / thoát, thoát / buộc thoát) – cố định môi trường trước khi click | [26](phase3/26-cua-so-ung-dung.md) |
 | 🧪 | Web qua DOM | **Chỉ trang cơ bản, không bắt đăng nhập / captcha** (2026-10-18; việc tiếp theo dời sang [36](phase3/36-chrome-app-sau.md)). Tìm phần tử trang bằng chữ / selector (Chrome), bấm bằng chuột thật – D1: Chờ / Click phần tử web, node Mở bằng Chrome của app; D2: chờ đứng yên + thử hover trước khi bấm, iframe cùng nguồn, `role=`; D3: Chọn phần tử trên trang, Thử tìm, trạng thái kết nối; D4a: Gõ vào ô / Đọc phần tử / Cuộn trang web (tới phần tử, trong khung, tới khi thấy); D4b: chạy nền theo từng node (CDP, không đụng chuột); D4c: `PageOutline` – cây phần tử rút gọn cho AI (MCP 31) | [25d](phase3/25d-web-dom.md) |
-| 🧪 | Tìm / đọc phần tử màn hình (Accessibility) | **E0–E3 xong code (macOS)**: đọc cây, Chờ / Click theo phần tử (Tìm theo: Phần tử, Chọn trên màn, Thử tìm), node Đọc phần tử, mẫu thử `element.html`. Chrome thường đã đăng nhập + app khác, không CDP: Chờ / Click theo phần tử, Đọc phần tử; dự phòng OCR cạnh nhãn + lọc mẫu – macOS trước, Windows cùng 17–18 | [37](phase3/37-phan-tu-man-hinh.md) |
+| 🧪 | Tìm / đọc phần tử màn hình (Accessibility) | **E0–E4 xong code (macOS)**: đọc cây, Chờ / Click theo phần tử (Tìm theo: Phần tử, Chọn trên màn, Thử tìm), node Đọc phần tử (+ đọc chữ cạnh nhãn bằng OCR, lọc mẫu, lấy số, chờ giá trị đổi), mẫu thử `element.html`. Chrome thường đã đăng nhập + app khác, không CDP: Chờ / Click theo phần tử, Đọc phần tử; dự phòng OCR cạnh nhãn + lọc mẫu – macOS trước, Windows cùng 17–18 | [37](phase3/37-phan-tu-man-hinh.md) |
 | 🧪 | Kịch bản mẫu để test | Nút *Mẫu thử* ở Thư viện: mẫu đơn giản cho từng loại bước + nhiều kiểu web app, chạy trên sân thử cục bộ / vài web thật | [33](phase3/33-mau-thu.md) |
 
 ### Rẽ nhánh & luồng
@@ -91,14 +91,14 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | ✅ | Giao diện v2, theme sáng / tối | Kiểu Windows 11; UI dựng sẵn cho tính năng *Sắp có* | [27](phase3/27-ui-v2.md), [27b](phase3/27b-ui-sap-co.md) |
 | 🧪 | Giao diện v3 – gọn | Màu theo 7 nhóm node, thẻ node nhỏ (168), inspector thu gọn có tóm tắt, nút Chạy tách đôi + menu; theme tối giữ Slate | [38](phase3/38-ui-v3.md) |
 | 🟡 | Đa màn hình / DPI | macOS xong (chờ kiểm tra tay 2 màn); Windows chưa thử | [17](phase1-mvp.md) |
-| ⬜ | Bản Windows (.exe) | Cần máy Windows | [18](phase1-mvp.md) |
+| 🧪 | Bản Windows (.exe) | **18a**: GitHub Actions build exe mỗi lần push (tab Actions → Artifacts); chưa có OCR / phần tử màn hình / Cửa sổ trên Windows; thử máy sạch + DPI cần máy Windows (18b) | [18](phase1-mvp.md) |
 
 ## Tổng quan theo bước
 
 > Bảng tự sinh – sau khi tick chạy `python3 scripts/tasks-index.py`. Bấm tên bước để mở file chi tiết.
 
 <!-- index:start -->
-**34 / 49 bước xong code** · 🧪 **[76 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
+**34 / 49 bước xong code** · 🧪 **[79 việc chờ bạn kiểm tra tay](checks.md)** · ✅ xong · 🧪 xong code, chờ kiểm tra tay · 🟡 đang làm · ⬜ chưa làm
 
 ### Phase 3 – Design v2 & tự động hoá (theo thứ tự làm)
 
@@ -121,8 +121,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 🧪 chờ kiểm tra tay | [34. Thao tác giống người – di chuột, gõ, click, cuộn tự nhiên](phase3/34-giong-nguoi.md) | 7 / 7 | [5 việc](checks.md) |
 | 🧪 chờ kiểm tra tay | [35. Node nâng cao](phase3/35-node-nang-cao.md) | 9 / 9 | [9 việc](checks.md) |
 | 🧪 chờ kiểm tra tay | [38. UI v3 – gọn: màu theo nhóm node, thẻ node nhỏ, inspector thu gọn](phase3/38-ui-v3.md) | 9 / 11 | [7 việc](checks.md) |
-| 🟡 đang làm | [37. Tìm / đọc phần tử màn hình qua Accessibility](phase3/37-phan-tu-man-hinh.md) | 6 / 10 | [3 việc](checks.md) |
-| ⬜ chưa làm | [26. Focus cửa sổ theo tên](phase3/26-focus-cua-so.md) | 0 / 3 |  |
+| 🟡 đang làm | [37. Tìm / đọc phần tử màn hình qua Accessibility](phase3/37-phan-tu-man-hinh.md) | 7 / 10 | [4 việc](checks.md) |
+| 🟡 đang làm | [26. Node Cửa sổ (`window`) + Ứng dụng (`app`)](phase3/26-cua-so-ung-dung.md) | 4 / 13 |  |
 | ⬜ chưa làm | [22. Hẹn giờ + thông báo + CLI / API local](phase3/22-hen-gio-cli-api.md) | 0 / 6 |  |
 | ⬜ chưa làm | [31a. Kết nối AI qua MCP – tạo / sửa kịch bản](phase3/31-mcp-ai.md) | 0 / 7 |  |
 | ⬜ chưa làm | [31b. MCP – AI nhìn màn hình](phase3/31-mcp-ai.md) | 0 / 4 |  |
@@ -153,8 +153,8 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | ✅ xong | [14. Danh sách bước](phase1-mvp.md) | 5 / 5 |  |
 | ✅ xong | [15. Form cấu hình bước](phase1-mvp.md) | 5 / 5 |  |
 | ✅ xong | [16. Cài đặt chạy](phase1-mvp.md) | 7 / 7 |  |
-| 🟡 đang làm | [17. DPI & đa màn hình](phase1-mvp.md) | 5 / 6 | [2 việc](checks.md) |
-| ⬜ chưa làm | [18. Build & thử máy sạch](phase1-mvp.md) | – |  |
+| 🟡 đang làm | [17. DPI & đa màn hình](phase1-mvp.md) | 6 / 7 | [2 việc](checks.md) |
+| 🟡 đang làm | [18. Build & thử máy sạch](phase1-mvp.md) | 1 / 2 |  |
 | ✅ xong | [19. Ngẫu nhiên hoá](phase2.md) | 5 / 5 |  |
 | ✅ xong | [19b. Xem trước kịch bản](phase2.md) | 4 / 4 |  |
 | ✅ xong | [19c. Xem / sửa riêng một bước trên overlay](phase2.md) | 3 / 3 |  |
@@ -199,9 +199,9 @@ Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hìn
 | 11e | [35. Node nâng cao](phase3/35-node-nang-cao.md) | Người dùng yêu cầu (2026-10-18): sau 34, trước 26 – ít node nền (chụp màn hình, clipboard, HTTP trước) + kịch bản mẫu; node mới dùng output chuẩn F5c |
 | 11f | [38. UI v3 – gọn](phase3/38-ui-v3.md) | Người dùng yêu cầu (2026-10-19): làm trước 37 E3 (E3 thêm UI vào inspector – dựng luôn theo kiểu mới); màu theo nhóm node, thẻ node 168, inspector thu gọn, nút Chạy tách đôi; theme tối giữ Slate |
 | 11g | [37. Phần tử màn hình qua Accessibility](phase3/37-phan-tu-man-hinh.md) | Người dùng yêu cầu (2026-10-18): sau 35, trước 20 F6 – đọc giá trị web ở Chrome thường đã đăng nhập (không CDP, tránh captcha của 36) + app khác; đã thử chạy trên macOS; phần Windows UIA làm cùng 17–18 |
-| 12 | [26. Focus cửa sổ](phase3/26-focus-cua-so.md) | Xong 26 là chạy được ví dụ Facebook |
+| 12 | [26. Cửa sổ + Ứng dụng](phase3/26-cua-so-ung-dung.md) | Xong 26 là chạy được ví dụ Facebook. Người dùng mở rộng (2026-10-19): `focusWindow` → node Cửa sổ + node Ứng dụng – cố định app / cửa sổ (vị trí, cỡ) trước khi thao tác |
 | 14 | [22. Hẹn giờ / CLI / API local](phase3/22-hen-gio-cli-api.md) | Chạy không cần ngồi canh; dựng server HTTP + token mà MCP dùng lại |
 | 15–17 | [31a → 31b → 31c → 31d. MCP cho AI](phase3/31-mcp-ai.md) | Người dùng chọn làm sau (2026-10-17); các bước trước đã có mục *Chuẩn bị cho MCP* nên lúc này chủ yếu là bọc hàm Go sẵn có thành tool. 31d (AI trong flow) chỉ làm khi 31a–c dùng ổn (2026-10-18) |
 | 18–19 | [24](phase3/24-ghi-macro.md) → [28](phase3/28-mo-rong.md) | Ghi macro, mở rộng |
 | 20 | [36. Web qua Chrome của app – làm sau](phase3/36-chrome-app-sau.md) | Người dùng chốt (2026-10-18): đăng nhập Google / Facebook trong Chrome của app bị captcha, chế độ điều khiển quá rủi ro cho tài khoản thật – dời mọi việc qua Chrome của app xuống cuối, tìm cách sau |
-| – | [17 (Windows), 18](phase1-mvp.md) | Khi có máy Windows; riêng *Kiểm tra tay macOS* của 17 làm lúc nào cũng được |
+| – | [17 (Windows), 18](phase1-mvp.md) | **18a** (build exe qua GitHub Actions) làm trước – người dùng yêu cầu 2026-10-19, không cần máy Windows; phần còn lại làm trên máy Windows (có từ 2026-10-19 – [windows-dev.md](../windows-dev.md)); riêng *Kiểm tra tay macOS* của 17 làm lúc nào cũng được |

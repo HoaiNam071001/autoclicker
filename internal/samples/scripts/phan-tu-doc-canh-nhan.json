@@ -1,0 +1,44 @@
+{
+ "meta": {
+  "name": "Phần tử – đọc chữ cạnh nhãn (OCR)",
+  "description": "Số dư vẽ bằng canvas nên không có trong cây phần tử: tìm nhãn “Số dư:” rồi đọc chữ bên phải bằng OCR, lấy số → {{n2.output.text}}. Sau đó tìm nhãn “Giá hiện tại” bằng OCR, chờ giá đổi. Đúng: lời kết thúc ghi số dư 5430000 và giá cũ → giá mới (chỉ số, không dấu chấm, không ₫). Cần quyền Accessibility + Screen Recording, cửa sổ trình duyệt đang hiện.",
+  "level": 2,
+  "app": "Phần tử",
+  "page": "element.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/element.html",
+    "delayAfter": 2000
+   },
+   {
+    "type": "elementRead",
+    "selectors": [
+     "text=\"Số dư:\""
+    ],
+    "readNear": "right",
+    "readNumber": true,
+    "timeoutMs": 10000
+   },
+   {
+    "type": "elementRead",
+    "findBy": "text",
+    "findText": "Giá hiện tại",
+    "searchArea": "screen",
+    "readNear": "right",
+    "readNumber": true,
+    "readChange": true,
+    "timeoutMs": 10000,
+    "intervalMs": 300
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Số dư {{n2.output.text}} · giá {{n3.output.old}} → {{n3.output.text}}"
+   }
+  ]
+ }
+}

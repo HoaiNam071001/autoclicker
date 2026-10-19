@@ -25,6 +25,7 @@
   </div>
   <iframe srcdoc="<p style='font:18px sans-serif'>Trong iframe: <b>MÃ GIẢM GIÁ SALE50</b></p>"></iframe>
 </div>
+<div class="row"><span>Số dư:</span><canvas id="bal" width="300" height="44"></canvas></div>
 <div class="log"></div>
 <div id="bottom" class="row">
   <button class="btn" id="confirm">XÁC NHẬN ĐƠN</button><span class="status" id="confirmState"></span>
@@ -32,13 +33,18 @@
 <script src="sandbox.js"></script>
 <script>
   // Sân thử phần tử màn hình (bước 37): giá đổi mỗi 1,5 s, nút chỉ có icon (aria-label), ô nhập có sẵn giá trị,
-  // khung cuộn riêng, iframe, nút nằm dưới cuối trang (phải cuộn). Nhật ký không chép chữ đích (mẫu tìm theo chữ).
+  // khung cuộn riêng, iframe, nút nằm dưới cuối trang (phải cuộn), số dư vẽ bằng canvas (không có trong cây phần tử –
+  // đọc bằng OCR cạnh nhãn, 37 E4). Nhật ký không chép chữ đích (mẫu tìm theo chữ).
   sb.header('Phần tử màn hình');
   const price = document.getElementById('price');
   let n = 0;
   const setPrice = () => { price.textContent = (1200000 + Math.floor(Math.random() * 200) * 1000).toLocaleString('vi-VN') + '₫'; document.getElementById('tick').textContent = `lần ${++n}`; };
   setPrice();
   setInterval(setPrice, 1500);
+  const bal = document.getElementById('bal').getContext('2d');
+  bal.font = '700 28px sans-serif';
+  bal.fillStyle = getComputedStyle(document.body).color;
+  bal.fillText('5.430.000 đ', 4, 32);
   document.getElementById('like').onclick = (e) => {
     e.target.textContent = '♥';
     document.getElementById('likeState').textContent = 'ĐÃ THÍCH';

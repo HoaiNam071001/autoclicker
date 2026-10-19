@@ -1,6 +1,7 @@
 // Form Chạy kịch bản (artboard RunDialog): chọn bộ giá trị (preset), điền input theo từng bước, ô khác mặc định
 // có viền ring-focus + "khôi phục", khung "Sẽ gõ" xem trước câu sau khi thay biến, "Lần sau chạy luôn".
 // App thật: runForm.ts (giá trị lần trước, preset lưu trên máy, Go kiểm tra – resolveInputs); màn #demo dùng dữ liệu mẫu.
+import Select from '../Select';
 import { useEffect, useMemo, useState } from 'react';
 import { Play, Trash } from '../icons';
 import { Switch } from '../Switch';
@@ -78,11 +79,12 @@ export default function RunDialog({
           <span className="text-[13px] text-muted">Bộ giá trị</span>
           {naming === null ? (
             <>
-              <select value={preset} onChange={(e) => pickPreset(e.target.value)}
-                className="h-8 min-w-0 flex-1 rounded-control border border-line bg-field px-2 text-ink outline-none focus:ring-focus">
-                {preset === '' && <option value="">{presets.length ? '(đã sửa – chưa lưu thành bộ)' : '(chưa có bộ nào)'}</option>}
-                {presets.map((p) => <option key={p.name}>{p.name}</option>)}
-              </select>
+              <div className="min-w-0 flex-1">
+                <Select value={preset} onChange={pickPreset} aria-label="Bộ giá trị"
+                  className="flex h-8 items-center rounded-control border border-line bg-field px-2 text-ink focus:ring-focus"
+                  placeholder={presets.length ? '(đã sửa – chưa lưu thành bộ)' : '(chưa có bộ nào)'}
+                  options={presets.map((p) => ({ value: p.name, label: p.name }))} />
+              </div>
               {preset && onDeletePreset && (
                 <button onClick={() => { onDeletePreset(preset); setPreset(''); }} aria-label={`Xoá bộ ${preset}`} title="Xoá bộ giá trị này"
                   className="grid h-8 w-8 place-items-center rounded-control text-muted hover:bg-hover hover:text-danger-text"><Trash className="h-3.5 w-3.5" /></button>
@@ -160,9 +162,8 @@ function Field({ inp, value, onChange }: { inp: InputView; value: InputValue; on
       ) : inp.type === 'bool' ? (
         <Switch on={!!value} onChange={onChange} label={inp.label} />
       ) : inp.type === 'select' ? (
-        <select value={String(value)} onChange={(e) => onChange(e.target.value)} className={`${box} h-[34px] outline-none`}>
-          {inp.options?.map((o) => <option key={o}>{o}</option>)}
-        </select>
+        <Select value={String(value)} onChange={onChange} className={`${box} flex h-[34px] items-center`} aria-label={inp.label}
+          options={(inp.options ?? []).map((o) => ({ value: o, label: o }))} />
       ) : (
         <span className={`${box} h-[34px] gap-1`}>
           {inp.prefix && <span className="font-mono text-[13px] text-muted">{inp.prefix}</span>}

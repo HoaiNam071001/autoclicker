@@ -121,8 +121,14 @@ type Step struct {
 	TextExact     bool    `json:"textExact,omitempty"`    // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
 	TextNoAccent  bool    `json:"textNoAccent,omitempty"` // FindBy text: bỏ qua dấu
 	Occurrence    int     `json:"occurrence,omitempty"`   // FindBy text: chỗ thứ mấy (trên → dưới, trái → phải); 0 = chỗ đầu
-	Retry         *Retry  `json:"retry,omitempty"`        // thất bại thì thử lại; hết lượt vẫn lỗi → cổng fail
-	Human         string  `json:"human,omitempty"`        // mức giống người của node: "" = theo kịch bản | off | low | medium | high
+	// Đọc phần tử (bước 37 E4): FindBy "" = tìm bằng cây phần tử (Selectors) | text = tìm nhãn bằng OCR (FindText…)
+	ReadNear    string `json:"readNear,omitempty"`    // "" = đọc chính phần tử | right / below = OCR chữ bên phải / bên dưới nhãn
+	ReadSpan    int    `json:"readSpan,omitempty"`    // ReadNear: khoảng đọc tính từ mép nhãn (px); 0 = 300
+	ReadPattern string `json:"readPattern,omitempty"` // lọc chữ đọc được theo regex (có nhóm () thì lấy nhóm đầu); không khớp = chờ tiếp
+	ReadNumber  bool   `json:"readNumber,omitempty"`  // chuẩn hoá thành số: 1.234.000₫ → 1234000
+	ReadChange  bool   `json:"readChange,omitempty"`  // chờ giá trị đổi: lần đọc đầu làm mốc, chờ tới khi khác mốc
+	Retry       *Retry `json:"retry,omitempty"`       // thất bại thì thử lại; hết lượt vẫn lỗi → cổng fail
+	Human       string `json:"human,omitempty"`       // mức giống người của node: "" = theo kịch bản | off | low | medium | high
 	// Ô số lấy từ biến (F5c): mỗi trường số trong NumVarFieldsOf một dòng – giá trị lúc chạy thay cho trường đó.
 	NumVars []NumVar `json:"numVars,omitempty"`
 	// Chụp màn hình (bước 35 N1)

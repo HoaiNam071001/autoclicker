@@ -1,4 +1,5 @@
 // Node HTTP (bước 35 N3): method, URL, tham số, header, body – mọi ô nhận {{biến}}; gợi ý đọc kết quả.
+import Select from '../Select';
 import Segmented from '../Segmented';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
@@ -22,10 +23,10 @@ export function HttpFields({ step: s }: { step: Step }) {
     <>
       <Field label="Gọi tới" wide group help="Biến trong URL chèn nguyên văn – giá trị có dấu cách / tiếng Việt đặt ở bảng Tham số (tự mã hoá).">
         <div className="flex items-start gap-1.5">
-          <select value={s.method || 'GET'} onChange={(e) => setMethod(e.target.value as HttpMethod)} aria-label="Method"
-            className={`${fieldBox} w-[92px] flex-none font-mono font-semibold text-ink`}>
-            {HTTP_METHODS.map((m) => <option key={m}>{m}</option>)}
-          </select>
+          <div className="w-[92px] flex-none">
+            <Select value={s.method || 'GET'} onChange={(m) => setMethod(m as HttpMethod)} aria-label="Method" className={`${fieldBox} font-mono font-semibold text-ink`}
+              options={HTTP_METHODS.map((m) => ({ value: m as string, label: m }))} />
+          </div>
           <div className="min-w-0 flex-1">
             <VarTextInput {...varProps} rows={1} compact value={s.url ?? ''} onChange={(url) => set({ url })} placeholder="https://api.example.com/…" />
           </div>

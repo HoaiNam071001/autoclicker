@@ -1,4 +1,5 @@
 // Điểm lấy toạ độ từ biến (F5b) – chỉ hiển thị: ô X / Y nhận số / biến cộng trừ px, nút điền nhanh chỗ thấy của node trước.
+import Select from '../Select';
 import VarTextInput from '../inputs/VarTextInput';
 import type { ScriptInput } from '../inputs/model';
 import { StepPoint } from '../../types';
@@ -27,11 +28,9 @@ export default function PointVarFields({ point: p, onChange, relative = false, i
         </div>
       ))}
       {!relative && (sources.length ? (
-        <select value="" onChange={(e) => e.target.value && onChange({ xVar: `{{${e.target.value}.output.x}}`, yVar: `{{${e.target.value}.output.y}}` })}
-          className={selectBox} aria-label="Điền chỗ thấy của node">
-          <option value="">Điền chỗ thấy / chỗ chuột dừng của node…</option>
-          {sources.map((s) => <option key={s.ref} value={s.ref}>{s.label}</option>)}
-        </select>
+        <Select value="" onChange={(ref) => onChange({ xVar: `{{${ref}.output.x}}`, yVar: `{{${ref}.output.y}}` })}
+          className={selectBox} aria-label="Điền chỗ thấy của node" placeholder="Điền chỗ thấy / chỗ chuột dừng của node…"
+          options={sources.map((s) => ({ value: s.ref, label: s.label }))} />
       ) : (
         <span className={hint}>Chưa có node nào phía trước trả toạ độ (Chờ ảnh / chữ, Click, phần tử web…).</span>
       ))}

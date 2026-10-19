@@ -122,3 +122,31 @@ func TestValidateElementStep(t *testing.T) {
 		t.Errorf("err = %v", err)
 	}
 }
+
+// Đọc phần tử (37 E4): tìm nhãn bằng OCR phải đọc cạnh nhãn, mẫu lọc phải đọc được.
+func TestValidateElementRead(t *testing.T) {
+	rd := func(mod func(s *model.Step)) model.Script {
+		return model.Script{Loops: 1, Steps: []model.Step{modeltest.Step(model.StepElementRead, func(s *model.Step) {
+			s.Selectors, s.TimeoutMs, s.IntervalMs = []string{"text=Giá"}, 1000, 100
+			mod(s)
+		})}}
+	}
+	cases := map[string]model.Script{
+		"chưa nhập chữ của nhãn": rd(func(s *model.Step) { s.FindBy, s.ReadNear = model.FindByText, model.ReadNearRight }),
+		"phải chọn đọc bên phải": rd(func(s *model.Step) { s.FindBy, s.FindText = model.FindByText, "Giá" }),
+		"mẫu lọc sai":            rd(func(s *model.Step) { s.ReadPattern = "(\\d+" }),
+		"khoảng đọc phải trong":  rd(func(s *model.Step) { s.ReadNear, s.ReadSpan = model.ReadNearBelow, -1 }),
+	}
+	for want, sc := range cases {
+		err := script.ValidateScript(scripttest.Linear(sc), model.Rect{})
+		if err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("muốn lỗi chứa %q, nhận %v", want, err)
+		}
+	}
+	ok := rd(func(s *model.Step) {
+		s.FindBy, s.FindText, s.ReadNear, s.ReadPattern = model.FindByText, "Giá", model.ReadNearRight, `(\d+)`
+	})
+	if err := script.ValidateScript(scripttest.Linear(ok), model.Rect{}); err != nil {
+		t.Errorf("err = %v", err)
+	}
+}

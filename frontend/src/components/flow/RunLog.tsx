@@ -8,11 +8,12 @@ import { fmtMs, LogLines, StatusChip } from './PortField';
 export type RunTone = 'ok' | 'fail' | 'running' | 'muted';
 const TONE: Record<RunTone, string> = { ok: 'text-ok', fail: 'text-danger-text', running: 'text-accent-text', muted: 'text-muted' };
 
-export default function RunLog({ title, summary, tone, rows, nodes, selected, onSelect, onClose, loadShot }: {
+export default function RunLog({ title, summary, tone, rows, nodes, selected, onSelect, onClose, loadShot, fill }: {
   title: string; summary: string; tone: RunTone;
   rows: RunRow[]; nodes: FlowNodeView[]; selected: string | null; onSelect: (id: string) => void;
   onClose?: () => void;
   loadShot?: (shot: string) => Promise<string>; // ảnh lúc lỗi (lịch sử chạy) → data URL
+  fill?: boolean; // cao hết khung cha (hộp thoại Lịch sử chạy) thay vì 220 px dưới canvas
 }) {
   const [open, setOpen] = useState(true);
   const [row, setRow] = useState<number | null>(null);
@@ -26,7 +27,7 @@ export default function RunLog({ title, summary, tone, rows, nodes, selected, on
   }, [rows.length, open, row]);
 
   return (
-    <section aria-label="Nhật ký chạy" className="flex flex-none flex-col border-t border-line bg-surface" style={{ height: open ? 220 : 'auto' }}>
+    <section aria-label="Nhật ký chạy" className="flex flex-none flex-col border-t border-line bg-surface" style={{ height: fill ? '100%' : open ? 220 : 'auto' }}>
       <div className="flex h-9 flex-none items-center">
         <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex h-full min-w-0 flex-1 items-center gap-3 px-4 text-left hover:bg-hover">
           <svg viewBox="0 0 24 24" className={`h-3.5 w-3.5 flex-none text-muted transition-transform ${open ? '' : '-rotate-90'}`} fill="none" stroke="currentColor" strokeWidth={2} aria-hidden><path d="M6 9l6 6 6-6" /></svg>

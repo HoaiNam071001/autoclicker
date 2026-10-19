@@ -3,6 +3,11 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 18a – Build exe · [phase1-mvp.md](phase1-mvp.md)
+
+- [ ] Windows scale 125 % (sửa 2026-10-19 – chuột qua Win32, pixel thật): tải exe mới nhất ở Actions, xoá điểm cũ rồi ghi lại điểm (F6 / chọn trên overlay) → chạy: click trúng đúng chỗ, cả khi cửa sổ đích là app khác (Chrome, Notepad, Explorer); khung vùng / marker trên overlay nằm đúng chỗ; chờ ảnh / Thử tìm thấy đúng; thử thêm 150 % và 2 màn khác scale nếu có. Kịch bản ghi trên bản cũ ở 125 % có thể lệch – ghi lại điểm
+- [ ] GitHub → tab **Actions** → *Build Windows* → lần chạy mới nhất xanh → tải artifact `autoclicker-windows-…` (zip), giải nén, mở `autoclicker.exe` trên Windows (SmartScreen: More info → Run anyway): app mở, tạo kịch bản click 2 điểm chạy đúng, Lưu / mở lại được. Ghi lại lỗi gặp (thiếu WebView2, click lệch khi scale 125 %…)
+
 ## 38 – UI v3 – gọn · [phase3/38-ui-v3.md](phase3/38-ui-v3.md)
 
 - [ ] V4 Bảng thêm node (Ctrl+K) và hộp Mẫu thử: icon tô đúng màu nhóm, đọc rõ ở theme tối; lần chạy thất bại – canvas cuộn tới node lỗi, dòng "Flow · N node" không đè chữ lên thẻ
@@ -15,6 +20,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 37 – Phần tử màn hình qua Accessibility · [phase3/37-phan-tu-man-hinh.md](phase3/37-phan-tu-man-hinh.md)
 
+- [ ] E4 Đọc cạnh nhãn (cần thêm quyền Screen Recording): Mẫu thử **Phần tử – đọc chữ cạnh nhãn (OCR)** → lời kết thúc ghi *Số dư 5430000* (số vẽ bằng canvas) và giá cũ → giá mới (chỉ số); inspector Đọc phần tử: *Tìm theo* Chữ (OCR) bỏ được lựa chọn *Chính nó*, Thử tìm nhãn thấy đúng chỗ, gõ mẫu lọc sai `(\d+` → báo đỏ; thử trên app thật có giá trị không đọc được qua cây (game / canvas). Xem cả theme sáng + tối
 - [ ] E3 Chờ / Click theo phần tử (Chrome thường mở `element.html` hoặc trang thật): bảng thêm node → Click theo phần tử; **Chọn trên màn** → bấm nút “Mua ngay” / nút chỉ có icon → ô cách tìm tự điền (text="…" / aria="…"), khung hiện đúng chỗ trên overlay; **Thử tìm** thấy đúng, đổi chữ sai → liệt kê phần tử đang có; chạy node bấm trúng. Bấm vào chỗ trống / ảnh không có chữ → báo lỗi rõ
 - [ ] E2 Mẫu thử (Chrome thường làm trình duyệt mặc định, cấp quyền Accessibility cho app / terminal): **Phần tử – đọc giá đang đổi** → lời kết thúc ghi đúng giá đang hiện + nam@example.com; **Phần tử – bấm nút chỉ có icon** → trái tim tô đậm, thành công; **Phần tử – nút dưới cuối trang** → trang tự cuộn xuống, bấm trúng XÁC NHẬN ĐƠN, thành công. Lần đầu với một app có thể chậm ~0,5–2 s (app dựng cây). Thử lại khi Chrome ở desktop (Space) khác / thu nhỏ → chờ hết giờ, lỗi ghi *không có cửa sổ đang hiện*. Tắt quyền Accessibility → lỗi quyền ngay
 - [ ] E2 Inspector Đọc phần tử: thêm từ bảng (nhóm Ứng dụng – đổi ở 38 V0), gõ `css=.x` → báo đỏ chỉ dùng text= / aria= / role=; ô App nhận `{{biến}}`. Xem cả theme sáng + tối

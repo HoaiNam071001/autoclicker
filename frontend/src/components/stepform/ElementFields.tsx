@@ -1,5 +1,5 @@
-// Phần tử màn hình qua Accessibility (bước 37): node Đọc phần tử, Tìm theo: Phần tử của Chờ / Click (E3).
-// ElementQueryFields (cách tìm, app, bỏ dấu, chỗ thứ mấy) dùng chung cả hai.
+// Phần tử màn hình qua Accessibility (bước 37): Tìm theo: Phần tử của Chờ / Click (E3) và của node Đọc phần tử
+// (ElementReadFields). ElementQueryFields (cách tìm, app, bỏ dấu, chỗ thứ mấy) dùng chung.
 import NumInput from '../NumInput';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
@@ -66,22 +66,6 @@ export function ElementSearchFields({ step: s }: { step: Step }) {
         {error && busy === '' && <span className={errText}>{error}</span>}
         <span className={hint}>Cửa sổ app phải đang hiện trên màn (không thu nhỏ, không ở desktop khác); trình duyệt chỉ thấy tab đang mở. Cần quyền Accessibility.</span>
       </div>
-    </>
-  );
-}
-
-export function ElementReadFields({ step: s }: { step: Step }) {
-  return (
-    <>
-      <ElementQueryFields step={s} />
-      <NumField label="Chờ tối đa" step={s} field="timeoutMs" unit="ms" min={1} />
-      <Field label="Kiểm tra mỗi">
-        <NumInput value={s.intervalMs ?? 250} min={20} unit="ms" onChange={(intervalMs) => updateStep(s.id, { intervalMs })} />
-      </Field>
-      <span className={`col-span-2 -mt-1 ${hint}`}>
-        Không di chuột, không cuộn. Khối chữ / ô nhập → giá trị, phần tử khác → tên. Node sau dùng {`{{${s.ref}.output.text}}`}.
-        Không thấy sau {fmtSec(s.timeoutMs)} → cổng Thất bại.
-      </span>
     </>
   );
 }

@@ -1,4 +1,5 @@
 // Node chờ ảnh / chữ, click theo ảnh / chữ, chờ màu pixel (bước 25, 25e): ảnh mẫu / chữ, thử tìm, nguồn chỗ thấy, màu.
+import Select from '../Select';
 import { useEffect, useState } from 'react';
 import NumInput, { fieldBox } from '../NumInput';
 import Segmented from '../Segmented';
@@ -117,8 +118,8 @@ function ImageSearchFields({ step: s }: { step: Step }) {
 }
 
 
-// Tìm theo chữ: ô chữ (nhận {{biến}}), cách so, chỗ thứ mấy, thử tìm.
-function TextSearchFields({ step: s }: { step: Step }) {
+// Tìm theo chữ: ô chữ (nhận {{biến}}), cách so, chỗ thứ mấy, thử tìm. Dùng lại cho nhãn của Đọc phần tử (37 E4).
+export function TextSearchFields({ step: s, label = 'Chữ cần tìm', placeholder = 'Xem lịch sử' }: { step: Step; label?: string; placeholder?: string }) {
   const script = useScript();
   const nodeVars = useNodeVars(s.id);
   const { finds, busy, error } = useImageState();
@@ -127,9 +128,9 @@ function TextSearchFields({ step: s }: { step: Step }) {
   const empty = !s.findText?.trim();
   return (
     <>
-    <Field label="Chữ cần tìm" wide group side={varHint} help="Không phân biệt hoa / thường, bỏ qua khoảng trắng. Click vào giữa chữ.">
+    <Field label={label} wide group side={varHint} help="Không phân biệt hoa / thường, bỏ qua khoảng trắng. Click vào giữa chữ.">
       <VarTextInput value={s.findText ?? ''} onChange={(findText) => set({ findText })} inputs={script.inputs ?? []} nodeVars={nodeVars}
-        placeholder="Xem lịch sử" onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
+        placeholder={placeholder} onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
       {empty && <span className={errText}>Chưa nhập chữ – chạy sẽ báo lỗi</span>}
     </Field>
     <SwitchField label="Cả dòng" help="Chỉ khớp ô / nút chỉ có đúng chữ này (tránh khớp trong câu dài)" on={!!s.textExact} onChange={(textExact) => set({ textExact: textExact || undefined })} />
@@ -181,11 +182,9 @@ export function ClickImageFields({ step: s }: { step: Step }) {
         <Segmented value={byNode ? 'node' : 'search'} onChange={(imageSource: 'node' | 'search') => set({ imageSource })} full
           options={[{ id: 'node', label: 'Chỗ node khác thấy' }, { id: 'search', label: 'Tự tìm' }]} label="Click vào" />
         {byNode && (
-          <select value={src ? src.id : ''} onChange={(e) => set({ imageFrom: e.target.value || undefined })}
-            className={`${selectBox} ${src ? '' : 'border-danger'}`}>
-            <option value="">— chọn node tìm ảnh / chữ —</option>
-            {sources.map((x) => <option key={x.id} value={x.id}>{x.ref} · {nodeTitle(x)}</option>)}
-          </select>
+          <Select value={src ? src.id : ''} onChange={(v) => set({ imageFrom: v || undefined })} aria-label="Node lấy chỗ thấy"
+            className={`${selectBox} ${src ? '' : 'border-danger'}`} placeholder="— chọn node tìm ảnh / chữ —"
+            options={sources.map((x) => ({ value: x.id, label: `${x.ref} · ${nodeTitle(x)}` }))} />
         )}
         <span className={`text-xs ${byNode && !src ? 'text-danger-text' : 'text-muted'}`}>
           {!byNode ? `Tự tìm ${FIND_NAME[s.findBy || 'image']} lúc chạy (chờ như Chờ ${FIND_NAME[s.findBy || 'image']}) rồi click vào giữa`

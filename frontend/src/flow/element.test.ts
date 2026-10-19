@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeStep, stepLabel, type Step } from '../types';
-import { elementSelectorError, firstSelector, fmtElement } from './element';
+import { elementSelectorError, firstSelector, fmtElement, fmtElementRead, patternError } from './element';
 import { condMissing, condText } from './view';
 
 const wait = (p: Partial<Step>) =>
@@ -19,9 +19,23 @@ describe('phần tử màn hình', () => {
     expect(stepLabel(wait({}))).toBe('Chờ phần tử');
     expect(stepLabel(wait({ type: 'clickImage', imageSource: 'search' }))).toBe('Click theo phần tử');
   });
+  it('fmtElementRead – đọc cạnh nhãn + lọc (E4)', () => {
+    const read = (p: Partial<Step>) => makeStep({ id: 's2', type: 'elementRead', timeoutMs: 10000, ...p });
+    expect(fmtElementRead(read({ selectors: ['text=Giá'] }))).toBe('phần tử “text=Giá” · app trên cùng · tối đa 10 s');
+    expect(fmtElementRead(read({ selectors: ['text=Giá'], readNear: 'right', readNumber: true })))
+      .toBe('phần tử “text=Giá” → bên phải · số · app trên cùng · tối đa 10 s');
+    expect(fmtElementRead(read({ findBy: 'text', findText: 'Số dư', readNear: 'below', readChange: true })))
+      .toBe('nhãn “Số dư” (OCR) → bên dưới · chờ đổi · tối đa 10 s');
+    expect(fmtElementRead(read({ findBy: 'text' }))).toBe('chưa nhập chữ của nhãn');
+  });
   it('điều kiện thấy phần tử', () => {
     expect(condMissing({ kind: 'element', selectors: [' '] })).toBe('Chưa nhập cách tìm phần tử');
     expect(condText({ kind: 'element', selectors: ['role=link'], not: true })).toBe('không thấy phần tử “role=link”');
+  });
+  it('patternError', () => {
+    expect(patternError()).toBe('');
+    expect(patternError('(?i)mã: (\\w+)')).toBe('');
+    expect(patternError('(\\d+')).toContain('sai cú pháp');
   });
   it('elementSelectorError', () => {
     expect(elementSelectorError(['text=Mua', 'role=button[name="Gửi"]', '{{cach}}'])).toBe('');

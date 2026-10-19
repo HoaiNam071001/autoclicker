@@ -63,6 +63,10 @@ func VarFields(s *model.Step) []VarField {
 			}
 		}
 	case model.StepElementRead:
+		if s.FindBy == model.FindByText {
+			add("findText", &s.FindText, false)
+			break
+		}
 		for i := range s.Selectors {
 			add(fmt.Sprintf("selectors[%d]", i), &s.Selectors[i], false)
 		}

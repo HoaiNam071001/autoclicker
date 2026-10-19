@@ -1,4 +1,5 @@
 // Node Hệ thống (bước 35 N5): âm lượng loa – đặt mức / tăng / giảm, tắt / bật tiếng.
+import Select from '../Select';
 import NumInput from '../NumInput';
 import { updateStep } from '../../store';
 import { SYS_OPS, sysHasLevel, type SysOp } from '../../flow/system';
@@ -13,9 +14,8 @@ export function SystemFields({ step: s }: { step: Step }) {
   return (
     <>
       <Field label="Làm gì" help={`Loa mặc định của máy · node sau đọc {{${s.ref}.output.volume}}, muted.`}>
-        <select value={op} onChange={(e) => set({ sysOp: e.target.value as SysOp, ...(e.target.value === 'volume' && !s.volume ? { volume: 50 } : {}) })} className={selectBox}>
-          {SYS_OPS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-        </select>
+        <Select value={op as string} onChange={(v) => set({ sysOp: v as SysOp, ...(v === 'volume' && !s.volume ? { volume: 50 } : {}) })} className={selectBox} aria-label="Thao tác"
+          options={SYS_OPS.map((o) => ({ value: o.id as string, label: o.label }))} />
       </Field>
       {sysHasLevel(op) && (
         <Field label={level ? 'Mức âm lượng' : 'Mỗi lần'} wide group help={level ? 'Đặt mức cũng bật tiếng lại nếu đang tắt.' : 'Giữ trong 0–100 %; đang tắt tiếng thì bật lại.'}>

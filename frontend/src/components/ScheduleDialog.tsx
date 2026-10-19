@@ -1,5 +1,6 @@
 // Hẹn giờ + thông báo (giao diện cho bước 22): chạy lúc HH:mm một lần / hằng ngày / các ngày trong tuần, với bộ giá
 // trị input đã chọn; thông báo Telegram / Discord / webhook khi xong hoặc lỗi. Mở từ popup "N vòng" (ScheduleRow).
+import Select from './Select';
 import { useState } from 'react';
 import Segmented from './Segmented';
 import { Switch } from './Switch';
@@ -79,7 +80,8 @@ export default function ScheduleDialog({ value, presets, onSave, onRemove, onClo
           )}
           {presets.length > 0 && (
             <label className="flex flex-col gap-1.5 text-muted">Bộ giá trị input
-              <select value={s.preset} onChange={(e) => set({ preset: e.target.value })} className={box}>{presets.map((p) => <option key={p}>{p}</option>)}</select>
+              <Select value={s.preset} onChange={(preset) => set({ preset })} className={`${box} flex items-center`} aria-label="Bộ giá trị"
+                options={presets.map((p) => ({ value: p, label: p }))} />
             </label>
           )}
           <label className="flex items-center justify-between">Thu xuống khay khi chờ tới giờ<Switch on={s.tray} onChange={(tray) => set({ tray })} label="Thu xuống khay" /></label>

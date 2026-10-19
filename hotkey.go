@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/go-vgo/robotgo"
 	hook "github.com/robotn/gohook"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
+	"autoclicker/internal/device"
 	"autoclicker/internal/model"
 )
 
@@ -33,7 +33,7 @@ func (a *App) startHotkeys() {
 			case ev.Kind == hook.KeyDown && ev.Rawcode == f10 && a.current() != nil:
 				a.StepScript()
 			case ev.Kind == hook.KeyDown && ev.Rawcode == f6 && a.current() == nil:
-				x, y := robotgo.Location()
+				x, y := device.Location()
 				runtime.EventsEmit(a.ctx, "hotkey:f6", model.Point{X: x, Y: y})
 			}
 		}

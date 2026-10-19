@@ -1,4 +1,5 @@
 // Thao tác giống người (bước 34) – chỉ hiển thị: mức của kịch bản (Cài đặt chạy) và ô ghi đè của node (inspector).
+import Select from './Select';
 import { fieldBox } from './NumInput';
 import Segmented from './Segmented';
 import { HUMAN_LEVELS, humanHint, humanLabel, scriptHuman } from '../flow/human';
@@ -26,11 +27,8 @@ export function HumanNodeField({ value, scriptLevel, onChange }: {
 }) {
   return (
     <Field label="Giống người" help={humanHint(value ?? scriptHuman(scriptLevel))}>
-      <select value={value ?? ''} onChange={(e) => onChange((e.target.value || undefined) as HumanLevel | undefined)}
-        className={`${fieldBox} w-full min-w-0 text-ink`}>
-        <option value="">Theo kịch bản ({humanLabel(scriptHuman(scriptLevel))})</option>
-        {HUMAN_LEVELS.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
-      </select>
+      <Select value={value ?? ''} onChange={(v) => onChange((v || undefined) as HumanLevel | undefined)} className={`${fieldBox} text-ink`} aria-label="Mức giống người"
+        options={[{ value: '', label: `Theo kịch bản (${humanLabel(scriptHuman(scriptLevel))})` }, ...HUMAN_LEVELS.map((l) => ({ value: l.id as string, label: l.label }))]} />
     </Field>
   );
 }

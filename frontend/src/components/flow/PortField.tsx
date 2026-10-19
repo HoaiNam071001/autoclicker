@@ -3,6 +3,7 @@
 // - Khi thất bại: thử lại N lần, nghỉ giữa các lần (node hành động)
 // - Output: các giá trị node trả về, chèn vào ô chữ của node sau bằng {{n2.output.x}}
 // - Lần chạy gần nhất: status, lỗi, log của node (StepResult)
+import Select from '../Select';
 import { useState } from 'react';
 import NumInput, { fieldBox } from '../NumInput';
 import { FlowEdgeView, FlowNodeView, PortKind, RunRow } from './model';
@@ -32,11 +33,11 @@ export function PortsPanel({ node, nodes, edges, onConnect, onDisconnect, onJump
               <span className={`h-2 w-2 flex-none rounded-full ${dot[p.kind]}`} /><span className="truncate" title={p.label}>{p.label}</span>
             </span>
             <span className="flex min-w-0 gap-1">
-              <select value={to} onChange={(e) => (e.target.value ? onConnect(p.id, e.target.value) : onDisconnect(p.id))} aria-label={`Node đích của cổng ${p.label}`}
-                className={`${fieldBox} min-w-0 flex-1 text-[13px] outline-none ${to ? 'text-ink' : 'text-muted'}`}>
-                <option value="">{p.kind === 'fail' ? '— dừng (lỗi)' : '— kết thúc'}</option>
-                {others.map((n) => <option key={n.id} value={n.id}>{n.ref} · {n.title}</option>)}
-              </select>
+              <div className="min-w-0 flex-1">
+                <Select value={to} onChange={(v) => (v ? onConnect(p.id, v) : onDisconnect(p.id))} aria-label={`Node đích của cổng ${p.label}`}
+                  className={`${fieldBox} text-[13px] ${to ? 'text-ink' : 'text-muted'}`}
+                  options={[{ value: '', label: p.kind === 'fail' ? '— dừng (lỗi)' : '— kết thúc' }, ...others.map((n) => ({ value: n.id, label: `${n.ref} · ${n.title}` }))]} />
+              </div>
               <button disabled={!to} onClick={() => onJump(to)} title="Chọn node đích" aria-label="Chọn node đích"
                 className="grid h-[34px] w-7 flex-none place-items-center rounded-control text-muted enabled:hover:bg-hover enabled:hover:text-ink disabled:opacity-30">→</button>
             </span>

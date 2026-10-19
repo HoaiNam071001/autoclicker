@@ -1,5 +1,6 @@
 // Tab Input của inspector (artboard InputsTab): các giá trị hỏi khi bấm Chạy, theo thứ tự – kéo ⋮⋮ để sắp xếp,
 // bấm một dòng để mở rộng sửa key / nhãn / kiểu / mặc định / bắt buộc / gợi ý, xoá input.
+import Select from '../Select';
 import { ReactNode, useEffect, useState } from 'react';
 import { closestCenter, DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -108,10 +109,9 @@ function Row({ inp, open, onToggle, onChange, onRemove }: {
       </div>
       <div className="grid grid-cols-2 gap-2">
         <label className={label}>Kiểu
-          <select value={inp.type} onChange={(e) => onChange({ type: e.target.value as InputType })} className={input}
-            title={pinnedKind ? 'Đang ghim vào trường – chỉ đổi được kiểu cùng loại' : undefined}>
-            {types.map((k) => <option key={k} value={k}>{INPUT_TYPE_LABEL[k]}</option>)}
-          </select>
+          <Select value={inp.type as string} onChange={(t) => onChange({ type: t as InputType })} className={input} aria-label="Kiểu"
+            title={pinnedKind ? 'Đang ghim vào trường – chỉ đổi được kiểu cùng loại' : undefined}
+            options={types.map((k) => ({ value: k as string, label: INPUT_TYPE_LABEL[k] }))} />
         </label>
         {inp.type === 'bool' ? (
           <div className={label}>Mặc định
@@ -119,10 +119,8 @@ function Row({ inp, open, onToggle, onChange, onRemove }: {
           </div>
         ) : inp.type === 'select' ? (
           <label className={label}>Mặc định
-            <select value={inp.default === undefined ? '' : String(inp.default)} onChange={(e) => onChange({ default: e.target.value })} className={input}>
-              <option value="">(trống)</option>
-              {inp.options?.map((o) => <option key={o}>{o}</option>)}
-            </select>
+            <Select value={inp.default === undefined ? '' : String(inp.default)} onChange={(d) => onChange({ default: d })} className={input} aria-label="Mặc định"
+              options={[{ value: '', label: '(trống)' }, ...(inp.options ?? []).map((o) => ({ value: o, label: o }))]} />
           </label>
         ) : (
           <DefaultField inp={inp} onCommit={(v) => onChange({ default: v })} className={`${input} font-mono`} />

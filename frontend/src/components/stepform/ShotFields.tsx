@@ -1,4 +1,5 @@
 // Node Chụp màn hình (bước 35 N1): vùng chụp, thư mục / tên file (nhận {{biến}}), chép vào clipboard.
+import Select from '../Select';
 import { useEffect, useState } from 'react';
 import { Displays } from '../../../wailsjs/go/main/App';
 import NumInput from '../NumInput';
@@ -24,10 +25,9 @@ export function ShotFields({ step: s }: { step: Step }) {
   return (
     <>
       <Field label="Chụp" wide group>
-        <select value={area} className={selectBox} aria-label="Vùng chụp"
-          onChange={(e) => set({ shotArea: (e.target.value || undefined) as ShotArea | undefined })}>
-          {SHOT_AREAS.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
-        </select>
+        <Select value={area as string} className={selectBox} aria-label="Vùng chụp"
+          onChange={(v) => set({ shotArea: (v || undefined) as ShotArea | undefined })}
+          options={SHOT_AREAS.map((a) => ({ value: a.id as string, label: a.label }))} />
         {area === '' && <span className={hint}>{script.region
           ? `Vùng của kịch bản: ${script.region.w} × ${script.region.h} tại ${script.region.x}, ${script.region.y}`
           : 'Kịch bản chưa đặt vùng – chụp cả màn chính'}</span>}
@@ -52,11 +52,10 @@ function DisplayPicker({ value, onChange }: { value: number; onChange: (n: numbe
   const known = value === 0 || value <= ds.length;
   return (
     <>
-      <select value={value} onChange={(e) => onChange(Number(e.target.value))} className={selectBox} aria-label="Màn hình">
-        <option value={0}>Màn chứa vùng kịch bản</option>
-        {ds.map((d) => <option key={d.index} value={d.index + 1}>Màn {d.index + 1}{d.main ? ' (chính)' : ''} · {d.rect.w} × {d.rect.h}</option>)}
-        {!known && <option value={value}>Màn {value} (không thấy trên máy này)</option>}
-      </select>
+      <Select value={String(value)} onChange={(v) => onChange(Number(v))} className={selectBox} aria-label="Màn hình"
+        options={[{ value: '0', label: 'Màn chứa vùng kịch bản' },
+          ...ds.map((d) => ({ value: String(d.index + 1), label: `Màn ${d.index + 1}${d.main ? ' (chính)' : ''} · ${d.rect.w} × ${d.rect.h}` })),
+          ...(known ? [] : [{ value: String(value), label: `Màn ${value} (không thấy trên máy này)` }])]} />
       {!known && <span className="text-xs text-danger-text">Máy này không có màn {value} – chạy sẽ báo lỗi</span>}
     </>
   );
@@ -87,11 +86,9 @@ function NodePicker({ step: s, onChange }: { step: Step; onChange: (id: string |
   const src = sources.find((x) => x.id === s.imageFrom);
   return (
     <>
-      <select value={src ? src.id : ''} onChange={(e) => onChange(e.target.value || undefined)} aria-label="Node lấy khung chụp"
-        className={`${selectBox} ${src ? '' : 'border-danger'}`}>
-        <option value="">— chọn node có chỗ thấy —</option>
-        {sources.map((x) => <option key={x.id} value={x.id}>{x.ref} · {nodeTitle(x)}</option>)}
-      </select>
+      <Select value={src ? src.id : ''} onChange={(v) => onChange(v || undefined)} aria-label="Node lấy khung chụp"
+        className={`${selectBox} ${src ? '' : 'border-danger'}`} placeholder="— chọn node có chỗ thấy —"
+        options={sources.map((x) => ({ value: x.id, label: `${x.ref} · ${nodeTitle(x)}` }))} />
       <span className={`text-xs ${src ? 'text-muted' : 'text-danger-text'}`}>
         {src ? `Chụp đúng khung ${src.ref} thấy lần gần nhất trong vòng – ${src.ref} chưa thấy thì node này thất bại`
           : sources.length ? 'Chọn node để lấy khung chụp' : 'Chưa có node Chờ ảnh / chữ hay phần tử web nào'}

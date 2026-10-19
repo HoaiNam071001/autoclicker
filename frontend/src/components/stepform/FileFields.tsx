@@ -1,4 +1,5 @@
 // Node Tệp / thư mục (bước 35 N4): ghi chữ, thêm dòng csv / xlsx, tạo thư mục, xoá vào / dọn Thùng rác. Ô chữ nhận {{biến}}.
+import Select from '../Select';
 import { Switch } from '../Switch';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
@@ -25,9 +26,8 @@ export function FileFields({ step: s }: { step: Step }) {
   return (
     <>
       <Field label="Làm gì">
-        <select value={op} onChange={(e) => setOp(e.target.value as FileOp)} className={selectBox}>
-          {FILE_OPS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-        </select>
+        <Select value={op as string} onChange={(v) => setOp(v as FileOp)} className={selectBox} aria-label="Thao tác"
+          options={FILE_OPS.map((o) => ({ value: o.id as string, label: o.label }))} />
       </Field>
       {isDeleteOp(op) && (
         <div className={`col-span-2 rounded-card px-3 py-2.5 text-xs ${op === 'emptyTrash' ? 'bg-danger-soft text-danger-text' : 'bg-soft text-muted'}`}>

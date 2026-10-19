@@ -15,6 +15,7 @@ Desktop app tự động click theo kịch bản (flow node + cạnh kiểu n8n:
 ```bash
 wails dev                      # chạy app (hot reload). wails nằm ở ~/go/bin
 wails build                    # build ra build/bin/
+# exe Windows: GitHub Actions "Build Windows" mỗi lần push (tab Actions → Artifacts); build chéo tại máy: CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc wails build -platform windows/amd64 -skipbindings
 go vet ./... && go test ./...  # Go (thiết bị giả)
 cd frontend && npm run build   # type-check (tsc) + build – sau mỗi thay đổi TS
 cd frontend && npm test        # vitest, *.test.ts
@@ -57,6 +58,7 @@ Theo **design v2** – chi tiết token, thành phần, icon trong `design/DESIG
 
 ## Lưu ý nền tảng
 
-- Đang dev trên macOS; phát hành đầu tiên cho Windows (robotgo cần cgo + MinGW-w64).
+- Dev trên macOS **và Windows** (từ 2026-10-19 – phần Windows làm + test ngay trên máy Windows): cài đặt, lệnh, lưu ý riêng Windows ở **`docs/windows-dev.md`** – đọc trước khi làm trên Windows. Phát hành đầu tiên cho Windows (robotgo cần cgo + MinGW-w64).
+- Toạ độ chuột / màn hình chỉ qua `device.Location` / `device.Displays` / `device.Input` (Windows: pixel thật qua Win32 – không gọi thẳng `robotgo.Location` / `Move`).
 - macOS: cấp quyền Accessibility (và Screen Recording cho tìm ảnh / chữ) cho terminal / app thì robotgo mới chạy được.
 - Wails v2 chỉ có một cửa sổ: overlay và mini bar là chế độ của cửa sổ chính.

@@ -34,18 +34,21 @@ type RobotgoInput struct{}
 const moveSettle = 40 * time.Millisecond
 
 func (RobotgoInput) Move(x, y int) error {
-	err := robotgo.Move(x, y)
+	err := moveCursor(x, y)
 	time.Sleep(moveSettle)
 	return err
 }
 
 // Drag dùng robotgo.Drag (đã deprecated) vì trên macOS Move chỉ gửi sự kiện "di chuột" kể cả khi
 // đang giữ nút – nhiều app không nhận là kéo; Drag gửi đúng sự kiện "kéo". Windows/Linux: như Move.
-func (RobotgoInput) MoveStep(x, y int) error { return robotgo.Move(x, y) }
+func (RobotgoInput) MoveStep(x, y int) error { return moveCursor(x, y) }
 
-func (RobotgoInput) Location() (int, int) { return robotgo.Location() }
+func (RobotgoInput) Location() (int, int) { return cursorPos() }
 
-func (RobotgoInput) Drag(x, y int, button string) error { return robotgo.Drag(x, y, button) }
+func (RobotgoInput) Drag(x, y int, button string) error { return dragCursor(x, y, button) }
+
+// Location – vị trí chuột theo cùng hệ toạ độ với Input.Move và Displays (ghi điểm, góc dừng khẩn, overlay đo lệch).
+func Location() (int, int) { return cursorPos() }
 
 func (RobotgoInput) Toggle(button string, down bool) error {
 	if down {
@@ -80,30 +83,14 @@ func (RobotgoInput) KeyToggle(key string, down bool, modifiers []string) error {
 	return robotgo.KeyToggle(key, "down", modifiers)
 }
 
-// RawDisplays trả khung các màn hình như robotgo báo (chưa nhân tỷ lệ) – cùng đơn vị với vị trí cửa sổ Wails.
-func RawDisplays() []model.Rect {
+// Displays trả khung các màn hình theo hệ toạ độ của Location / Input.Move – macOS: điểm, Windows: pixel thật
+// (cursor_windows.go); cũng là đơn vị vị trí cửa sổ Wails.
+func Displays() []model.Rect {
 	n := robotgo.DisplaysNum()
 	out := make([]model.Rect, 0, n)
 	for i := 0; i < n; i++ {
 		x, y, w, h := robotgo.GetDisplayBounds(i)
 		out = append(out, model.Rect{X: x, Y: y, W: w, H: h})
-	}
-	return out
-}
-
-// Displays trả khung các màn hình theo hệ toạ độ của robotgo.Location / Move.
-// Windows: robotgo nhân toạ độ chuột với tỷ lệ DPI màn chính (ScaleF) nên khung màn hình cũng phải nhân theo.
-func Displays() []model.Rect {
-	f := 1.0
-	if goruntime.GOOS == "windows" {
-		f = robotgo.ScaleF()
-	}
-	sc := func(v int) int { return int(float64(v) * f) }
-	n := robotgo.DisplaysNum()
-	out := make([]model.Rect, 0, n)
-	for i := 0; i < n; i++ {
-		x, y, w, h := robotgo.GetDisplayBounds(i)
-		out = append(out, model.Rect{X: sc(x), Y: sc(y), W: sc(w), H: sc(h)})
 	}
 	return out
 }

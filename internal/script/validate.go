@@ -104,7 +104,7 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 				return err
 			}
 		case model.StepElementRead:
-			if err := checkElementFind(i, s); err != nil {
+			if err := checkElementRead(i, s); err != nil {
 				return err
 			}
 		case model.StepWaitPixel:
