@@ -3,11 +3,11 @@
 - [ ] **26. Node Cửa sổ (`window`) + Ứng dụng (`app`)** *(người dùng yêu cầu, 2026-10-19 – mở rộng 26 "Focus cửa sổ theo tên"; `focusWindow` gộp thành thao tác `focus` của node Cửa sổ)* – Cho flow (và AI qua MCP) cố định môi trường trước khi thao tác: app đã chạy chưa, cửa sổ đã hiện chưa, đặt cửa sổ về vị trí / cỡ cố định để toạ độ, ảnh mẫu, vùng chụp không lệch giữa các lần chạy.
   - Theo chốt 35 (ít node nền): 2 node, mỗi node nhiều thao tác (`winOp`, `appOp`) – không mỗi việc một node. Output chuẩn của 20 F5c ngay từ đầu. Thêm theo skill `add-node-type`.
   - UI khung `focusWindow` có từ 27b → đổi thành node Cửa sổ, bỏ nhãn *Sắp có*.
-  - **Cần chốt trước khi code** (skill `new-request`):
-    - [ ] Tên trường: `winApp` / `winTitle` riêng hay dùng lại `elementApp`? Đề xuất: trường riêng – `elementApp` "" = app trên cùng, còn node Cửa sổ `winApp` "" + `winTitle` "" là lỗi validate (tránh focus nhầm)
-    - [ ] App kiểm tra đang chạy: cổng `yes` / `no` (giống Nếu) hay chỉ output `running` rồi nối Nếu? Đề xuất: cổng `yes` / `no` – flow AI sinh ra ngắn hơn một node
-    - [ ] Buộc thoát (`forceQuit`) / đóng cửa sổ: hỏi xác nhận lần chạy đầu như thao tác xoá (35 N4)? Đề xuất: có – tổng quát `DeleteCheck` thành thao tác nguy hiểm (`script.DangerOps`), dùng chung dấu vân tay + `store/deleteconsent.go`
-    - [ ] Toạ độ cửa sổ: điểm (point) như robotgo hay pixel thật? Đề xuất: cùng hệ toạ độ với điểm click (robotgo), đổi Retina / DPI ở một chỗ như 17, 25
+  - **Đã chốt 2026-10-19** (người dùng chọn đúng cả 4 đề xuất):
+    - [x] Tên trường: `winApp` / `winTitle` riêng hay dùng lại `elementApp`? **Chốt:** trường riêng – `elementApp` "" = app trên cùng, còn node Cửa sổ `winApp` "" + `winTitle` "" là lỗi validate (tránh focus nhầm)
+    - [x] App kiểm tra đang chạy: cổng `yes` / `no` (giống Nếu) hay chỉ output `running` rồi nối Nếu? **Chốt:** cổng `yes` / `no` – flow AI sinh ra ngắn hơn một node
+    - [x] Buộc thoát (`forceQuit`) / đóng cửa sổ: hỏi xác nhận lần chạy đầu như thao tác xoá (35 N4)? **Chốt:** có – tổng quát `DeleteCheck` thành thao tác nguy hiểm (`script.DangerOps`), dùng chung dấu vân tay + `store/deleteconsent.go`
+    - [x] Toạ độ cửa sổ: điểm (point) như robotgo hay pixel thật? **Chốt:** cùng hệ toạ độ với điểm click (robotgo), đổi Retina / DPI ở một chỗ như 17, 25
   - **Node Cửa sổ (`window`)**
     - `winOp`:
       - `""` focus – đưa cửa sổ lên trước (bỏ thu nhỏ nếu đang thu nhỏ); không thấy → chờ tới `timeoutMs`, hết giờ → `fail` code `not_found`
