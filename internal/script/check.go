@@ -153,6 +153,10 @@ func checkStep(s *model.Step) error {
 		if !slices.Contains(model.FileOps, s.FileOp) {
 			return fmt.Errorf("thao tác tệp không hợp lệ: %q (trống = ghi chữ | row | mkdir | trash | emptyTrash)", s.FileOp)
 		}
+	case model.StepWindow:
+		if err := checkWindow(*s); err != nil {
+			return err
+		}
 	case model.StepClipboard:
 		if !slices.Contains(model.ClipOps, s.ClipOp) {
 			return fmt.Errorf("phép clipboard không hợp lệ: %q (trống = đọc | write | image)", s.ClipOp)

@@ -3,6 +3,13 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 26 W1–W3a – Node Cửa sổ (Windows) · [phase3/26-cua-so-ung-dung.md](phase3/26-cua-so-ung-dung.md)
+
+- [ ] Mẫu thử **Cửa sổ – đặt 1280 × 800 bên trái rồi chụp**: cửa sổ trình duyệt nhảy về góc trái 1280 × 800; thu nhỏ / kéo sang chỗ khác / phóng to rồi chạy lại vẫn ra như vậy; lời kết thúc ghi khung + cỡ ảnh khớp
+- [ ] Thêm node Cửa sổ (Ctrl+K → Cửa sổ): *Chọn từ cửa sổ đang mở…* liệt kê đúng cửa sổ (không có cửa sổ autoclicker), gõ lọc không dấu, chọn → điền App + Tiêu đề; *Lấy khung hiện tại* điền đúng X, Y, W, H
+- [ ] Thao tác Đưa lên trước (cửa sổ đang thu nhỏ / bị che), Thu nhỏ, Phóng to, Đóng (Notepad có chữ chưa lưu → Notepad hỏi lưu, node không tự bấm), Chờ cửa sổ đóng; App / tiêu đề không khớp → hết giờ đi cổng Thất bại
+- [ ] Màn 125 % / 150 % và 2 màn hình: Đặt ở Trái / Đầy trên màn 2 – khung đúng vùng làm việc (không đè taskbar)
+
 ## 20 F6 / F7 – Xem trước theo nhánh, thanh mini, chạy riêng node · [phase3/20-flow.md](phase3/20-flow.md)
 
 - [ ] Chọn một node (vd Click n3) → ▾ cạnh nút Chạy → **Chạy riêng n3**: chỉ node đó chạy một lần (click thật), thẻ node tô kết quả, Lịch sử chạy có lần chạy chỉ một node; node thất bại (vd Chờ chữ không thấy) → báo lỗi dù có nối nhánh Thất bại; F8 dừng được

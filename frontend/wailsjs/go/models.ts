@@ -362,6 +362,24 @@ export namespace main {
 
 export namespace model {
 	
+	export class AppInfo {
+	    name: string;
+	    id: string;
+	    pid: number;
+	    windows: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new AppInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.id = source["id"];
+	        this.pid = source["pid"];
+	        this.windows = source["windows"];
+	    }
+	}
 	export class Point {
 	    x: number;
 	    y: number;
@@ -936,6 +954,12 @@ export namespace model {
 	    closed?: boolean;
 	    color?: string;
 	    tolerance?: number;
+	    winOp?: string;
+	    winApp?: string;
+	    winTitle?: string;
+	    winMatch?: string;
+	    winPreset?: string;
+	    winRect?: Rect;
 	    cond?: Cond;
 	    cases?: Case[];
 	    value?: string;
@@ -1043,6 +1067,12 @@ export namespace model {
 	        this.closed = source["closed"];
 	        this.color = source["color"];
 	        this.tolerance = source["tolerance"];
+	        this.winOp = source["winOp"];
+	        this.winApp = source["winApp"];
+	        this.winTitle = source["winTitle"];
+	        this.winMatch = source["winMatch"];
+	        this.winPreset = source["winPreset"];
+	        this.winRect = this.convertValues(source["winRect"], Rect);
 	        this.cond = this.convertValues(source["cond"], Cond);
 	        this.cases = this.convertValues(source["cases"], Case);
 	        this.value = source["value"];
@@ -1150,6 +1180,48 @@ export namespace model {
 	        this.outputs = source["outputs"];
 	        this.ports = source["ports"];
 	    }
+	}
+	export class WindowInfo {
+	    id: number;
+	    title: string;
+	    app: string;
+	    appId: string;
+	    pid: number;
+	    box: Rect;
+	    minimized: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new WindowInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.title = source["title"];
+	        this.app = source["app"];
+	        this.appId = source["appId"];
+	        this.pid = source["pid"];
+	        this.box = this.convertValues(source["box"], Rect);
+	        this.minimized = source["minimized"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

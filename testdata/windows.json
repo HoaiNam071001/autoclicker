@@ -1,0 +1,25 @@
+{
+  "_doc": "Chọn cửa sổ của node Cửa sổ (bước 26): MatchWindow (internal/model/window.go) ↔ matchWindow (frontend/src/flow/window.ts). wins theo thứ tự chồng, want = chỉ số cửa sổ được chọn (-1 = không có, “error” = regex sai).",
+  "wins": [
+    { "title": "Tài liệu – Notepad", "app": "Notepad", "appId": "C:\\Program Files\\WindowsApps\\Notepad\\Notepad.exe" },
+    { "title": "Zalo", "app": "Zalo", "appId": "C:\\Users\\a\\AppData\\Local\\Programs\\Zalo\\Zalo.exe" },
+    { "title": "Sân thử – Google Chrome", "app": "chrome", "appId": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" },
+    { "title": "Cài đặt", "app": "Google Chrome", "appId": "com.google.Chrome" }
+  ],
+  "cases": [
+    { "app": "", "title": "", "match": "", "want": 0 },
+    { "app": "zalo", "title": "", "match": "", "want": 1 },
+    { "app": "chrome.exe", "title": "", "match": "", "want": 2 },
+    { "app": "chrome.exe", "title": "", "match": "exact", "want": 2 },
+    { "app": "chrome", "title": "cai dat", "match": "", "want": 3 },
+    { "app": "com.google.chrome", "title": "", "match": "exact", "want": 3 },
+    { "app": "", "title": "san thu", "match": "", "want": 2 },
+    { "app": "", "title": "TÀI LIỆU", "match": "", "want": 0 },
+    { "app": "", "title": "zalo ", "match": "exact", "want": 1 },
+    { "app": "", "title": "Zal", "match": "exact", "want": -1 },
+    { "app": "", "title": "^cài", "match": "regex", "want": 3 },
+    { "app": "^z", "title": "", "match": "regex", "want": 1 },
+    { "app": "telegram", "title": "", "match": "", "want": -1 },
+    { "app": "", "title": "(", "match": "regex", "want": "error" }
+  ]
+}

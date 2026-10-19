@@ -6,6 +6,7 @@ import { fmtClip } from './clipboard';
 import { fmtHTTP } from './http';
 import { fmtFile } from './file';
 import { fmtSystem } from './system';
+import { fmtWindow } from './window';
 import { fmtWaitUntil } from './waitUntil';
 import { fmtPath } from './shape';
 import { fmtWebStep, isWebStep } from './web';
@@ -30,6 +31,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'http' ? fmtHTTP(s)
     : s.type === 'file' ? fmtFile(s)
     : s.type === 'system' ? fmtSystem(s)
+    : s.type === 'window' ? fmtWindow(s)
     : s.type === 'waitUntil' ? fmtWaitUntil(s)
     : s.type === 'path' ? fmtPath(s)
     : s.type === 'elementRead' ? fmtElementRead(s)

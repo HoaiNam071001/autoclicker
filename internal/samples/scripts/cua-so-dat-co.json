@@ -1,0 +1,46 @@
+{
+ "meta": {
+  "name": "Cửa sổ – đặt 1280 × 800 bên trái rồi chụp",
+  "description": "Mở Bảng click, chờ cửa sổ trình duyệt có tiêu đề “Bảng click – Sân thử”, đặt nó 1280 × 800 ở góc trên trái vùng làm việc, rồi chụp đúng khung cửa sổ. Đúng: cửa sổ trình duyệt nhảy về góc trái, cỡ 1280 × 800; lời kết thúc ghi khung cửa sổ 1280 × 800 tại 0, 0 (màn chính) và ảnh cùng cỡ. Thu nhỏ / kéo cửa sổ sang chỗ khác rồi chạy lại vẫn ra như vậy.",
+  "app": "Cửa sổ / app",
+  "level": 1,
+  "page": "click.html",
+  "real": false,
+  "prep": "Hiện chỉ chạy trên Windows (macOS làm sau). Chụp cần quyền ghi màn hình (macOS: Screen Recording)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/click.html",
+    "delayAfter": 500
+   },
+   {
+    "type": "window",
+    "winOp": "waitOpen",
+    "winTitle": "Bảng click – Sân thử",
+    "timeoutMs": 15000
+   },
+   {
+    "type": "window",
+    "winOp": "setBounds",
+    "winTitle": "Bảng click – Sân thử",
+    "winPreset": "left",
+    "winRect": { "x": 0, "y": 0, "w": 1280, "h": 800 },
+    "timeoutMs": 5000,
+    "delayAfter": 500
+   },
+   {
+    "type": "screenshot",
+    "shotArea": "node",
+    "imageFrom": "s3",
+    "fileName": "mau-thu-cua-so"
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Cửa sổ {{n3.output.w}} × {{n3.output.h}} tại {{n3.output.left}}, {{n3.output.top}} (màn {{n3.output.display}}); ảnh {{n4.output.w}} × {{n4.output.h}} – {{n4.output.path}}"
+   }
+  ]
+ }
+}

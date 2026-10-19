@@ -22,7 +22,7 @@ export type DemoItem = DemoStep | DemoGroup;
 // Ví dụ "nhắn tin Facebook" (docs/tasks/phase3/31-mcp-ai.md) + vài bước thể hiện neo góc, chờ pixel, kéo thả.
 export const demoItems: DemoItem[] = [
   { id: 'd1', type: 'open', title: 'Mở URL', detail: 'facebook.com/{{profile}} trong Chrome', delay: '1 s', chips: ['1 input'] },
-  { id: 'd2', type: 'focusWindow', title: 'Focus cửa sổ', detail: 'Google Chrome', delay: '200 ms' },
+  { id: 'd2', type: 'window', title: 'Cửa sổ', detail: 'Google Chrome', delay: '200 ms' },
   {
     id: 'g1', type: 'group', name: 'Gửi tin', repeat: 3, children: [
       { id: 'd3', type: 'waitImage', title: 'Chờ ảnh: nút Nhắn tin', detail: 'tối đa 10 s, khớp ≥ 90%', delay: '300 ms', chips: ['Hết giờ: thử lại 2 lần'], breakpoint: true },

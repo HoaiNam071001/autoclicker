@@ -24,6 +24,11 @@ type notFoundErr struct{ msg string }
 
 func (e *notFoundErr) Error() string { return e.msg }
 
+// timeoutErr – chờ hết giờ (StepError code timeout): giờ hẹn đã qua, cửa sổ / app không mở · đóng kịp.
+type timeoutErr struct{ msg string }
+
+func (e *timeoutErr) Error() string { return e.msg }
+
 // run chạy tới khi đủ số vòng, hết MaxMinutes hoặc ctx bị huỷ.
 // Hết thời gian là kết thúc bình thường (nil); bị huỷ trả ctx.Err().
 // MaxMinutes tính theo đồng hồ thật, kể cả lúc tạm dừng.
@@ -232,7 +237,7 @@ func errCode(err error) string {
 	var badQuery *web.QueryError
 	var status *httpStatusErr
 	var network *networkErr
-	var late *lateErr
+	var late *timeoutErr
 	switch {
 	case errors.As(err, &nf):
 		return model.ErrNotFound

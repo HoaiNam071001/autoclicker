@@ -14,9 +14,7 @@ export type WaitImageData = {
 };
 export type ClickImageData = { source: 'prev' | 'search'; dx: number; dy: number; button: 'left' | 'right' | 'center' };
 export type WaitPixelData = { at: Point; color: string; tolerance: number; timeoutMs: number };
-export type FocusWindowData = { title: string; match: 'contains' | 'exact' };
 export type OnTimeout = { action: 'retry' | 'skip' | 'stop'; retries: number; then: 'skipGroup' | 'stop' };
 export type GroupData = { name: string; repeat: number };
 
 // Cửa sổ đang mở (mẫu) cho ô chọn của Focus cửa sổ
-export const SAMPLE_WINDOWS = ['Google Chrome', 'Zalo', 'Visual Studio Code', 'Finder', 'Microsoft Excel'];

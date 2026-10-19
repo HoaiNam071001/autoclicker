@@ -21,6 +21,7 @@ export const STEP_DEFAULTS: Partial<Record<StepType, Partial<Step>>> = {
   path: { dragMs: 1500, delayAfter: 300 },
   waitUntil: { clicks: 0, at: '12:00:00', delayAfter: 0 },
   system: { clicks: 0, sysOp: 'volume', volume: 50, delayAfter: 300 },
+  window: { clicks: 0, timeoutMs: 10000, delayAfter: 300 },
   file: { clicks: 0, filePath: '~/Documents/autoclicker/nhat-ky.txt', delayAfter: 300 },
   http: { clicks: 0, method: 'GET', url: 'https://', timeoutMs: 15000, delayAfter: 0 },
   webWait: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },

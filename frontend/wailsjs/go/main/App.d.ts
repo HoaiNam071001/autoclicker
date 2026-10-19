@@ -33,7 +33,11 @@ export function GetRun(arg1:string,arg2:string,arg3:string):Promise<model.RunRec
 
 export function GetSettings():Promise<store.Settings>;
 
+export function ListApps():Promise<Array<model.AppInfo>>;
+
 export function ListRuns(arg1:string,arg2:string):Promise<Array<model.RunSummary>>;
+
+export function ListWindows():Promise<Array<model.WindowInfo>>;
 
 export function LoadDraft():Promise<store.Draft>;
 

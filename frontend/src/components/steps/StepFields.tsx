@@ -9,7 +9,7 @@ import { Target } from '../icons';
 import { KeyChip } from '../inputs/PinButton';
 import { Field as RowField } from '../stepform/shared';
 import {
-  ClickImageData, FocusWindowData, GroupData, OnTimeout, OpenData, SAMPLE_WINDOWS, ScrollData, WaitImageData, WaitPixelData,
+  ClickImageData, GroupData, OnTimeout, OpenData, ScrollData, WaitImageData, WaitPixelData,
 } from './model';
 
 type Ctl<T> = { value: T; onChange: (v: T) => void };
@@ -158,31 +158,6 @@ export function WaitPixelFields({ value: v, onChange }: Ctl<WaitPixelData>) {
       </Field>
       <Field label="Sai số màu"><NumInput prefix="±" value={v.tolerance} onChange={(tolerance) => onChange({ ...v, tolerance })} /></Field>
       <Field label="Chờ tối đa"><NumInput value={v.timeoutMs / 1000} min={1} unit="s" onChange={(s) => onChange({ ...v, timeoutMs: s * 1000 })} /></Field>
-    </Grid>
-  );
-}
-
-// ---- Focus cửa sổ (bước 26) ----
-export function FocusWindowFields({ value: v, onChange }: Ctl<FocusWindowData>) {
-  return (
-    <Grid>
-      <Field label="Tên cửa sổ / ứng dụng" wide>
-        <input value={v.title} list="open-windows" onChange={(e) => onChange({ ...v, title: e.target.value })} className={textBox} />
-        <datalist id="open-windows">{SAMPLE_WINDOWS.map((w) => <option key={w} value={w} />)}</datalist>
-      </Field>
-      <Field label="So khớp" wide group>
-        <Segmented value={v.match} onChange={(match) => onChange({ ...v, match })} full
-          options={[{ id: 'contains', label: 'Chứa chữ này' }, { id: 'exact', label: 'Đúng tên' }]} />
-      </Field>
-      <div className="col-span-2 flex flex-col gap-1 text-xs text-muted">
-        <span>Đang mở:</span>
-        <div className="flex flex-wrap gap-1">
-          {SAMPLE_WINDOWS.map((w) => (
-            <button key={w} onClick={() => onChange({ ...v, title: w })}
-              className={`rounded-full border px-2 py-0.5 ${v.title === w ? 'border-accent bg-accent-soft text-accent-text' : 'border-line hover:bg-hover hover:text-ink'}`}>{w}</button>
-          ))}
-        </div>
-      </div>
     </Grid>
   );
 }

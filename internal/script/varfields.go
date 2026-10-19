@@ -112,6 +112,9 @@ func VarFields(s *model.Step) []VarField {
 		case model.ClipImage:
 			add("filePath", &s.FilePath, false)
 		}
+	case model.StepWindow:
+		add("winApp", &s.WinApp, false)
+		add("winTitle", &s.WinTitle, false)
 	case model.StepScreenshot:
 		add("saveDir", &s.SaveDir, false)
 		add("fileName", &s.FileName, false)

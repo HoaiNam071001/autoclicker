@@ -17,7 +17,7 @@ const R = 22;
 const CIRC = 2 * Math.PI * R;
 
 // Đang chờ gì (Progress.wait.kind – imagestep.go, nodes.go watch)
-const WAIT_LABEL: Record<string, string> = { image: 'đang tìm', text: 'đang tìm chữ', pixel: 'đang chờ màu', web: 'đang tìm phần tử', cond: 'đang xét điều kiện' };
+const WAIT_LABEL: Record<string, string> = { image: 'đang tìm', text: 'đang tìm chữ', pixel: 'đang chờ màu', web: 'đang tìm phần tử', cond: 'đang xét điều kiện', window: 'đang chờ cửa sổ' };
 const BREAK_LABEL: Record<string, string> = { breakpoint: 'điểm dừng', step: 'node kế' };
 
 export default function MiniBar() {

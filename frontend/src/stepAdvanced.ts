@@ -7,6 +7,7 @@ import type { FileOp } from './flow/file';
 import type { SysOp } from './flow/system';
 import type { IfPassed } from './flow/waitUntil';
 import type { Shape } from './flow/shape';
+import type { WinMatch, WinOp, WinPreset } from './flow/window';
 import type { KV, Rect } from './types';
 
 export interface AdvancedFields {
@@ -46,4 +47,11 @@ export interface AdvancedFields {
   shapeW?: number;
   shapeH?: number; // 0 = bằng shapeW
   closed?: boolean; // qua các điểm: nối điểm cuối về đầu
+  // cửa sổ (bước 26, internal/engine/window.go) – timeoutMs: chờ cửa sổ khớp; display: màn của winPreset (0 = màn chứa cửa sổ)
+  winOp?: WinOp; // bỏ trống = focus
+  winApp?: string; // tên app / tên exe / bundle id; nhận {{biến}}
+  winTitle?: string; // tiêu đề; nhận {{biến}}
+  winMatch?: WinMatch; // bỏ trống = chứa (không phân biệt hoa thường, dấu)
+  winPreset?: WinPreset; // setBounds: bỏ trống = đúng winRect
+  winRect?: Rect; // setBounds: khung đích (preset trái / giữa / phải: chỉ lấy w, h)
 }

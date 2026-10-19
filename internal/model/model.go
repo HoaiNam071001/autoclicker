@@ -25,6 +25,7 @@ const (
 	StepSystem     = "system"     // SysOp: âm lượng đặt / tăng / giảm, tắt / bật tiếng (engine/system.go)
 	StepWaitUntil  = "waitUntil"  // chờ đến giờ At (hôm nay / ngày giờ), tuỳ chọn canh giờ chuẩn NTP (engine/waituntil.go)
 	StepPath       = "path"       // vẽ: giữ chuột đi qua Points (đường gấp khúc) hoặc hình Shape quanh Points[0] trong DragMs (engine/draw.go)
+	StepWindow     = "window"     // WinOp: focus / chờ mở · đóng / đặt khung / thu nhỏ… cửa sổ khớp WinApp + WinTitle (engine/window.go)
 	StepFile       = "file"       // FileOp: ghi file / thêm dòng csv · xlsx / tạo thư mục / xoá vào Thùng rác / dọn Thùng rác (engine/file.go)
 
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
@@ -48,7 +49,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
@@ -169,6 +170,13 @@ type Step struct {
 	Closed    bool   `json:"closed,omitempty"`    // đường gấp khúc: nối điểm cuối về điểm đầu
 	Color     string `json:"color,omitempty"`     // waitPixel: #RRGGBB
 	Tolerance int    `json:"tolerance,omitempty"` // waitPixel: sai số mỗi kênh màu (0–255)
+	// Cửa sổ (bước 26, engine/window.go) – TimeoutMs: chờ cửa sổ khớp; Display: màn của WinPreset (0 = màn chứa cửa sổ)
+	WinOp     string `json:"winOp,omitempty"`     // WinOps: "" = focus | waitOpen | waitClose | setBounds | minimize | maximize | restore | close | read
+	WinApp    string `json:"winApp,omitempty"`    // tên app / bundle id / tên exe ("" = mọi app); nhận {{biến}}
+	WinTitle  string `json:"winTitle,omitempty"`  // tiêu đề ("" = mọi tiêu đề); nhận {{biến}}
+	WinMatch  string `json:"winMatch,omitempty"`  // NameMatches: "" = chứa (không phân biệt hoa thường, dấu) | exact | regex
+	WinPreset string `json:"winPreset,omitempty"` // setBounds: WinPresets – "" = đúng WinRect | center | left | right | full
+	WinRect   *Rect  `json:"winRect,omitempty"`   // setBounds: khung đích (preset center / left / right: chỉ lấy w, h)
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>
@@ -195,42 +203,6 @@ func (s Step) NumVarOf(field string) string {
 		}
 	}
 	return ""
-}
-
-// Case – một nhánh của switch / switchScreen. Key duy nhất trong node, cổng ra là "case:" + Key.
-type Case struct {
-	Key   string `json:"key"`
-	Label string `json:"label,omitempty"` // tên hiện trên cổng ("" = Key)
-	Op    string `json:"op,omitempty"`    // switch: eq | contains | regex
-	Match string `json:"match,omitempty"` // switch: so Value với chuỗi này; nhận {{biến}}
-	Cond  *Cond  `json:"cond,omitempty"`  // switchScreen: điều kiện ảnh / chữ / màu
-}
-
-// Cond – điều kiện của node Nếu / case của Switch theo màn hình (cond.go). Kind image / text / pixel dùng cùng trường
-// với node Chờ ảnh / chữ / pixel; value so 2 vế; all / any ghép nhiều điều kiện.
-type Cond struct {
-	Kind string `json:"kind"`          // image | text | element | pixel | value | all | any
-	Not  bool   `json:"not,omitempty"` // đảo kết quả
-
-	Template      string   `json:"template,omitempty"`
-	TemplateScale float64  `json:"templateScale,omitempty"`
-	Threshold     int      `json:"threshold,omitempty"`
-	SearchArea    string   `json:"searchArea,omitempty"`
-	FindText      string   `json:"findText,omitempty"` // nhận {{biến}}
-	TextExact     bool     `json:"textExact,omitempty"`
-	TextNoAccent  bool     `json:"textNoAccent,omitempty"`
-	Occurrence    int      `json:"occurrence,omitempty"`
-	Selectors     []string `json:"selectors,omitempty"`  // element: cách tìm phần tử (text= / aria= / role=); nhận {{biến}}
-	ElementApp    string   `json:"elementApp,omitempty"` // element: tên app ("" = app có cửa sổ trên cùng); nhận {{biến}}
-	Points        []Point  `json:"points,omitempty"`     // pixel: points[0]
-	Color         string   `json:"color,omitempty"`
-	Tolerance     int      `json:"tolerance,omitempty"`
-
-	Left  string `json:"left,omitempty"`  // value: vế trái, vd {{n2.output.text}}; nhận {{biến}}
-	Op    string `json:"op,omitempty"`    // value: eq | ne | contains | gt | lt | empty
-	Right string `json:"right,omitempty"` // value: vế phải (không dùng với empty); nhận {{biến}}
-
-	Conds []Cond `json:"conds,omitempty"` // all (và) / any (hoặc)
 }
 
 // Step.FindBy

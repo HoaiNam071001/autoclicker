@@ -117,7 +117,7 @@ export const STEP_ICON = {
   elementRead: 'M4 4h10v6H4zM6 7h6M4 14h16M4 18h11', // khung phần tử + dòng chữ đọc ra
   webScroll: 'M3 5h18v14H3zM3 9h18M12 11v6M9.5 14.5l2.5 2.5 2.5-2.5', // cửa sổ trình duyệt + mũi tên cuộn
   open: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18',
-  focusWindow: 'M4 5h16v14H4zM4 9h16',
+  window: 'M4 5h16v14H4zM4 9h16',
   group: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
   // node điều khiển của flow (bước 20)
   if: 'M12 3l9 9-9 9-9-9zM12 8v5M12 16v.01',

@@ -154,6 +154,10 @@ function ownOutputs(s: Step): OutputField[] {
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
     case 'path': return [{ key: 'x', desc: 'X chỗ nhả chuột' }, { key: 'y', desc: 'Y chỗ nhả chuột' }, { key: 'points', desc: 'số đỉnh đã đi qua' }];
     case 'waitUntil': return [{ key: 'firedAt', desc: 'giờ chạy tiếp (có ms)' }, { key: 'target', desc: 'giờ hẹn' }, { key: 'lateMs', desc: 'trễ so với giờ hẹn (ms)' }, { key: 'ntpOffsetMs', desc: 'giờ chuẩn − giờ máy (ms)' }];
+    case 'window': return s.winOp === 'waitClose' ? [] : [{ key: 'title', desc: 'tiêu đề cửa sổ' }, { key: 'app', desc: 'tên app' },
+      { key: 'left', desc: 'X góc trên trái' }, { key: 'top', desc: 'Y góc trên trái' }, { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' },
+      { key: 'x', desc: 'X tâm cửa sổ' }, { key: 'y', desc: 'Y tâm cửa sổ' }, { key: 'display', desc: 'màn thứ mấy (từ 1)' },
+      { key: 'minimized', desc: 'đang thu nhỏ (true / false)' }, { key: 'pid', desc: 'mã tiến trình' }];
     case 'system': return [{ key: 'volume', desc: 'âm lượng sau khi chạy (%)' }, { key: 'muted', desc: 'đang tắt tiếng (true / false)' }];
     case 'file': return s.fileOp === 'trash' ? [{ key: 'count', desc: 'số file đã xoá' }, { key: 'files', desc: 'tên các file đã xoá' }]
       : s.fileOp === 'emptyTrash' ? [] : s.fileOp === 'row' ? [{ key: 'path', desc: 'đường dẫn file' }, { key: 'rows', desc: 'số dòng sau khi thêm' }]

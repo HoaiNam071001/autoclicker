@@ -10,12 +10,12 @@ import InputsPanel from '../components/inputs/InputsPanel';
 import { InputView } from '../components/inputs/model';
 import { DemoGroup, DemoStep } from './demoScript';
 import {
-  ClickImageFields, FocusWindowFields, GroupFields, OnTimeoutFields, OpenFields, ScrollFields, WaitImageFields, WaitPixelFields,
+  ClickImageFields, GroupFields, OnTimeoutFields, OpenFields, ScrollFields, WaitImageFields, WaitPixelFields,
 } from '../components/steps/StepFields';
 import AnchorField from '../components/steps/AnchorField';
 import { StepPoint } from '../types';
 import {
-  ClickImageData, FocusWindowData, OnTimeout, OpenData, ScrollData, WaitImageData, WaitPixelData,
+  ClickImageData, OnTimeout, OpenData, ScrollData, WaitImageData, WaitPixelData,
 } from '../components/steps/model';
 
 type Props = {
@@ -96,7 +96,6 @@ export function StepBody({ step, inputs, setInputs, flow = false }: { step: Demo
   const [wait, setWait] = useState<WaitImageData>({ template: { w: 164, h: 64 }, threshold: 90, timeoutMs: 10000, intervalMs: 250, area: 'region' });
   const [click, setClick] = useState<ClickImageData>({ source: 'prev', dx: 0, dy: 0, button: 'left' });
   const [pixel, setPixel] = useState<WaitPixelData>({ at: { x: 640, y: 300 }, color: '#1877F2', tolerance: 10, timeoutMs: 5000 });
-  const [win, setWin] = useState<FocusWindowData>({ title: 'Google Chrome', match: 'contains' });
   const [timeout, setTimeoutCfg] = useState<OnTimeout>({ action: 'retry', retries: 2, then: 'skipGroup' });
   const [pt, setPt] = useState<StepPoint>({ x: 300, y: 300, ax: 'end', ay: 'start' });
   const onTimeout = flow ? null : <OnTimeoutFields value={timeout} onChange={setTimeoutCfg} inGroup={inGroup(step)} />;
@@ -108,7 +107,6 @@ export function StepBody({ step, inputs, setInputs, flow = false }: { step: Demo
     case 'waitImage': return <><WaitImageFields value={wait} onChange={setWait} timeoutPin="wait_s" />{onTimeout}</>;
     case 'clickImage': return <ClickImageFields value={click} onChange={setClick} prevStep={flow ? 'n2' : '03'} />;
     case 'waitPixel': return <><WaitPixelFields value={pixel} onChange={setPixel} />{onTimeout}</>;
-    case 'focusWindow': return <><FocusWindowFields value={win} onChange={setWin} />{onTimeout}</>;
     case 'click': return (
       <div className="flex flex-col gap-1.5 text-muted">
         <span>Vị trí <span className="text-xs">(neo theo góc vùng)</span></span>

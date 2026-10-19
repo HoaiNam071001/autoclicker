@@ -20,7 +20,7 @@ const BY_TYPE: Record<StepType, NodeCategory> = {
   type: 'kb', key: 'kb',
   wait: 'wait', waitImage: 'wait', waitPixel: 'wait', waitUntil: 'wait', screenshot: 'wait',
   clipboard: 'data', http: 'data', file: 'data', system: 'data', setVar: 'data',
-  open: 'app', elementRead: 'app',
+  open: 'app', window: 'app', elementRead: 'app',
   if: 'flow', switch: 'flow', switchScreen: 'flow', counter: 'flow', end: 'flow',
   webWait: 'web', webClick: 'web', webType: 'web', webRead: 'web', webScroll: 'web',
 };

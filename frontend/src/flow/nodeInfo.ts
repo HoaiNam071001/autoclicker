@@ -5,7 +5,7 @@ import type { Step, StepType } from '../types';
 // desc: làm gì; use: dùng khi nào / ví dụ.
 export type NodeInfo = { desc: string; use: string };
 // Biến thể hiện như loại riêng trên UI: Chờ chữ / Click theo chữ (findBy text), Mở trang bằng Chrome của app.
-export type InfoKey = StepType | 'waitText' | 'clickText' | 'waitElement' | 'clickElement' | 'openWeb' | 'focusWindow';
+export type InfoKey = StepType | 'waitText' | 'clickText' | 'waitElement' | 'clickElement' | 'openWeb';
 
 export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   click: { desc: 'Bấm chuột tại một điểm trên màn hình, một hoặc nhiều lần.', use: 'Bấm nút, mở mục, chọn ô – khi chỗ cần bấm luôn nằm cố định.' },
@@ -38,7 +38,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   elementRead: { desc: 'Đọc chữ / giá trị của phần tử trong cửa sổ app đang mở (Chrome thường, app khác) – chữ chính xác, không qua OCR.', use: 'Lấy giá, số dư, nội dung ô nhập trên trang đã đăng nhập sẵn (macOS).' },
   webRead: { desc: 'Đọc chữ, giá trị hoặc thuộc tính của phần tử trong trang web vào biến.', use: 'Lấy giá, mã đơn, số dư, link để node sau dùng hoặc so sánh.' },
   webScroll: { desc: 'Cuộn trang web tới phần tử, cuộn trong một khung, hoặc cuộn tới khi thấy phần tử.', use: 'Đưa nút cuối trang vào tầm nhìn, lăn feed tới bài cần tìm.' },
-  focusWindow: { desc: 'Đưa cửa sổ của một app lên trước để thao tác tiếp vào đúng app đó.', use: 'Chuyển qua lại giữa nhiều app trong một kịch bản.' },
+  window: { desc: 'Đưa cửa sổ lên trước, chờ mở / đóng, đặt vị trí + cỡ, thu nhỏ hay đóng.', use: 'Đầu kịch bản: cố định cửa sổ để toạ độ click, ảnh mẫu không lệch giữa các lần chạy.' },
   if: { desc: 'Kiểm tra điều kiện (thấy chữ / ảnh / màu, so giá trị) rồi đi nhánh Đúng hoặc Sai.', use: 'Đã đăng nhập thì bỏ qua bước đăng nhập; hết hàng thì dừng.' },
   switch: { desc: 'So một giá trị (input, kết quả node trước) với nhiều trường hợp, mỗi trường hợp một nhánh.', use: 'Rẽ theo trạng thái đơn hàng, theo lựa chọn nhập lúc Chạy.' },
   switchScreen: { desc: 'Xem màn hình đang hiện gì (theo chữ / ảnh) rồi đi nhánh tương ứng.', use: 'Trang có thể ra nhiều kiểu: màn đăng nhập, captcha, trang chính…' },

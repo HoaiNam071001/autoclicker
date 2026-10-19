@@ -1,6 +1,7 @@
 // Node Chụp màn hình (bước 35 N1) – nhãn vùng chụp, dòng chi tiết thẻ, node nào có khung chỗ thấy để chụp theo.
 // Chạy ở internal/engine/shot.go; HasFoundBox (internal/script/flowcheck.go) cùng công thức hasFoundBox.
 import type { Step } from '../types';
+import { windowHasBox } from './window';
 
 // '' = vùng của kịch bản (khớp model.ShotAreas)
 export type ShotArea = '' | 'screen' | 'rect' | 'node';
@@ -11,12 +12,13 @@ export const DEFAULT_SHOT_DIR = 'Pictures/autoclicker';
 
 // Node có khung chỗ thấy trên màn hình (output x, y = tâm, w, h): chờ ảnh / chữ, click theo ảnh tự tìm, Nếu / Switch theo
 // màn hình, chờ / click phần tử web không chạy nền (chạy nền trả toạ độ trong trang).
-export function hasFoundBox(s: Pick<Step, 'type' | 'imageSource' | 'webGone' | 'webBackground'>): boolean {
+export function hasFoundBox(s: Pick<Step, 'type' | 'imageSource' | 'webGone' | 'webBackground' | 'winOp'>): boolean {
   switch (s.type) {
     case 'waitImage': case 'if': case 'switchScreen': return true;
     case 'clickImage': return s.imageSource === 'search';
     case 'webWait': return !s.webGone && !s.webBackground;
     case 'webClick': return !s.webBackground;
+    case 'window': return windowHasBox(s.winOp);
   }
   return false;
 }

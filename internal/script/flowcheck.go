@@ -115,6 +115,8 @@ func HasFoundBox(s model.Step) bool {
 		return !s.WebGone && !s.WebBackground
 	case model.StepWebClick:
 		return !s.WebBackground
+	case model.StepWindow:
+		return !slices.Contains([]string{model.WinWaitClose, model.WinMin, model.WinClose}, s.WinOp)
 	}
 	return findsImage(s)
 }

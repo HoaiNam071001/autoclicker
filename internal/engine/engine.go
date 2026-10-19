@@ -70,6 +70,7 @@ type Engine struct {
 	httpc       *http.Client                   // node HTTP (http.go) – thời gian chờ theo TimeoutMs của node
 	trash       device.Trash                   // node Tệp / thư mục xoá vào Thùng rác (file.go) – test thay bằng bản giả
 	audio       device.Audio                   // node Hệ thống – âm lượng (system.go) – test thay bằng bản giả
+	wins        device.Windows                 // node Cửa sổ (window.go) – test thay bằng bản giả
 	allowDelete bool                           // người dùng đã xác nhận thao tác xoá của kịch bản (Options.AllowDelete)
 	browser     web.Browser                    // node web (webstep.go) – nil = không điều khiển trình duyệt
 
@@ -100,7 +101,7 @@ type Engine struct {
 }
 
 func newEngine(in device.Input, sc model.Script, onProgress func(Progress)) *Engine {
-	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, elems: device.SystemElements{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{}, audio: device.SystemAudio{},
+	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, elems: device.SystemElements{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{}, audio: device.SystemAudio{}, wins: device.SystemWindows{},
 		rng: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))}
 }
 

@@ -19,7 +19,7 @@ export type Progress = {
   paused: boolean;
   retry?: number; // đang thử lại lần thứ mấy (0 / trống = lần đầu)
   retries?: number; // số lần thử lại tối đa của bước hiện tại
-  wait?: { kind: 'image' | 'text' | 'pixel' | 'web' | 'cond' | 'time'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (internal/engine/imagestep.go)
+  wait?: { kind: 'image' | 'text' | 'pixel' | 'web' | 'cond' | 'time' | 'window'; elapsedMs: number; timeoutMs: number; best: number }; // đang chờ ảnh / pixel (internal/engine/imagestep.go)
   break?: 'breakpoint' | 'step'; // debug: đang dừng trước node nodeId (Tiếp / F10)
   from?: { ref: string; port: string }; // node vừa chạy + cổng đã đi tới node này
   counter?: { ref: string; count: number; max: number }; // node Đếm gần nhất còn lượt (đang trong vòng lặp của nó)

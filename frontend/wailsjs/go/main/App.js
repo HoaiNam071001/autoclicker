@@ -54,8 +54,16 @@ export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }
 
+export function ListApps() {
+  return window['go']['main']['App']['ListApps']();
+}
+
 export function ListRuns(arg1, arg2) {
   return window['go']['main']['App']['ListRuns'](arg1, arg2);
+}
+
+export function ListWindows() {
+  return window['go']['main']['App']['ListWindows']();
 }
 
 export function LoadDraft() {

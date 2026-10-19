@@ -12,10 +12,6 @@ import (
 // Node Chờ đến giờ (bước 35 N6): chờ tới giờ At (giờ máy, hoặc giờ chuẩn NTP). Còn xa thì nghỉ từng đoạn ≤ 1 s
 // (Dừng / tạm dừng ăn ngay, báo tiến độ, đồng hồ máy chỉnh giữa chừng vẫn đúng), sát giờ (< 20 ms) chờ vòng ngắn.
 
-type lateErr struct{ msg string }
-
-func (e *lateErr) Error() string { return e.msg }
-
 func (e *Engine) waitUntil(ctx context.Context, s model.Step) (map[string]any, error) {
 	var offset time.Duration
 	if s.UseNTP {
@@ -31,7 +27,7 @@ func (e *Engine) waitUntil(ctx context.Context, s model.Step) (map[string]any, e
 	if !target.After(now()) {
 		switch {
 		case s.IfPassed == model.PassedFail:
-			return nil, &lateErr{fmt.Sprintf("đã qua giờ %s (trễ %s)", target.Format("15:04:05.000"), fmtDur(now().Sub(target)))}
+			return nil, &timeoutErr{fmt.Sprintf("đã qua giờ %s (trễ %s)", target.Format("15:04:05.000"), fmtDur(now().Sub(target)))}
 		case s.IfPassed == model.PassedTomorrow && !dated:
 			target = target.AddDate(0, 0, 1)
 		}

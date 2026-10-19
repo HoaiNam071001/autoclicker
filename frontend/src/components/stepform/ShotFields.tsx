@@ -46,14 +46,15 @@ export function ShotFields({ step: s }: { step: Step }) {
   );
 }
 
-function DisplayPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+// Chọn màn: 0 = zero (màn chứa vùng kịch bản / chứa cửa sổ), n = màn thứ n.
+export function DisplayPicker({ value, onChange, zero = 'Màn chứa vùng kịch bản' }: { value: number; onChange: (n: number) => void; zero?: string }) {
   const [ds, setDs] = useState<Display[]>([]);
   useEffect(() => { if (inWails) Displays().then(setDs).catch(() => {}); }, []);
   const known = value === 0 || value <= ds.length;
   return (
     <>
       <Select value={String(value)} onChange={(v) => onChange(Number(v))} className={selectBox} aria-label="Màn hình"
-        options={[{ value: '0', label: 'Màn chứa vùng kịch bản' },
+        options={[{ value: '0', label: zero },
           ...ds.map((d) => ({ value: String(d.index + 1), label: `Màn ${d.index + 1}${d.main ? ' (chính)' : ''} · ${d.rect.w} × ${d.rect.h}` })),
           ...(known ? [] : [{ value: String(value), label: `Màn ${value} (không thấy trên máy này)` }])]} />
       {!known && <span className="text-xs text-danger-text">Máy này không có màn {value} – chạy sẽ báo lỗi</span>}
