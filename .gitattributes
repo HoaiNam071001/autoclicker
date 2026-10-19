@@ -1,0 +1,6 @@
+# Giữ xuống dòng LF trên mọi máy (dev cả macOS và Windows) – script .sh và gofmt cần LF
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.icns binary
+*.xlsx binary

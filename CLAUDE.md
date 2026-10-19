@@ -58,6 +58,7 @@ Theo **design v2** – chi tiết token, thành phần, icon trong `design/DESIG
 
 ## Lưu ý nền tảng
 
-- Đang dev trên macOS; phát hành đầu tiên cho Windows (robotgo cần cgo + MinGW-w64).
+- Dev trên macOS **và Windows** (từ 2026-10-19 – phần Windows làm + test ngay trên máy Windows): cài đặt, lệnh, lưu ý riêng Windows ở **`docs/windows-dev.md`** – đọc trước khi làm trên Windows. Phát hành đầu tiên cho Windows (robotgo cần cgo + MinGW-w64).
+- Toạ độ chuột / màn hình chỉ qua `device.Location` / `device.Displays` / `device.Input` (Windows: pixel thật qua Win32 – không gọi thẳng `robotgo.Location` / `Move`).
 - macOS: cấp quyền Accessibility (và Screen Recording cho tìm ảnh / chữ) cho terminal / app thì robotgo mới chạy được.
 - Wails v2 chỉ có một cửa sổ: overlay và mini bar là chế độ của cửa sổ chính.
