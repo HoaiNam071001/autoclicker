@@ -221,10 +221,10 @@ Soạn kịch bản dạng node + cạnh kiểu n8n (`@xyflow/react`). Xem mẫu
 
 | Artboard | Nội dung | File trong repo |
 |---|---|---|
-| `Main` / `MainDark` | Màn soạn gọn: thanh tiêu đề + toolbar, thư viện 224, canvas flow, inspector accordion | `components/TitleBar.tsx`, `AppChrome.tsx`, `Library.tsx`, `StepForm.tsx`, `stepform/*`, `components/flow/*` |
+| `Main` / `MainDark` | Màn soạn gọn: thanh tiêu đề + toolbar, thư viện 224, canvas flow, inspector accordion | `components/TitleBar.tsx`, `AppChrome.tsx`, `Library.tsx` + `library/LibraryParts.tsx`, `StepForm.tsx`, `stepform/*`, `components/flow/*` (`FlowHeader`) |
 | `Inspectors` | Inspector Click, Switch theo màn hình, HTTP | `stepform/MouseFields.tsx`, `flow/nodes/ControlFields`, `stepform/HttpFields.tsx`, `flow/PortField.tsx` |
 | `Categories` | Màu 7 nhóm node, thẻ mẫu sáng / tối | token `cat-*` trong `style.css`; nhóm của node trong `flow/view.ts` |
-| `RunMenu` | Nút Chạy tách đôi + menu | `AppChrome.tsx` (`Toolbar`, `DebugButtons`, `RecordButton`) |
+| `RunMenu` | Nút Chạy tách đôi + menu | `RunMenu.tsx` (`RunButton`), `AppChrome.tsx` (`Toolbar`) |
 
 **v2 (đã dựng, mã artboard đã xoá):**
 

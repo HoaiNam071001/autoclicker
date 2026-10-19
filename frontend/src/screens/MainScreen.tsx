@@ -1,6 +1,7 @@
-// Màn soạn kịch bản (design v2, artboard Main): thanh tiêu đề, thanh công cụ, thư viện | canvas flow | inspector, status bar
+// Màn soạn kịch bản (design v3, artboard Main): thanh tiêu đề, thanh công cụ, thư viện | canvas flow | inspector, status bar
 import { useEffect, useState } from 'react';
-import { DebugButtons, RecordButton, StatusBar, Toolbar } from '../components/AppChrome';
+import { StatusBar, Toolbar } from '../components/AppChrome';
+import { RUN_ICON, RunMenuItem } from '../components/RunMenu';
 import { MousePos, StopScript } from '../../wailsjs/go/main/App';
 import { inWails, openOverlay } from '../windowMode';
 import { useEditor } from '../store';
@@ -73,10 +74,8 @@ export default function MainScreen() {
         runDisabled={!inWails}
         runTitle={!inWails ? 'Chỉ chạy được trong app'
           : autoRun ? 'Chạy luôn với giá trị lần trước – Shift + bấm để sửa input' : undefined}
-        onPreview={() => openOverlay('preview')}
-        extra={<><RecordButton soon />
-          <DebugButtons disabled={!inWails || running} fromDisabled={!cur} fromTitle={cur ? `Chạy một vòng bắt đầu từ ${cur.ref} – các node trước đó không chạy` : 'Chọn một node để chạy từ đó'}
-            onFrom={() => cur && startRun(false, { from: cur.id })} onStep={() => startRun(false, { step: true })} /></>} />
+        runItems={runItems(cur?.ref, !inWails || running, !!script.inputs?.length, cur && (() => startRun(false, { from: cur.id })))}
+        onPreview={() => openOverlay('preview')} />
 
       <div className="flex min-h-0 flex-1 border-t border-line">
         <Library />
@@ -104,4 +103,19 @@ export default function MainScreen() {
       )}
     </div>
   );
+}
+
+// Menu ▾ cạnh nút Chạy. off: không chạy được lúc này (trình duyệt / đang chạy); onFrom: có node đang chọn.
+function runItems(ref: string | undefined, off: boolean, hasInputs: boolean, onFrom?: () => void): RunMenuItem[] {
+  return [
+    { label: 'Chạy từ node đang chọn', icon: RUN_ICON.from, disabled: off || !onFrom, onClick: onFrom,
+      title: ref ? `Chạy một vòng bắt đầu từ ${ref} – các node trước đó không chạy` : 'Chọn một node để chạy từ đó' },
+    { label: 'Chạy từng node', icon: RUN_ICON.step, hotkey: 'F10', disabled: off, onClick: () => startRun(false, { step: true }),
+      title: 'Dừng trước mỗi node, bấm Tiếp / F10 để chạy node kế' },
+    { label: 'Xem trước trên màn hình', icon: RUN_ICON.preview, onClick: () => openOverlay('preview'),
+      title: 'Xem đường đi các node bằng con trỏ giả, không click thật' },
+    { label: 'Ghi thao tác', icon: RUN_ICON.record, hotkey: 'F9', danger: true, disabled: true, title: 'Ghi macro – sắp có (bước 24)' },
+    { label: 'Sửa input trước khi chạy', minor: true, disabled: off || !hasInputs, onClick: () => startRun(true),
+      title: hasInputs ? 'Mở form input rồi mới chạy – cũng mở được bằng Shift + bấm Chạy' : 'Kịch bản chưa có input' },
+  ];
 }

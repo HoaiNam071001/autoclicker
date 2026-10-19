@@ -1,8 +1,7 @@
 // Thanh mini khi đang chạy (design v2, artboard MiniBar) – cửa sổ nhỏ always-on-top, 540×96 (window.go)
 import { useEffect, useReducer } from 'react';
 import { PauseScript, ResumeScript, StepScript, StopScript } from '../../wailsjs/go/main/App';
-import { StepOver } from '../components/AppChrome';
-import { Pause, Play, Stop, StepIcon, StepIconName } from '../components/icons';
+import { Pause, Play, Stop, StepIcon, StepIconName, StepOver } from '../components/icons';
 import { elapsedNow, fmtElapsed, Progress, useEngine } from '../engineStore';
 import { useScript } from '../store';
 import { stepLabel } from '../types';

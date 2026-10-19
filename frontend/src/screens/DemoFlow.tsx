@@ -5,10 +5,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import TitleBar from '../components/TitleBar';
 import { LibraryView } from '../components/Library';
 import { StatusBar, Toolbar } from '../components/AppChrome';
+import { demoRunItems } from '../demo/runMenu';
 import Segmented from '../components/Segmented';
 import { PaletteGroup, PaletteView } from '../components/PaletteView';
 import { InfoKey, NODE_INFO } from '../flow/nodeInfo';
 import FlowCanvas from '../components/flow/FlowCanvas';
+import FlowHeader, { headerBtn } from '../components/flow/FlowHeader';
 import RunLog from '../components/flow/RunLog';
 import { FlowNodeView } from '../components/flow/model';
 import FlowDemoInspector from '../demo/FlowDemoInspector';
@@ -33,6 +35,7 @@ export default function DemoFlow() {
   // ?sel=a7 – mở sẵn inspector node khác; ?mode=running | failed – mở thẳng trạng thái chạy mẫu (chụp màn hình để duyệt)
   const [selected, setSelected] = useState<string | null>(() => new URLSearchParams(location.search).get('sel') || 'a2');
   const [mode, setMode] = useState<Mode>(() => (new URLSearchParams(location.search).get('mode') as Mode) || 'edit');
+  const [notice, setNotice] = useState('');
   const [drop, setDrop] = useState<Drop>(null);
   const [focus, setFocus] = useState<{ id: string; key: number }>();
   // chọn node + cuộn canvas tới nó (bấm dòng nhật ký, nút → ở Cổng ra, đổi trạng thái chạy)
@@ -115,6 +118,7 @@ export default function DemoFlow() {
       <TitleBar />
       <Toolbar name="Nhắn tin Facebook" unsaved loop="3 vòng" loopPanel={<p className="text-[13px] text-muted">Lặp / đếm ngược: xem màn chính.</p>}
         running={mode === 'running'} onRun={() => setMode(mode === 'running' ? 'edit' : 'running')} onPreview={() => {}}
+        runItems={demoRunItems(setNotice)}
         extra={
           <span className="flex items-center gap-2 text-xs text-muted">Trạng thái (mẫu)
             <Segmented value={mode} onChange={setMode} label="Trạng thái mẫu"
@@ -126,15 +130,13 @@ export default function DemoFlow() {
         <LibraryView {...demoLibrary} />
 
         <main aria-label="Flow (mẫu)" className="flex min-w-0 flex-1 flex-col">
-          <div className="flex flex-none items-center gap-2.5 border-b border-line px-4 py-2">
-            <h1 className="text-base font-semibold">Flow</h1>
-            <span className="whitespace-nowrap text-muted">{nodes.length} node · {edges.length} cạnh</span>
-            <button onClick={() => { setDrop(null); setPaletteOpen(true); }} className="ml-auto flex h-8 items-center gap-2 whitespace-nowrap rounded-control border border-line bg-surface px-3 hover:bg-hover">
-              + Thêm node <span className="font-mono text-[11px] text-muted">Ctrl+K</span>
-            </button>
-            <span className="whitespace-nowrap rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-text">Màn mẫu #demo-flow</span>
-          </div>
-          <div className="min-h-0 flex-1">
+          <div className="relative min-h-0 flex-1">
+            <FlowHeader count={nodes.length}>
+              <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-accent-text">Màn mẫu #demo-flow</span>
+              <button onClick={() => { setDrop(null); setPaletteOpen(true); }} className={headerBtn}>
+                + Thêm node <span className="font-mono text-[11px] text-muted">Ctrl+K</span>
+              </button>
+            </FlowHeader>
             <FlowCanvas nodes={views} edges={edges} start={start} positions={positions} selected={selected} fitKey={fitKey} focus={focus}
               onSelect={setSelected}
               onMove={(id, pos) => setPositions((p) => ({ ...p, [id]: pos }))}
@@ -159,7 +161,7 @@ export default function DemoFlow() {
         )}
       </div>
 
-      <StatusBar running={mode === 'running'} mouse="X 1204 Y 388"><span>Bản nháp tự lưu lúc 14:32</span></StatusBar>
+      <StatusBar running={mode === 'running'} mouse="X 1204 Y 388"><span>Bản nháp tự lưu lúc 14:32</span>{notice && <span className="text-accent-text">{notice}</span>}</StatusBar>
 
       {palette && (
         <PaletteView groups={paletteGroups(add)} onClose={() => { setDrop(null); setPaletteOpen(false); }}

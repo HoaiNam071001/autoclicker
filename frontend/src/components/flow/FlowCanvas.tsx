@@ -124,19 +124,22 @@ function Canvas({
       minZoom={0.3} maxZoom={1.6} proOptions={{ hideAttribution: true }}>
       <Background variant={BackgroundVariant.Dots} gap={18} size={1.4} color="var(--c-dot)" />
       {tall && <MiniMap pannable zoomable nodeColor="var(--c-soft)" nodeStrokeColor="var(--c-line-strong)" nodeBorderRadius={6}
-        maskColor="color-mix(in srgb, var(--c-bg) 70%, transparent)" style={{ width: 168, height: 108 }} />}
-      <Panel position="top-left" className="pointer-events-none rounded-md bg-bg/85 px-1.5 py-0.5 text-xs text-muted">
-        Kéo từ chấm cổng ra sang node để nối · thả ở chỗ trống để thêm node · Shift + kéo chọn nhiều · Delete xoá
-      </Panel>
-      <Panel position="bottom-left" className="flex gap-1 rounded-control border border-line bg-surface p-1 shadow-[0_1px_3px_rgb(0_0_0/.06)]">
-        <ToolBtn label="Phóng to" onClick={() => zoomIn({ duration: 150 })} d="M12 5v14M5 12h14" />
-        <ToolBtn label="Thu nhỏ" onClick={() => zoomOut({ duration: 150 })} d="M5 12h14" />
-        <ToolBtn label="Vừa màn hình" onClick={() => fitView({ padding: 0.12, maxZoom: 1, duration: 200 })} d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
-        {onLayout && <ToolBtn label="Sắp xếp lại tự động" onClick={onLayout} d="M4 5h6v5H4zM14 14h6v5h-6zM10 7.5h2a2 2 0 0 1 2 2v7" />}
+        maskColor="color-mix(in srgb, var(--c-bg) 70%, transparent)" style={{ width: 148, height: 92 }} />}
+      <Panel position="bottom-left" className="flex gap-1.5">
+        <div className="flex gap-1 rounded-control border border-line bg-surface p-1 shadow-[0_1px_3px_rgb(0_0_0/.06)]">
+          <ToolBtn label="Phóng to" onClick={() => zoomIn({ duration: 150 })} d="M12 5v14M5 12h14" />
+          <ToolBtn label="Thu nhỏ" onClick={() => zoomOut({ duration: 150 })} d="M5 12h14" />
+          <ToolBtn label="Vừa màn hình" onClick={() => fitView({ padding: 0.12, maxZoom: 1, duration: 200 })} d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
+          {onLayout && <ToolBtn label="Sắp xếp lại tự động" onClick={onLayout} d="M4 5h6v5H4zM14 14h6v5h-6zM10 7.5h2a2 2 0 0 1 2 2v7" />}
+        </div>
+        <span tabIndex={0} aria-label="Phím tắt canvas" title={HELP}
+          className="grid h-9 w-9 cursor-help place-items-center rounded-control border border-line bg-surface font-semibold text-muted shadow-[0_1px_3px_rgb(0_0_0/.06)]">?</span>
       </Panel>
     </ReactFlow>
   );
 }
+
+const HELP = 'Kéo từ chấm cổng ra sang node để nối · thả ở chỗ trống để thêm node · Shift + kéo chọn nhiều · Delete xoá';
 
 function ToolBtn({ label, onClick, d }: { label: string; onClick: () => void; d: string }) {
   return (

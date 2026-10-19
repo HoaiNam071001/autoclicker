@@ -2,6 +2,7 @@
 // Dữ liệu thẻ tính ở flow/view.ts; mọi thao tác (nối, xoá, dời, thêm node) gọi hàm store – component không tự sửa script.
 import { useEffect, useMemo, useState } from 'react';
 import FlowCanvas from './FlowCanvas';
+import FlowHeader, { headerBtn } from './FlowHeader';
 import AddStepPalette from '../AddStepPalette';
 import { Region } from '../icons';
 import { layoutFlow } from '../../flow/layout';
@@ -87,12 +88,9 @@ export default function FlowEditor() {
   const { region } = script;
   return (
     <main aria-label="Flow" className="flex min-w-0 flex-1 flex-col">
-      <div className="flex flex-none flex-wrap items-center gap-2.5 border-b border-line px-4 py-2">
-        <h1 className="text-base font-semibold">Flow</h1>
-        <span className="whitespace-nowrap text-muted">{script.steps.length} node · {script.edges.length} cạnh</span>
-        <span className="ml-auto flex items-center gap-1">
-          <button onClick={() => openOverlay('region')} title="Chọn vùng trên màn hình – toạ độ điểm tính theo vùng"
-            className="flex h-8 items-center gap-1.5 rounded-control border border-line bg-surface px-2.5 text-[13px] text-muted hover:bg-hover hover:text-ink">
+      <div className="relative min-h-0 flex-1">
+        <FlowHeader count={script.steps.length}>
+          <button onClick={() => openOverlay('region')} title="Chọn vùng trên màn hình – toạ độ điểm tính theo vùng" className={`${headerBtn} text-muted hover:text-ink`}>
             <Region className="h-3.5 w-3.5" />
             {region ? <span className="font-mono">Vùng {region.w} × {region.h}</span> : 'Toàn màn hình'}
           </button>
@@ -100,13 +98,10 @@ export default function FlowEditor() {
             <button onClick={() => setRegion(null)} aria-label="Về toàn màn hình" title="Về toàn màn hình"
               className="grid h-8 w-8 place-items-center rounded-control text-muted hover:bg-hover hover:text-ink">✕</button>
           )}
-          <button onClick={openPalette} className="flex h-8 items-center gap-2 whitespace-nowrap rounded-control border border-line bg-surface px-3 hover:bg-hover">
+          <button onClick={openPalette} className={headerBtn}>
             + Thêm node <span className="font-mono text-[11px] text-muted">{isMac ? '⌘K' : 'Ctrl+K'}</span>
           </button>
-        </span>
-      </div>
-
-      <div className="relative min-h-0 flex-1">
+        </FlowHeader>
         <FlowCanvas nodes={views} edges={script.edges} start={script.start} positions={positions} selected={selected || null} picked={picked} fitKey={fitKey}
           focus={focus} taken={trace.taken} activeEdge={trace.active}
           onSelect={(id, additive) => {

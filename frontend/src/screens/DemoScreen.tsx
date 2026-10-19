@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import TitleBar from '../components/TitleBar';
 import { LibraryView } from '../components/Library';
-import { DebugButtons, RecordButton, StatusBar, Toolbar } from '../components/AppChrome';
+import { StatusBar, Toolbar } from '../components/AppChrome';
+import { demoRunItems } from '../demo/runMenu';
 import ScheduleDialog, { Schedule, ScheduleRow } from '../components/ScheduleDialog';
 import { GroupFrame, StaticCard } from '../components/StepCard';
 import RunDialog from '../components/inputs/RunDialog';
@@ -34,7 +35,12 @@ export default function DemoScreen() {
       <TitleBar />
       <Toolbar name="Nhắn tin Facebook" unsaved loop="10 vòng" loopPanel={<div className="flex flex-col gap-3"><p className="text-[13px] text-muted">Lặp / đếm ngược: xem màn chính.</p><ScheduleRow value={schedule} onEdit={() => setScheduleOpen(true)} /></div>}
         running={false} onRun={() => setRunOpen(true)} onPreview={() => {}}
-        extra={<><RecordButton recording={recording ? '0:07' : null} onClick={() => setRecording(!recording)} /><DebugButtons onFrom={() => setNotice('Màn mẫu – chạy từ bước đang chọn')} onStep={() => setNotice('Màn mẫu – chạy từng bước, F10 để tiếp')} /></>} />
+        runItems={demoRunItems(setNotice, { on: recording, toggle: () => setRecording(!recording) })}
+        extra={recording && (
+          <span className="btn-danger-soft flex h-[34px] items-center gap-2 rounded-control px-3 text-[13px]">
+            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-danger" />Đang ghi <span className="font-mono">0:07</span>
+          </span>
+        )} />
 
       <div className="flex min-h-0 flex-1 border-t border-line">
         <LibraryView {...demoLibrary} />

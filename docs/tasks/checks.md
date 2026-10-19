@@ -5,6 +5,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 38 – UI v3 – gọn · [phase3/38-ui-v3.md](phase3/38-ui-v3.md)
 
+- [ ] V2 Khung app (`wails dev`): nút Chạy (F8 vẫn chạy / dừng), ▾ mở menu – Chạy từ node đang chọn, Chạy từng node (F10 đi tiếp), Xem trước, Sửa input trước khi chạy (kịch bản có input); menu theme đổi Sáng / Tối / Theo hệ thống, lưu sau khi mở lại app; kéo cửa sổ bằng thanh tiêu đề vẫn được (không kéo nhầm khi bấm nút theme); thư viện thu gọn Mở gần đây / Lịch sử chạy nhớ sau khi mở lại
 - [ ] V1 Thẻ node mới trên canvas app thật (`wails dev`): kéo nối từ chấm cổng nhỏ (8 px) vẫn dễ trúng; rê chuột vào chấm cổng chưa nối → tooltip "chưa nối: …"; rê vào thẻ có chip ("1 input", "thử lại 2") → tooltip; mở kịch bản cũ rồi bấm *Sắp xếp lại* → dàn đều; xem cả theme sáng + tối (màu nhóm đọc rõ)
 
 ## 37 – Phần tử màn hình qua Accessibility · [phase3/37-phan-tu-man-hinh.md](phase3/37-phan-tu-man-hinh.md)
