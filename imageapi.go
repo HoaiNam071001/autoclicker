@@ -68,7 +68,7 @@ func (a *App) FindImage(sc model.Script, stepID string) (engine.FindResult, erro
 	if s, err = script.WithInputDefaults(sc, s); err != nil {
 		return engine.FindResult{}, err
 	}
-	if s.FindBy == "" && s.Template == "" { // tìm theo ảnh mà chưa có ảnh mẫu: báo ngay, khỏi ẩn cửa sổ
+	if s.FindBy == "" && s.Template == "" && s.Type != model.StepElementRead { // tìm theo ảnh mà chưa có ảnh mẫu: báo ngay, khỏi ẩn cửa sổ
 		return engine.FindResult{}, errors.New("bước chưa có ảnh mẫu")
 	}
 	e := engine.New(nil, sc, engine.Options{Screen: device.MainScreen(), Displays: device.Displays()})

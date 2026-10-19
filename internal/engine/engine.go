@@ -65,6 +65,7 @@ type Engine struct {
 	failed  string                       // id node làm lần chạy dừng vì lỗi (runner gửi engine:failed)
 	miss    *FindResult                  // node chờ ảnh hết giờ: chỗ giống nhất (để xem lại vì sao không thấy)
 	tpls    map[string]vision.Gray       // ảnh mẫu đã giải mã theo id node
+	ocrMemo map[model.Rect]ocrMemo       // chữ đọc lần trước theo vùng chụp – điểm ảnh không đổi thì khỏi OCR lại (elementread.go)
 	byID    map[string]model.Step        // node theo id (run đặt)
 	order   map[string]int               // số thứ tự hiển thị của node (model.FlowOrder) – thanh mini
 	results map[string]*model.StepResult // kết quả lần chạy gần nhất của từng node trong vòng này

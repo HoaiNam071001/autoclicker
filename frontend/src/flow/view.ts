@@ -166,7 +166,10 @@ function ownOutputs(s: Step): OutputField[] {
     case 'webClick': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...WEB_FOUND];
     case 'webType': return [{ key: 'text', desc: 'chữ đã gõ (sau khi thay biến)' }, { key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' },
       ...WEB_FOUND.filter((f) => f.key !== 'text')];
-    case 'elementRead': return [{ key: 'text', desc: 'chữ / giá trị đọc được' }, { key: 'count', desc: 'số phần tử khớp' }, { key: 'role', desc: 'vai trò phần tử' },
+    case 'elementRead': return [{ key: 'text', desc: s.readPattern || s.readNumber ? 'giá trị sau khi lọc' : 'chữ / giá trị đọc được' },
+      ...(s.readPattern || s.readNumber ? [{ key: 'raw', desc: 'chữ đọc được trước khi lọc' }] : []),
+      ...(s.readChange ? [{ key: 'old', desc: 'giá trị trước khi đổi' }] : []),
+      { key: 'count', desc: s.findBy === 'text' ? 'số chỗ thấy nhãn' : 'số phần tử khớp' }, ...(s.findBy === 'text' ? [] : [{ key: 'role', desc: 'vai trò phần tử' }]),
       ...FOUND.slice(0, 4)];
     case 'webRead': return [{ key: 'text', desc: 'giá trị đọc được' }, { key: 'count', desc: 'số phần tử khớp' }, { key: 'selector', desc: 'cách tìm đã khớp' }];
     case 'webScroll': return [...WEB_FOUND, ...(s.scrollMode === 'until' ? [{ key: 'scrolls', desc: 'số lần đã lăn' }] : [])];

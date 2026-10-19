@@ -103,6 +103,9 @@ func checkWebFields(s *model.Step) error {
 	if s.ScrollMode != "" && s.ScrollMode != model.ScrollModeIn && s.ScrollMode != model.ScrollModeUntil {
 		return fmt.Errorf("cách cuộn không hợp lệ: %q", s.ScrollMode)
 	}
+	if !slices.Contains(model.ReadNears, s.ReadNear) {
+		return fmt.Errorf("hướng đọc cạnh nhãn không hợp lệ: %q (trống | right | below)", s.ReadNear)
+	}
 	return nil
 }
 

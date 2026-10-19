@@ -88,3 +88,11 @@ const (
 )
 
 var Shapes = []string{ShapeLine, ShapeCircle, ShapeRect, ShapeStar}
+
+// Đọc cạnh nhãn của node Đọc phần tử (Step.ReadNear – bước 37 E4, vision.NearText).
+const (
+	ReadNearRight = "right"
+	ReadNearBelow = "below"
+)
+
+var ReadNears = []string{"", ReadNearRight, ReadNearBelow}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"hash/fnv"
 	"image"
 	"image/color"
 	"image/png"
@@ -77,4 +78,28 @@ func Shrink(img image.Image, w int) image.Image {
 		}
 	}
 	return out
+}
+
+// PixelHash – dấu vân tay điểm ảnh (FNV-1a): hai ảnh cùng cỡ cùng hash thì coi như y hệt – đọc chữ lại ảnh y hệt
+// là phí (OCR ~100 ms mỗi lần), chờ giá trị đổi chỉ OCR khi vùng đổi.
+func PixelHash(img image.Image) uint64 {
+	h := fnv.New64a()
+	b := img.Bounds()
+	fmt.Fprintf(h, "%d×%d|", b.Dx(), b.Dy())
+	if m, ok := img.(*image.RGBA); ok {
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			o := m.PixOffset(b.Min.X, y)
+			h.Write(m.Pix[o : o+4*b.Dx()])
+		}
+		return h.Sum64()
+	}
+	px := make([]byte, 4)
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			c := color.RGBAModel.Convert(img.At(x, y)).(color.RGBA)
+			px[0], px[1], px[2], px[3] = c.R, c.G, c.B, c.A
+			h.Write(px)
+		}
+	}
+	return h.Sum64()
 }

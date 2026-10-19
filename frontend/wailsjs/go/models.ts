@@ -895,6 +895,11 @@ export namespace model {
 	    textExact?: boolean;
 	    textNoAccent?: boolean;
 	    occurrence?: number;
+	    readNear?: string;
+	    readSpan?: number;
+	    readPattern?: string;
+	    readNumber?: boolean;
+	    readChange?: boolean;
 	    retry?: Retry;
 	    human?: string;
 	    numVars?: NumVar[];
@@ -997,6 +1002,11 @@ export namespace model {
 	        this.textExact = source["textExact"];
 	        this.textNoAccent = source["textNoAccent"];
 	        this.occurrence = source["occurrence"];
+	        this.readNear = source["readNear"];
+	        this.readSpan = source["readSpan"];
+	        this.readPattern = source["readPattern"];
+	        this.readNumber = source["readNumber"];
+	        this.readChange = source["readChange"];
 	        this.retry = this.convertValues(source["retry"], Retry);
 	        this.human = source["human"];
 	        this.numVars = this.convertValues(source["numVars"], NumVar);

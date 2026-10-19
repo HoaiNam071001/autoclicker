@@ -24,7 +24,7 @@ import { FileFields } from './stepform/FileFields';
 import { SystemFields } from './stepform/SystemFields';
 import { WaitUntilFields } from './stepform/WaitUntilFields';
 import { PathFields } from './stepform/PathFields';
-import { ElementReadFields } from './stepform/ElementFields';
+import ElementReadFields from './stepform/ElementReadFields';
 import { isWebStep } from '../flow/web';
 import FlowSections from './stepform/FlowSections';
 import ControlSection from './stepform/ControlSection';

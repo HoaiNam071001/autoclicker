@@ -137,6 +137,12 @@ export interface Step extends AdvancedFields {
   textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
   textNoAccent?: boolean; // bỏ qua dấu
   occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu
+  // Đọc phần tử (bước 37 E4, engine/elementread.go): findBy text = tìm nhãn bằng OCR
+  readNear?: 'right' | 'below'; // OCR chữ bên phải / bên dưới nhãn; bỏ trống = đọc chính phần tử
+  readSpan?: number; // khoảng đọc từ mép nhãn (px), 0 = 300
+  readPattern?: string; // lọc theo regex (nhóm () đầu nếu có); không khớp = chờ đọc lại
+  readNumber?: boolean; // chuẩn hoá số: 1.234.000₫ → 1234000
+  readChange?: boolean; // chờ giá trị đổi so với lần đọc đầu
   retry?: Retry; // thất bại thì thử lại; hết lượt → cổng fail (internal/engine/flowrun.go execNode)
   numVars?: NumVar[]; // trường số lấy từ biến (F5c) – giá trị lúc chạy thay cho trường đó
   human?: HumanLevel; // mức giống người riêng của node – trống = theo kịch bản (bước 34)
