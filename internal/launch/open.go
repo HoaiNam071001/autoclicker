@@ -21,6 +21,8 @@ var (
 	schemeRe = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9+.-]*:`)
 	winPath  = regexp.MustCompile(`^[A-Za-z]:[\\/]`)
 	domainRe = regexp.MustCompile(`^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+(:\d+)?([/?#].*)?$`)
+	// Tên chương trình Windows (notepad.exe, devmgmt.msc) trông như tên miền nhưng là app – các đuôi này không phải TLD.
+	winExeRe = regexp.MustCompile(`(?i)^[^/\\?#]+\.(exe|bat|cmd|msc|cpl|lnk|ps1)$`)
 )
 
 // Kiểu target.
@@ -34,6 +36,8 @@ func TargetKind(t string) string {
 	switch {
 	case winPath.MatchString(t), strings.HasPrefix(t, "/"), strings.HasPrefix(t, "~"), strings.HasPrefix(t, `\\`):
 		return TargetPath
+	case winExeRe.MatchString(t):
+		return TargetApp
 	case schemeRe.MatchString(t), domainRe.MatchString(t):
 		return TargetURL
 	}

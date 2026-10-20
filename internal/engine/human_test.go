@@ -100,7 +100,7 @@ func TestHumanTyping(t *testing.T) {
 	text := "the quick brown fox"
 	e, in := humanEngine(model.HumanHigh, model.Step{})
 	e.human = &humanize.Profile{Typo: 0.5}
-	if err := e.typeText(context.Background(), text); err != nil {
+	if err := e.typeText(context.Background(), text, ""); err != nil {
 		t.Fatal(err)
 	}
 	var got []string

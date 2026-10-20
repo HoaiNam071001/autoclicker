@@ -15,7 +15,7 @@ func TestWebTypeClicksChecksFocusThenTypes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	mod := selectAllMod()
+	mod := shortcutMod()
 	want := []string{"move 120,210", "click left false", "down " + mod + " []", "down a [" + mod + "]", "up a", "up " + mod,
 		"down backspace []", "up backspace", "type a", "type b", "down enter []", "up enter"}
 	if got := in.Lines(); !reflect.DeepEqual(got, want) {

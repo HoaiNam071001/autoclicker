@@ -52,7 +52,7 @@ func (e *Engine) webKeys(ctx context.Context, s model.Step) error {
 		return e.browser.BgType(ctx, s.Text, s.WebClear, s.WebEnter)
 	}
 	if s.WebClear {
-		selectAll := model.Step{Keys: []string{"a"}, Modifiers: []string{selectAllMod()}, KeyMode: model.KeyChord}
+		selectAll := model.Step{Keys: []string{"a"}, Modifiers: []string{shortcutMod()}, KeyMode: model.KeyChord}
 		if err := e.pressKeys(ctx, selectAll); err != nil {
 			return err
 		}
@@ -60,7 +60,7 @@ func (e *Engine) webKeys(ctx context.Context, s model.Step) error {
 			return err
 		}
 	}
-	if err := e.typeText(ctx, s.Text); err != nil {
+	if err := e.typeText(ctx, s.Text, s.TypeMode); err != nil {
 		return err
 	}
 	if s.WebEnter {
@@ -69,8 +69,8 @@ func (e *Engine) webKeys(ctx context.Context, s model.Step) error {
 	return nil
 }
 
-// selectAllMod – phím kèm của "chọn tất cả" theo hệ điều hành.
-func selectAllMod() string {
+// shortcutMod – phím kèm của phím tắt hệ thống (chọn tất cả, dán) theo hệ điều hành.
+func shortcutMod() string {
 	if goruntime.GOOS == "darwin" {
 		return "cmd"
 	}

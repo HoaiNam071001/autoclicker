@@ -35,6 +35,7 @@ func TestTargetKind(t *testing.T) {
 		"facebook.com/abc": TargetURL, "https://x": TargetURL, "mailto:a@b.c": TargetURL, "localhost:3000": TargetURL,
 		"/Users/a/x.pdf": TargetPath, `C:\x.exe`: TargetPath, "~/x.pdf": TargetPath,
 		"Spotify": TargetApp, "Visual Studio Code": TargetApp,
+		"notepad.exe": TargetApp, "Calc.EXE": TargetApp, "devmgmt.msc": TargetApp, "parroto.app": TargetURL,
 	} {
 		if got := TargetKind(target); got != want {
 			t.Errorf("%q: %s, muốn %s", target, got, want)

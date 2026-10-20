@@ -166,7 +166,7 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 	case model.StepWait:
 		// chỉ chờ DelayAfter
 	case model.StepText:
-		return e.typeText(ctx, s.Text)
+		return e.typeText(ctx, s.Text, s.TypeMode)
 	case model.StepKey:
 		return e.pressKeys(ctx, s)
 	case model.StepScroll:

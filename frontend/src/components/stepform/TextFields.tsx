@@ -1,9 +1,10 @@
 // Node mở URL / app và node gõ chữ – ô chữ nhận {{biến}}.
+import Segmented from '../Segmented';
 import Select from '../Select';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
-import { Step } from '../../types';
+import { Step, TypeMode } from '../../types';
 import { WEB_BASIC_NOTE } from '../../flow/web';
 import { errText, Field, hint, selectBox, useNodeVars, varHint } from './shared';
 
@@ -39,11 +40,31 @@ export function TypeFields({ step: s }: { step: Step }) {
   const nodeVars = useNodeVars(s.id);
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   return (
-    <Field label="Nội dung gõ" wide group side={varHint}
-      help="Gõ vào ô đang focus – thường đặt sau một bước click. Tắt bộ gõ tiếng Việt khi chạy. \{{ để gõ ra {{.">
-      <VarTextInput value={s.text} onChange={(text) => set({ text })} inputs={script.inputs ?? []} nodeVars={nodeVars}
-        onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
-      {s.text ? <span className={hint}>{[...s.text].length} ký tự</span> : <span className={errText}>Chưa nhập nội dung – chạy sẽ báo lỗi</span>}
+    <>
+      <Field label="Nội dung gõ" wide group side={varHint}
+        help="Gõ vào ô đang focus – thường đặt sau một bước click. \{{ để gõ ra {{.">
+        <VarTextInput value={s.text} onChange={(text) => set({ text })} inputs={script.inputs ?? []} nodeVars={nodeVars}
+          onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
+        {s.text ? <span className={hint}>{[...s.text].length} ký tự</span> : <span className={errText}>Chưa nhập nội dung – chạy sẽ báo lỗi</span>}
+      </Field>
+      <TypeModeField step={s} />
+    </>
+  );
+}
+
+const TYPE_MODE_HELP: Record<TypeMode, string> = {
+  '': 'Windows: dán (trừ khi bật giống người); macOS: gõ từng phím.',
+  keys: 'Gõ từng phím – có nhịp giống người. Bộ gõ tiếng Việt (UniKey, EVKey) đang bật có thể làm méo chữ.',
+  paste: 'Dán qua clipboard rồi trả lại chữ cũ – không bị bộ gõ tiếng Việt làm méo. Ô chặn dán thì không nhập được.',
+};
+
+// Cách nhập chữ của node Gõ chữ / Gõ vào ô web (model.TypeModes).
+export function TypeModeField({ step: s }: { step: Step }) {
+  const mode = s.typeMode ?? '';
+  return (
+    <Field label="Cách nhập" wide group help={TYPE_MODE_HELP[mode]}>
+      <Segmented value={mode} onChange={(v) => updateStep(s.id, { typeMode: (v || undefined) as TypeMode | undefined })} full label="Cách nhập"
+        options={[{ id: '', label: 'Tự chọn' }, { id: 'keys', label: 'Gõ phím' }, { id: 'paste', label: 'Dán' }]} />
     </Field>
   );
 }

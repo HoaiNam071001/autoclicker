@@ -76,6 +76,8 @@ export type MouseButton = 'left' | 'right' | 'center';
 export type Modifier = 'cmd' | 'ctrl' | 'alt' | 'shift';
 // chord: nhấn giữ cùng lúc (Ctrl+C+T) · sequence: giữ phím kèm, gõ lần lượt từng phím chính
 export type KeyMode = 'chord' | 'sequence';
+// Cách nhập chữ (model.TypeModes): '' tự chọn | keys gõ từng phím | paste dán qua clipboard (không bị bộ gõ tiếng Việt làm méo)
+export type TypeMode = '' | 'keys' | 'paste';
 
 // Mức thao tác giống người – khớp HumanLevels (model.go).
 export type HumanLevel = 'off' | 'low' | 'medium' | 'high';
@@ -97,6 +99,7 @@ export interface Step extends AdvancedFields {
   dragFromPrev: boolean; // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
   dragRelative: boolean; // drag: points[1] là độ lệch (dx, dy) so với điểm bắt đầu
   text: string; // type / webType: chuỗi cần gõ
+  typeMode?: TypeMode; // type / webType: bỏ trống = tự chọn (Windows + không giống người: dán)
   keys: string[]; // key: phím chính theo tên robotgo (enter, tab, a, f5…)
   keyMode: KeyMode; // key: chỉ khác nhau khi có ≥ 2 phím chính
   modifiers: Modifier[]; // key: tổ hợp, vd ['cmd'] + 'v'

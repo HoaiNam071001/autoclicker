@@ -8,6 +8,7 @@ import { addInput } from '../../scriptInputs';
 import { ScrollDirection, Step } from '../../types';
 import { canBackground, parseSelector, READ_LABEL, ReadFrom, SCROLL_MODE_LABEL, ScrollMode, SELECTOR_LABEL, selectorLines } from '../../flow/web';
 import { ButtonField, DIRECTION_OPTIONS, Field, NumField, SwitchField, useNodeVars, varHint } from './shared';
+import { TypeModeField } from './TextFields';
 
 const set = (s: Step, patch: Partial<Step>) => updateStep(s.id, patch);
 
@@ -66,6 +67,7 @@ export function WebTypeFields({ step: s }: { step: Step }) {
       <VarTextInput value={s.text} onChange={(text) => set(s, { text })} inputs={script.inputs ?? []} nodeVars={nodeVars} rows={2}
         placeholder="{{email}}" onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} />
     </Field>
+    {!s.webBackground && <TypeModeField step={s} />}
     <SwitchField label="Xoá chữ cũ" help="Xoá chữ cũ trong ô trước khi gõ" on={!!s.webClear} onChange={(webClear) => set(s, { webClear: webClear || undefined })} />
     <SwitchField label="Enter sau khi gõ" on={!!s.webEnter} onChange={(webEnter) => set(s, { webEnter: webEnter || undefined })} />
   </>;

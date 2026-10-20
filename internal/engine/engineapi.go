@@ -4,6 +4,7 @@ import (
 	"errors"
 	"image"
 	"math"
+	goruntime "runtime"
 	"strings"
 	"time"
 
@@ -59,6 +60,7 @@ func New(in device.Input, sc model.Script, o Options) *Engine {
 	e := newEngine(in, sc, o.OnProgress)
 	e.screen, e.displays, e.onNode, e.debug, e.browser, e.allowDanger = o.Screen, o.Displays, o.OnNode, o.Debug, o.Browser, o.AllowDanger
 	e.stopAt, e.seed = o.StopAt, o.Seed
+	e.pasteAuto, e.imeCheck = goruntime.GOOS == "windows", true
 	e.step.Store(o.StepMode)
 	if o.KeepShots {
 		e.shots = map[string]image.Image{}

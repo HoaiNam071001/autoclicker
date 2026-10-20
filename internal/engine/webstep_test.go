@@ -100,6 +100,7 @@ func runWeb(t *testing.T, b *fakeBrowser, steps ...model.Step) (*devicetest.Fake
 	var res []model.StepResult
 	e := New(in, scripttest.Linear(model.Script{Loops: 1, Steps: steps}), Options{Browser: b, OnNode: func(r model.StepResult) { res = append(res, r) }})
 	e.intN = func(int) int { return 0 }
+	e.pasteAuto, e.imeCheck = false, false // gõ phím như mọi máy, không đụng clipboard / tiến trình thật
 	return in, res, e.Run(context.Background())
 }
 

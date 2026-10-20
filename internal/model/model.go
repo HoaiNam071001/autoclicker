@@ -76,15 +76,16 @@ type Step struct {
 	ClickInterval int      `json:"clickInterval"`        // ms giữa các click
 	HoldMs        int      `json:"holdMs"`
 	DragMs        int      `json:"dragMs"`
-	DragFromPrev  bool     `json:"dragFromPrev"` // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
-	DragRelative  bool     `json:"dragRelative"` // drag: points[1] là độ lệch (dx, dy) so với điểm bắt đầu
-	Text          string   `json:"text"`         // type / webType: chuỗi cần gõ
-	Keys          []string `json:"keys"`         // key: phím chính theo tên robotgo (enter, tab, a, f5…)
-	KeyMode       string   `json:"keyMode"`      // key: chord | sequence (chỉ khác nhau khi có ≥ 2 phím chính)
-	Modifiers     []string `json:"modifiers"`    // key: cmd | ctrl | alt | shift
-	DelayAfter    int      `json:"delayAfter"`   // ms, sang bước kế tiếp
-	JitterMs      int      `json:"jitterMs"`     // ngẫu nhiên ± ms cho DelayAfter và ClickInterval
-	JitterPx      int      `json:"jitterPx"`     // ngẫu nhiên ± px cho mỗi lần di chuột tới điểm
+	DragFromPrev  bool     `json:"dragFromPrev"`       // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
+	DragRelative  bool     `json:"dragRelative"`       // drag: points[1] là độ lệch (dx, dy) so với điểm bắt đầu
+	Text          string   `json:"text"`               // type / webType: chuỗi cần gõ
+	TypeMode      string   `json:"typeMode,omitempty"` // type / webType: TypeModes – "" tự chọn | keys gõ phím | paste dán
+	Keys          []string `json:"keys"`               // key: phím chính theo tên robotgo (enter, tab, a, f5…)
+	KeyMode       string   `json:"keyMode"`            // key: chord | sequence (chỉ khác nhau khi có ≥ 2 phím chính)
+	Modifiers     []string `json:"modifiers"`          // key: cmd | ctrl | alt | shift
+	DelayAfter    int      `json:"delayAfter"`         // ms, sang bước kế tiếp
+	JitterMs      int      `json:"jitterMs"`           // ngẫu nhiên ± ms cho DelayAfter và ClickInterval
+	JitterPx      int      `json:"jitterPx"`           // ngẫu nhiên ± px cho mỗi lần di chuột tới điểm
 	Enabled       bool     `json:"enabled"`
 	Direction     string   `json:"direction,omitempty"`  // scroll: up | down | left | right
 	Amount        int      `json:"amount,omitempty"`     // scroll: số nấc

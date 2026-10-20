@@ -233,6 +233,10 @@ func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) (res mode
 		} else {
 			out, err = e.runStep(ctx, rs, wait)
 			port = actionPort(rs, out)
+			for _, n := range e.notes {
+				logf("warn", "%s", n)
+			}
+			e.notes = nil
 		}
 		if err == nil {
 			res.Status, res.Port, res.Output = model.StatusSuccess, port, out

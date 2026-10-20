@@ -3,6 +3,12 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## Sửa – mở notepad.exe / gõ chữ khi bật bộ gõ tiếng Việt · [phase3/23-cuon-mo-url.md](phase3/23-cuon-mo-url.md)
+
+- [ ] Node Mở target `notepad.exe` (không đường dẫn) → mở Notepad, không mở Chrome; `youtube.com/…`, `parroto.app` vẫn mở trình duyệt
+- [ ] Bật UniKey (Telex) → node Gõ chữ *Cách nhập: Tự chọn* gõ đoạn tiếng Việt + tiếng Anh ("too", "dd") vào Notepad / Chrome → đúng nguyên văn; clipboard trước đó (chữ) được trả lại sau khi dán
+- [ ] *Gõ phím* + UniKey bật → nhật ký node có cảnh báo bộ gõ; bật giống người → vẫn gõ từng phím; Gõ vào ô web chạy nền không hiện *Cách nhập* – xem inspector theme sáng + tối
+
 ## 31b – AI tự chạy, xem lỗi, sửa, chạy tiếp · [phase3/31-mcp-ai.md](phase3/31-mcp-ai.md)
 
 - [ ] Bánh răng → *Cho AI điều khiển (MCP)*: có *AI được chạy kịch bản* (Chỉ soạn / Hỏi trước khi chạy / Tự chạy) + *Tối đa mỗi lượt* – xem cả theme sáng + tối

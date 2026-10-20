@@ -3,11 +3,10 @@ package engine
 import (
 	"context"
 
-	"autoclicker/internal/humanize"
 	"autoclicker/internal/model"
 )
 
-// Bàn phím: node Phím tắt bấm tổ hợp (chord) hoặc lần lượt (sequence); typeText gõ chữ (node Gõ chữ, Gõ vào ô web).
+// Bàn phím: node Phím tắt bấm tổ hợp (chord) hoặc lần lượt (sequence) – gõ chữ ở typing.go.
 
 // Thời gian giữ khi bấm phím: chord giữ cả tổ hợp keyHoldMs; sequence nhấn mỗi phím keyHoldMs,
 // cách phím sau keyGapMs.
@@ -63,35 +62,4 @@ func (e *Engine) pressKeys(ctx context.Context, s model.Step) error {
 		}
 	}
 	return Sleep(ctx, hold())
-}
-
-// typeText gõ từng ký tự để dừng / tạm dừng được giữa chừng với chuỗi dài; giống người thì theo nhịp humanize.Typing
-// (nhịp không đều, ngừng, gõ nhầm rồi xoá).
-func (e *Engine) typeText(ctx context.Context, text string) error {
-	var keys []humanize.Key
-	if e.human != nil {
-		keys = humanize.Typing(e.rng, *e.human, text)
-	} else {
-		for _, r := range text {
-			keys = append(keys, humanize.Key{Text: string(r)})
-		}
-	}
-	for _, k := range keys {
-		if err := Sleep(ctx, k.WaitMs); err != nil {
-			return err
-		}
-		if err := e.gate.wait(ctx); err != nil {
-			return err
-		}
-		if k.Text == humanize.Backspace {
-			if err := e.pressKeys(ctx, model.Step{Keys: []string{"backspace"}}); err != nil {
-				return err
-			}
-			continue
-		}
-		if err := e.in.TypeStr(k.Text); err != nil {
-			return err
-		}
-	}
-	return nil
 }

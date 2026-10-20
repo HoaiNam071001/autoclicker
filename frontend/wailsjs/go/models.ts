@@ -1066,6 +1066,7 @@ export namespace model {
 	    dragFromPrev: boolean;
 	    dragRelative: boolean;
 	    text: string;
+	    typeMode?: string;
 	    keys: string[];
 	    keyMode: string;
 	    modifiers: string[];
@@ -1183,6 +1184,7 @@ export namespace model {
 	        this.dragFromPrev = source["dragFromPrev"];
 	        this.dragRelative = source["dragRelative"];
 	        this.text = source["text"];
+	        this.typeMode = source["typeMode"];
 	        this.keys = source["keys"];
 	        this.keyMode = source["keyMode"];
 	        this.modifiers = source["modifiers"];

@@ -47,6 +47,16 @@ const (
 
 var ClipOps = []string{ClipRead, ClipWrite, ClipImage}
 
+// Cách nhập chữ của node Gõ chữ / Gõ vào ô web (Step.TypeMode). Bộ gõ tiếng Việt (UniKey, EVKey…) xử lý lại phím
+// app gửi (kể cả ký tự Unicode) → chữ méo; dán qua clipboard không đi qua bộ gõ.
+const (
+	TypeAuto  = ""      // Windows + không giống người: dán; còn lại gõ phím
+	TypeKeys  = "keys"  // gõ từng phím (nhịp giống người được)
+	TypePaste = "paste" // dán qua clipboard rồi khôi phục chữ cũ trong clipboard
+)
+
+var TypeModes = []string{TypeAuto, TypeKeys, TypePaste}
+
 // Thao tác của node Tệp / thư mục (Step.FileOp). trash / emptyTrash là thao tác xoá – chạy phải được người dùng xác nhận
 // trước (script.DangerOps, RunOptions.ConfirmDanger).
 const (
