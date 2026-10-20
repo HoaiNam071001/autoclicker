@@ -101,6 +101,9 @@ func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[strin
 		}
 		return map[string]any{"color": c}, nil
 	}
+	if s.Type == model.StepOpen {
+		return e.openStep(ctx, s, wait)
+	}
 	if err := e.doStep(ctx, s); err != nil {
 		return nil, err
 	}

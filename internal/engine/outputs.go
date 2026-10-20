@@ -1,7 +1,9 @@
 package engine
 
 import (
+	"context"
 	"strings"
+	"time"
 
 	"autoclicker/internal/model"
 )
@@ -11,15 +13,15 @@ import (
 func (e *Engine) actionOutput(s model.Step, wait int) map[string]any {
 	switch s.Type {
 	case model.StepClick, model.StepDouble, model.StepDrag:
-		return map[string]any{"x": e.last.X, "y": e.last.Y} // chỗ chuột dừng
+		return e.withFocus(map[string]any{"x": e.last.X, "y": e.last.Y}) // chỗ chuột dừng
 	case model.StepHold:
 		return map[string]any{"x": e.last.X, "y": e.last.Y, "ms": s.HoldMs}
 	case model.StepWait:
 		return map[string]any{"ms": wait}
 	case model.StepText:
-		return map[string]any{"text": s.Text}
+		return e.withFocus(map[string]any{"text": s.Text})
 	case model.StepKey:
-		return map[string]any{"keys": strings.Join(append(append([]string{}, s.Modifiers...), s.Keys...), "+")}
+		return e.withFocus(map[string]any{"keys": strings.Join(append(append([]string{}, s.Modifiers...), s.Keys...), "+")})
 	case model.StepScroll:
 		out := map[string]any{"direction": s.Direction, "amount": s.Amount}
 		if e.hasLast { // không có điểm và chưa node chuột nào chạy: không biết chuột ở đâu – không có x, y
@@ -34,4 +36,78 @@ func (e *Engine) actionOutput(s model.Step, wait int) map[string]any {
 		return map[string]any{"target": s.Target, "app": app}
 	}
 	return nil
+}
+
+// foreground – cửa sổ đang ở trước: cửa sổ không thu nhỏ đầu tiên theo thứ tự chồng (device.Windows.List).
+func foreground(ws []model.WindowInfo) (model.WindowInfo, bool) {
+	for _, w := range ws {
+		if !w.Minimized {
+			return w, true
+		}
+	}
+	return model.WindowInfo{}, false
+}
+
+// putWindow ghi window (tiêu đề) + windowApp của w vào out – AI / node sau kiểm tra thao tác có vào đúng app không.
+func putWindow(out map[string]any, w model.WindowInfo) map[string]any {
+	out["window"], out["windowApp"] = w.Title, w.App
+	return out
+}
+
+// withFocus thêm cửa sổ đang ở trước sau thao tác; không đọc được danh sách cửa sổ (macOS chưa có) thì bỏ.
+func (e *Engine) withFocus(out map[string]any) map[string]any {
+	if ws, err := e.wins.List(); err == nil {
+		if w, ok := foreground(ws); ok {
+			putWindow(out, w)
+		}
+	}
+	return out
+}
+
+// openStep mở rồi tự chờ DelayAfter (execNode không chờ thêm), trong lúc chờ dò cửa sổ mới hiện: thấy → window /
+// windowApp của nó + newWindow = true; hết giờ không thấy (vd mở URL vào tab mới của Chrome đang mở) → cửa sổ đang ở
+// trước + newWindow = false. Thấy sớm vẫn chờ đủ – giữ đúng thời gian người dùng đặt.
+func (e *Engine) openStep(ctx context.Context, s model.Step, wait int) (map[string]any, error) {
+	before, listErr := e.wins.List()
+	known := map[uint64]bool{}
+	for _, w := range before {
+		known[w.ID] = true
+	}
+	start := time.Now()
+	if err := e.doStep(ctx, s); err != nil {
+		return nil, err
+	}
+	out := e.actionOutput(s, wait)
+	left := func() int { return wait - int(time.Since(start).Milliseconds()) }
+	for listErr == nil {
+		ws, err := e.wins.List()
+		if err != nil {
+			break
+		}
+		if w, ok := newWindow(ws, known); ok {
+			putWindow(out, w)["newWindow"] = true
+			break
+		}
+		if left() <= 0 {
+			if w, ok := foreground(ws); ok {
+				putWindow(out, w)
+			}
+			out["newWindow"] = false
+			break
+		}
+		if err := Sleep(ctx, min(pollMs, left())); err != nil {
+			return nil, err
+		}
+	}
+	return out, Sleep(ctx, max(left(), 0))
+}
+
+// newWindow – cửa sổ trên cùng không thu nhỏ chưa có trong known.
+func newWindow(ws []model.WindowInfo, known map[uint64]bool) (model.WindowInfo, bool) {
+	for _, w := range ws {
+		if !known[w.ID] && !w.Minimized {
+			return w, true
+		}
+	}
+	return model.WindowInfo{}, false
 }

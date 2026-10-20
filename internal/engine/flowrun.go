@@ -226,6 +226,9 @@ func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) (res mode
 			e.notes = nil
 		}
 		if err == nil {
+			if rs.Type == model.StepOpen {
+				wait = 0 // openStep đã tự chờ DelayAfter (dò cửa sổ mới trong lúc chờ)
+			}
 			res.Status, res.Port, res.Output = model.StatusSuccess, port, out
 			if tries > 1 {
 				e.update(true, func(p *Progress) { p.Retry, p.Retries = 0, 0 })

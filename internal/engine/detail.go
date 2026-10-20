@@ -174,11 +174,8 @@ func (e *Engine) addContext(res *model.StepResult) {
 		ctx["mouse"] = model.Point{X: x, Y: y}
 	}
 	if ws, err := e.wins.List(); err == nil {
-		for _, w := range ws { // List theo thứ tự chồng – cửa sổ không thu nhỏ đầu tiên là cửa sổ đang ở trước
-			if !w.Minimized {
-				ctx["foreground"] = map[string]any{"title": w.Title, "app": w.App, "box": w.Box}
-				break
-			}
+		if w, ok := foreground(ws); ok {
+			ctx["foreground"] = map[string]any{"title": w.Title, "app": w.App, "box": w.Box}
 		}
 	}
 	if res.Error.Detail == nil {

@@ -142,15 +142,19 @@ const WEB_FOUND: OutputField[] = [
 const COMMON: OutputField[] = [{ key: 'startedAt', desc: 'giờ bắt đầu' }, { key: 'durationMs', desc: 'thời gian chạy (ms)' }];
 export const outputsOf = (s: Step): OutputField[] => [...ownOutputs(s), ...COMMON];
 const MOUSE_AT: OutputField[] = [{ key: 'x', desc: 'X chuột dừng' }, { key: 'y', desc: 'Y chuột dừng' }];
+// Cửa sổ đang ở trước sau thao tác (Windows) – kiểm tra có bấm / gõ vào đúng app không.
+const FOCUS: OutputField[] = [{ key: 'window', desc: 'cửa sổ đang ở trước (tiêu đề)' }, { key: 'windowApp', desc: 'app của cửa sổ đang ở trước' }];
 function ownOutputs(s: Step): OutputField[] {
   switch (s.type) {
-    case 'click': case 'double': case 'drag': return MOUSE_AT;
+    case 'click': case 'double': case 'drag': return [...MOUSE_AT, ...FOCUS];
     case 'hold': return [...MOUSE_AT, { key: 'ms', desc: 'thời gian đã giữ (ms)' }];
     case 'wait': return [{ key: 'ms', desc: 'thời gian đã chờ (ms, gồm ngẫu nhiên)' }];
-    case 'key': return [{ key: 'keys', desc: 'tổ hợp đã bấm, vd cmd+l' }];
+    case 'key': return [{ key: 'keys', desc: 'tổ hợp đã bấm, vd cmd+l' }, ...FOCUS];
     case 'scroll': return [...MOUSE_AT, { key: 'direction', desc: 'hướng đã cuộn' }, { key: 'amount', desc: 'số nấc đã cuộn' }];
-    case 'type': return [{ key: 'text', desc: 'chữ đã gõ (sau khi thay biến)' }];
-    case 'open': return [{ key: 'target', desc: 'URL / app đã mở' }, { key: 'app', desc: 'mở bằng app (trống = mặc định)' }];
+    case 'type': return [{ key: 'text', desc: 'chữ đã gõ (sau khi thay biến)' }, ...FOCUS];
+    case 'open': return [{ key: 'target', desc: 'URL / app đã mở' }, { key: 'app', desc: 'mở bằng app (trống = mặc định)' },
+      { key: 'window', desc: 'cửa sổ mới hiện (không có → cửa sổ đang ở trước)' }, { key: 'windowApp', desc: 'app của cửa sổ đó' },
+      { key: 'newWindow', desc: 'có cửa sổ mới hiện trong lúc chờ (true / false)' }];
     case 'waitImage': return FOUND;
     case 'clickImage': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...(s.imageSource === 'search' ? FOUND : [])];
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];

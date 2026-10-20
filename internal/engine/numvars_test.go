@@ -107,6 +107,7 @@ func TestActionOutputs(t *testing.T) {
 	}
 	for _, tc := range cases {
 		e := newEngine(&devicetest.FakeInput{}, model.Script{Loops: 1, Start: "a", Steps: []model.Step{tc.node}}, nil)
+		e.wins = &devicetest.FakeWindows{} // không có cửa sổ → không có window / windowApp (máy Windows thật thì có)
 		if err := e.Run(context.Background()); err != nil {
 			t.Fatalf("%s: %v", tc.name, err)
 		}

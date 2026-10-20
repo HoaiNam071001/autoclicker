@@ -118,3 +118,10 @@ func (f *FakeApps) remove(pid int, op string) error {
 	}
 	return fmt.Errorf("không có tiến trình %d", pid)
 }
+
+// Show – cửa sổ mới hiện lên trên cùng (như app vừa mở).
+func (f *FakeWindows) Show(w model.WindowInfo) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.Wins = append([]model.WindowInfo{w}, f.Wins...)
+}

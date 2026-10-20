@@ -42,7 +42,8 @@ const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự tron
 
 	`Biến trong ô chữ (text, target, findText): {{key}} = input của kịch bản; {{n2.status}} (success | fail | skipped), {{n2.port}}, ` +
 	`{{n2.error.code}} / {{n2.error.message}}, {{n2.output.<khoá>}} = kết quả lần chạy gần nhất của node có ref n2 trong vòng này ` +
-	`(khoá theo outputs của loại node, cộng startedAt / durationMs mọi node đều có); ` +
+	`(khoá theo outputs của loại node, cộng startedAt / durationMs mọi node đều có; window / windowApp của click / double / drag / type / key = ` +
+	`cửa sổ đang ở trước sau thao tác – kiểm tra có gõ / bấm vào đúng app không; chưa có trên macOS); ` +
 	`{{last.…}} = node vừa chạy trước; {{vars.<tên>}} = biến node setVar đặt. Biến nhận được trong: text, target, findText, selectors, tab, ` +
 	`elementApp, cond (findText, selectors, elementApp, left, right), cases (match, cond), value, message. ` +
 	`Điểm trên màn hình (points của click, double, hold, drag, scroll, waitPixel) nhận toạ độ từ biến: {"xVar":"{{n2.output.x}} + 20","yVar":"{{n2.output.y}}"} – ` +
@@ -84,31 +85,31 @@ const flowExample = `{"version":4,"name":"Nhắn tin","loops":1,"start":"s1",
 var stepTypeDocs = []StepTypeDoc{
 	{StepClick, "Click", "Click chuột Clicks lần tại points[0] (neo theo cạnh vùng, xem script/anchor.go).",
 		[]string{"points[1]", "button", "clicks", "clickInterval", "jitterPx"}, []string{"clicks", "clickInterval", "jitterPx", "delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"click","points":[{"x":400,"y":300}],"button":"left","clicks":1,"delayAfter":500,"enabled":true}`, []string{"x", "y"}, nil},
+		`{"id":"s1","ref":"n1","type":"click","points":[{"x":400,"y":300}],"button":"left","clicks":1,"delayAfter":500,"enabled":true}`, []string{"x", "y", "window", "windowApp"}, nil},
 	{StepDouble, "Double click", "Double click tại points[0].",
 		[]string{"points[1]", "button", "jitterPx"}, []string{"jitterPx", "delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"double","points":[{"x":400,"y":300}],"button":"left","delayAfter":500,"enabled":true}`, []string{"x", "y"}, nil},
+		`{"id":"s1","ref":"n1","type":"double","points":[{"x":400,"y":300}],"button":"left","delayAfter":500,"enabled":true}`, []string{"x", "y", "window", "windowApp"}, nil},
 	{StepHold, "Giữ chuột", "Nhấn giữ nút chuột holdMs mili giây tại points[0].",
 		[]string{"points[1]", "button", "holdMs", "jitterPx"}, []string{"holdMs", "jitterPx", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"hold","points":[{"x":400,"y":300}],"button":"left","holdMs":1000,"delayAfter":500,"enabled":true}`, []string{"x", "y", "ms"}, nil},
 	{StepDrag, "Kéo thả", "Giữ chuột tại points[0] kéo tới points[1] trong dragMs. dragFromPrev: bắt đầu từ chỗ chuột dừng ở node chuột chạy trước (chưa có thì lỗi); dragRelative: points[1] là độ lệch so với điểm bắt đầu.",
 		[]string{"points[2]", "button", "dragMs", "dragFromPrev", "dragRelative", "jitterPx"}, []string{"dragMs", "jitterPx", "delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"drag","points":[{"x":100,"y":300},{"x":600,"y":300}],"button":"left","dragMs":400,"delayAfter":500,"enabled":true}`, []string{"x", "y"}, nil},
+		`{"id":"s1","ref":"n1","type":"drag","points":[{"x":100,"y":300},{"x":600,"y":300}],"button":"left","dragMs":400,"delayAfter":500,"enabled":true}`, []string{"x", "y", "window", "windowApp"}, nil},
 	{StepWait, "Chờ", "Chỉ chờ delayAfter mili giây.",
 		[]string{}, []string{"delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"wait","delayAfter":2000,"enabled":true}`, []string{"ms"}, nil},
 	{StepText, "Gõ chữ", "Gõ text vào ô đang focus (thường sau một bước click). Nhận {{biến}}; \\{{ để gõ ra {{. typeMode: trống = tự chọn (Windows + không giống người: dán, còn lại gõ phím) | \"keys\" = gõ từng phím (nhịp giống người; bộ gõ tiếng Việt UniKey / EVKey đang bật có thể làm méo chữ) | \"paste\" = dán qua clipboard rồi trả chữ cũ (không bị bộ gõ làm méo; ô chặn dán thì không nhập được).",
 		[]string{"text", "typeMode"}, []string{"delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"type","text":"xin chào {{ten}}","delayAfter":300,"enabled":true}`, []string{"text"}, nil},
+		`{"id":"s1","ref":"n1","type":"type","text":"xin chào {{ten}}","delayAfter":300,"enabled":true}`, []string{"text", "window", "windowApp"}, nil},
 	{StepKey, "Phím tắt", "Bấm keys (tên phím robotgo: enter, tab, esc, f5, a…) kèm modifiers (cmd, ctrl, alt, shift). keyMode chord: nhấn giữ cùng lúc; sequence: giữ phím kèm, gõ lần lượt.",
 		[]string{"keys", "modifiers", "keyMode"}, []string{"delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"key","keys":["l"],"modifiers":["cmd"],"keyMode":"chord","delayAfter":300,"enabled":true}`, []string{"keys"}, nil},
+		`{"id":"s1","ref":"n1","type":"key","keys":["l"],"modifiers":["cmd"],"keyMode":"chord","delayAfter":300,"enabled":true}`, []string{"keys", "window", "windowApp"}, nil},
 	{StepScroll, "Cuộn", "Cuộn amount nấc theo direction (up | down | left | right) tại points[0]; không có điểm thì cuộn ở chỗ chuột đang đứng.",
 		[]string{"direction", "amount", "points[0..1]", "jitterPx"}, []string{"amount", "jitterPx", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"scroll","direction":"down","amount":5,"delayAfter":500,"enabled":true}`, []string{"x", "y", "direction", "amount"}, nil},
-	{StepOpen, "Mở URL / app", "Mở target: URL (https://… hoặc tên miền như youtube.com/…), đường dẫn file / app, hoặc tên app (Spotify). app: mở bằng app này, vd Google Chrome; trống = mặc định của máy. Nhận {{biến}} (trong URL tự mã hoá). Không chờ trang tải xong – đặt delayAfter đủ lâu hoặc thêm bước chờ. webBrowser true: mở URL / file bằng Chrome của app (profile riêng của app, Chrome / Edge / Brave – lần đầu phải đăng nhập lại trang) để node web (webWait, webClick, webType, webRead, webScroll) điều khiển được; đang mở thì mở tab mới, bỏ qua app.",
+	{StepOpen, "Mở URL / app", "Mở target: URL (https://… hoặc tên miền như youtube.com/…), đường dẫn file / app, hoặc tên app (Spotify). app: mở bằng app này, vd Google Chrome; trống = mặc định của máy. Nhận {{biến}} (trong URL tự mã hoá). Không chờ trang tải xong – đặt delayAfter đủ lâu hoặc thêm bước chờ; trong lúc chờ delayAfter dò cửa sổ mới hiện: output window / windowApp của nó + newWindow true, không thấy (vd mở tab mới trong Chrome đang mở) → cửa sổ đang ở trước + newWindow false. webBrowser true: mở URL / file bằng Chrome của app (profile riêng của app, Chrome / Edge / Brave – lần đầu phải đăng nhập lại trang) để node web (webWait, webClick, webType, webRead, webScroll) điều khiển được; đang mở thì mở tab mới, bỏ qua app.",
 		[]string{"target", "app", "webBrowser"}, []string{"delayAfter", "jitterMs", "enabled"},
-		`{"id":"s1","ref":"n1","type":"open","target":"https://www.youtube.com/results?search_query={{bai_hat}}","app":"Google Chrome","delayAfter":3000,"enabled":true}`, []string{"target", "app"}, nil},
+		`{"id":"s1","ref":"n1","type":"open","target":"https://www.youtube.com/results?search_query={{bai_hat}}","app":"Google Chrome","delayAfter":3000,"enabled":true}`, []string{"target", "app", "window", "windowApp", "newWindow"}, nil},
 	{StepWaitImage, "Chờ ảnh", "Chờ tới khi ảnh mẫu template (PNG base64, chụp bằng app – CaptureTemplate) hiện trên màn hình, độ khớp ≥ threshold %. Hết timeoutMs không thấy → cổng fail (error.code not_found). Tìm trong vùng của kịch bản, hoặc searchArea \"screen\" = cả màn chứa vùng. Output x, y (tâm), w, h, score – node clickImage chọn imageFrom = id node này để click vào đó. findBy \"text\": tìm chữ findText thay ảnh mẫu (đọc chữ trên màn hình, tiếng Việt / Anh; không phân biệt hoa thường và khoảng trắng; nhận {{biến}}); textExact = cả dòng đúng chuỗi, textNoAccent = bỏ qua dấu, occurrence = chỗ thứ mấy theo thứ tự đọc. Chữ bền hơn ảnh khi đổi theme / zoom – nên dùng khi nút có chữ. findBy \"element\" (macOS): tìm phần tử qua cây accessibility của app elementApp (tên app / bundle id, trống = app có cửa sổ trên cùng) – Chrome thường đã đăng nhập, app khác; selectors như node web nhưng chỉ text= / aria= / role=…[name=]; đọc được chữ chính xác, nội dung ô nhập, nút chỉ có icon; cửa sổ phải đang hiện trên màn (thu nhỏ / Space khác → chờ tới hết giờ); phần tử ngoài khung nhìn thì tự cuộn tới; textNoAccent, occurrence dùng như tìm chữ; searchArea chỉ lọc khi kịch bản có vùng; output thêm text (chữ / giá trị) và role.",
 		[]string{"template", "templateScale", "threshold", "timeoutMs", "intervalMs", "searchArea", "findBy", "findText", "textExact", "textNoAccent", "occurrence", "selectors", "elementApp"}, []string{"timeoutMs", "threshold", "delayAfter", "jitterMs", "enabled"},
 		`{"id":"s1","ref":"n1","type":"waitImage","template":"iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAAAAADhZOFXAAAAHUlEQVR4nGNkYPjPwMjwn4GJAQb+/4dguAgjEWoAyH0MAWBh3h0AAAAASUVORK5CYII=","templateScale":1,"threshold":90,"timeoutMs":10000,"intervalMs":250,"delayAfter":300,"enabled":true}`, []string{"x", "y", "w", "h", "score", "text", "role"}, nil},

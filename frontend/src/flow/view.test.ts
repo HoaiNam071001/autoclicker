@@ -67,7 +67,8 @@ describe('node điều khiển', () => {
 describe('outputsOf (F5c)', () => {
   it('mọi node có startedAt / durationMs; node phím / chờ / cuộn có output riêng', () => {
     const keys = (s: Parameters<typeof outputsOf>[0]) => outputsOf(s).map((o) => o.key);
-    expect(keys(makeStep({ id: 'k', type: 'key' }))).toEqual(['keys', 'startedAt', 'durationMs']);
+    expect(keys(makeStep({ id: 'k', type: 'key' }))).toEqual(['keys', 'window', 'windowApp', 'startedAt', 'durationMs']);
+    expect(keys(makeStep({ id: 'o', type: 'open' }))).toEqual(['target', 'app', 'window', 'windowApp', 'newWindow', 'startedAt', 'durationMs']);
     expect(keys(makeStep({ id: 'w', type: 'wait' }))).toEqual(['ms', 'startedAt', 'durationMs']);
     expect(keys(makeStep({ id: 's', type: 'scroll' }))).toEqual(['x', 'y', 'direction', 'amount', 'startedAt', 'durationMs']);
   });
