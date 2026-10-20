@@ -51,6 +51,13 @@ export const Moon = ({ className = 'h-3.5 w-3.5' }: P) => (
 export const Monitor = ({ className = 'h-3.5 w-3.5' }: P) => (
   <svg viewBox="0 0 24 24" className={className} {...base}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
 );
+// Cài đặt app (bánh răng)
+export const Gear = ({ className = 'h-3.5 w-3.5' }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+  </svg>
+);
 // Thu gọn / mở rộng thanh bên: khung có cột trái, mũi tên theo hướng
 // Thư viện: Mẫu thử, Mở file, Lưu, mũi tên thu gọn
 export const Grid = ({ className = 'h-[15px] w-[15px]' }: P) => (

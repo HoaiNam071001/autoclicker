@@ -5,7 +5,7 @@ import { Switch } from './Switch';
 import Segmented from './Segmented';
 import { setCountdown, updateScript, useEditor } from '../store';
 import { Script } from '../types';
-import { ScheduleRow } from './ScheduleDialog';
+import ScheduleSetting from './ScheduleSetting';
 import { HumanScriptField } from './HumanFields';
 
 type Mode = 'loops' | 'infinite' | 'time';
@@ -70,7 +70,7 @@ export default function RunSettings() {
         Đếm ngược 3 giây trước khi chạy
         <Switch on={countdown} onChange={setCountdown} label="Đếm ngược 3 giây" />
       </label>
-      <ScheduleRow value={null} soon />
+      <ScheduleSetting />
     </div>
   );
 }

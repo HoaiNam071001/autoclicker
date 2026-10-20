@@ -1,11 +1,12 @@
 // Thanh bên thư viện kịch bản (design v3, artboard Main): tìm, danh sách kịch bản (chấm "chưa lưu", giờ hẹn), mở gần đây +
 // lịch sử chạy (thu gọn được – library/LibraryParts), Mới / Mẫu thử / Mở / Lưu. Thu gọn / mở rộng bằng nút ở đầu cột hoặc Ctrl/Cmd+B (nhớ bằng localStorage).
-// Giao diện dựng ở bước 27b; lưu / mở nối ở bước 21 (scriptFile.ts); lịch sử chạy ở 20 F5 (runStore.ts); hẹn giờ ở 22.
+// Giao diện dựng ở bước 27b; lưu / mở nối ở bước 21 (scriptFile.ts); lịch sử chạy ở 20 F5 (runStore.ts); hẹn giờ ở 22 (scheduleStore.ts).
 import { ComponentType, ReactNode, useEffect, useState } from 'react';
 import { useEditor } from '../store';
 import { fileName, newScript, openRecent, openScript, save, useFile } from '../scriptFile';
 import { inWails } from '../windowMode';
 import { openRun, useRunLog } from '../runStore';
+import { scheduleOf, useSchedules } from '../scheduleStore';
 import { SidebarToggle } from './icons';
 import { ResizeHandle, usePanelWidth } from './PanelResize';
 import Samples from './samples/Samples';
@@ -47,11 +48,12 @@ const loadCollapsed = () => {
 // App thật: kịch bản đang soạn (mỗi lần mở một kịch bản) + mở gần đây.
 export default function Library() {
   const { script, dirty, path } = useEditor();
+  const sched = scheduleOf(useSchedules(), path);
   const { recent } = useFile();
   const log = useRunLog();
   const history = log.history.map((h) => libraryRun(h, log.open && !log.live && log.summary?.id === h.id));
   return (
-    <LibraryView scripts={[{ name: script.name, unsaved: dirty }]} active={0} recent={recent.filter((r) => r !== path)} history={history}
+    <LibraryView scripts={[{ name: script.name, unsaved: dirty, schedule: sched?.time }]} active={0} recent={recent.filter((r) => r !== path)} history={history}
       ready={inWails} onNew={newScript} onOpen={openScript} onSave={() => save()} onRecent={openRecent} onHistory={openRun}
       SamplesPanel={Samples} RunsPanel={RunsDialog} />
   );

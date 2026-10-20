@@ -38,6 +38,8 @@ export function ListApps():Promise<Array<model.AppInfo>>;
 
 export function ListRuns(arg1:string,arg2:string):Promise<Array<model.RunSummary>>;
 
+export function ListSchedules():Promise<Array<model.Schedule>>;
+
 export function ListWindows():Promise<Array<model.WindowInfo>>;
 
 export function LoadDraft():Promise<store.Draft>;
@@ -70,6 +72,8 @@ export function PixelColorAt(arg1:number,arg2:number):Promise<string>;
 
 export function RecentScripts():Promise<Array<string>>;
 
+export function RemoveSchedule(arg1:string):Promise<void>;
+
 export function RequestScreenCapture():Promise<boolean>;
 
 export function ResumeScript():Promise<boolean>;
@@ -99,6 +103,8 @@ export function SetAPISettings(arg1:store.APISettings):Promise<store.APISettings
 export function SetDirty(arg1:boolean):Promise<void>;
 
 export function SetOverlayDisplay(arg1:number):Promise<void>;
+
+export function SetSchedule(arg1:model.Schedule):Promise<void>;
 
 export function SetTheme(arg1:string):Promise<void>;
 

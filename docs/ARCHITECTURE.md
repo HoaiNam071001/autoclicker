@@ -84,19 +84,19 @@ Bấm Chạy / F8 (hotkey:f8start)
            1. Go ValidateScript(sc, values)   — lỗi: ở lại màn chính, hiện lastError
               Go DangerCheck(sc, values, path) — có thao tác nguy hiểm (xoá file, buộc thoát app, đóng cửa sổ) chưa đồng ý → DangerConfirmDialog (Huỷ = không chạy)
            2. setWindowMode('minibar')
-           3. Go RunScript(sc, values, RunOptions{countdown, path, source, from, only, step, confirmDanger})   (chặn tới khi xong)
+           3. Go RunScript(sc, values, session.Options{countdown, path, source, preset, from, only, step, confirmDanger})   (= Start + Wait, chặn tới khi xong)
            4. setWindowMode('main')
 ```
 
-**Bên Go – `RunScript` (runner.go):**
+**Bên Go – phiên chạy `internal/session` (bước 22):** mọi nguồn (nút Chạy, API local, CLI, hẹn giờ, sau này MCP) gọi `Manager.Start` → trả `runId` ngay; `Wait` / `Status` / `Stop` theo `runId`, một lúc một phiên (`ErrBusy`). `runner.go` chỉ còn method mỏng. Event qua `Emitter` (`App.emit` → Wails + hub SSE của API).
 1. `script.ResolveInputs` – thay `{{key}}` input vào **bản sao** kịch bản; `script.ValidateScript` (flow: `validateFlow`, rồi từng node).
-2. `engine.New(device.TrackingInput{RobotgoInput}, sc, engine.Options{…, Browser: web.NewChrome(store.BrowserProfile, in.Move)})` (nối Chrome lười – kịch bản không có node web thì không đụng); đếm ngược (`engine:countdown`); bật `device.WatchCorners` (chuột chạm góc → dừng, `engine:stopped "corner"`).
+2. `session.AllowDanger` (thao tác nguy hiểm đã đồng ý chưa – chặn cả nguồn ngoài app); `exec.go`: `engine.New(device.TrackingInput{Deps.Input}, sc, engine.Options{…, Browser: Deps.Browser})` (thiết bị qua `session.Deps` – test bằng bản giả); `run:started` (nối Chrome lười – kịch bản không có node web thì không đụng); đếm ngược (`engine:countdown`); bật `device.WatchCorners` (chuột chạm góc → dừng, `engine:stopped "corner"`).
 3. `Engine.Run` (`internal/engine/flowrun.go`) → mỗi vòng `runLoop`: từ `start`, lặp:
    - `breakBefore` (debug: breakpoint / chạy từng node → chờ Tiếp / F10)
    - `execNode`: node tắt → `skipped` đi `success`; `resolveNodeVars` (biến `{{n2.output.x}}`, `{{last.…}}`, `{{vars.x}}` – thiếu biến → `invalid_input`); node điều khiển → `runControl` (`nodes.go`, `cond.go` xét điều kiện, chụp một lần mỗi lần xét); node hành động → `runStep` (`actions.go` `doStep`, ảnh / pixel / chữ ở `imagestep.go` + `internal/vision`, web ở `webstep.go` / `webactions.go` + `internal/web`); lỗi thì thử lại theo `Retry` (node hành động).
    - Thất bại → chụp màn (`shoot`, `shots.go`). Gửi `engine:node` (StepResult). Đi theo `edgeOut(port)`; `fail` không nối → dừng báo lỗi (`engine:failed`); cổng khác không nối → xong vòng. Thành công → chờ `delayAfter ± jitter`.
    - Quá 10 000 node / vòng → lỗi lặp vô hạn. Kết quả + biến đặt lại mỗi vòng.
-4. `finishRun` → `store.SaveRun`: `runs/…/<id>.json` + ảnh lỗi (giữ 50 lần) → `engine:done` (RunSummary). Cuối cùng `engine:state false`.
+4. `Deps.SaveRun` → `store.SaveRun`: `runs/…/<runId>.json` + ảnh lỗi (giữ 50 lần) → `engine:done` (RunSummary), `engine:state false`, `run:ended` (Status), `Manager.OnEnd` (hẹn giờ gửi thông báo).
 
 Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` / `StepScript` (F10) qua `pauseGate` (`engine/gate.go`). F8 lúc đang chạy = dừng (`engine:stopped "f8"`).
 
@@ -109,6 +109,8 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 - **Node web** (`webapi.go`, một `web.Chrome` riêng của giao diện): trạng thái Chrome của app (`BrowserStatus`), mở trang trống (`OpenAppBrowser`), **Thử tìm** (`FindElement` → `Engine.FindElement`, `engine/webfind.go`), **Chọn phần tử trên trang** (`PickElement` / `CancelPick` → `Chrome.Pick`, `web/pick.go` + `pick.js`) → `webSteps.ts` + `stepform/WebTools`.
 - **Chạy từ node**: `RunOptions.from` → một vòng bắt đầu ở node đó (biến node trước trống); thêm `only` → chạy riêng node đó (`script.RunFrom` bỏ cạnh ra của nó) – đường cho AI chạy một node (31c).
 - **Lịch sử**: `ListRuns` / `GetRun` / `RunShot` – mở từ thư viện, hiện như lần chạy đang xem.
+- **Chạy từ ngoài app** (bước 22): API local `internal/api` (chỉ 127.0.0.1 + Bearer token; `/run` `/stop` `/status` `/events` SSE `/script` có revision) – kênh cho CLI luôn bật (cổng ngẫu nhiên, `api.json`), cổng cho chương trình khác theo Cài đặt (`apiserver.go`). CLI `autoclicker run <file>` (`internal/cli`, `main.go` rẽ trước Wails) gửi sang app, chưa mở thì mở. Hẹn giờ: `internal/schedule` (`Due` / `Loop` nhịp 15 s, `model.NextRun`) → `scheduleapi.go` `fireSchedule` → session, xong thì `internal/notify` (Telegram / Discord / webhook + ảnh màn hình). Nguồn khác `user` → frontend tự thu thanh mini (`engineStore` nghe `run:started` / `run:ended`).
+- **Kịch bản bị ghi từ ngoài** (API `PUT /script`, AI sau này): `writeScriptExternal` (kiểm tra như lúc mở file, `store.Revisions` – sai revision → `conflict`) → `script:changed` → `scriptFile.ts` nạp lại file đang mở bằng `reloadScript` (bản đang soạn vào hoàn tác).
 
 ## 5. API Go (method của App) & event
 
@@ -116,14 +118,15 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 |---|---|
 | Model | `NewStep(type)`, `NewScript()`, `StepTypes()`, `FlowGuide()` (mô tả cho AI) |
 | File | `SaveScript`, `SaveScriptAs`, `OpenScript`, `OpenScriptPath`, `RecentScripts`, `SaveDraft`, `LoadDraft`, `ClearDraft`, `SetDirty`, `ConfirmQuit` |
-| Chạy | `ValidateScript`, `DangerCheck` (thao tác nguy hiểm + đã đồng ý chưa), `RunScript`, `StopScript`, `PauseScript`, `ResumeScript`, `StepScript`, `TestNode` |
+| Chạy | `ValidateScript`, `DangerCheck` (thao tác nguy hiểm + đã đồng ý chưa), `RunScript`, `RunStatus(runId)`, `StopScript`, `PauseScript`, `ResumeScript`, `StepScript`, `TestNode` |
+| Hẹn giờ (bước 22) | `ListSchedules`, `SetSchedule`, `RemoveSchedule` |
 | Lịch sử | `ListRuns`, `GetRun`, `RunShot` |
 | Input | `GetInputMemory`, `SaveInputMemory` |
 | Ảnh / màn hình | `CaptureTemplate`, `FindImage`, `PickElementAt`, `PixelColorAt`, `ScreenCaptureAllowed`, `RequestScreenCapture`, `ScreenBounds`, `MousePos` |
 | Node web (Chrome của app) | `BrowserStatus`, `OpenAppBrowser`, `FindElement`, `PickElement`, `CancelPick` |
 | Cửa sổ | `SetWindowMode`, `Displays`, `OverlayDisplayFor`, `SetOverlayDisplay` |
 | Cửa sổ / app khác (bước 26) | `ListWindows`, `ListApps` (inspector node Cửa sổ / Ứng dụng chọn từ danh sách, trạng thái đang chạy; cùng hàm cho tool MCP) |
-| Cấu hình | `GetSettings`, `SetTheme` |
+| Cấu hình | `GetSettings`, `SetTheme`, `SetAPISettings` (API cho chương trình khác) |
 | Mẫu thử | `Samples`, `OpenSample(id)` (ghi sân thử ra `ConfigDir/sandbox`, trả kịch bản), `OpenSandboxPage(page)` |
 
 | Event (Go → frontend) | Payload | Nghe ở |
@@ -137,6 +140,9 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | `engine:stopped` | `"f8"` \| `"corner"` | engineStore |
 | `hotkey:f8start` / `hotkey:f6` / `hotkey:error` | – / `Point` / chuỗi | runForm / store/points / engineStore |
 | `app:confirmClose` | – | scriptFile |
+| `run:started` / `run:ended` | `{runId, source, script, path, preset}` / `session.Status` | engineStore (nguồn ngoài app → thanh mini) |
+| `script:changed` | `{path, revision, source}` | scriptFile (nạp lại) |
+| `schedule:changed` / `schedule:error` | – / `{path, error}` | scheduleStore |
 
 ## 6. Muốn làm X → sửa ở đâu
 
@@ -202,10 +208,16 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 
 `internal/winexclude/` – Windows: loại cửa sổ app khỏi ảnh chụp.
 
+`internal/session` – phiên chạy (bước 22): `session.go` (`Manager` – `Start` → runId, `Wait`, `Status`, `Stop`, `StopWith`, tạm dừng / từng node; `Options`, `Status`, nguồn `Source*`), `exec.go` (một phiên: đếm ngược, engine, lịch sử, event), `deps.go` (`Deps` – thiết bị / Chrome / lưu lịch sử, nil = thật), `danger.go` (`AllowDanger`, `DangerKey`).
+
+`internal/api` – API local (bước 22): `server.go` (route, `Backend`, `Listen` 127.0.0.1 + token, chặn Host lạ, lỗi có mã), `events.go` (SSE `/events`), `hub.go` (phát event tới SSE). `internal/cli` – lệnh `run`: `cli.go` (`Parse`, `Main`, mã thoát), `client.go` (nối app qua `api.json`, mở app khi chưa có, theo SSE), `launch.go` + `console_*.go` (mở app tách terminal, gắn console Windows).
+
+`internal/schedule` – `schedule.go` (`Due`, `Loop`). `internal/notify` – `notify.go` (`Send`: Telegram / Discord / webhook, kèm PNG). Model hẹn giờ: `model/schedule.go` (`Schedule`, `Check`, `NextRun`); lưu: `store/schedules.go`; revision kịch bản `store/revision.go`; `store/apiinfo.go` (`api.json`, `NewToken`); cài đặt API trong `store/settings.go`.
+
 **Root (package main)** – chỉ Wails: method `App` bind sang frontend, mỗi method vài dòng gọi xuống `internal/`.
 
 - `main.go`, `app.go` – Wails app, `App`; method mỏng: `NewStep` / `NewScript`, mô tả loại node, theme, input đã nhớ (`frontend/wailsjs/` tự sinh – không sửa tay, không cần đọc; namespace TS theo package Go: `model.Step`, `store.Settings`, `engine.FindResult`, `main.RunOptions`).
-- `runner.go` – `RunScript` / Stop / Pause / Resume / Step, `RunOptions`, lưu lịch sử chạy, method xem lịch sử. `dangerapi.go` – xác nhận thao tác nguy hiểm (`DangerCheck`, `allowDanger` – RunScript chặn khi chưa đồng ý, `RunOptions.ConfirmDanger`). `samplesapi.go` – Mẫu thử (`Samples`, `OpenSample`, `OpenSandboxPage`). `windowsapi.go` – `ListWindows` / `ListApps` (bước 26). `imageapi.go` – chụp ảnh mẫu, Thử tìm, Thử node, lấy màu, quyền chụp (ẩn cửa sổ lúc chụp – `withHidden`). `webapi.go` – node web: trạng thái Chrome của app, Thử tìm, Chọn phần tử.
+- `runner.go` – `emit` (Wails + SSE), `RunScript` / Stop / Pause / Resume / Step / `RunStatus` gọi `session`, method xem lịch sử. `apiserver.go` – API local (kênh CLI + cổng theo Cài đặt), `apiBackend`, `presetValues`. `scheduleapi.go` – hẹn giờ + thông báo sau lần chạy hẹn giờ. `dangerapi.go` – xác nhận thao tác nguy hiểm (`DangerCheck`, `allowDanger` – RunScript chặn khi chưa đồng ý, `RunOptions.ConfirmDanger`). `samplesapi.go` – Mẫu thử (`Samples`, `OpenSample`, `OpenSandboxPage`). `windowsapi.go` – `ListWindows` / `ListApps` (bước 26). `imageapi.go` – chụp ảnh mẫu, Thử tìm, Thử node, lấy màu, quyền chụp (ẩn cửa sổ lúc chụp – `withHidden`). `webapi.go` – node web: trạng thái Chrome của app, Thử tìm, Chọn phần tử.
 - `storage.go` – hộp thoại lưu / mở, nháp, hỏi lưu khi đóng. `window.go` – chế độ cửa sổ, màn hình, `ScreenBounds`. `hotkey.go` – F6 / F8 / F10 (gohook).
 
 **Frontend (`frontend/src/`)**
@@ -215,7 +227,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 - `types.ts` – model TS (khớp `internal/model/model.go`, tsc kiểm), nhãn loại node `STEP_LABEL`. `keys.ts` – tên phím robotgo, chữ tổ hợp phím.
 - Logic thuần (có test): `flow/` – `model` (cổng, `flowOrder`, `orderedSteps`), `edit` (nối / cắt cạnh, chèn / xoá node, `nextRef`, `pruneEdges`), `layout` (elkjs, `placeNode`), `view` (thẻ node, nhãn cổng, `outputsOf`), `numvars` (bật / sửa trường số từ biến), `cond` (điều kiện lồng nhau `CondAt`), `nodeInfo` (mô tả từng loại node cho người dùng – bảng thêm node + inspector), `shot` (node Chụp màn hình: nhãn vùng, dòng chi tiết, `hasFoundBox` ↔ `script.HasFoundBox`), `clipboard` (node Clipboard: phép, dòng chi tiết), `shape` (node Vẽ đường: `shapePoints`, `pathVertices`, dòng chi tiết), `waitUntil` (node Chờ đến giờ: `parseAt` ↔ `script.ParseAt` – test chung `testdata/wait_until.json`, xem trước còn bao lâu, đếm ngược thanh mini), `system` (node Hệ thống: thao tác âm lượng, dòng chi tiết), `window` (node Cửa sổ: thao tác, `matchWindow` / `windowPreset` ↔ Go – test chung `testdata/`, dòng chi tiết), `file` (node Tệp / thư mục: thao tác, dòng chi tiết, `folderOf`), `app` (node Ứng dụng: thao tác, `matchApps` ↔ Go, `appStatus` trạng thái cạnh ô tên, `appChoices`, dòng chi tiết), `danger` (thao tác nguy hiểm ↔ `script.DangerOp`: câu cho hộp xác nhận), `http` (node HTTP: method, kiểu body, `isSecretKey` ↔ `model.IsSecretKey` – test chung `testdata/secret_keys.json`), `detail` (`fmtPos` – dòng chi tiết thẻ node hành động), `element` (dòng chi tiết / điều kiện phần tử màn hình: `fmtElement`, `firstSelector`), `web` (`parseSelector`, chữ chi tiết node web, chữ kết quả Thử tìm / trạng thái Chrome), `run` (kết quả chạy → trạng thái thẻ, nhật ký), `preview` (Xem trước theo đồ thị: `previewHop` cổng đi + node kế, `branchNodes` node cho chọn nhánh, chữ đường đã đi), `progress` (chữ thanh mini: `progressNode`, `counterText`); `anchor.ts`; `transform.ts` (biến đổi nhiều điểm); `overlay/` (hình học + gợi ý overlay); `scriptInputs.ts` (ghim trường, input, `mapVarText`); `samples/filter.ts` (lọc Mẫu thử); `fold.ts` (so khớp không dấu).
 - `store/` (import qua `store/index.ts`): `editor` (state, hoàn tác, `updateScript`, `replaceScript`), `geometry` (khung, neo ↔ màn hình), `nodes` (thêm / sửa / xoá / nhân bản, nối cạnh, `insertAt`), `control` (node điều khiển, điều kiện), `points` (điểm trên overlay, F6, kéo thả), `multi` (chọn nhiều + biến đổi, phím công cụ Chọn nhiều `selectToolKey`, đổi vùng).
-- Store khác: `engineStore.ts` (trạng thái engine, `runScript`), `runStore.ts` (nhật ký lần chạy + lịch sử), `runForm.ts` (Chạy / F8 → form Chạy, preset), `scriptFile.ts` (lưu / mở / nháp / cờ chưa lưu), `imageSteps.ts` (khoanh ảnh mẫu, thử tìm, lấy màu, quyền chụp), `webSteps.ts` (node web: trạng thái Chrome, Thử tìm, Chọn phần tử), `coordMap.ts` (overlay ↔ robotgo), `windowMode.ts` (`setWindowMode`, `openOverlay`), `theme.ts`.
+- Store khác: `engineStore.ts` (trạng thái engine, `runScript`, chạy từ ngoài app → thanh mini), `runStore.ts` (nhật ký lần chạy + lịch sử), `runForm.ts` (Chạy / F8 → form Chạy, preset), `scriptFile.ts` (lưu / mở / nháp / cờ chưa lưu, nạp lại khi `script:changed`), `scheduleStore.ts` (hẹn giờ – `ScheduleSetting` + `ScheduleDialog`, chip giờ ở thư viện), `imageSteps.ts` (khoanh ảnh mẫu, thử tìm, lấy màu, quyền chụp), `webSteps.ts` (node web: trạng thái Chrome, Thử tìm, Chọn phần tử), `coordMap.ts` (overlay ↔ robotgo), `windowMode.ts` (`setWindowMode`, `openOverlay`), `theme.ts`. Cài đặt app (API cho chương trình khác): `components/AppSettings.tsx` (nút bánh răng trên `TitleBar`).
 - `components/`: `TitleBar` (theme: một nút + menu), `AppChrome` (`Toolbar`, `StatusBar`), `RunMenu` (nút Chạy tách đôi + menu cách chạy – mục do màn truyền vào), `usePopover` (popup đóng khi bấm ra ngoài / Esc; `escOnly` – Esc không tới overlay), `FieldMenu` (nút ⋯ trong ô nhập – dùng biến, đặt làm input, về mặc định), `NumInput` (ô số: − / +, chữ "mặc định", chỗ cho ⋯), `Library` (thư viện + 5 lần chạy gần nhất; `library/LibraryParts` – nhóm thu gọn `Fold`, chân `LibraryFooter`; `library/runs` dòng lịch sử dùng chung; `library/RunsDialog` – hộp thoại Lịch sử chạy: mọi lần chạy + nhật ký xem ngay, *Xem trên flow* mở bảng Nhật ký), `Select` (ô chọn tự vẽ thay `<select>` – theo theme), `PanelResize` (kéo mép đổi bề rộng thư viện / inspector, nhớ trên máy), `AddStepPalette` (Ctrl/Cmd+K – nhóm / loại node) + `PaletteView` (hiển thị, khung mô tả mục đang chọn), `StepForm` (inspector) + `stepform/` (`shared` – `Field` hàng nhãn trái / `wide` nhãn trên, `help` ⓘ `InfoTip`, `SwitchField`, `NumField` có menu ⋯, `InspectorParts` (khung v3 dùng chung app + #demo-flow: `Section` khối thu gọn có tóm tắt – chữ tóm tắt từ `flow/summary.ts`, `InspectorHead`, `InfoButton` mô tả loại node, nút chân), `MouseFields`, `PointSource` + `PointVarFields` (điểm Số / Biến), `ScrollFields`, `KeyFields`, `TextFields`, `ImageFields`, `ShotFields` (Chụp màn hình), `ClipFields` (Clipboard), `HttpFields` (HTTP) + `KVTable` (bảng tên – giá trị), `FileFields` (Tệp / thư mục), `SystemFields` (âm lượng), `WindowFields` (Cửa sổ) + `WindowPicker` (danh sách cửa sổ đang mở, lọc không dấu), `AppFields` (Ứng dụng – trạng thái đang chạy cạnh ô tên) + `AppPicker` (app đang chạy), `WaitUntilFields` (Chờ đến giờ), `PathFields` (Vẽ đường – hình, cỡ, danh sách điểm), `WebFields`, `WebTools`, `FlowSections`, `ControlSection`, `InputsTab`), `RunSettings` (lặp / đếm ngược), `Switch`, `Simulation` (xem trước con trỏ giả – `useSimulation` đi theo đồ thị; diễn từng loại node `simulation/playNode`; vẽ `simulation/SimulationLayer`, lớp cuộn `simulation/ScrollProgress`), `MockPage`, `TransformTool`, `SaveChangesDialog`, `DangerConfirmDialog` (xác nhận thao tác nguy hiểm – `dangerConfirm.ts` giữ câu hỏi đang chờ), `previewBranches.ts` (nhánh Xem trước đã chọn – nhớ trong phiên), `NumInput`, `Segmented`, `icons` (`StepIcon`), `StepCard`.
 - `components/flow/` (chỉ props, app + màn mẫu dùng chung): `FlowCanvas` (`@xyflow/react`), `NodeCard`, `FlowEdge`, `PortField`, `RunLog`, `model.ts` (cỡ thẻ), `nodes/ControlFields` + `CondEditor` + `NodeTestPanel`; `FlowEditor` = bản nối store.
 - `components/samples/` – hộp thoại Mẫu thử: `SamplesDialog` + `SampleCard` (chỉ props), `Samples` (nối Go + `scriptFile.openSample`).

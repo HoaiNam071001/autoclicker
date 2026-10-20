@@ -15,11 +15,11 @@ import (
 
 // emit – Emitter của session: gửi Wails + SSE của API local.
 func (a *App) emit(event string, data any) {
-	if event == "log:error" {
-		runtime.LogError(a.ctx, data.(string))
-		return
-	}
 	if a.ctx != nil {
+		if event == "log:error" {
+			runtime.LogError(a.ctx, data.(string))
+			return
+		}
 		runtime.EventsEmit(a.ctx, event, data)
 	}
 	a.hub.Publish(event, data)

@@ -62,6 +62,10 @@ export function ListRuns(arg1, arg2) {
   return window['go']['main']['App']['ListRuns'](arg1, arg2);
 }
 
+export function ListSchedules() {
+  return window['go']['main']['App']['ListSchedules']();
+}
+
 export function ListWindows() {
   return window['go']['main']['App']['ListWindows']();
 }
@@ -126,6 +130,10 @@ export function RecentScripts() {
   return window['go']['main']['App']['RecentScripts']();
 }
 
+export function RemoveSchedule(arg1) {
+  return window['go']['main']['App']['RemoveSchedule'](arg1);
+}
+
 export function RequestScreenCapture() {
   return window['go']['main']['App']['RequestScreenCapture']();
 }
@@ -184,6 +192,10 @@ export function SetDirty(arg1) {
 
 export function SetOverlayDisplay(arg1) {
   return window['go']['main']['App']['SetOverlayDisplay'](arg1);
+}
+
+export function SetSchedule(arg1) {
+  return window['go']['main']['App']['SetSchedule'](arg1);
 }
 
 export function SetTheme(arg1) {

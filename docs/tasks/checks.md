@@ -3,6 +3,16 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 22 – Hẹn giờ / CLI / API local · [phase3/22-hen-gio-cli-api.md](phase3/22-hen-gio-cli-api.md)
+
+- [ ] Chạy tay như cũ (nút Chạy, F8 dừng, chạy từng node / chạy riêng node, xác nhận thao tác nguy hiểm, lịch sử chạy) – phần chạy đã chuyển sang `internal/session`
+- [ ] CLI (PowerShell, app đang mở): `build\bin\autoclicker.exe run <file.json>` → app thu thành thanh mini, terminal in từng node ✓ / ✗ + *Xong sau … s*, `$LASTEXITCODE` = 0; Ctrl+C trong terminal → kịch bản dừng; `--preset "Tên bộ"` / `--set M1=Lan` dùng đúng giá trị; preset sai tên → báo các tên có, mã 1
+- [ ] CLI khi app chưa mở: tự mở app rồi chạy; `run` không có file / cờ lạ → in cách dùng, mã 2; `help` in cách dùng
+- [ ] Bánh răng trên thanh tiêu đề → bật *API cho chương trình khác*: `curl -X POST http://127.0.0.1:47800/run -H "Authorization: Bearer <token>" -d "{\"path\":\"C:/…/a.json\"}"` chạy được; sai token → 401; tắt công tắc → không nối được; đổi cổng / tạo token mới có tác dụng ngay
+- [ ] Hẹn giờ: lưu kịch bản thành file → *N vòng* → Hẹn giờ chạy → Đặt giờ… (chưa lưu file thì nút mờ, có gợi ý); đặt giờ sau 1–2 phút, *Thu nhỏ cửa sổ* bật → app thu nhỏ, tới giờ tự hiện thanh mini và chạy, xong thu nhỏ lại; thư viện hiện chip giờ cạnh tên; *Một lần* chạy xong thì chip mất
+- [ ] Thông báo hẹn giờ: Telegram (`botToken@chatId`), Discord webhook, webhook (vd webhook.site) nhận chữ + ảnh màn hình; *Gửi khi: Lỗi* thì lần chạy xong không gửi; tới giờ mà đang chạy kịch bản khác → thông báo lỗi + dòng báo trong app
+- [ ] Kịch bản đang mở bị ghi qua API `PUT /script` (kèm `revision` lấy từ `GET /script`) → app nạp lại, có thông báo, Ctrl+Z lấy lại bản trước; gửi revision cũ → 409 conflict
+
 ## 26 W3b – Overlay vẽ khung đích node Cửa sổ · [phase3/26-cua-so-ung-dung.md](phase3/26-cua-so-ung-dung.md)
 
 - [ ] Mở mẫu **Cửa sổ – đặt 1280 × 800 bên trái rồi chụp** → mở overlay: thấy khung nét đứt 1280 × 800 ở góc trái trên, nhãn `n… · chrome → 1280 × 800 tại 0, 0 · màn chứa cửa sổ lúc chạy`; chọn node đó → viền liền. Đổi Đặt ở Phải / Giữa / Đầy / Toạ độ → khung đổi theo, Đầy không đè taskbar

@@ -53,7 +53,9 @@ func SetAPI(a APISettings) (APISettings, error) {
 	return a, saveSettings(dir, s)
 }
 
-func defaultSettings() Settings { return Settings{Theme: ThemeSystem, API: APISettings{Port: DefaultAPIPort}} }
+func defaultSettings() Settings {
+	return Settings{Theme: ThemeSystem, API: APISettings{Port: DefaultAPIPort}}
+}
 
 const settingsFile = "settings.json"
 

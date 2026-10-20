@@ -900,6 +900,36 @@ export namespace model {
 		    return a;
 		}
 	}
+	export class Schedule {
+	    path: string;
+	    time: string;
+	    repeat: string;
+	    days: number[];
+	    preset: string;
+	    minimize: boolean;
+	    notify: string;
+	    notifyTarget: string;
+	    notifyOn: string;
+	    screenshot: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new Schedule(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.time = source["time"];
+	        this.repeat = source["repeat"];
+	        this.days = source["days"];
+	        this.preset = source["preset"];
+	        this.minimize = source["minimize"];
+	        this.notify = source["notify"];
+	        this.notifyTarget = source["notifyTarget"];
+	        this.notifyOn = source["notifyOn"];
+	        this.screenshot = source["screenshot"];
+	    }
+	}
 	export class ScriptInput {
 	    key: string;
 	    label: string;

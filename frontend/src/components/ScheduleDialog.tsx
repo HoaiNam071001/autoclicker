@@ -1,22 +1,14 @@
-// Hẹn giờ + thông báo (giao diện cho bước 22): chạy lúc HH:mm một lần / hằng ngày / các ngày trong tuần, với bộ giá
+// Hẹn giờ + thông báo (bước 22 – nối Go ở ScheduleSetting / scheduleStore): chạy lúc HH:mm một lần / hằng ngày / các ngày trong tuần, với bộ giá
 // trị input đã chọn; thông báo Telegram / Discord / webhook khi xong hoặc lỗi. Mở từ popup "N vòng" (ScheduleRow).
 import Select from './Select';
 import { useState } from 'react';
+import type { model } from '../../wailsjs/go/models';
 import Segmented from './Segmented';
 import { Switch } from './Switch';
 import { fieldBox } from './NumInput';
 
-export type Schedule = {
-  time: string; // HH:mm
-  repeat: 'once' | 'daily' | 'weekdays';
-  days: number[]; // 1 = T2 … 7 = CN (repeat = weekdays)
-  preset: string;
-  tray: boolean; // thu xuống khay khi chờ tới giờ
-  notify: 'none' | 'telegram' | 'discord' | 'webhook';
-  notifyTarget: string;
-  notifyOn: 'done' | 'error' | 'both';
-  screenshot: boolean;
-};
+// Khớp model.Schedule (internal/model/schedule.go) – Go là nguồn chuẩn.
+export type Schedule = model.Schedule;
 
 export const DAY_LABEL = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 export const scheduleSummary = (s: Schedule | null) =>
@@ -24,14 +16,14 @@ export const scheduleSummary = (s: Schedule | null) =>
     : `${s.time} · ${s.repeat === 'once' ? 'một lần' : s.repeat === 'daily' ? 'hằng ngày' : s.days.map((d) => DAY_LABEL[d - 1]).join(', ')}`;
 
 // Dòng trong popup cài đặt chạy
-export function ScheduleRow({ value, onEdit, soon }: { value: Schedule | null; onEdit?: () => void; soon?: boolean }) {
+export function ScheduleRow({ value, onEdit, disabledHint }: { value: Schedule | null; onEdit?: () => void; disabledHint?: string }) {
   return (
     <div className="flex items-center justify-between border-t border-line pt-3">
       <span className="flex flex-col">
         Hẹn giờ chạy
         <span className="font-mono text-xs text-muted">{scheduleSummary(value)}</span>
       </span>
-      <button onClick={onEdit} disabled={soon} title={soon ? 'Sắp có (bước 22)' : undefined}
+      <button onClick={onEdit} disabled={!!disabledHint} title={disabledHint}
         className="h-8 rounded-control border border-line px-2.5 text-[13px] enabled:hover:bg-hover disabled:opacity-50">
         {value ? 'Sửa…' : 'Đặt giờ…'}
       </button>
@@ -39,13 +31,14 @@ export function ScheduleRow({ value, onEdit, soon }: { value: Schedule | null; o
   );
 }
 
-const NOTIFY_HINT = { none: '', telegram: 'Bot token và chat id, vd 123:ABC@456789', discord: 'Webhook URL của kênh Discord', webhook: 'URL nhận POST JSON (kết quả, ảnh chụp)' };
+const NOTIFY_HINT: Record<string, string> = { none: '', telegram: 'Bot token và chat id, vd 123:ABC@456789', discord: 'Webhook URL của kênh Discord', webhook: 'URL nhận POST JSON (kết quả, ảnh chụp)' };
 
-export default function ScheduleDialog({ value, presets, onSave, onRemove, onClose }: {
+export default function ScheduleDialog({ value, presets, onSave, onRemove, onClose, error }: {
   value: Schedule | null; presets: string[]; onSave: (s: Schedule) => void; onRemove?: () => void; onClose: () => void;
+  error?: string; // lỗi lưu (Go kiểm tra lại giờ, ngày, đích thông báo)
 }) {
   const [s, setS] = useState<Schedule>(value ?? {
-    time: '08:00', repeat: 'daily', days: [1, 2, 3, 4, 5], preset: presets[0] ?? '', tray: true,
+    path: '', time: '08:00', repeat: 'daily', days: [1, 2, 3, 4, 5], preset: presets[0] ?? '', minimize: true,
     notify: 'none', notifyTarget: '', notifyOn: 'both', screenshot: true,
   });
   const set = (p: Partial<Schedule>) => setS({ ...s, ...p });
@@ -56,7 +49,7 @@ export default function ScheduleDialog({ value, presets, onSave, onRemove, onClo
         <div className="flex flex-col gap-4 p-[18px]">
           <div>
             <div className="text-base font-semibold">Hẹn giờ chạy</div>
-            <div className="text-[13px] text-muted">App cần đang mở (có thể thu xuống khay) và máy không ngủ.</div>
+            <div className="text-[13px] text-muted">App cần đang mở (có thể thu nhỏ) và máy không ngủ – app tắt lúc tới giờ thì lỡ, không chạy bù.</div>
           </div>
           <div className="flex items-end gap-3">
             <label className="flex flex-col gap-1.5 text-muted">Lúc
@@ -84,7 +77,7 @@ export default function ScheduleDialog({ value, presets, onSave, onRemove, onClo
                 options={presets.map((p) => ({ value: p, label: p }))} />
             </label>
           )}
-          <label className="flex items-center justify-between">Thu xuống khay khi chờ tới giờ<Switch on={s.tray} onChange={(tray) => set({ tray })} label="Thu xuống khay" /></label>
+          <label className="flex items-center justify-between">Thu nhỏ cửa sổ khi chờ tới giờ<Switch on={s.minimize} onChange={(minimize) => set({ minimize })} label="Thu nhỏ cửa sổ" /></label>
 
           <div className="flex flex-col gap-2 border-t border-line pt-3">
             <span className="font-semibold">Thông báo</span>
@@ -100,6 +93,7 @@ export default function ScheduleDialog({ value, presets, onSave, onRemove, onClo
                 <label className="flex items-center justify-between">Kèm ảnh chụp màn hình<Switch on={s.screenshot} onChange={(screenshot) => set({ screenshot })} label="Kèm ảnh chụp" /></label>
               </>
             )}
+          {error && <span className="text-[13px] text-danger-text">{error}</span>}
           </div>
         </div>
         <div className="flex items-center gap-2 border-t border-line bg-chrome px-[18px] py-3">
