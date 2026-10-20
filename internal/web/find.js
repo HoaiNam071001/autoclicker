@@ -64,7 +64,8 @@
   const geom = { screenX, screenY, outerW: outerWidth, outerH: outerHeight, innerW: innerWidth, innerH: innerHeight, dpr: devicePixelRatio };
   // đang tải (tab mới mở, chưa có body): không thấy chưa có nghĩa là đã mất
   const loading = document.readyState === 'loading' || location.href === 'about:blank' || !document.body;
-  const out = { sel: -1, hidden: 0, geom, loading, focus: document.hasFocus(), visible: document.visibilityState === 'visible' };
+  // counts[i] – số phần tử hiện / ẩn khớp selector i (chỉ các selector đã xét – không thấy thì là tất cả; báo lỗi cho AI)
+  const out = { sel: -1, hidden: 0, counts: [], geom, loading, focus: document.hasFocus(), visible: document.visibilityState === 'visible' };
   window.__acTarget = null;
   if (viewport) return Object.assign(out, { sel: 0, x: 0, y: 0, w: innerWidth, h: innerHeight, text: '', inView: true, count: 1 });
   // href / src: URL đầy đủ (thuộc tính có thể là đường dẫn tương đối)
@@ -79,6 +80,7 @@
   for (let i = 0; i < sels.length; i++) {
     const found = docs.flatMap(doc => findIn(sels[i], doc));
     const visible = found.filter(shown), el = visible[0];
+    out.counts.push({ shown: visible.length, hidden: found.length - visible.length });
     if (!el) { out.hidden = Math.max(out.hidden, found.length); continue; }
     let p = place(el);
     if (scroll && !p.inView) {

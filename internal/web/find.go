@@ -26,27 +26,28 @@ func pageJS(fn string, args ...string) string {
 
 // findResult – kết quả find.js (toạ độ client, CSS px).
 type findResult struct {
-	Sel     int     `json:"sel"`
-	Hidden  int     `json:"hidden"`
-	Loading bool    `json:"loading"`
-	Geom    geom    `json:"geom"`
-	Focus   bool    `json:"focus"`
-	Visible bool    `json:"visible"`
-	X       float64 `json:"x"`
-	Y       float64 `json:"y"`
-	W       float64 `json:"w"`
-	H       float64 `json:"h"`
-	Text    string  `json:"text"`
-	InView  bool    `json:"inView"`
-	Covered string  `json:"covered"`
-	Count   int     `json:"count"`
-	Value   string  `json:"value"`
+	Sel     int        `json:"sel"`
+	Hidden  int        `json:"hidden"`
+	Loading bool       `json:"loading"`
+	Geom    geom       `json:"geom"`
+	Focus   bool       `json:"focus"`
+	Visible bool       `json:"visible"`
+	X       float64    `json:"x"`
+	Y       float64    `json:"y"`
+	W       float64    `json:"w"`
+	H       float64    `json:"h"`
+	Text    string     `json:"text"`
+	InView  bool       `json:"inView"`
+	Covered string     `json:"covered"`
+	Count   int        `json:"count"`
+	Value   string     `json:"value"`
+	Counts  []SelCount `json:"counts"`
 }
 
 // found – Found chưa có khung màn hình. Bị che / tâm ngoài viewport khi phải bấm → chưa coi là thấy.
 func (r findResult) found(tab string, q Query) Found {
 	f := Found{Selector: r.Sel, Hidden: r.Hidden, Tab: tab, Text: r.Text, Covered: r.Covered, Loading: r.Loading, OffView: r.Sel >= 0 && !r.InView,
-		Count: r.Count, Value: r.Value}
+		Count: r.Count, Value: r.Value, Counts: r.Counts}
 	f.OK = r.Sel >= 0 && (q.CheckOnly || r.Covered == "" && (r.InView || !q.Scroll))
 	return f
 }

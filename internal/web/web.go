@@ -27,6 +27,8 @@ type Browser interface {
 	BgClick(ctx context.Context, x, y int, button string, count int) error // count = lần bấm thứ mấy (2 = double-click)
 	BgWheel(ctx context.Context, x, y int, dir string) error               // lăn một nấc theo dir (up | down | left | right)
 	BgType(ctx context.Context, text string, clear, enter bool) error      // vào ô đang focus: xoá chữ cũ, chèn text, Enter
+	// PageOutline – cây rút gọn của tab (outline.go): node web không thấy phần tử thì gửi đoạn gần giống cho AI (31b).
+	PageOutline(ctx context.Context, tab string) (Outline, error)
 	Close()
 }
 
@@ -57,7 +59,14 @@ type Found struct {
 	Moving   bool       // sắp bấm nhưng khung còn đổi giữa 2 lần đọc (hiệu ứng, trang đang dàn lại) – OK = false
 	OffView  bool       // thấy nhưng tâm nằm ngoài vùng nhìn thấy của trang (chưa cuộn tới)
 	Count    int        // số phần tử đang hiện khớp selector đã dùng
+	Counts   []SelCount // số khớp từng selector đã xét (không thấy: mọi selector) – chi tiết lỗi cho AI
 	Value    string     // Query.Read: giá trị đọc được
+}
+
+// SelCount – số phần tử khớp một selector: đang hiện / ẩn (cỡ 0, display none…).
+type SelCount struct {
+	Shown  int `json:"shown"`
+	Hidden int `json:"hidden"`
 }
 
 // Hover – kết quả thử hover trước khi bấm. OK = false → chưa bấm, tìm lại (Miss nói vì sao, để báo khi hết giờ).

@@ -27,6 +27,11 @@ type fakeBrowser struct {
 	nFocus  int
 	bg      []string // thao tác chạy nền đã gửi
 	err     error
+	outline web.Outline
+}
+
+func (b *fakeBrowser) PageOutline(context.Context, string) (web.Outline, error) {
+	return b.outline, nil
 }
 
 func (b *fakeBrowser) BgClick(_ context.Context, x, y int, button string, count int) error {

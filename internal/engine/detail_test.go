@@ -64,6 +64,23 @@ func TestWebMissDetail(t *testing.T) {
 	_, res, _ := runWeb(t, b, webNode(model.StepWebClick, nil))
 	d, _ := json.Marshal(res[0].Error.Detail)
 	wantAll(t, "web", string(d), `"kind":"web"`, `"matched":"text=Xem lịch sử"`, `"covered":"div#popup"`, `"count":1`, `"tab":"file:///a.html"`)
+	if strings.Contains(string(d), `"outline"`) {
+		t.Errorf("đã thấy phần tử thì không đọc outline: %s", d)
+	}
+
+	// Không selector nào khớp → số khớp từng selector + phần tử gần giống trong outline (kèm selector dùng được).
+	b = &fakeBrowser{finds: []web.Found{{Selector: -1, Tab: "file:///a.html", Counts: []web.SelCount{{Hidden: 2}, {}}}},
+		outline: web.Outline{Items: []web.OutlineItem{
+			{Role: "button", Name: "Đăng xuất", Selector: "text=Đăng xuất"},
+			{Role: "link", Name: "Xem lich su don", Selector: "text=Xem lịch sử đơn"},
+		}}}
+	_, res, _ = runWeb(t, b, webNode(model.StepWebClick, nil))
+	d, _ = json.Marshal(res[0].Error.Detail)
+	wantAll(t, "web không thấy", string(d), `"perSelector":[{"hidden":2,"selector":"text=Xem lịch sử","shown":0},{"hidden":0,"selector":"css=#history","shown":0}]`,
+		`"outline":[{"role":"link","name":"Xem lich su don","sel":"text=Xem lịch sử đơn"`)
+	if strings.Contains(string(d), "Đăng xuất") {
+		t.Errorf("phần tử không liên quan vẫn vào outline: %s", d)
+	}
 }
 
 // Đọc phần tử không thấy → cùng detail element (tính lúc hết giờ).

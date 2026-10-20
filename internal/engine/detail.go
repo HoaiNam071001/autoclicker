@@ -7,6 +7,7 @@ import (
 	"autoclicker/internal/element"
 	"autoclicker/internal/model"
 	"autoclicker/internal/vision"
+	"autoclicker/internal/web"
 )
 
 // Chi tiết lỗi có cấu trúc (StepError.Detail – bước 31b): AI / người đọc để tự sửa node thay vì đoán từ câu chữ.
@@ -14,7 +15,8 @@ import (
 //   chờ / click chữ: {kind: text, want, read[{text, box}], closest {text, box, score}, area}
 //   chờ màu:         {kind: pixel, point, actual, want, tolerance}
 //   phần tử:         {kind: element, selectors, read (số phần tử đã đọc), count, near[{role, name, box, score}]}
-//   web:             {kind: web, selectors, tab, matched, count, hidden, covered, moving, offView, loading, hover, noTab}
+//   web:             {kind: web, selectors, perSelector[{selector, shown, hidden}], tab, matched, count, hidden, covered,
+//                     moving, offView, loading, hover, noTab, outline[{role, name, sel, …}] (không selector nào khớp)
 //   cửa sổ:          {kind: window, app, title, near[{title, app, box, minimized, score}]}
 //   ứng dụng:        {kind: app, app, running[] (khớp tên – vd chưa có cửa sổ / chưa thoát), near[{name, id, score}]}
 //   mọi node lỗi:    context {foreground {title, app, box}, mouse {x, y}, screen, displays, shotArea}
@@ -90,9 +92,21 @@ func elementMiss(selectors []string, nodes []element.Node, r element.Result, q e
 		"near": element.NearMatches(nodes, q, nearMax)}
 }
 
-// webMiss – trạng thái lần tìm cuối; chỉ ghi trường có giá trị cho gọn.
-func webMiss(f webTry, lines []string) map[string]any {
+// webMiss – trạng thái lần tìm cuối; chỉ ghi trường có giá trị cho gọn. near: phần tử trong outline giống cách tìm.
+func webMiss(f webTry, lines []string, near []web.OutlineItem) map[string]any {
 	d := map[string]any{"kind": "web", "selectors": lines, "tab": f.Tab, "count": f.Count}
+	var per []map[string]any
+	for i, c := range f.Counts {
+		if i < len(lines) {
+			per = append(per, map[string]any{"selector": lines[i], "shown": c.Shown, "hidden": c.Hidden})
+		}
+	}
+	if per != nil {
+		d["perSelector"] = per
+	}
+	if near != nil {
+		d["outline"] = near
+	}
 	if f.Selector >= 0 && f.Selector < len(lines) {
 		d["matched"] = lines[f.Selector]
 	}
@@ -107,6 +121,38 @@ func webMiss(f webTry, lines []string) map[string]any {
 		}
 	}
 	return d
+}
+
+// outlineNear – phần tử của trang có tên giống cách tìm nhất (≥ nearScore, tối đa nearMax + 4), kèm selector đã kiểm
+// (sel) – AI dùng thẳng được. css= / xpath= không so được theo tên → bỏ.
+func outlineNear(o web.Outline, sels []model.Selector) []web.OutlineItem {
+	type scored struct {
+		web.OutlineItem
+		score int
+	}
+	var out []scored
+	for _, it := range o.Items {
+		best := 0
+		for _, s := range sels {
+			switch s.By {
+			case model.SelText, model.SelAria:
+				best = max(best, vision.Similarity(it.Name, s.Value))
+			case model.SelRole:
+				if it.Role == s.Value {
+					best = max(best, map[bool]int{true: 100, false: vision.Similarity(it.Name, s.Name)}[s.Name == ""])
+				}
+			}
+		}
+		if best >= nearScore {
+			out = append(out, scored{it, best})
+		}
+	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i].score > out[j].score })
+	items := make([]web.OutlineItem, 0, min(len(out), nearMax+4))
+	for _, x := range out[:min(len(out), nearMax+4)] {
+		items = append(items, x.OutlineItem)
+	}
+	return items
 }
 
 // windowMiss – cửa sổ giống app / tiêu đề cần tìm nhất (trung bình phần đã nhập).

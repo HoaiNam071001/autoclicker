@@ -66,7 +66,14 @@ func (e *Engine) webFindQ(ctx context.Context, s model.Step, q web.Query, lines 
 		return last.ok, 0, err
 	})
 	if errors.Is(err, errTimeout) {
-		return last, lines, &notFoundErr{msg: webMissMsg(s, last, lines, q.CheckOnly && s.WebGone), detail: webMiss(last, lines)}
+		gone := q.CheckOnly && s.WebGone
+		var near []web.OutlineItem
+		if !gone && last.Selector < 0 && !last.NoTab { // không selector nào khớp: đọc trang một lần, gửi chỗ gần giống
+			if o, err := e.browser.PageOutline(ctx, s.Tab); err == nil {
+				near = outlineNear(o, q.Selectors)
+			}
+		}
+		return last, lines, &notFoundErr{msg: webMissMsg(s, last, lines, gone), detail: webMiss(last, lines, near)}
 	}
 	return last, lines, err
 }
