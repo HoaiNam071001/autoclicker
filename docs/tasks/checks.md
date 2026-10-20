@@ -3,6 +3,17 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 41 – nơi lưu + xoá lịch sử · [phase3/41-noi-luu-lich-su.md](phase3/41-noi-luu-lich-su.md)
+
+- [ ] Cài đặt (bánh răng) → tab **Lưu trữ**: 3 ô hiện *Mặc định: …/Documents/Auto Clicker* và *…/Pictures/Auto Clicker*; *Chọn…* đổi thư mục → ô chữ đậm, có *Về mặc định*; *Mở* mở đúng thư mục trong Finder / Explorer. Tab API / AI (MCP) vẫn như cũ. Xem theme sáng + tối
+- [ ] Kịch bản mới → Lưu: hộp thoại mở sẵn thư mục *Kịch bản* đã chọn; *Mở kịch bản* cũng mở ở đó. Kịch bản đã có file → Lưu ghi tại chỗ cũ
+- [ ] AI (Claude) tạo kịch bản mới → file vào thư mục *Kịch bản AI tạo* (để trống thì theo *Kịch bản*)
+- [ ] Node Chụp màn hình để trống *Thư mục lưu* → ảnh vào thư mục ảnh trong Cài đặt (mặc định giờ là `Pictures/Auto Clicker`); node đã đặt thư mục riêng thì giữ
+- [ ] Chọn thư mục rồi xoá / đổi tên thư mục đó trong Finder → Lưu kịch bản mới báo lỗi *không thấy thư mục … Về mặc định*, không lưu lặng lẽ chỗ khác; node Chụp màn hình báo lỗi tương tự
+- [ ] Windows có OneDrive chuyển Documents / Pictures → mặc định trỏ vào thư mục trong OneDrive
+- [ ] Lịch sử chạy → *Xem tất cả*: *Xoá lần này* xoá lần đang chọn (chọn sang lần cũ hơn kế đó); *Xoá hết…* hỏi lại rồi xoá cả, thanh bên hết lịch sử; đang xem lần đó trên bảng Nhật ký thì bảng đóng
+- [ ] Thư viện → Mở gần đây: rê chuột hiện ✕ bỏ một mục; *Xoá danh sách* bỏ hết – file kịch bản vẫn còn trên đĩa
+
 ## 40 – tìm ảnh: so viền, mặt nạ, kiểm tra màu · [phase3/40-nhan-dang.md](phase3/40-nhan-dang.md)
 
 - [ ] Mẫu thử *Tìm ảnh nâng cao: so viền, màu, mặt nạ* (macOS Retina, zoom 100 %) → chạy qua: Icon theme tối = 2, Nút xanh = 2, Huy hiệu = 2, các ô Nhầm / Bấm trượt = 0. Đổi node 2 về *So theo: Độ sáng* → hết giờ không thấy; tắt *Kiểm tra màu* ở node 4 → có lúc bấm nhầm nút xám
@@ -139,7 +150,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 - [ ] N4 Tệp / thư mục: Mẫu thử → **Tệp / thư mục – ghi nhật ký, thêm dòng Excel, dọn file tạm** → Chạy: hiện hộp *Kịch bản này sẽ xoá file* (Huỷ thì không chạy) → Cho phép → `~/Documents/autoclicker-mau-thu` có nhat-ky.txt, don-hang.csv (mở bằng Excel đúng tiếng Việt), don-hang.xlsx (sheet *Đơn hàng*); 2 file tam-*.txt nằm trong Thùng rác. Chạy lại: không hỏi nữa, csv / xlsx thêm dòng. Đổi mẫu tên → hỏi lại. Node *Dọn Thùng rác*: macOS hỏi quyền điều khiển Finder lần đầu. Đặt thư mục `/` hoặc `~` → node báo bị chặn. Xem cả theme sáng + tối. Windows (khi có máy): Recycle Bin, dọn Thùng rác
 - [ ] N3 HTTP: Mẫu thử → **HTTP – gọi API, đọc JSON trả về** → Chạy (cần mạng): lời kết thúc ghi HTTP 200, tên “Lan "Hà"”, từ khoá “cà phê & trà”. Inspector: Method + URL một hàng; đổi GET → POST mở sẵn thân JSON; thêm Header `Authorization` → hiện 🔒; JSON sai cú pháp → báo đỏ; Form hiện bảng trường. Đổi URL sang `https://httpbin.org/status/404` → node Thất bại, nhật ký ghi HTTP 404. Xem cả theme sáng + tối
 - [ ] N2 Clipboard: Mẫu thử → **Clipboard – ghi, dán, copy lại** → Chạy: ô hiện “Dán từ clipboard: Xin chào Lan!”, lời kết thúc ghi lại đúng chữ. Node Clipboard *Ghi ảnh* với `{{n?.output.path}}` của node Chụp màn hình → dán vào chat ra ảnh. Windows (khi có máy): đọc / ghi tiếng Việt, ghi ảnh
-- [ ] N1 Chụp màn hình: Mẫu thử → **Chụp màn hình – chụp chỗ thấy chữ + cả màn** → Chạy: 2 ảnh trong `~/Pictures/autoclicker`, dán (Cmd+V) vào app chat ra ảnh chữ ĐÃ XONG. Inspector: đổi *Chụp* qua 4 kiểu; *Vùng cố định* → **Khoanh trên màn hình…** → overlay ghi *Dùng vùng này* → về inspector đã có X / Y / W / H; *Cả màn* liệt kê đúng các màn đang cắm. Xem cả theme sáng + tối. Windows (khi có máy): chép ảnh vào clipboard
+- [ ] N1 Chụp màn hình: Mẫu thử → **Chụp màn hình – chụp chỗ thấy chữ + cả màn** → Chạy: 2 ảnh trong `~/Pictures/Auto Clicker` (thư mục ảnh trong Cài đặt), dán (Cmd+V) vào app chat ra ảnh chữ ĐÃ XONG. Inspector: đổi *Chụp* qua 4 kiểu; *Vùng cố định* → **Khoanh trên màn hình…** → overlay ghi *Dùng vùng này* → về inspector đã có X / Y / W / H; *Cả màn* liệt kê đúng các màn đang cắm. Xem cả theme sáng + tối. Windows (khi có máy): chép ảnh vào clipboard
 - [ ] N0 mô tả node: Ctrl/Cmd+K → rê chuột / phím mũi tên qua các mục, khung dưới đổi mô tả theo mục, bảng không giật; inspector có thẻ mô tả dưới tab Node, × ẩn → mở node khác vẫn ẩn, ⓘ hiện lại, tắt app mở lại vẫn nhớ – xem cả theme sáng + tối
 
 ## 25d – Ghi chú node web · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)

@@ -67,6 +67,12 @@ func (a *App) GetRun(name, path, id string) (model.RunRecord, error) {
 	return store.GetRun(name, path, id)
 }
 
+// DeleteRun – xoá một lần chạy (nhật ký + ảnh) khỏi lịch sử của kịch bản.
+func (a *App) DeleteRun(name, path, id string) error { return store.DeleteRun(name, path, id) }
+
+// ClearRuns – xoá mọi lần chạy đã lưu của kịch bản.
+func (a *App) ClearRuns(name, path string) error { return store.ClearRuns(name, path) }
+
 // RunShot – ảnh màn hình lúc node thất bại (StepResult.Shot) dạng data URL.
 func (a *App) RunShot(name, path, id, shot string) (string, error) {
 	return store.RunShot(name, path, id, shot)

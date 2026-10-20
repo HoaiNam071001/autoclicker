@@ -48,6 +48,22 @@ export function LibraryFooter({ ready, mod, shift, onNew, onOpen, onSave, onSamp
   );
 }
 
+// Một dòng Mở gần đây: bấm tên để mở, ✕ (hiện khi rê chuột / focus) bỏ khỏi danh sách – không xoá file (bước 41 L4).
+export function RecentItem({ path, name, ai, onOpen, onForget }: { path: string; name: string; ai: boolean; onOpen: () => void; onForget?: () => void }) {
+  return (
+    <div className="group flex items-center rounded-md text-[13px] text-muted hover:bg-hover hover:text-ink">
+      <a href="#" title={path} onClick={(e) => { e.preventDefault(); onOpen(); }} className={`flex min-w-0 flex-1 items-center gap-2 py-[7px] pl-3 ${onForget ? '' : 'pr-3'}`}>
+        <span className="min-w-0 flex-1 truncate">{name}</span>
+        {ai && <AIChip />}
+      </a>
+      {onForget && (
+        <button onClick={onForget} aria-label={`Bỏ ${name} khỏi Mở gần đây`} title="Bỏ khỏi Mở gần đây (file vẫn còn)"
+          className="mr-1 grid h-6 w-6 flex-none place-items-center rounded text-muted opacity-0 group-hover:opacity-100 hover:bg-soft hover:text-ink focus-visible:opacity-100">✕</button>
+      )}
+    </div>
+  );
+}
+
 // Chip "AI" – kịch bản AI tạo qua MCP (bước 31).
 export function AIChip() {
   return <span className="flex-none rounded-full bg-soft px-1.5 font-mono text-[10.5px] font-semibold text-muted" title="AI tạo qua MCP – xem kỹ trước khi chạy">AI</span>;

@@ -20,10 +20,11 @@ const (
 )
 
 type Settings struct {
-	Theme  string      `json:"theme"`            // light | dark | system
-	Recent []string    `json:"recent,omitempty"` // file kịch bản mở / lưu gần đây, mới nhất trước (storage.go)
-	API    APISettings `json:"api"`
-	MCP    MCPSettings `json:"mcp"`
+	Theme   string          `json:"theme"`            // light | dark | system
+	Recent  []string        `json:"recent,omitempty"` // file kịch bản mở / lưu gần đây, mới nhất trước (storage.go)
+	API     APISettings     `json:"api"`
+	MCP     MCPSettings     `json:"mcp"`
+	Storage StorageSettings `json:"storage"`
 }
 
 // MCPSettings – cho AI kết nối qua MCP (bước 31): bật mặc định; route /mcp chạy trên cùng cổng API local.

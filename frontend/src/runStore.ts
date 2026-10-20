@@ -1,7 +1,7 @@
 // Nhật ký lần chạy đang xem (bước 20 F5): kết quả từng node của lần đang chạy / vừa chạy (event engine:node) hoặc
 // một lần trong lịch sử (internal/store/runs.go). Canvas tô đường đã đi, bảng Nhật ký, mục "Lần chạy gần nhất" đều đọc từ đây.
 import { useSyncExternalStore } from 'react';
-import { GetRun, ListRuns, RunShot } from '../wailsjs/go/main/App';
+import { ClearRuns, DeleteRun, GetRun, ListRuns, RunShot } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { getEditor, subscribe } from './store';
 import { inWails } from './windowMode';
@@ -65,6 +65,15 @@ export async function openRun(id: string) {
 }
 
 export const closeRunLog = () => set({ open: false });
+
+// Xoá một lần chạy (id) hoặc cả lịch sử (id trống) của kịch bản đang mở. Bảng Nhật ký đang xem lần bị xoá → đóng
+// (lần đang chạy chưa có summary – giữ nguyên).
+export async function deleteRuns(id = '') {
+  const { name, path } = ownerNow();
+  await (id ? DeleteRun(name, path, id) : ClearRuns(name, path));
+  if (state.summary && (!id || state.summary.id === id)) set({ open: false, results: [], summary: null, live: true });
+  await loadHistory();
+}
 
 // Ảnh lúc lỗi của lần chạy id bất kỳ trong lịch sử kịch bản đang mở.
 export const runShotUrl = (id: string, shot: string) => RunShot(ownerNow().name, ownerNow().path, id, shot).catch(() => '');

@@ -102,9 +102,9 @@ func listRuns(dir string) []model.RunSummary {
 	return out
 }
 
-// safeName chặn tên file có đường dẫn (id / tên ảnh đến từ frontend).
+// safeName chặn tên file có đường dẫn (id / tên ảnh đến từ frontend) và ký tự glob (deleteRun ghép id vào mẫu tìm ảnh).
 func safeName(n string) error {
-	if n == "" || n != filepath.Base(n) || strings.HasPrefix(n, ".") {
+	if n == "" || n != filepath.Base(n) || strings.HasPrefix(n, ".") || strings.ContainsAny(n, `*?[\/`) {
 		return errors.New("tên file lịch sử không hợp lệ")
 	}
 	return nil
@@ -154,4 +154,42 @@ func RunShot(name, path, id, shot string) (string, error) {
 		return "", fmt.Errorf("không đọc được ảnh: %w", err)
 	}
 	return "data:image/png;base64," + base64.StdEncoding.EncodeToString(b), nil
+}
+
+// deleteRun xoá một lần chạy trong dir: <id>.json + ảnh <id>-*.png.
+func deleteRun(dir, id string) error {
+	if err := safeName(id); err != nil {
+		return err
+	}
+	shots, _ := filepath.Glob(filepath.Join(dir, id+"-*.png"))
+	for _, f := range shots {
+		if err := os.Remove(f); err != nil {
+			return fmt.Errorf("không xoá được ảnh của lần chạy: %w", err)
+		}
+	}
+	if err := os.Remove(filepath.Join(dir, id+".json")); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("không xoá được lần chạy: %w", err)
+	}
+	return nil
+}
+
+// DeleteRun – xoá một lần chạy trong lịch sử của kịch bản.
+func DeleteRun(name, path, id string) error {
+	base, err := ConfigDir()
+	if err != nil {
+		return err
+	}
+	return deleteRun(RunsDir(base, name, path), id)
+}
+
+// ClearRuns – xoá cả thư mục lịch sử của kịch bản (mọi lần chạy + ảnh).
+func ClearRuns(name, path string) error {
+	base, err := ConfigDir()
+	if err != nil {
+		return err
+	}
+	if err := os.RemoveAll(RunsDir(base, name, path)); err != nil {
+		return fmt.Errorf("không xoá được lịch sử chạy: %w", err)
+	}
+	return nil
 }

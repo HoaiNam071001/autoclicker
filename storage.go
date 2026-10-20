@@ -84,6 +84,12 @@ func (a *App) SaveScriptAs(sc model.Script, path string) (ScriptFile, error) {
 	if path != "" {
 		opts.DefaultDirectory = filepath.Dir(path)
 		opts.DefaultFilename = filepath.Base(path)
+	} else {
+		dir, err := store.ScriptsDir() // lưu lần đầu: mở ở thư mục kịch bản trong Cài đặt
+		if err != nil {
+			return ScriptFile{}, err
+		}
+		opts.DefaultDirectory = dir
 	}
 	dst, err := runtime.SaveFileDialog(a.ctx, opts)
 	if err != nil || dst == "" {
@@ -98,7 +104,11 @@ func (a *App) SaveScriptAs(sc model.Script, path string) (ScriptFile, error) {
 
 // OpenScript hỏi file rồi đọc. Path "" nếu người dùng huỷ.
 func (a *App) OpenScript() (ScriptFile, error) {
-	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{Title: "Mở kịch bản", Filters: scriptFilters})
+	opts := runtime.OpenDialogOptions{Title: "Mở kịch bản", Filters: scriptFilters}
+	if dir, err := store.ScriptsDir(); err == nil { // thư mục đã chọn không còn: vẫn mở được file ở chỗ khác
+		opts.DefaultDirectory = dir
+	}
+	path, err := runtime.OpenFileDialog(a.ctx, opts)
 	if err != nil || path == "" {
 		return ScriptFile{}, err
 	}
@@ -121,6 +131,17 @@ func (a *App) OpenScriptPath(path string) (ScriptFile, error) {
 
 // RecentScripts trả danh sách file mở / lưu gần đây, mới nhất trước.
 func (a *App) RecentScripts() []string { return store.RecentScripts() }
+
+// ForgetRecent bỏ path khỏi Mở gần đây (path "" = xoá cả danh sách). Không xoá file kịch bản.
+func (a *App) ForgetRecent(path string) []string {
+	store.EditRecent(func(l []string) []string {
+		if path == "" {
+			return nil
+		}
+		return store.RemoveRecent(l, path)
+	})
+	return store.RecentScripts()
+}
 
 // SaveDraft ghi bản nháp tự lưu (frontend gọi sau mỗi lần sửa, có giãn cách).
 func (a *App) SaveDraft(d store.Draft) error { return store.SaveDraft(d) }

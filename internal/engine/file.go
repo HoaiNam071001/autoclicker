@@ -59,8 +59,6 @@ func (e *Engine) fileStep(ctx context.Context, s model.Step) (map[string]any, er
 // utf8BOM – đầu file CSV mới: Excel đọc đúng UTF-8 (tiếng Việt).
 const utf8BOM = "\xEF\xBB\xBF"
 
-
-
 func writeText(p, text string, appendTo bool) (map[string]any, error) {
 	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
 		return nil, fmt.Errorf("không tạo được thư mục chứa file: %w", err)

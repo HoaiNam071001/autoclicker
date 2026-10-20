@@ -32,11 +32,14 @@ func (e *Engine) screenshot(ctx context.Context, s model.Step) (map[string]any, 
 	if err != nil {
 		return nil, err
 	}
-	path, err := shotPath(s.SaveDir, s.FileName, time.Now())
+	path, err := shotPath(s.SaveDir, e.shotsDir, s.FileName, time.Now())
 	if err != nil {
 		return nil, err
 	}
 	if err := writePNG(path, img); err != nil {
+		if strings.TrimSpace(s.SaveDir) == "" {
+			return nil, fmt.Errorf("không ghi được vào thư mục ảnh trong Cài đặt (%s) – chọn lại hoặc về mặc định ở Cài đặt → Lưu trữ: %w", filepath.Dir(path), err)
+		}
 		return nil, err
 	}
 	if s.ToClipboard {
@@ -104,11 +107,14 @@ func userPath(p string) (string, error) {
 	return filepath.Join(home, p), nil
 }
 
-// shotPath – đường dẫn file sẽ ghi: dir trống = Pictures/autoclicker, còn lại theo userPath; name trống =
-// autoclicker-<ngày>-<giờ>; ký tự không hợp lệ trong tên → "-"; trùng file có sẵn thì thêm " (2)"…
-func shotPath(dir, name string, now time.Time) (string, error) {
+// shotPath – đường dẫn file sẽ ghi: dir trống = def (thư mục ảnh trong Cài đặt; trống nữa = Pictures/Auto Clicker), còn lại
+// theo userPath; name trống = autoclicker-<ngày>-<giờ>; ký tự không hợp lệ trong tên → "-"; trùng file có sẵn thì thêm " (2)"…
+func shotPath(dir, def, name string, now time.Time) (string, error) {
 	if strings.TrimSpace(dir) == "" {
-		dir = filepath.Join("Pictures", "autoclicker")
+		dir = def
+	}
+	if dir == "" {
+		dir = filepath.Join("Pictures", "Auto Clicker")
 	}
 	dir, err := userPath(dir)
 	if err != nil {

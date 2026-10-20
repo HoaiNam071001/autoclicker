@@ -48,3 +48,33 @@ func TestSaveRunPrunesAndLists(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestDeleteRun(t *testing.T) {
+	dir := RunsDir(t.TempDir(), "A", "/x/a.json")
+	at := time.Date(2026, 10, 20, 9, 0, 0, 0, time.Local)
+	var ids []string
+	for i := range 2 {
+		rec := model.RunRecord{RunSummary: model.RunSummary{ID: NewRunID(at.Add(time.Duration(i) * time.Second)), Status: model.RunFail}}
+		if err := SaveRun(dir, rec, map[string]image.Image{"1.png": image.NewRGBA(image.Rect(0, 0, 2, 2))}); err != nil {
+			t.Fatal(err)
+		}
+		ids = append(ids, rec.ID)
+	}
+	for _, bad := range []string{"*", "../x", ".hidden", "a/b", `a\b`} {
+		if err := deleteRun(dir, bad); err == nil {
+			t.Errorf("id %q phải bị chặn", bad)
+		}
+	}
+	if err := deleteRun(dir, ids[0]); err != nil {
+		t.Fatal(err)
+	}
+	if runs := listRuns(dir); len(runs) != 1 || runs[0].ID != ids[1] {
+		t.Errorf("còn %v, muốn chỉ %s", runs, ids[1])
+	}
+	if pngs, _ := filepath.Glob(filepath.Join(dir, "*.png")); len(pngs) != 1 || !strings.HasPrefix(filepath.Base(pngs[0]), ids[1]) {
+		t.Errorf("ảnh còn lại %v", pngs)
+	}
+	if err := deleteRun(dir, ids[0]); err != nil {
+		t.Errorf("xoá lần đã xoá không được lỗi: %v", err)
+	}
+}

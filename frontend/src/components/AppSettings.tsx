@@ -1,20 +1,32 @@
-// Cài đặt app (nút bánh răng trên thanh tiêu đề): chạy từ ngoài app – dòng lệnh, API local (bước 22, settings/ApiSettings)
-// và AI qua MCP (bước 31, settings/McpSettings).
+// Cài đặt app (nút bánh răng trên thanh tiêu đề), chia tab: Lưu trữ – thư mục kịch bản / ảnh (bước 41, settings/StorageSettings),
+// API – dòng lệnh + API local (bước 22, settings/ApiSettings), AI qua MCP (bước 31, settings/McpSettings).
 import { useEffect, useState } from 'react';
-import { GetSettings, SetAPISettings, SetMCPSettings } from '../../wailsjs/go/main/App';
+import {
+  GetSettings, OpenFolder, PickFolder, SetAPISettings, SetMCPSettings, SetStorageSettings, StorageDefaults,
+} from '../../wailsjs/go/main/App';
 import { store } from '../../wailsjs/go/models';
 import { errorText } from '../engineStore';
 import { Gear } from './icons';
 import ApiSettings from './settings/ApiSettings';
 import McpSettings from './settings/McpSettings';
+import StorageSettings, { StorageKey } from './settings/StorageSettings';
+import Segmented from './Segmented';
+
+type Tab = 'storage' | 'api' | 'mcp';
+const TABS: { id: Tab; label: string }[] = [{ id: 'storage', label: 'Lưu trữ' }, { id: 'api', label: 'API' }, { id: 'mcp', label: 'AI (MCP)' }];
 
 export default function AppSettings() {
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState<store.Settings | null>(null);
   const [error, setError] = useState('');
+  const [tab, setTab] = useState<Tab>('storage');
+  const [defaults, setDefaults] = useState<store.StorageDefaults | null>(null);
 
   const toggle = () => {
-    if (!open) GetSettings().then(setSettings).catch((e) => setError(errorText(e)));
+    if (!open) {
+      GetSettings().then(setSettings).catch((e) => setError(errorText(e)));
+      StorageDefaults().then(setDefaults).catch((e) => setError(errorText(e)));
+    }
     setOpen(!open);
   };
   useEffect(() => {
@@ -36,6 +48,15 @@ export default function AppSettings() {
     setSettings(store.Settings.createFrom({ ...settings, mcp }));
     SetMCPSettings(mcp).then(() => setError('')).catch((e) => setError(errorText(e)));
   };
+  const saveStorage = (key: StorageKey, dir: string) => {
+    if (!settings) return;
+    const storage = store.StorageSettings.createFrom({ ...settings.storage, [key]: dir });
+    SetStorageSettings(storage).then(() => { setSettings((s) => s && store.Settings.createFrom({ ...s, storage })); setError(''); })
+      .catch((e) => setError(errorText(e)));
+  };
+  const pick = (key: StorageKey, from: string) =>
+    PickFolder('Chọn thư mục', from).then((dir) => dir && saveStorage(key, dir)).catch((e) => setError(errorText(e)));
+  const openDir = (dir: string) => OpenFolder(dir).then(() => setError('')).catch((e) => setError(errorText(e)));
 
   return (
     <>
@@ -48,8 +69,12 @@ export default function AppSettings() {
               <div className="text-base font-semibold">Cài đặt</div>
               <button onClick={() => setOpen(false)} aria-label="Đóng" className="rounded-md px-2 py-1 text-muted hover:bg-hover hover:text-ink">✕</button>
             </div>
-            <ApiSettings api={settings.api} onChange={saveApi} />
-            <McpSettings mcp={settings.mcp} onChange={saveMcp} />
+            <Segmented value={tab} options={TABS} onChange={setTab} label="Nhóm cài đặt" full />
+            {tab === 'storage' && (
+              <StorageSettings storage={settings.storage ?? {}} defaults={defaults} onPick={pick} onOpen={openDir} onReset={(key) => saveStorage(key, '')} />
+            )}
+            {tab === 'api' && <ApiSettings api={settings.api} onChange={saveApi} />}
+            {tab === 'mcp' && <McpSettings mcp={settings.mcp} onChange={saveMcp} />}
             {error && <span className="text-danger-text">{error}</span>}
           </div>
         </div>

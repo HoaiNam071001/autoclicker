@@ -25,6 +25,8 @@ type Deps struct {
 	// Touch – lượt AI: người dùng đụng chuột (chuột tới chỗ engine không đưa tới) → onTouch (chạy tới khi ctx huỷ).
 	Touch   func(ctx context.Context, in *device.TrackingInput, paused func() bool, onTouch func())
 	SaveRun func(rec model.RunRecord, path string, shots map[string]image.Image) error
+	// ShotsDir – thư mục ảnh trong Cài đặt (node Chụp màn hình để trống saveDir), đọc lúc bắt đầu mỗi phiên.
+	ShotsDir func() string
 }
 
 func (d Deps) withDefaults() Deps {
@@ -62,6 +64,9 @@ func (d Deps) withDefaults() Deps {
 		d.Touch = func(ctx context.Context, in *device.TrackingInput, paused func() bool, onTouch func()) {
 			device.WatchTouch(ctx, device.Location, in, paused, onTouch)
 		}
+	}
+	if d.ShotsDir == nil {
+		d.ShotsDir = store.ShotsDir
 	}
 	if d.SaveRun == nil {
 		d.SaveRun = func(rec model.RunRecord, path string, shots map[string]image.Image) error {

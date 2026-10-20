@@ -140,7 +140,7 @@ type Step struct {
 	ShotArea    string `json:"shotArea,omitempty"`    // ShotAreas: "" = vùng của kịch bản | screen | rect | node (ImageFrom)
 	Display     int    `json:"display,omitempty"`     // shotArea screen: 0 = màn chứa vùng kịch bản (không vùng: màn chính), n = màn thứ n
 	ShotRect    *Rect  `json:"shotRect,omitempty"`    // shotArea rect: vùng chụp, toạ độ màn hình
-	SaveDir     string `json:"saveDir,omitempty"`     // thư mục lưu ("" = Pictures/autoclicker, ~ = thư mục người dùng); nhận {{biến}}
+	SaveDir     string `json:"saveDir,omitempty"`     // thư mục lưu ("" = thư mục ảnh trong Cài đặt, mặc định Pictures/Auto Clicker; ~ = thư mục người dùng); nhận {{biến}}
 	FileName    string `json:"fileName,omitempty"`    // tên file ("" = autoclicker-<ngày>-<giờ>; tự thêm .png, trùng thì thêm số); nhận {{biến}}
 	ToClipboard bool   `json:"toClipboard,omitempty"` // chép ảnh vào clipboard
 	// Clipboard (bước 35 N2)

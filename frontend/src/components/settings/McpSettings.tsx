@@ -41,7 +41,7 @@ export default function McpSettings({ mcp, onChange }: { mcp: store.MCPSettings;
 
   return (
     <>
-      <label className="flex items-center justify-between gap-3 border-t border-line pt-3">
+      <label className="flex items-center justify-between gap-3">
         <span className="flex flex-col">Cho AI điều khiển (MCP)
           <span className="text-xs text-muted">Claude, Cursor, Codex… tạo / sửa / chạy thử kịch bản</span>
         </span>

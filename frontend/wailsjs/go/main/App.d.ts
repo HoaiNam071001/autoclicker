@@ -25,9 +25,13 @@ export function ClaudeDesktopConfigPath():Promise<string>;
 
 export function ClearDraft():Promise<void>;
 
+export function ClearRuns(arg1:string,arg2:string):Promise<void>;
+
 export function ConfirmQuit():Promise<void>;
 
 export function DangerCheck(arg1:model.Script,arg2:Record<string, any>,arg3:string):Promise<main.DangerCheck>;
+
+export function DeleteRun(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function Displays():Promise<Array<main.DisplayInfo>>;
 
@@ -36,6 +40,8 @@ export function FindElement(arg1:model.Script,arg2:string):Promise<engine.WebFin
 export function FindImage(arg1:model.Script,arg2:string):Promise<engine.FindResult>;
 
 export function FlowGuide():Promise<model.FlowGuideDoc>;
+
+export function ForgetRecent(arg1:string):Promise<Array<string>>;
 
 export function GetInputMemory(arg1:string):Promise<store.InputMemory>;
 
@@ -71,6 +77,8 @@ export function NewStep(arg1:string):Promise<model.Step>;
 
 export function OpenAppBrowser(arg1:string):Promise<void>;
 
+export function OpenFolder(arg1:string):Promise<void>;
+
 export function OpenSample(arg1:string):Promise<model.Script>;
 
 export function OpenSandboxPage(arg1:string):Promise<void>;
@@ -86,6 +94,8 @@ export function PauseScript():Promise<boolean>;
 export function PickElement(arg1:string):Promise<web.Picked>;
 
 export function PickElementAt(arg1:model.Script,arg2:string,arg3:number,arg4:number):Promise<engine.ElementPick>;
+
+export function PickFolder(arg1:string,arg2:string):Promise<string>;
 
 export function PixelColorAt(arg1:number,arg2:number):Promise<string>;
 
@@ -127,6 +137,8 @@ export function SetOverlayDisplay(arg1:number):Promise<void>;
 
 export function SetSchedule(arg1:model.Schedule):Promise<void>;
 
+export function SetStorageSettings(arg1:store.StorageSettings):Promise<void>;
+
 export function SetTheme(arg1:string):Promise<void>;
 
 export function SetWindowMode(arg1:string):Promise<void>;
@@ -136,6 +148,8 @@ export function StepScript():Promise<boolean>;
 export function StepTypes():Promise<Array<model.StepTypeDoc>>;
 
 export function StopScript():Promise<void>;
+
+export function StorageDefaults():Promise<store.StorageDefaults>;
 
 export function TestNode(arg1:model.Script,arg2:string):Promise<engine.NodeTest>;
 

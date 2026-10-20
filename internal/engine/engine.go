@@ -95,6 +95,7 @@ type Engine struct {
 	counts   map[string]int               // node Đếm: số lần đã đi qua trong vòng này
 	stopAt   string                       // Options.StopAt
 	seed     *Carry                       // Options.Seed
+	shotsDir string                       // Options.ShotsDir
 	reached  bool                         // đã tới StopAt
 	timedOut bool                         // dừng vì hết MaxMinutes (kết thúc bình thường)
 

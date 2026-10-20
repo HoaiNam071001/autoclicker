@@ -10,7 +10,7 @@ import { addInput } from '../../scriptInputs';
 import { startCapture } from '../../imageSteps';
 import { inWails } from '../../windowMode';
 import { nodeTitle } from '../../flow/view';
-import { DEFAULT_SHOT_DIR, hasFoundBox, SHOT_AREAS, type ShotArea } from '../../flow/shot';
+import { hasFoundBox, SHOT_AREAS, type ShotArea } from '../../flow/shot';
 import { Rect, Step } from '../../types';
 import { Field, hint, selectBox, SwitchField, useNodeVars } from './shared';
 
@@ -35,8 +35,8 @@ export function ShotFields({ step: s }: { step: Step }) {
         {area === 'rect' && <RectPicker step={s} onChange={(shotRect) => set({ shotRect })} />}
         {area === 'node' && <NodePicker step={s} onChange={(imageFrom) => set({ imageFrom })} />}
       </Field>
-      <Field label="Thư mục lưu" wide group help={`Trống = ~/${DEFAULT_SHOT_DIR} · chưa có thì tự tạo`}>
-        <VarTextInput {...varProps} value={s.saveDir ?? ''} onChange={(v) => set({ saveDir: v || undefined })} placeholder={DEFAULT_SHOT_DIR} />
+      <Field label="Thư mục lưu" wide group help="Trống = thư mục ảnh trong Cài đặt → Lưu trữ (mặc định Pictures/Auto Clicker) · chưa có thì tự tạo">
+        <VarTextInput {...varProps} value={s.saveDir ?? ''} onChange={(v) => set({ saveDir: v || undefined })} placeholder="Thư mục ảnh trong Cài đặt" />
       </Field>
       <Field label="Tên file" wide group help="Tự thêm .png · trùng tên thì thêm (2), không ghi đè">
         <VarTextInput {...varProps} value={s.fileName ?? ''} onChange={(v) => set({ fileName: v || undefined })} placeholder="autoclicker-<ngày>-<giờ>" />

@@ -126,12 +126,14 @@ func TestScreenshotFromNode(t *testing.T) {
 func TestShotPath(t *testing.T) {
 	home, _ := os.UserHomeDir()
 	now := time.Date(2026, 10, 18, 9, 5, 7, 0, time.Local)
-	for _, c := range []struct{ dir, name, want string }{
-		{"", "", filepath.Join(home, "Pictures", "autoclicker", "autoclicker-2026-10-18-090507.png")},
-		{"~/Desktop", "a.png", filepath.Join(home, "Desktop", "a.png")},
-		{"Documents/x", "b:c", filepath.Join(home, "Documents", "x", "b-c.png")},
+	set := filepath.Join(home, "Anh chup")
+	for _, c := range []struct{ dir, def, name, want string }{
+		{"", "", "", filepath.Join(home, "Pictures", "Auto Clicker", "autoclicker-2026-10-18-090507.png")},
+		{" ", set, "x", filepath.Join(set, "x.png")},
+		{"~/Desktop", set, "a.png", filepath.Join(home, "Desktop", "a.png")},
+		{"Documents/x", "", "b:c", filepath.Join(home, "Documents", "x", "b-c.png")},
 	} {
-		if got, err := shotPath(c.dir, c.name, now); err != nil || got != c.want {
+		if got, err := shotPath(c.dir, c.def, c.name, now); err != nil || got != c.want {
 			t.Errorf("shotPath(%q, %q) = %q %v, muốn %q", c.dir, c.name, got, err, c.want)
 		}
 	}

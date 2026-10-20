@@ -1735,11 +1735,28 @@ export namespace store {
 	        this.clients = source["clients"];
 	    }
 	}
+	export class StorageSettings {
+	    scriptsDir?: string;
+	    aiScriptsDir?: string;
+	    shotsDir?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new StorageSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.scriptsDir = source["scriptsDir"];
+	        this.aiScriptsDir = source["aiScriptsDir"];
+	        this.shotsDir = source["shotsDir"];
+	    }
+	}
 	export class Settings {
 	    theme: string;
 	    recent?: string[];
 	    api: APISettings;
 	    mcp: MCPSettings;
+	    storage: StorageSettings;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -1751,6 +1768,7 @@ export namespace store {
 	        this.recent = source["recent"];
 	        this.api = this.convertValues(source["api"], APISettings);
 	        this.mcp = this.convertValues(source["mcp"], MCPSettings);
+	        this.storage = this.convertValues(source["storage"], StorageSettings);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1770,6 +1788,20 @@ export namespace store {
 		    }
 		    return a;
 		}
+	}
+	export class StorageDefaults {
+	    scriptsDir: string;
+	    shotsDir: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new StorageDefaults(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.scriptsDir = source["scriptsDir"];
+	        this.shotsDir = source["shotsDir"];
+	    }
 	}
 
 }

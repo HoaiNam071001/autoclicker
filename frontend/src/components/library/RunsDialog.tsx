@@ -1,20 +1,23 @@
 // Hộp thoại Lịch sử chạy (thư viện → "Xem tất cả"): trái mọi lần chạy đã lưu, phải nhật ký của lần đang chọn (bấm
 // dòng xem output / lỗi / ảnh lúc lỗi ngay trong hộp thoại). "Xem trên flow" mới đóng hộp thoại, mở bảng Nhật ký và
-// tô đường đã đi trên canvas.
+// tô đường đã đi trên canvas. Xoá lần đang chọn / xoá hết (bước 41 – RunsDelete).
 import { useEffect, useMemo, useState } from 'react';
 import RunLog from '../flow/RunLog';
-import { fetchRun, openRun, RunSummary, runShotUrl, useRunLog } from '../../runStore';
+import { deleteRuns, fetchRun, openRun, RunSummary, runShotUrl, useRunLog } from '../../runStore';
+import { errorText } from '../../engineStore';
 import { useEditor } from '../../store';
 import { nodeViews } from '../../flow/view';
 import { runHead, runRows } from '../../flow/run';
 import type { StepResult } from '../../types';
 import { libraryRun, runDot } from './runs';
+import RunsDelete from './RunsDelete';
 
 export default function RunsDialog({ onClose }: { onClose: () => void }) {
   const { history } = useRunLog();
   const { script } = useEditor();
   const [sel, setSel] = useState(history[0]?.id ?? '');
   const [run, setRun] = useState<{ summary: RunSummary; results: StepResult[] } | null>(null);
+  const [error, setError] = useState('');
   useEffect(() => {
     let live = true;
     setRun(null);
@@ -29,6 +32,10 @@ export default function RunsDialog({ onClose }: { onClose: () => void }) {
   const views = useMemo(() => nodeViews(script), [script]);
   const rows = useMemo(() => (run ? runRows(run.results, script.steps, script.edges) : []), [run, script.steps, script.edges]);
   const head = run && runHead(run.results, run.summary, false, false);
+  const remove = (id: string) => {
+    const next = id && history[history.findIndex((h) => h.id === id) + 1]?.id; // xoá xong chọn lần cũ hơn kế đó
+    deleteRuns(id).then(() => { setSel(next || ''); setError(''); }).catch((e) => setError(errorText(e)));
+  };
   const view = () => {
     onClose();
     openRun(sel);
@@ -40,7 +47,9 @@ export default function RunsDialog({ onClose }: { onClose: () => void }) {
           <div className="flex-1">
             <div className="text-base font-semibold">Lịch sử chạy</div>
             <div className="text-[13px] text-muted">{script.name} · {history.length} lần đã lưu – chọn một lần để xem nhật ký</div>
+            {error && <div className="text-[13px] text-danger-text">{error}</div>}
           </div>
+          <RunsDelete count={history.length} canDelete={!!sel} onDelete={() => remove(sel)} onClear={() => remove('')} />
           <button disabled={!run} onClick={view} className="btn-primary h-8 rounded-control px-3 text-[13px] font-semibold disabled:opacity-50"
             title="Đóng hộp thoại, mở nhật ký dưới canvas và tô đường đã đi">Xem trên flow</button>
           <button onClick={onClose} aria-label="Đóng" className="h-8 w-8 rounded-control text-muted hover:bg-hover hover:text-ink">✕</button>

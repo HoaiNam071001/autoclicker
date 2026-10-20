@@ -34,12 +34,20 @@ export function ClearDraft() {
   return window['go']['main']['App']['ClearDraft']();
 }
 
+export function ClearRuns(arg1, arg2) {
+  return window['go']['main']['App']['ClearRuns'](arg1, arg2);
+}
+
 export function ConfirmQuit() {
   return window['go']['main']['App']['ConfirmQuit']();
 }
 
 export function DangerCheck(arg1, arg2, arg3) {
   return window['go']['main']['App']['DangerCheck'](arg1, arg2, arg3);
+}
+
+export function DeleteRun(arg1, arg2, arg3) {
+  return window['go']['main']['App']['DeleteRun'](arg1, arg2, arg3);
 }
 
 export function Displays() {
@@ -56,6 +64,10 @@ export function FindImage(arg1, arg2) {
 
 export function FlowGuide() {
   return window['go']['main']['App']['FlowGuide']();
+}
+
+export function ForgetRecent(arg1) {
+  return window['go']['main']['App']['ForgetRecent'](arg1);
 }
 
 export function GetInputMemory(arg1) {
@@ -126,6 +138,10 @@ export function OpenAppBrowser(arg1) {
   return window['go']['main']['App']['OpenAppBrowser'](arg1);
 }
 
+export function OpenFolder(arg1) {
+  return window['go']['main']['App']['OpenFolder'](arg1);
+}
+
 export function OpenSample(arg1) {
   return window['go']['main']['App']['OpenSample'](arg1);
 }
@@ -156,6 +172,10 @@ export function PickElement(arg1) {
 
 export function PickElementAt(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['PickElementAt'](arg1, arg2, arg3, arg4);
+}
+
+export function PickFolder(arg1, arg2) {
+  return window['go']['main']['App']['PickFolder'](arg1, arg2);
 }
 
 export function PixelColorAt(arg1, arg2) {
@@ -238,6 +258,10 @@ export function SetSchedule(arg1) {
   return window['go']['main']['App']['SetSchedule'](arg1);
 }
 
+export function SetStorageSettings(arg1) {
+  return window['go']['main']['App']['SetStorageSettings'](arg1);
+}
+
 export function SetTheme(arg1) {
   return window['go']['main']['App']['SetTheme'](arg1);
 }
@@ -256,6 +280,10 @@ export function StepTypes() {
 
 export function StopScript() {
   return window['go']['main']['App']['StopScript']();
+}
+
+export function StorageDefaults() {
+  return window['go']['main']['App']['StorageDefaults']();
 }
 
 export function TestNode(arg1, arg2) {

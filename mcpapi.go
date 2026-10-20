@@ -82,7 +82,7 @@ type mcpBackend struct{ a *App }
 
 func (b mcpBackend) Enabled() bool               { return store.CurrentSettings().MCP.Enabled }
 func (b mcpBackend) Recent() []string            { return store.RecentScripts() }
-func (b mcpBackend) ScriptsDir() (string, error) { return store.ScriptsDir() }
+func (b mcpBackend) ScriptsDir() (string, error) { return store.AIScriptsDir() }
 
 func (b mcpBackend) Editor() mcpsrv.Editor {
 	b.a.mu.Lock()

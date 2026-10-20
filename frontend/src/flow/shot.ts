@@ -8,7 +8,6 @@ export type ShotArea = '' | 'screen' | 'rect' | 'node';
 export const SHOT_AREAS: { id: ShotArea; label: string }[] = [
   { id: '', label: 'Vùng kịch bản' }, { id: 'screen', label: 'Cả màn' }, { id: 'rect', label: 'Vùng cố định' }, { id: 'node', label: 'Chỗ node thấy' },
 ];
-export const DEFAULT_SHOT_DIR = 'Pictures/autoclicker';
 
 // Node có khung chỗ thấy trên màn hình (output x, y = tâm, w, h): chờ ảnh / chữ, click theo ảnh tự tìm, Nếu / Switch theo
 // màn hình, chờ / click phần tử web không chạy nền (chạy nền trả toạ độ trong trang).

@@ -3,14 +3,14 @@
 // Giao diện dựng ở bước 27b; lưu / mở nối ở bước 21 (scriptFile.ts); lịch sử chạy ở 20 F5 (runStore.ts); hẹn giờ ở 22 (scheduleStore.ts).
 import { ComponentType, ReactNode, useEffect, useState } from 'react';
 import { useEditor } from '../store';
-import { fileName, newScript, openRecent, openScript, save, useFile } from '../scriptFile';
+import { fileName, forgetRecent, newScript, openRecent, openScript, save, useFile } from '../scriptFile';
 import { inWails } from '../windowMode';
 import { openRun, useRunLog } from '../runStore';
 import { scheduleOf, useSchedules } from '../scheduleStore';
 import { SidebarToggle } from './icons';
 import { ResizeHandle, usePanelWidth } from './PanelResize';
 import Samples from './samples/Samples';
-import { AIChip, Fold, LibraryFooter } from './library/LibraryParts';
+import { AIChip, Fold, LibraryFooter, RecentItem } from './library/LibraryParts';
 import RunsDialog from './library/RunsDialog';
 import { LibraryRun, libraryRun, runDot } from './library/runs';
 
@@ -28,6 +28,7 @@ export type LibraryProps = {
   onOpen?: () => void;
   onSave?: () => void;
   onRecent?: (path: string) => void;
+  onForgetRecent?: (path: string) => void; // bỏ khỏi Mở gần đây (không xoá file); '' = xoá cả danh sách
   onHistory?: (id: string) => void; // mở lần chạy trong lịch sử – nhật ký + tô đường đã đi
   SamplesPanel?: ComponentType<{ onClose: () => void }>; // hộp thoại Mẫu thử (bước 33) – app thật / dữ liệu giả
   RunsPanel?: ComponentType<{ onClose: () => void }>; // hộp thoại Lịch sử chạy (Xem tất cả) – chỉ app thật
@@ -56,12 +57,12 @@ export default function Library() {
   const ai = script.meta?.createdBy === 'ai';
   return (
     <LibraryView scripts={[{ name: script.name, unsaved: dirty, schedule: sched?.time, ai }]} active={0} recent={recent.filter((r) => r !== path)} aiRecent={aiPaths} history={history}
-      ready={inWails} onNew={newScript} onOpen={openScript} onSave={() => save()} onRecent={openRecent} onHistory={openRun}
+      ready={inWails} onNew={newScript} onOpen={openScript} onSave={() => save()} onRecent={openRecent} onForgetRecent={forgetRecent} onHistory={openRun}
       SamplesPanel={Samples} RunsPanel={RunsDialog} />
   );
 }
 
-export function LibraryView({ scripts, active, recent, aiRecent = [], history, ready, onNew, onOpen, onSave, onRecent, onHistory, SamplesPanel, RunsPanel }: LibraryProps) {
+export function LibraryView({ scripts, active, recent, aiRecent = [], history, ready, onNew, onOpen, onSave, onRecent, onForgetRecent, onHistory, SamplesPanel, RunsPanel }: LibraryProps) {
   const [collapsed, setCollapsed] = useState(loadCollapsed);
   const [samples, setSamples] = useState(false);
   const [runsOpen, setRunsOpen] = useState(false);
@@ -137,13 +138,13 @@ export function LibraryView({ scripts, active, recent, aiRecent = [], history, r
         <div className="flex flex-col gap-px border-t border-line pt-1.5">
           <Fold title="Mở gần đây" storageKey="library-recent-open" summary={recent.length || undefined}>
             {recentShown.map((r) => (
-              <a key={r} href="#" title={r} onClick={(e) => { e.preventDefault(); onRecent?.(r); }}
-                className="flex items-center gap-2 rounded-md px-3 py-[7px] text-[13px] text-muted hover:bg-hover hover:text-ink">
-                <span className="min-w-0 flex-1 truncate">{fileName(r)}</span>
-                {aiRecent.includes(r) && <AIChip />}
-              </a>
+              <RecentItem key={r} path={r} name={fileName(r)} ai={aiRecent.includes(r)} onOpen={() => onRecent?.(r)} onForget={onForgetRecent && (() => onForgetRecent(r))} />
             ))}
             {recentShown.length === 0 && <span className="px-3 py-1 text-[13px] text-muted">{recent.length ? 'Không có file nào khớp' : 'Chưa có'}</span>}
+            {onForgetRecent && recent.length > 0 && (
+              <button onClick={() => onForgetRecent('')} title="Chỉ bỏ khỏi danh sách – file kịch bản vẫn còn"
+                className="rounded-md px-3 py-1 text-left text-[13px] text-muted hover:bg-hover hover:text-ink">Xoá danh sách</button>
+            )}
           </Fold>
 
           <Fold title="Lịch sử chạy" storageKey="library-runs-open" summary={history.slice(0, 3).map((h, i) => <span key={h.id ?? i} className={`h-1.5 w-1.5 rounded-full ${runDot(h)}`} />)}>

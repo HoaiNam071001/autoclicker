@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import {
-  AIScripts, ClearDraft, ConfirmQuit, LoadDraft, NewScript, OpenSample, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetEditorState,
+  AIScripts, ClearDraft, ConfirmQuit, ForgetRecent, LoadDraft, NewScript, OpenSample, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetEditorState,
 } from '../wailsjs/go/main/App';
 import { model, store } from '../wailsjs/go/models';
 import { getEditor, markSaved, reloadScript, replaceScript, subscribe } from './store';
@@ -102,6 +102,8 @@ export const newScript = () => guard({ action: 'new' });
 export const openScript = () => guard({ action: 'open' });
 export const openRecent = (path: string) => guard({ action: 'recent', path });
 export const openSample = (id: string, name: string) => guard({ action: 'sample', id, name });
+// Bỏ khỏi Mở gần đây (không xoá file); path trống = xoá cả danh sách.
+export const forgetRecent = (path = '') => ForgetRecent(path).then((recent) => setFs({ recent: recent ?? [] })).catch(() => {});
 
 // Trả lời hộp thoại hỏi lưu.
 export async function answerPending(choice: 'save' | 'discard' | 'cancel') {
