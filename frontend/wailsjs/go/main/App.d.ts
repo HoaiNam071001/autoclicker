@@ -5,6 +5,7 @@ import {model} from '../models';
 import {main} from '../models';
 import {engine} from '../models';
 import {store} from '../models';
+import {session} from '../models';
 import {samples} from '../models';
 
 export function BrowserStatus():Promise<web.Status>;
@@ -73,9 +74,11 @@ export function RequestScreenCapture():Promise<boolean>;
 
 export function ResumeScript():Promise<boolean>;
 
-export function RunScript(arg1:model.Script,arg2:Record<string, any>,arg3:main.RunOptions):Promise<void>;
+export function RunScript(arg1:model.Script,arg2:Record<string, any>,arg3:session.Options):Promise<void>;
 
 export function RunShot(arg1:string,arg2:string,arg3:string,arg4:string):Promise<string>;
+
+export function RunStatus(arg1:string):Promise<session.Status>;
 
 export function Samples():Promise<Array<samples.Info>>;
 

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { DangerCheck, RunScript, ValidateScript } from '../wailsjs/go/main/App';
 import { askDanger } from './dangerConfirm';
-import { main, model } from '../wailsjs/go/models';
+import { model, session } from '../wailsjs/go/models';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { Script } from './types';
 import { inWails, setWindowMode } from './windowMode';
@@ -44,6 +44,7 @@ let state: EngineState = {
   running: false, progress: null, receivedAt: 0, lastError: '', stopReason: '', countdown: 0, hotkeyError: '', preset: '', failedStep: '',
 };
 const listeners = new Set<() => void>();
+let external = false; // lần chạy đang diễn ra bắt đầu từ ngoài app (đã tự thu thành thanh mini)
 const set = (patch: Partial<EngineState>) => {
   state = { ...state, ...patch };
   listeners.forEach((l) => l());
@@ -56,6 +57,19 @@ if (inWails) {
   EventsOn('hotkey:error', (hotkeyError: string) => set({ hotkeyError }));
   EventsOn('engine:stopped', (stopReason: string) => set({ stopReason }));
   EventsOn('engine:progress', (progress: Progress) => set({ progress, receivedAt: Date.now() }));
+  // Chạy từ ngoài (API / CLI / hẹn giờ – bước 22): không qua runScript nên tự thu thành thanh mini, xong thì về màn chính.
+  EventsOn('run:started', (r: { source: string; preset?: string }) => {
+    if (r.source === 'user') return;
+    set({ preset: r.preset ?? '' });
+    external = true;
+    void setWindowMode('minibar');
+  });
+  EventsOn('run:ended', (st: { error?: string }) => {
+    if (!external) return;
+    external = false;
+    if (st.error) set({ lastError: st.error });
+    void setWindowMode('main');
+  });
 }
 
 export const setLastError = (lastError: string) => set({ lastError });
@@ -89,7 +103,7 @@ export async function runScript(script: Script, countdown: boolean, values: Reco
   }
   await setWindowMode('minibar');
   try {
-    await RunScript(sc, values, main.RunOptions.createFrom({ countdown: countdown ? COUNTDOWN_SEC : 0, path, source: 'user', confirmDanger, ...debug }));
+    await RunScript(sc, values, session.Options.createFrom({ countdown: countdown ? COUNTDOWN_SEC : 0, path, source: 'user', preset, confirmDanger, ...debug }));
   } catch (e) {
     set({ lastError: errorText(e) });
   }

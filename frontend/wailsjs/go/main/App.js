@@ -142,6 +142,10 @@ export function RunShot(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['RunShot'](arg1, arg2, arg3, arg4);
 }
 
+export function RunStatus(arg1) {
+  return window['go']['main']['App']['RunStatus'](arg1);
+}
+
 export function Samples() {
   return window['go']['main']['App']['Samples']();
 }

@@ -2,6 +2,20 @@
 
 - [ ] **22. Hẹn giờ + thông báo + CLI / API local** – Chạy không cần ngồi canh.
   - UI khung có từ 27b – bước này nối logic, bỏ nhãn *Sắp có*
+  - **Đã chốt 2026-10-20** (người dùng chọn đúng cả 4 đề xuất):
+    - [x] CLI: cùng file exe, `run` gửi sang app đang mở qua API local (app chưa mở thì tự mở rồi gửi) – chung quyền macOS, lịch sử, F8 / thanh mini
+    - [x] API local: kênh cho CLI luôn bật (cổng ngẫu nhiên + token mỗi lần mở app, ghi `api.json` trong thư mục cấu hình); API cho chương trình khác (cổng cố định + token cố định) **tắt mặc định**, bật trong Cài đặt
+    - [x] Wails v2 không có khay: *Thu xuống khay* → **thu nhỏ cửa sổ** khi chờ tới giờ; khay thật để sau
+    - [x] Hẹn giờ lưu `schedules.json` trong thư mục cấu hình theo đường dẫn kịch bản – kịch bản phải lưu thành file mới hẹn được
+  - Mục con (thứ tự làm):
+    - [x] 22a *(2026-10-20: `session.go` Manager + trạng thái, `exec.go` một phiên + event, `deps.go` thiết bị thay được (test bằng bản giả), `danger.go` chuyển từ `dangerapi.go`; `RunOptions` → `session.Options`; `runner.go` chỉ còn method mỏng)*. Phiên chạy `internal/session` (`Manager`: `Start` → `runId`, `Wait`, `Stop`, `Status`, tạm dừng / từng node) thay `runHandle`; event qua `Emitter` (không import Wails); `App.RunScript` = Start + Wait; chạy từ ngoài (API / CLI / hẹn giờ) → event `run:started` kèm nguồn, frontend tự thu thành thanh mini
+    - [ ] 22b. Revision kịch bản (`store.Revisions`, trong bộ nhớ): tăng khi lưu / ghi từ ngoài; `script:changed {path, revision}` → frontend nạp lại file đang mở (giữ hoàn tác); ghi kèm revision cũ → lỗi `conflict`
+    - [ ] 22c. Server HTTP `internal/api` (chỉ `127.0.0.1`, Bearer token): `POST /run` (path, preset, values, wait), `POST /stop`, `GET /status`, `GET /events` (SSE), `PUT /script` (revision); `GET /health`. Gắn route thêm được (`/mcp` – 31)
+    - [ ] 22d. CLI `autoclicker run <file> [--preset P] [--set K=V]… [--countdown N] [--no-wait]`: đọc `api.json`, chưa có app thì mở app rồi chờ; in tiến độ từ SSE; mã thoát 0 xong / 1 lỗi / 2 sai lệnh / 3 không nối được app. Windows: gắn console của terminal (exe là GUI)
+    - [ ] 22e. Cài đặt: bật API cho chương trình khác (cổng, token, tạo lại token)
+    - [ ] 22f. Hẹn giờ: model `Schedule` (Go nguồn chuẩn), `NextRun` thuần + test, `store/schedules.go`, bộ hẹn giờ trong app (nhịp ~15 s; đang chạy kịch bản khác → bỏ lượt, báo lỗi), `ScheduleDialog` nối thật + chip giờ trong thư viện; *Một lần* chạy xong thì tắt
+    - [ ] 22g. Thông báo `internal/notify`: Telegram (`token@chatId`), Discord webhook, webhook JSON; kèm ảnh chụp màn hình cuối lần chạy; gửi cho lần chạy hẹn giờ theo *Gửi khi*
+    - Sau / không làm ở bước này: theo dõi file kịch bản bị sửa bằng trình soạn khác (cần watcher), khay hệ thống, chạy khi máy khoá / ngủ
   - [ ] Hẹn giờ: chạy lúc HH:mm (một lần / hằng ngày) với preset input đã chọn; chip giờ trong thư viện; app thu xuống khay
   - [ ] Thông báo: Telegram / Discord / webhook khi xong hoặc lỗi, kèm ảnh chụp màn hình
   - [ ] CLI: `autoclicker run script.json --preset "Gửi cho Lan" --set M1=Lan`

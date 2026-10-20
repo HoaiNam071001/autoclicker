@@ -118,9 +118,13 @@ func TestGuardPath(t *testing.T) {
 			t.Errorf("%s bị chặn nhầm: %v", p, err)
 		}
 	}
-	// chặn cả khi đi vòng qua symlink
+	// chặn cả khi đi vòng qua symlink (Windows không có ~/Library – trỏ tới System32)
+	target := filepath.Join(home, "Library")
+	if runtime.GOOS == "windows" {
+		target = filepath.Join(os.Getenv("SystemRoot"), "System32")
+	}
 	link := filepath.Join(t.TempDir(), "lib")
-	if os.Symlink(filepath.Join(home, "Library"), link) == nil && guardPath(filepath.Join(link, "x")) == nil {
-		t.Error("symlink tới ~/Library phải bị chặn")
+	if os.Symlink(target, link) == nil && guardPath(filepath.Join(link, "x")) == nil {
+		t.Errorf("symlink tới %s phải bị chặn", target)
 	}
 }

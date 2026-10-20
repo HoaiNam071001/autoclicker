@@ -6,6 +6,7 @@ import (
 
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
+	"autoclicker/internal/session"
 )
 
 // startHotkeys nghe phím toàn cục (kể cả khi app không được focus). Gọi trong startup.
@@ -25,14 +26,14 @@ func (a *App) startHotkeys() {
 			case ev.Kind == hook.HookDisabled:
 				runtime.EventsEmit(a.ctx, "hotkey:error", "Không nghe được phím toàn cục – kiểm tra quyền Accessibility")
 			case ev.Kind == hook.KeyDown && ev.Rawcode == f8:
-				if a.current() != nil {
-					a.stopWith(StopByF8)
+				if a.sess.Running() != "" {
+					a.sess.StopWith(session.StopByF8)
 				} else {
 					runtime.EventsEmit(a.ctx, "hotkey:f8start")
 				}
-			case ev.Kind == hook.KeyDown && ev.Rawcode == f10 && a.current() != nil:
+			case ev.Kind == hook.KeyDown && ev.Rawcode == f10 && a.sess.Running() != "":
 				a.StepScript()
-			case ev.Kind == hook.KeyDown && ev.Rawcode == f6 && a.current() == nil:
+			case ev.Kind == hook.KeyDown && ev.Rawcode == f6 && a.sess.Running() == "":
 				x, y := device.Location()
 				runtime.EventsEmit(a.ctx, "hotkey:f6", model.Point{X: x, Y: y})
 			}

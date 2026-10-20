@@ -46,6 +46,22 @@ export namespace engine {
 		    return a;
 		}
 	}
+	export class CounterLoop {
+	    ref: string;
+	    count: number;
+	    max: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new CounterLoop(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ref = source["ref"];
+	        this.count = source["count"];
+	        this.max = source["max"];
+	    }
+	}
 	export class ElementPick {
 	    selectors: string[];
 	    occurrence: number;
@@ -130,6 +146,20 @@ export namespace engine {
 		    return a;
 		}
 	}
+	export class FromPort {
+	    ref: string;
+	    port: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FromPort(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ref = source["ref"];
+	        this.port = source["port"];
+	    }
+	}
 	export class NodeTest {
 	    port: string;
 	    known: boolean;
@@ -168,6 +198,83 @@ export namespace engine {
 		    return a;
 		}
 	}
+	export class WaitProgress {
+	    kind: string;
+	    elapsedMs: number;
+	    timeoutMs: number;
+	    best: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new WaitProgress(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.kind = source["kind"];
+	        this.elapsedMs = source["elapsedMs"];
+	        this.timeoutMs = source["timeoutMs"];
+	        this.best = source["best"];
+	    }
+	}
+	export class Progress {
+	    loop: number;
+	    loops: number;
+	    step: number;
+	    total: number;
+	    nodeId?: string;
+	    ref?: string;
+	    clicks: number;
+	    elapsedMs: number;
+	    paused: boolean;
+	    wait?: WaitProgress;
+	    retry?: number;
+	    retries?: number;
+	    break?: string;
+	    from?: FromPort;
+	    counter?: CounterLoop;
+	
+	    static createFrom(source: any = {}) {
+	        return new Progress(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.loop = source["loop"];
+	        this.loops = source["loops"];
+	        this.step = source["step"];
+	        this.total = source["total"];
+	        this.nodeId = source["nodeId"];
+	        this.ref = source["ref"];
+	        this.clicks = source["clicks"];
+	        this.elapsedMs = source["elapsedMs"];
+	        this.paused = source["paused"];
+	        this.wait = this.convertValues(source["wait"], WaitProgress);
+	        this.retry = source["retry"];
+	        this.retries = source["retries"];
+	        this.break = source["break"];
+	        this.from = this.convertValues(source["from"], FromPort);
+	        this.counter = this.convertValues(source["counter"], CounterLoop);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
 	export class WebFindResult {
 	    found: boolean;
 	    x: number;
@@ -284,30 +391,6 @@ export namespace main {
 		    }
 		    return a;
 		}
-	}
-	export class RunOptions {
-	    countdown: number;
-	    path?: string;
-	    source?: string;
-	    from?: string;
-	    only?: boolean;
-	    step?: boolean;
-	    confirmDanger?: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new RunOptions(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.countdown = source["countdown"];
-	        this.path = source["path"];
-	        this.source = source["source"];
-	        this.from = source["from"];
-	        this.only = source["only"];
-	        this.step = source["step"];
-	        this.confirmDanger = source["confirmDanger"];
-	    }
 	}
 	export class ScriptFile {
 	    script: model.Script;
@@ -1290,6 +1373,88 @@ export namespace script {
 	        this.pattern = source["pattern"];
 	        this.target = source["target"];
 	    }
+	}
+
+}
+
+export namespace session {
+	
+	export class Options {
+	    countdown: number;
+	    path?: string;
+	    source?: string;
+	    preset?: string;
+	    from?: string;
+	    only?: boolean;
+	    step?: boolean;
+	    confirmDanger?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Options(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.countdown = source["countdown"];
+	        this.path = source["path"];
+	        this.source = source["source"];
+	        this.preset = source["preset"];
+	        this.from = source["from"];
+	        this.only = source["only"];
+	        this.step = source["step"];
+	        this.confirmDanger = source["confirmDanger"];
+	    }
+	}
+	export class Status {
+	    runId: string;
+	    script: string;
+	    path?: string;
+	    source: string;
+	    preset?: string;
+	    state: string;
+	    // Go type: time
+	    startedAt: any;
+	    durationMs: number;
+	    progress?: engine.Progress;
+	    error?: string;
+	    failedStep?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Status(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.runId = source["runId"];
+	        this.script = source["script"];
+	        this.path = source["path"];
+	        this.source = source["source"];
+	        this.preset = source["preset"];
+	        this.state = source["state"];
+	        this.startedAt = this.convertValues(source["startedAt"], null);
+	        this.durationMs = source["durationMs"];
+	        this.progress = this.convertValues(source["progress"], engine.Progress);
+	        this.error = source["error"];
+	        this.failedStep = source["failedStep"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

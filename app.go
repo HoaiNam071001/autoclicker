@@ -4,8 +4,10 @@ import (
 	"context"
 	"sync"
 
+	"autoclicker/internal/api"
 	"autoclicker/internal/device"
 	"autoclicker/internal/model"
+	"autoclicker/internal/session"
 	"autoclicker/internal/store"
 	"autoclicker/internal/web"
 )
@@ -15,15 +17,16 @@ type App struct {
 	ctx context.Context
 
 	mu       sync.Mutex
-	run      *runHandle // khác nil khi kịch bản đang chạy
-	mode     string     // chế độ cửa sổ hiện tại, xem window.go
-	mainRect winRect    // vị trí/kích thước main để khôi phục
-	mainMax  bool       // main đang phóng to (nút phóng to trên thanh tiêu đề) – phóng to lại khi quay về
-	mainDisp int        // màn chứa cửa sổ main lúc rời main (chỉ số displays()), quay về main thì dời về đây
-	winDisp  int        // màn cửa sổ đang nằm (-1 = chưa biết)
-	ovDisp   int        // màn người dùng chọn cho overlay (-1 = màn chứa cửa sổ app)
-	dirty    bool       // kịch bản đang soạn có thay đổi chưa lưu (storage.go)
-	quitting bool       // đã hỏi xong, đóng thật
+	sess     *session.Manager // phiên chạy (nút Chạy, API, CLI, hẹn giờ)
+	hub      *api.Hub         // event cho SSE của API local
+	mode     string           // chế độ cửa sổ hiện tại, xem window.go
+	mainRect winRect          // vị trí/kích thước main để khôi phục
+	mainMax  bool             // main đang phóng to (nút phóng to trên thanh tiêu đề) – phóng to lại khi quay về
+	mainDisp int              // màn chứa cửa sổ main lúc rời main (chỉ số displays()), quay về main thì dời về đây
+	winDisp  int              // màn cửa sổ đang nằm (-1 = chưa biết)
+	ovDisp   int              // màn người dùng chọn cho overlay (-1 = màn chứa cửa sổ app)
+	dirty    bool             // kịch bản đang soạn có thay đổi chưa lưu (storage.go)
+	quitting bool             // đã hỏi xong, đóng thật
 
 	web        *web.Chrome        // Chrome của app cho giao diện (webapi.go) – tạo lười
 	pickCancel context.CancelFunc // huỷ lần Chọn phần tử đang chờ
@@ -31,7 +34,9 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	return &App{mode: ModeMain, winDisp: -1, ovDisp: -1}
+	a := &App{mode: ModeMain, winDisp: -1, ovDisp: -1, hub: api.NewHub()}
+	a.sess = session.New(a.emit, session.Deps{})
+	return a
 }
 
 // startup is called when the app starts. The context is saved
