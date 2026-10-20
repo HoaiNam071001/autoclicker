@@ -37,11 +37,12 @@ type EngineState = {
   hotkeyError: string; // Go không nghe được phím toàn cục (thiếu quyền)
   preset: string; // bộ giá trị input của lần chạy này ('' = tự điền / không có input) – hiện trên thanh mini
   failedStep: string; // id bước làm lần chạy trước dừng vì lỗi – thẻ bước viền đỏ
+  source: string; // ai chạy lần này: user | schedule | cli | api | ai (session.Source*) – thanh mini hiện chip AI
 };
 
 // Store chung nghe event từ Go ngay khi load, để màn mở sau (mini bar) vẫn có dữ liệu mới nhất.
 let state: EngineState = {
-  running: false, progress: null, receivedAt: 0, lastError: '', stopReason: '', countdown: 0, hotkeyError: '', preset: '', failedStep: '',
+  running: false, progress: null, receivedAt: 0, lastError: '', stopReason: '', countdown: 0, hotkeyError: '', preset: '', failedStep: '', source: 'user',
 };
 const listeners = new Set<() => void>();
 let external = false; // lần chạy đang diễn ra bắt đầu từ ngoài app (đã tự thu thành thanh mini)
@@ -61,7 +62,7 @@ if (inWails) {
   // màn chính – trừ khi app do AI mở nền (InBackground): giữ thanh mini, người dùng bấm Dừng trên thanh mới mở màn chính.
   EventsOn('run:started', (r: { source: string; preset?: string }) => {
     if (r.source === 'user') return;
-    set({ preset: r.preset ?? '' });
+    set({ preset: r.preset ?? '', source: r.source });
     external = true;
     void setWindowMode('minibar');
   });
@@ -91,7 +92,7 @@ export type Debug = { from?: string; only?: boolean; step?: boolean };
 export async function runScript(script: Script, countdown: boolean, values: Record<string, unknown> = {}, preset = '', path = '', debug: Debug = {}) {
   if (state.running || !inWails) return;
   const sc = model.Script.createFrom(debug.from ? { ...script, start: debug.from } : script);
-  set({ preset });
+  set({ preset, source: 'user' });
   let confirmDanger = ''; // kịch bản có thao tác nguy hiểm chưa đồng ý → hỏi (dangerConfirm.ts), Go ghi nhớ khi chạy
   try {
     await ValidateScript(sc, values);

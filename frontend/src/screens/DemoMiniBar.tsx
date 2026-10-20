@@ -17,6 +17,14 @@ const STATES: { note: string; props: Parameters<typeof MiniBarView>[0] }[] = [
     props: { title: 'n2 · Tìm nút Nhắn tin · Thất bại → n4 · Đếm', lines: ['lượt n4 3 / 10', 'vòng 1 / 1   12 click   00:41'], icon: 'counter', progress: 0.3, paused: false, countdown: 0, canPause: true, onPause: noop, onStop: noop },
   },
   {
+    note: 'AI đang chạy – chip mức AI (bước 31b)',
+    props: { title: 'n3 · Click nút Gửi', lines: ['vòng 1 / 1   3 click   00:12'], icon: 'click', progress: 0.5, paused: false, countdown: 0, canPause: true, onPause: noop, onStop: noop, ai: { level: 'auto', onLevel: noop } },
+  },
+  {
+    note: 'AI đang chạy – bấm chip: chọn mức (Tắt / Chỉ soạn dừng lượt AI ngay)',
+    props: { title: 'n3 · Click nút Gửi', lines: [], icon: 'click', progress: 0.5, paused: false, countdown: 0, canPause: true, onPause: noop, onStop: noop, ai: { level: 'auto', onLevel: noop }, aiOpen: true },
+  },
+  {
     note: 'Đang chạy (đã có)',
     props: { title: 'n5 · Gõ chữ', lines: ['vòng 4 / 10   142 click   02:05'], icon: 'type', progress: 0.36, paused: false, countdown: 0, canPause: true, onPause: noop, onStop: noop },
   },
