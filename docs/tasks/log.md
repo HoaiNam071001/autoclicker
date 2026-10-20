@@ -186,3 +186,4 @@
 - **2026-10-20** – Sửa: Windows chạy xong cửa sổ app ra ngoài mọi màn (x 4160 khi màn chính ở x 1920) – Wails GetPosition trả toạ độ tuyệt đối còn SetPosition cộng gốc vùng làm việc của màn → `windowPos` trừ gốc đó (windowpos_windows.go); macOS màn chính đi theo Space đang đứng (`winfloat.FollowActiveSpace`, MoveToActiveSpace khi thôi nổi). go vet + go test OK; chưa thử bằng app mới (app cũ đang chạy) – xem checks.md
 - 2026-10-20 Kế hoạch (người dùng yêu cầu): 31b2 – chọn tool MCP cho từng loại AI (chặn thật, mặc định chung + ghi đè từng client)
 - 2026-10-20 Xong code 31b2: chọn tool MCP theo loại AI (mặc định chung + ghi đè, chặn thật qua header client)
+- 2026-10-20 Kế hoạch (người dùng yêu cầu): 40 – OCR tiếng Việt trên Windows bằng PaddleOCR (ONNX, kèm sẵn exe, Windows.Media.Ocr dự phòng) + tìm ảnh so cạnh / mặt nạ / kiểm tra màu; sau 31b, trước 31c
