@@ -1,0 +1,123 @@
+{
+ "meta": {
+  "name": "Tìm ảnh nâng cao: so viền, màu, mặt nạ",
+  "description": "Theme tối: icon có ảnh mẫu khoanh ở theme sáng (so theo đường viền). Nút xanh / xám cùng hình (kiểm tra màu). Huy hiệu có số đổi liên tục (ảnh mẫu PNG có vùng trong suốt). Lặp 2 vòng. Đúng: Icon theme tối = 2, Nút xanh = 2, Huy hiệu = 2, các ô Nhầm / Bấm trượt = 0.",
+  "app": "Chờ / tìm",
+  "level": 3,
+  "page": "image-plus.html",
+  "real": false,
+  "prep": "Trình duyệt để zoom 100% (ảnh mẫu vẽ ở 100%)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/image-plus.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "name": "Chờ icon (so viền)",
+    "template": "@theme-icon-light.png",
+    "templateScale": 2,
+    "threshold": 80,
+    "matchMode": "edge",
+    "searchArea": "screen",
+    "timeoutMs": 8000
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "node",
+    "imageFrom": "s2",
+    "delayAfter": 600
+   },
+   {
+    "type": "waitImage",
+    "name": "Chờ nút xanh (kiểm tra màu)",
+    "template": "@btn-blue.png",
+    "templateScale": 2,
+    "threshold": 90,
+    "colorTol": 15,
+    "searchArea": "screen",
+    "timeoutMs": 8000
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "node",
+    "imageFrom": "s4",
+    "delayAfter": 600
+   },
+   {
+    "type": "waitImage",
+    "name": "Chờ huy hiệu (mặt nạ)",
+    "template": "@badge-mask.png",
+    "templateScale": 2,
+    "threshold": 95,
+    "searchArea": "screen",
+    "timeoutMs": 8000
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "node",
+    "imageFrom": "s6",
+    "delayAfter": 600
+   },
+   {
+    "type": "counter",
+    "max": 1
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã trúng icon, nút xanh, huy hiệu 2 vòng"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "success",
+    "to": "s7"
+   },
+   {
+    "from": "s7",
+    "port": "success",
+    "to": "s8"
+   },
+   {
+    "from": "s8",
+    "port": "next",
+    "to": "s2"
+   },
+   {
+    "from": "s8",
+    "port": "done",
+    "to": "s9"
+   }
+  ]
+ }
+}

@@ -3,6 +3,13 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 40 – tìm ảnh: so viền, mặt nạ, kiểm tra màu · [phase3/40-nhan-dang.md](phase3/40-nhan-dang.md)
+
+- [ ] Mẫu thử *Tìm ảnh nâng cao: so viền, màu, mặt nạ* (macOS Retina, zoom 100 %) → chạy qua: Icon theme tối = 2, Nút xanh = 2, Huy hiệu = 2, các ô Nhầm / Bấm trượt = 0. Đổi node 2 về *So theo: Độ sáng* → hết giờ không thấy; tắt *Kiểm tra màu* ở node 4 → có lúc bấm nhầm nút xám
+- [ ] App thật: khoanh ảnh mẫu một nút / icon ở theme sáng (vd app có theme hệ thống), *So theo: Đường viền* → đổi hệ điều hành sang theme tối → Thử tìm vẫn thấy, độ khớp ≥ ~80 %
+- [ ] Inspector Chờ ảnh: *So theo* + *Kiểm tra màu* (bật → *Lệch màu tối đa* 15 %); Thử tìm trên nút cùng hình khác màu → báo “Thấy hình giống … nhưng màu lệch X %”; thẻ node ghi “· so viền · màu ±15%”; điều kiện Nếu *thấy ảnh* có cùng hai ô – xem theme sáng + tối
+- [ ] (Windows 125 %) chạy lại mẫu trên → vẫn qua (ảnh mẫu 2x thu về đúng tỷ lệ cùng mặt nạ)
+
 ## Sửa – cửa sổ mất sau khi chạy (Windows 2 màn) / chọn Space (macOS)
 
 - [ ] Windows, 2 màn (màn chính không ở góc 0,0 – vd màn chính bên phải màn phụ): đặt cửa sổ app trên màn chính → Chạy → xong thì màn chính hiện lại đúng chỗ cũ; thử thêm cửa sổ đang phóng to, cửa sổ trên màn phụ, mở / đóng overlay

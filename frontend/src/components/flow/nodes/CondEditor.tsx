@@ -8,6 +8,7 @@ import Segmented from '../../Segmented';
 import { Target, Trash } from '../../icons';
 import AnchorField from '../../steps/AnchorField';
 import { errText, Field, SwitchField } from '../../stepform/shared';
+import MatchFields from '../../stepform/MatchFields';
 import VarTextInput from '../../inputs/VarTextInput';
 import { CondAt, condOf, emptyCond, patchCond, patchRoot, removeCondAt } from '../../../flow/cond';
 import type { Anchor, Cond, CondKind, CondOp, ScriptInput, Step, StepPoint } from '../../../types';
@@ -188,6 +189,7 @@ function ImageCond({ c, upd, capture, yesNo, area }: {
       <Field label="Độ khớp tối thiểu" help="Ảnh khoanh đúng thường khớp 95–100%">
         <NumInput value={c.threshold ?? 90} min={1} unit="%" onChange={(threshold) => upd({ threshold: Math.min(threshold, 100) })} />
       </Field>
+      <MatchFields value={c} onChange={upd} />
       {area}
     </>
   );

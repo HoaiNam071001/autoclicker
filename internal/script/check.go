@@ -204,6 +204,9 @@ func checkStep(s *model.Step) error {
 	if s.Threshold < 0 || s.Threshold > 100 || s.Tolerance < 0 || s.Tolerance > 255 || s.TemplateScale < 0 {
 		return errors.New("độ khớp / sai số màu / tỷ lệ ảnh mẫu ngoài khoảng cho phép")
 	}
+	if err := checkMatch(s.MatchMode, s.ColorTol); err != nil {
+		return err
+	}
 	if len(s.Points) < need {
 		return fmt.Errorf("thiếu điểm (cần %d)", need)
 	}
@@ -247,4 +250,15 @@ func checkStep(s *model.Step) error {
 }
 func validAnchor(a string) bool {
 	return a == "" || a == AnchorStart || a == AnchorEnd || a == AnchorCenter || a == AnchorRatio
+}
+
+// checkMatch – cách so ảnh mẫu và độ lệch màu (node tìm ảnh, điều kiện thấy ảnh – bước 40).
+func checkMatch(mode string, colorTol int) error {
+	if !slices.Contains(model.MatchModes, mode) {
+		return fmt.Errorf("cách so ảnh không hợp lệ: %q", mode)
+	}
+	if colorTol < 0 || colorTol > 100 {
+		return errors.New("độ lệch màu phải trong 0–100%")
+	}
+	return nil
 }

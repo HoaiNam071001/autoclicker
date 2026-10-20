@@ -64,9 +64,16 @@ func errDetail(err error) map[string]any {
 	return nil
 }
 
-func imageMiss(m FindResult, threshold int) map[string]any {
-	return map[string]any{"kind": "image", "best": m.Score, "threshold": threshold,
+func imageMiss(m FindResult, s model.Step) map[string]any {
+	d := map[string]any{"kind": "image", "best": m.Score, "threshold": s.Threshold,
 		"bestBox": model.Rect{X: m.X, Y: m.Y, W: m.W, H: m.H}, "area": m.Area}
+	if s.MatchMode != "" {
+		d["matchMode"] = s.MatchMode
+	}
+	if s.ColorTol > 0 { // khớp đủ mà colorDiff > colorTol = đúng hình sai màu
+		d["colorDiff"], d["colorTol"] = m.ColorDiff, s.ColorTol
+	}
+	return d
 }
 
 // textMiss – read: dòng đọc được (toạ độ màn hình, locateText); closest: dòng giống chữ cần tìm nhất (≥ nearScore).

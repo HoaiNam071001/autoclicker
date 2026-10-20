@@ -34,7 +34,7 @@ func TestRealCaptureAndFind(t *testing.T) {
 		t.Errorf("ảnh vùng %v khác phần cắt từ ảnh cả màn: %.1f%% điểm ảnh lệch", r, diff*100)
 	}
 	start = time.Now()
-	m, sc := vision.MatchScaled(full, main, vision.ToGray(part), TemplateScale(part, r), scr.DPIScale(main))
+	m, sc := vision.MatchScaled(full, main, vision.NewTemplate(part), vision.MatchOptions{}, TemplateScale(part, r), scr.DPIScale(main))
 	got := image.Pt(int(float64(m.X)/sc), int(float64(m.Y)/sc))
 	t.Logf("tìm %v: thấy tại %v, khớp %.3f, %v", r, got, m.Score, time.Since(start))
 	if m.Score < 0.95 {

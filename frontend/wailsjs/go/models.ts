@@ -110,6 +110,7 @@ export namespace engine {
 	    area: model.Rect;
 	    ms: number;
 	    read?: string[];
+	    colorDiff?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new FindResult(source);
@@ -126,6 +127,7 @@ export namespace engine {
 	        this.area = this.convertValues(source["area"], model.Rect);
 	        this.ms = source["ms"];
 	        this.read = source["read"];
+	        this.colorDiff = source["colorDiff"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -226,6 +228,7 @@ export namespace engine {
 	    clicks: number;
 	    elapsedMs: number;
 	    paused: boolean;
+	    pausedBy?: string;
 	    wait?: WaitProgress;
 	    retry?: number;
 	    retries?: number;
@@ -248,6 +251,7 @@ export namespace engine {
 	        this.clicks = source["clicks"];
 	        this.elapsedMs = source["elapsedMs"];
 	        this.paused = source["paused"];
+	        this.pausedBy = source["pausedBy"];
 	        this.wait = this.convertValues(source["wait"], WaitProgress);
 	        this.retry = source["retry"];
 	        this.retries = source["retries"];
@@ -569,6 +573,8 @@ export namespace model {
 	    template?: string;
 	    templateScale?: number;
 	    threshold?: number;
+	    matchMode?: string;
+	    colorTol?: number;
 	    searchArea?: string;
 	    findText?: string;
 	    textExact?: boolean;
@@ -595,6 +601,8 @@ export namespace model {
 	        this.template = source["template"];
 	        this.templateScale = source["templateScale"];
 	        this.threshold = source["threshold"];
+	        this.matchMode = source["matchMode"];
+	        this.colorTol = source["colorTol"];
 	        this.searchArea = source["searchArea"];
 	        this.findText = source["findText"];
 	        this.textExact = source["textExact"];
@@ -1108,6 +1116,8 @@ export namespace model {
 	    template?: string;
 	    templateScale?: number;
 	    threshold?: number;
+	    matchMode?: string;
+	    colorTol?: number;
 	    timeoutMs?: number;
 	    intervalMs?: number;
 	    searchArea?: string;
@@ -1226,6 +1236,8 @@ export namespace model {
 	        this.template = source["template"];
 	        this.templateScale = source["templateScale"];
 	        this.threshold = source["threshold"];
+	        this.matchMode = source["matchMode"];
+	        this.colorTol = source["colorTol"];
 	        this.timeoutMs = source["timeoutMs"];
 	        this.intervalMs = source["intervalMs"];
 	        this.searchArea = source["searchArea"];
@@ -1516,6 +1528,7 @@ export namespace session {
 	    nodes?: string[];
 	    seedRun?: string;
 	    maxMinutes?: number;
+	    shotEach?: boolean;
 	    confirmDanger?: string;
 	
 	    static createFrom(source: any = {}) {
@@ -1535,6 +1548,7 @@ export namespace session {
 	        this.nodes = source["nodes"];
 	        this.seedRun = source["seedRun"];
 	        this.maxMinutes = source["maxMinutes"];
+	        this.shotEach = source["shotEach"];
 	        this.confirmDanger = source["confirmDanger"];
 	    }
 	}

@@ -141,6 +141,35 @@ func TestWaitImageTimeout(t *testing.T) {
 	}
 }
 
+// Kiểm tra màu (bước 40): nút cùng hình nhưng xám → không nhận, lời báo nói rõ lệch màu; tắt kiểm tra thì nhận.
+func TestWaitImageColorCheck(t *testing.T) {
+	blue := visiontest.Scene(400, 300, 11)
+	visiontest.Button(blue, 250, 120, 60, 20)
+	tpl, _ := vision.EncodePNG(visiontest.Crop(blue, image.Rect(250, 120, 310, 140)))
+	grey := visiontest.Crop(blue, blue.Bounds())
+	for y := 120; y < 140; y++ {
+		for x := 250; x < 310; x++ {
+			if grey.RGBAAt(x, y).B == 242 {
+				grey.Set(x, y, color.RGBA{105, 105, 105, 255}) // cùng độ sáng với xanh 24,119,242
+			}
+		}
+	}
+	sc := imageScript(tpl, 1)
+	s := sc.Steps[0]
+	s.TimeoutMs, s.IntervalMs, s.ColorTol = 40, 20, 10
+	e := newEngine(&devicetest.FakeInput{}, scripttest.Linear(sc), nil)
+	e.scr = &fakeScreen{frames: []image.Image{grey}}
+	_, err := e.findImage(context.Background(), s)
+	if err == nil || !strings.Contains(err.Error(), "nhưng màu lệch") {
+		t.Fatalf("muốn lỗi lệch màu, có %v", err)
+	}
+	wantAll(t, "lệch màu", detailJSON(t, err), `"colorTol":10`, `"colorDiff":`)
+	s.ColorTol = 0
+	if _, err := e.findImage(context.Background(), s); err != nil {
+		t.Fatalf("không kiểm tra màu thì nút xám vẫn khớp: %v", err)
+	}
+}
+
 func TestWaitPixel(t *testing.T) {
 	blue := color.RGBA{24, 119, 242, 255}
 	scr := &fakeScreen{colors: []color.RGBA{{255, 255, 255, 255}, {30, 115, 240, 255}}}

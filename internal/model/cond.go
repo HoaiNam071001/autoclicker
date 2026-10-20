@@ -18,6 +18,8 @@ type Cond struct {
 	Template      string   `json:"template,omitempty"`
 	TemplateScale float64  `json:"templateScale,omitempty"`
 	Threshold     int      `json:"threshold,omitempty"`
+	MatchMode     string   `json:"matchMode,omitempty"`
+	ColorTol      int      `json:"colorTol,omitempty"`
 	SearchArea    string   `json:"searchArea,omitempty"`
 	FindText      string   `json:"findText,omitempty"` // nhận {{biến}}
 	TextExact     bool     `json:"textExact,omitempty"`
@@ -51,7 +53,7 @@ const (
 func (c Cond) Probe(key string) Step {
 	s := Step{
 		ID: key, Type: StepWaitImage, Template: c.Template, TemplateScale: c.TemplateScale, Threshold: c.Threshold,
-		SearchArea: c.SearchArea, FindText: c.FindText, TextExact: c.TextExact, TextNoAccent: c.TextNoAccent, Occurrence: c.Occurrence,
+		MatchMode: c.MatchMode, ColorTol: c.ColorTol, SearchArea: c.SearchArea, FindText: c.FindText, TextExact: c.TextExact, TextNoAccent: c.TextNoAccent, Occurrence: c.Occurrence,
 		Selectors: c.Selectors, ElementApp: c.ElementApp,
 	}
 	switch c.Kind {

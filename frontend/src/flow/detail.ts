@@ -40,7 +40,11 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search')
       ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.findBy === 'element' ? fmtElement(s) : s.findBy === 'text'
         ? (s.findText?.trim() ? `chữ “${s.findText}”${(s.occurrence ?? 0) > 1 ? ` (chỗ thứ ${s.occurrence})` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa nhập chữ cần tìm')
-        : s.template ? `khớp ≥ ${s.threshold}% · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa có ảnh mẫu'}`
+        : s.template ? `khớp ≥ ${s.threshold}%${matchTags(s)} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa có ảnh mẫu'}`
     : s.type === 'clickImage' ? `chỗ ${s.imageFrom ? refOf(s.imageFrom) : '(chưa chọn node)'} thấy${s.dx || s.dy ? ` ${fmtSigned(s.dx ?? 0)},${fmtSigned(s.dy ?? 0)}` : ''}`
     : s.type === 'waitPixel' && s.points[0] ? `${fmtPoint(s.points[0])} = ${s.color} ±${s.tolerance} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`
     : s.points[0] ? fmtPoint(s.points[0]) : '—';
+
+// matchTags – cách so ảnh mẫu khác mặc định (bước 40): " · so viền", " · màu ±15%".
+export const matchTags = (s: { matchMode?: string; colorTol?: number }) =>
+  `${s.matchMode === 'edge' ? ' · so viền' : ''}${s.colorTol ? ` · màu ±${s.colorTol}%` : ''}`;

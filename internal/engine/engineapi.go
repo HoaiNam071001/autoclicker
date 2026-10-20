@@ -3,7 +3,6 @@ package engine
 import (
 	"errors"
 	"image"
-	"math"
 	goruntime "runtime"
 	"strings"
 	"time"
@@ -86,6 +85,8 @@ type FindResult struct {
 	Area  model.Rect `json:"area"`           // vùng đã tìm
 	Ms    int        `json:"ms"`             // thời gian tìm
 	Read  []string   `json:"read,omitempty"` // tìm theo chữ mà không thấy: các dòng đọc được trong vùng
+	// % lệch màu chỗ giống nhất so với ảnh mẫu – chỉ khi node bật kiểm tra màu (ColorTol); khớp đủ mà Found false = lệch màu
+	ColorDiff int `json:"colorDiff,omitempty"`
 }
 
 // FindOnce tìm ảnh mẫu / chữ / phần tử (Đọc phần tử: phần tử / nhãn) của node s trên màn hình lúc này (một lần, không chờ) – nút "Thử tìm".
@@ -124,11 +125,7 @@ func (e *Engine) FindOnce(s model.Step) (FindResult, error) {
 	if err != nil {
 		return FindResult{}, err
 	}
-	m, k := vision.MatchScaled(shot, area, vision.ToGray(tpl), s.TemplateScale, e.scr.DPIScale(area))
-	res := FindResult{
-		Score: int(math.Round(m.Score * 100)), Area: area, Ms: int(time.Since(start).Milliseconds()),
-		X: area.X + int(float64(m.X)/k), Y: area.Y + int(float64(m.Y)/k), W: int(float64(m.W) / k), H: int(float64(m.H) / k),
-	}
-	res.Found = res.Score >= s.Threshold
+	res := matchImage(shot, area, vision.NewTemplate(tpl), s, e.scr.DPIScale(area))
+	res.Ms = int(time.Since(start).Milliseconds())
 	return res, nil
 }

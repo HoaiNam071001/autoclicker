@@ -3,7 +3,7 @@
 import type { FlowNodeView, PortView, RunState } from '../components/flow/model';
 import { humanLabel, usesHuman } from './human';
 import { Cond, fmtMs, isControl, numVarOf, Script, Step, stepLabel } from '../types';
-import { fmtPos } from './detail';
+import { fmtPos, matchTags } from './detail';
 import { nodeCategory } from './category';
 import { firstSelector } from './element';
 import { reachable } from './edit';
@@ -102,7 +102,7 @@ export function condText(c: Cond): string {
   switch (c.kind) {
     case 'text': return `${neg}thấy chữ “${c.findText ?? ''}”`;
     case 'element': return `${neg}thấy phần tử ${firstSelector(c.selectors)}`;
-    case 'image': return c.template ? `${neg}thấy ảnh (≥ ${c.threshold ?? 90}%)` : 'chưa có ảnh mẫu';
+    case 'image': return c.template ? `${neg}thấy ảnh (≥ ${c.threshold ?? 90}%${matchTags(c)})` : 'chưa có ảnh mẫu';
     case 'pixel': return `${c.not ? 'khác' : 'có'} màu ${c.color ?? ''}`;
     case 'value': {
       const t = c.op === 'empty' ? `${c.left ?? ''} trống` : `${c.left ?? ''} ${OP_TEXT[c.op ?? 'eq']} ${c.right ?? ''}`;

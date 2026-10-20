@@ -12,6 +12,8 @@ export type StepPoint = Point & { ax?: Anchor; ay?: Anchor; xVar?: string; yVar?
 export type Rect = { x: number; y: number; w: number; h: number };
 // Một dòng bảng query / header / form của node HTTP (khớp KV trong internal/model/http.go).
 export type KV = { key: string; value: string };
+// Cách so ảnh mẫu – khớp model.MatchModes: '' so độ sáng (xám) | edge so viền (chịu đổi theme / màu nền) – bước 40.
+export type MatchMode = '' | 'edge';
 // Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
 export type Retry = { count?: number; delayMs?: number };
 // Node hay "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại (thử lại)
@@ -55,7 +57,7 @@ export type CondOp = 'eq' | 'ne' | 'contains' | 'gt' | 'lt' | 'empty';
 export interface Cond {
   kind: CondKind;
   not?: boolean; // đảo kết quả
-  template?: string; templateScale?: number; threshold?: number; searchArea?: string; // image (như Chờ ảnh)
+  template?: string; templateScale?: number; threshold?: number; matchMode?: MatchMode; colorTol?: number; searchArea?: string; // image (như Chờ ảnh)
   findText?: string; textExact?: boolean; textNoAccent?: boolean; occurrence?: number; // text, nhận {{biến}}
   selectors?: string[]; elementApp?: string; // element (bước 37): như Chờ ảnh tìm theo phần tử, nhận {{biến}}
   points?: StepPoint[]; color?: string; tolerance?: number; // pixel: points[0]
@@ -127,6 +129,8 @@ export interface Step extends AdvancedFields {
   template?: string; // ảnh mẫu PNG base64
   templateScale?: number; // px ảnh mẫu / 1 px logic lúc chụp (Retina 2, Windows 125 % 1,25)
   threshold?: number; // % khớp tối thiểu
+  matchMode?: MatchMode; // bỏ trống = so độ sáng
+  colorTol?: number; // % lệch màu tối đa so với ảnh mẫu, 0 / trống = không kiểm tra màu (bước 40)
   timeoutMs?: number; // chờ tối đa
   intervalMs?: number; // kiểm tra mỗi
   searchArea?: 'screen'; // bỏ trống = vùng của kịch bản

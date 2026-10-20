@@ -111,6 +111,8 @@ type Step struct {
 	Template      string  `json:"template,omitempty"`      // ảnh mẫu PNG (base64)
 	TemplateScale float64 `json:"templateScale,omitempty"` // px ảnh mẫu trên 1 px logic lúc chụp (Retina = 2, Windows 125 % = 1,25) – tìm trên màn tỷ lệ khác thì co giãn
 	Threshold     int     `json:"threshold,omitempty"`     // % khớp tối thiểu (1–100)
+	MatchMode     string  `json:"matchMode,omitempty"`     // MatchModes: "" = so độ sáng | edge = so viền (chịu đổi theme / màu nền)
+	ColorTol      int     `json:"colorTol,omitempty"`      // % lệch màu trung bình tối đa so với ảnh mẫu (0 = không kiểm tra màu)
 	TimeoutMs     int     `json:"timeoutMs,omitempty"`     // chờ tối đa
 	IntervalMs    int     `json:"intervalMs,omitempty"`    // kiểm tra mỗi
 	SearchArea    string  `json:"searchArea,omitempty"`    // "" = vùng của kịch bản | screen = cả màn chứa vùng (không có vùng: màn chính)

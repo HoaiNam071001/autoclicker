@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  .zones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0 20px 12px; }
+  .zone { position: relative; min-height: 320px; border-radius: 16px; border: 3px dashed var(--line); background: var(--surface); }
+  .zone h2 { margin: 10px 14px; font-size: 16px; color: var(--muted); }
+  #z1 { background: #111827; border-color: #374151; } #z1 h2 { color: #9ca3af; }
+  .zone img, .badge { position: absolute; image-rendering: pixelated; cursor: pointer; }
+  .icon { width: 60px; height: 60px; } .pill { width: 120px; height: 44px; }
+  .badge { width: 60px; height: 60px; } .badge img { position: static; width: 60px; height: 60px; }
+  .badge span { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font: 700 16px/1 ui-monospace, Menlo, Consolas, monospace; pointer-events: none; }
+</style></head>
+<body>
+<div class="stats"></div>
+<div class="zones">
+  <div class="zone" id="z1"><h2>1 · Theme tối (ảnh mẫu khoanh ở theme sáng)</h2>
+    <img id="icon" class="icon" src="theme-icon-dark.png" alt="icon" draggable="false">
+    <img id="decoy" class="icon" src="theme-decoy-dark.png" alt="hình tròn" draggable="false"></div>
+  <div class="zone" id="z2"><h2>2 · Cùng hình, khác màu</h2>
+    <img id="blue" class="pill" src="btn-blue.png" alt="nút xanh" draggable="false">
+    <img id="grey" class="pill" src="btn-grey.png" alt="nút xám" draggable="false"></div>
+  <div class="zone" id="z3"><h2>3 · Số đổi liên tục (mặt nạ)</h2>
+    <div class="badge" id="badge"><img src="badge.png" alt="huy hiệu" draggable="false"><span id="num">7</span></div></div>
+</div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Tìm ảnh nâng cao (bước 40): ảnh 2x vẽ ở nửa cỡ – Retina khớp từng điểm ảnh. Mỗi lần trúng thì đổi chỗ trong khung.
+  sb.header('Tìm ảnh nâng cao');
+  const set = {
+    icon: sb.stat('Icon theme tối'), decoy: sb.stat('Nhầm hình tròn'), blue: sb.stat('Nút xanh'),
+    grey: sb.stat('Nhầm nút xám'), badge: sb.stat('Huy hiệu'), miss: sb.stat('Bấm trượt'),
+  };
+  const n = { icon: 0, decoy: 0, blue: 0, grey: 0, badge: 0, miss: 0 };
+  const hit = (k, msg) => (e) => { e.stopPropagation(); set[k](++n[k]); sb.log(msg); place(); };
+  // đặt các phần tử của một khung ở nửa trái / phải ngẫu nhiên – không chồng nhau, không đè tiêu đề
+  const spread = (zone, els) => {
+    const w = zone.clientWidth, h = zone.clientHeight, half = w / els.length, flip = Math.random() < 0.5;
+    els.forEach((el, i) => {
+      const slot = flip ? els.length - 1 - i : i;
+      el.style.left = Math.round(slot * half + sb.rand(10, Math.max(10, half - el.offsetWidth - 10))) + 'px';
+      el.style.top = Math.round(sb.rand(50, h - el.offsetHeight - 14)) + 'px';
+    });
+  };
+  const $ = (id) => document.getElementById(id);
+  const place = () => { spread($('z1'), [$('icon'), $('decoy')]); spread($('z2'), [$('blue'), $('grey')]); spread($('z3'), [$('badge')]); };
+  place();
+  $('icon').addEventListener('click', hit('icon', 'trúng icon theme tối'));
+  $('decoy').addEventListener('click', hit('decoy', 'nhầm hình tròn'));
+  $('blue').addEventListener('click', hit('blue', 'trúng nút xanh'));
+  $('grey').addEventListener('click', hit('grey', 'nhầm nút xám'));
+  $('badge').addEventListener('click', hit('badge', 'trúng huy hiệu'));
+  document.querySelectorAll('.zone').forEach((z) => z.addEventListener('click', () => { set.miss(++n.miss); sb.log('bấm trượt'); }));
+  setInterval(() => { $('num').textContent = String(sb.rand(1, 99) | 0); }, 300);
+</script>
+</body></html>

@@ -11,6 +11,11 @@ import (
 	"autoclicker/internal/vision/visiontest"
 )
 
+// findTemplate – chỗ tốt nhất, không mặt nạ (test cũ của bước 25).
+func findTemplate(s, t Gray) Match { return findPeaks(s, t, Gray{})[0] }
+
+func tplOf(g Gray) Template { return Template{Gray: g} }
+
 func TestFindTemplateExact(t *testing.T) {
 	img := visiontest.Scene(1200, 800, 1)
 	visiontest.Button(img, 700, 420, 120, 40)
@@ -128,7 +133,7 @@ func TestMatchScaledDownscalesScreen(t *testing.T) {
 	big := visiontest.Scene(1600, 1000, 3)
 	visiontest.Button(big, 900, 600, 240, 80)
 	tpl1x := ToGray(visiontest.Crop(big, image.Rect(900, 600, 1140, 680))).resize(120, 40)
-	m, k := MatchScaled(big, model.Rect{W: 800, H: 500}, tpl1x, 1, 1)
+	m, k := MatchScaled(big, model.Rect{W: 800, H: 500}, tplOf(tpl1x), MatchOptions{}, 1, 1)
 	if k != 2 || abs(m.X-900) > 2 || abs(m.Y-600) > 2 || abs(m.W-240) > 1 || m.Score < 0.95 {
 		t.Fatalf("muốn ~(900, 600) 240 rộng, k = 2; có %+v k = %v", m, k)
 	}
@@ -140,7 +145,7 @@ func TestMatchScaledWindowsDPI(t *testing.T) {
 	scr := visiontest.Scene(1000, 800, 5)
 	visiontest.Button(scr, 400, 300, 150, 50) // nút 120×40 logic vẽ ở 125 %
 	tpl2x := ToGray(visiontest.Crop(scr, image.Rect(400, 300, 550, 350))).resize(240, 80)
-	m, k := MatchScaled(scr, model.Rect{W: 1000, H: 800}, tpl2x, 2, 1.25)
+	m, k := MatchScaled(scr, model.Rect{W: 1000, H: 800}, tplOf(tpl2x), MatchOptions{}, 2, 1.25)
 	if k != 1 || abs(m.X-400) > 2 || abs(m.Y-300) > 2 || abs(m.W-150) > 1 || m.Score < 0.95 {
 		t.Fatalf("muốn ~(400, 300) 150 rộng, k = 1; có %+v k = %v", m, k)
 	}

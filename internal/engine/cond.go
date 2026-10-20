@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"math"
 	"regexp"
 	"slices"
 	"strings"
@@ -172,13 +171,15 @@ func (e *Engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, 
 		if err != nil {
 			return part, err
 		}
-		m, k := vision.MatchScaled(img, area, tpl, probe.TemplateScale, snap.DPIScale(area))
-		score := int(math.Round(m.Score * 100))
-		box := model.Rect{X: area.X + int(float64(m.X)/k), Y: area.Y + int(float64(m.Y)/k), W: int(float64(m.W) / k), H: int(float64(m.H) / k)}
-		ok = score >= max(c.Threshold, 1)
-		part.Hit, part.Score = &box, score
-		part.Detail = fmt.Sprintf("%s tại X %d Y %d · khớp %d%% (cần %d%%)", map[bool]string{true: "thấy ảnh", false: "giống nhất"}[ok],
-			box.X+box.W/2, box.Y+box.H/2, score, c.Threshold)
+		r := matchImage(img, area, tpl, probe, snap.DPIScale(area))
+		box := model.Rect{X: r.X, Y: r.Y, W: r.W, H: r.H}
+		ok = r.Found
+		part.Hit, part.Score = &box, r.Score
+		if ok {
+			part.Detail = fmt.Sprintf("thấy ảnh tại X %d Y %d · khớp %d%%", box.X+box.W/2, box.Y+box.H/2, r.Score)
+		} else {
+			part.Detail = fmt.Sprintf("giống nhất tại X %d Y %d · %s", box.X+box.W/2, box.Y+box.H/2, imageMissMsg(r, probe))
+		}
 	case model.CondPixel:
 		want, err := vision.ParseColor(c.Color)
 		if err != nil {

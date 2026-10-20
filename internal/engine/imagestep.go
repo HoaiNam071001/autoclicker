@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 	"time"
 
@@ -40,23 +39,6 @@ func (e *Engine) searchArea(s model.Step) model.Rect {
 		return e.screen
 	}
 	return b
-}
-
-// template trả ảnh mẫu (xám) của bước, giải mã một lần mỗi lần chạy.
-func (e *Engine) template(s model.Step) (vision.Gray, error) {
-	if g, ok := e.tpls[s.ID]; ok {
-		return g, nil
-	}
-	img, err := vision.DecodePNG(s.Template)
-	if err != nil {
-		return vision.Gray{}, err
-	}
-	g := vision.ToGray(img)
-	if e.tpls == nil {
-		e.tpls = map[string]vision.Gray{}
-	}
-	e.tpls[s.ID] = g
-	return g, nil
 }
 
 // waitLoop gọi check mỗi IntervalMs tới khi check trả true, hết TimeoutMs (không tính lúc tạm dừng) hoặc bị huỷ.
@@ -133,26 +115,24 @@ func (e *Engine) findImage(ctx context.Context, s model.Step) (hit, error) {
 	}
 	var at hit
 	var miss FindResult // chỗ giống nhất tới giờ – hết giờ thì báo lại
-	best, err := e.waitLoop(ctx, s, "image", func() (bool, int, error) {
+	_, err = e.waitLoop(ctx, s, "image", func() (bool, int, error) {
 		img, err := e.scr.Capture(area)
 		if err != nil {
 			return false, 0, err
 		}
-		m, sc := vision.MatchScaled(img, area, tpl, s.TemplateScale, e.scr.DPIScale(area))
-		score := int(math.Round(m.Score * 100))
-		if score >= miss.Score {
-			miss = FindResult{Score: score, Area: area, X: area.X + int(float64(m.X)/sc), Y: area.Y + int(float64(m.Y)/sc),
-				W: int(float64(m.W) / sc), H: int(float64(m.H) / sc)}
+		r := matchImage(img, area, tpl, s, e.scr.DPIScale(area))
+		if r.Score >= miss.Score {
+			miss = r
 		}
-		if score < s.Threshold {
-			return false, score, nil
+		if !r.Found {
+			return false, r.Score, nil
 		}
-		at = hit{Score: score, Box: model.Rect{X: area.X + int(float64(m.X)/sc), Y: area.Y + int(float64(m.Y)/sc), W: int(float64(m.W) / sc), H: int(float64(m.H) / sc)}}
-		return true, score, nil
+		at = hit{Score: r.Score, Box: model.Rect{X: r.X, Y: r.Y, W: r.W, H: r.H}}
+		return true, r.Score, nil
 	})
 	if errors.Is(err, errTimeout) {
 		e.miss = &miss
-		return hit{}, &notFoundErr{msg: fmt.Sprintf("không thấy ảnh mẫu sau %s (khớp nhất %d%%, cần %d%%)", fmtSeconds(s.TimeoutMs), best, s.Threshold), detail: imageMiss(miss, s.Threshold)}
+		return hit{}, &notFoundErr{msg: fmt.Sprintf("không thấy ảnh mẫu sau %s (%s)", fmtSeconds(s.TimeoutMs), imageMissMsg(miss, s)), detail: imageMiss(miss, s)}
 	}
 	if err != nil {
 		return hit{}, err

@@ -31,7 +31,11 @@ func ParseNumber(s string) (float64, error) {
 // checkCond kiểm cấu trúc điều kiện (mở file): loại, phép so, lồng nhóm.
 func checkCond(c *model.Cond, depth int) error {
 	switch c.Kind {
-	case model.CondImage, model.CondText, model.CondElement, model.CondPixel:
+	case model.CondImage:
+		if err := checkMatch(c.MatchMode, c.ColorTol); err != nil {
+			return err
+		}
+	case model.CondText, model.CondElement, model.CondPixel:
 	case model.CondValue:
 		if !slices.Contains(condOps, c.Op) {
 			return fmt.Errorf("phép so không hợp lệ: %q", c.Op)

@@ -8,6 +8,14 @@ const (
 	ImageFromSearch = "search" // tự tìm ảnh mẫu riêng của bước
 )
 
+// Cách so ảnh mẫu (Step.MatchMode, Cond.MatchMode – bước 40).
+const (
+	MatchGray = ""     // NCC trên ảnh xám – giống từng điểm ảnh, không đổi theo độ sáng / tương phản chung
+	MatchEdge = "edge" // NCC trên ảnh viền (Sobel) – ảnh mẫu khoanh ở theme sáng vẫn tìm được ở theme tối
+)
+
+var MatchModes = []string{MatchGray, MatchEdge}
+
 // Vùng chụp của node Chụp màn hình (Step.ShotArea).
 const (
 	ShotRegion = ""       // vùng của kịch bản (không có vùng: màn chính)

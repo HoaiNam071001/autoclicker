@@ -16,6 +16,7 @@ import { Step } from '../../types';
 import { ButtonField, errText, Field, fmtSec, hint, NumField, PickButton, selectBox, SetPoint, SwitchField, useNodeVars, varHint } from './shared';
 import { ElementSearchFields } from './ElementFields';
 import PointSource from './PointSource';
+import MatchFields from './MatchFields';
 import { usesVar } from '../../anchor';
 
 export const isImageStep = (s: Step) => s.type === 'waitImage' || s.type === 'clickImage' || s.type === 'waitPixel';
@@ -87,7 +88,9 @@ function ImageSearchFields({ step: s }: { step: Step }) {
         {find && (
           <span className={`flex flex-wrap items-center gap-x-2 text-xs ${find.found ? 'text-ok' : 'text-warn'}`}>
             {find.found
-              ? <>Thấy tại X {find.x + Math.round(find.w / 2)} Y {find.y + Math.round(find.h / 2)} · khớp {find.score}% · {find.ms} ms</>
+              ? <>Thấy tại X {find.x + Math.round(find.w / 2)} Y {find.y + Math.round(find.h / 2)} · khớp {find.score}%{s.colorTol ? ` · lệch màu ${find.colorDiff ?? 0}%` : ''} · {find.ms} ms</>
+              : s.colorTol && find.score >= (s.threshold ?? 0)
+                ? <>Thấy hình giống (khớp {find.score}%) nhưng màu lệch {find.colorDiff}% (cho phép {s.colorTol}%)</>
               : find.fromRun
                 ? <>Lần chạy trước hết giờ không thấy – chỗ giống nhất khớp {find.score}% (cần {s.threshold}%)</>
                 : <>Không thấy trên màn hình hiện tại – khớp nhất {find.score}% (cần {s.threshold}%)</>}
@@ -97,6 +100,7 @@ function ImageSearchFields({ step: s }: { step: Step }) {
         {error && busy === '' && <span className={errText}>{error}</span>}
       </Field>}
       {!byText && !byElem && <NumField label="Độ khớp tối thiểu" info="Ảnh khoanh đúng thường khớp 95–100%; nên để 80–90% và bấm Thử tìm để xem độ khớp thật" step={s} field="threshold" unit="%" min={1} />}
+      {!byText && !byElem && <MatchFields value={s} onChange={(p) => updateStep(s.id, p)} />}
       <NumField label="Chờ tối đa" info={`Không thấy sau ${fmtSec(s.timeoutMs)} → cổng Thất bại`} step={s} field="timeoutMs" unit="ms" min={1} />
       <Field label="Kiểm tra mỗi">
         <NumInput value={s.intervalMs ?? 250} min={20} unit="ms" onChange={(intervalMs) => updateStep(s.id, { intervalMs })} />
