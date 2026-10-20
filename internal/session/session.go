@@ -68,6 +68,7 @@ type Options struct {
 	Nodes      []string `json:"nodes,omitempty"`
 	SeedRun    string   `json:"seedRun,omitempty"`
 	MaxMinutes int      `json:"maxMinutes,omitempty"` // trần thời gian lượt chạy (AI) – kịch bản đặt dài hơn / không đặt thì dùng trần này
+	ShotEach   bool     `json:"shotEach,omitempty"`   // chụp màn sau mỗi node thành công (AI xin – shots: each)
 	// dấu vân tay thao tác nguy hiểm người dùng vừa đồng ý (DangerCheck) – chạy được và ghi nhớ; trống = chỉ chạy khi đã đồng ý trước đó
 	ConfirmDanger string `json:"confirmDanger,omitempty"`
 }

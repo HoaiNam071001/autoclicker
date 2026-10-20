@@ -3,6 +3,8 @@ package engine
 import (
 	"context"
 	"image"
+	"maps"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -28,6 +30,34 @@ func TestShootOnFail(t *testing.T) {
 	}
 	if img := vision.Shrink(image.NewRGBA(image.Rect(0, 0, 3200, 2000)), shotMaxW); img.Bounds().Dx() != 1600 || img.Bounds().Dy() != 1000 {
 		t.Errorf("thu nhỏ: %v", img.Bounds())
+	}
+}
+
+// shots: each – chụp sau mỗi node thành công, sau DelayAfter (không chờ hai lần); chỉ giữ maxEach ảnh mới nhất.
+func TestShootEach(t *testing.T) {
+	e, _ := sendFlow(0, nil)
+	e.shots, e.eachShot = map[string]image.Image{}, true
+	e.sc.Steps[2].DelayAfter = 300
+	var got []string
+	e.onNode = func(r model.StepResult) { got = append(got, r.Shot) }
+	start := time.Now()
+	if err := e.Run(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if d := time.Since(start); d < 280*time.Millisecond || d > 550*time.Millisecond {
+		t.Errorf("chạy %v – DelayAfter 300 ms phải chờ đúng một lần", d)
+	}
+	want := []string{"each-1-n1.png", "each-2-n2.png", "each-3-n3.png"}
+	if !slices.Equal(got, want) || len(e.shots) != 3 {
+		t.Fatalf("ảnh %v (%d ảnh), muốn %v", got, len(e.shots), want)
+	}
+
+	for range maxEach + 3 { // node chạy lại nhiều lần; quá maxEach thì bỏ ảnh cũ nhất, tên không dùng lại
+		r := model.StepResult{Status: model.StatusSuccess, Ref: "n9", Loop: 1}
+		e.shootAfter(context.Background(), &r, 0)
+	}
+	if len(e.shots) != maxEach || e.shots["each-1-n1.png"] != nil || e.shots["each-18-n9.png"] == nil || e.shots["each-7-n9.png"] == nil {
+		t.Errorf("còn %d ảnh: %v", len(e.shots), slices.Collect(maps.Keys(e.shots)))
 	}
 }
 

@@ -22,6 +22,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 31b – AI tự chạy, xem lỗi, sửa, chạy tiếp · [phase3/31-mcp-ai.md](phase3/31-mcp-ai.md)
 
+- [ ] Bảo AI chạy kịch bản 4–5 node với `shots: "each"` → mỗi node có `shot`, kết quả gửi kèm 3 ảnh mới nhất (đúng cảnh sau khi node chạy xong + chờ `delayAfter`), AI xin ảnh node đầu bằng `wait_run shots: [...]` được; thời gian chạy không bị nhân đôi `delayAfter`; Lịch sử chạy có các ảnh đó
 - [ ] (Windows) Node Mở Notepad, `delayAfter` 2 s → output có `window` “Untitled - Notepad” (hoặc tiếng Việt), `newWindow` true, node vẫn chờ đúng ~2 s; mở URL khi Chrome đang mở sẵn → `newWindow` false, `window` = Chrome. Click / gõ / phím sau đó → output `window` / `windowApp` là cửa sổ đang ở trước
 - [ ] Chi tiết lỗi gần đúng: bảo AI chạy kịch bản có node sai nhẹ – chờ chữ “Gưi” (thật là “Gửi”), phần tử `text=Mua ngey`, cửa sổ / app gõ sai tên (vd `chromium`) → `wait_run` trả `error.detail` có `closest` / `near` chỉ đúng chữ / phần tử / cửa sổ / app thật (kèm khung), AI tự sửa node rồi `resume_run` qua
 - [ ] Bánh răng → *Cho AI điều khiển (MCP)*: có *AI được chạy kịch bản* (Chỉ soạn / Hỏi trước khi chạy / Tự chạy) + *Tối đa mỗi lượt* – xem cả theme sáng + tối

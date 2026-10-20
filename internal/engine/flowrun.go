@@ -97,6 +97,7 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 			e.addContext(&res)
 			e.shoot(&res)
 		}
+		wait = e.shootAfter(ctx, &res, wait)
 		e.results[s.ID], e.rv.byRef[s.Ref], e.rv.last = &res, &res, &res
 		if e.onNode != nil {
 			e.onNode(res)

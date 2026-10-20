@@ -25,6 +25,7 @@ type Options struct {
 	Debug       bool                   // dừng ở node có Breakpoint (chạy từ app)
 	StepMode    bool                   // dừng trước mỗi node (chạy từng node)
 	KeepShots   bool                   // chụp màn hình lúc node thất bại (lịch sử chạy)
+	ShotEach    bool                   // cùng KeepShots: chụp thêm sau mỗi node thành công (AI xin, shots: each – 31b)
 	Browser     web.Browser            // node web + node Mở bằng Chrome của app; nil = không có (node web lỗi code browser)
 	AllowDanger bool                   // cho thao tác nguy hiểm (xoá file, buộc thoát app, đóng cửa sổ) – runner đặt khi người dùng đã xác nhận (script.DangerOps)
 	StopAt      string                 // chạy xong node này thì dừng (kết thúc bình thường – Reached) – AI chạy đến node (31b)
@@ -63,7 +64,7 @@ func New(in device.Input, sc model.Script, o Options) *Engine {
 	e.pasteAuto, e.imeCheck = goruntime.GOOS == "windows", true
 	e.step.Store(o.StepMode)
 	if o.KeepShots {
-		e.shots = map[string]image.Image{}
+		e.shots, e.eachShot = map[string]image.Image{}, o.ShotEach
 	}
 	return e
 }
@@ -71,7 +72,7 @@ func New(in device.Input, sc model.Script, o Options) *Engine {
 // Failed – node làm lần chạy dừng vì lỗi ("" = không) và, nếu là chờ ảnh hết giờ, chỗ giống nhất.
 func (e *Engine) Failed() (string, *FindResult) { return e.failed, e.miss }
 
-// Shots – ảnh màn hình lúc node thất bại theo tên file (Options.KeepShots).
+// Shots – ảnh màn hình lúc node thất bại (+ sau mỗi node khi ShotEach) theo tên file (Options.KeepShots).
 func (e *Engine) Shots() map[string]image.Image { return e.shots }
 
 // FindResult – kết quả thử tìm ảnh mẫu / chữ trên màn hình hiện tại.

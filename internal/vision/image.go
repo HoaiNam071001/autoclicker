@@ -7,6 +7,7 @@ import (
 	"hash/fnv"
 	"image"
 	"image/color"
+	"image/jpeg"
 	"image/png"
 	"strconv"
 	"strings"
@@ -76,6 +77,20 @@ func Shrink(img image.Image, w int) image.Image {
 			i := out.PixOffset(x, y)
 			out.Pix[i], out.Pix[i+1], out.Pix[i+2], out.Pix[i+3] = uint8(r/n>>8), uint8(g/n>>8), uint8(bl/n>>8), 255
 		}
+	}
+	return out
+}
+
+// Compact – bản giữ trong bộ nhớ nhẹ hơn ~3 lần (JPEG chất lượng cao → YCbCr 4:2:0) cho ảnh chụp nhiều (sau mỗi
+// node); mã hoá lỗi thì trả nguyên ảnh.
+func Compact(img image.Image) image.Image {
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 90}); err != nil {
+		return img
+	}
+	out, err := jpeg.Decode(&buf)
+	if err != nil {
+		return img
 	}
 	return out
 }

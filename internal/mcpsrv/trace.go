@@ -19,6 +19,8 @@ const (
 	maxTraceNodes = 40   // vòng lặp dài: chỉ trả chừng này node cuối
 	maxStrLen     = 400  // chuỗi output dài (body HTTP, chữ đọc được) cắt bớt
 	maxShots      = 2    // ảnh lúc lỗi gửi kèm (mới nhất)
+	maxEachSent   = 3    // ảnh sau node (shots: each) gửi kèm mặc định (mới nhất) – ảnh khác AI xin theo tên
+	maxWant       = 4    // ảnh AI xin theo tên mỗi lần
 	imgMaxW       = 1280 // ảnh gửi AI rộng hơn thì thu nhỏ
 )
 
@@ -34,7 +36,7 @@ type nodeView struct {
 	Output   map[string]any   `json:"output,omitempty"`
 	Error    *model.StepError `json:"error,omitempty"`
 	Logs     []model.LogLine  `json:"logs,omitempty"` // chỉ node lỗi
-	Shot     string           `json:"shot,omitempty"` // ảnh lúc lỗi – gửi kèm dưới (mới nhất trước)
+	Shot     string           `json:"shot,omitempty"` // ảnh lúc lỗi / sau node (shots: each) – gửi kèm dưới hoặc xin bằng wait_run shots
 	// rộng ảnh gửi kèm (px): toạ độ thật = error.detail.context.shotArea.x + px ảnh × shotArea.w / ShotW (y tương tự)
 	ShotW int `json:"shotWidth,omitempty"`
 }
@@ -49,7 +51,10 @@ func traceView(tr session.Trace, sc model.Script, shotW map[string]int) map[stri
 	nodes := make([]nodeView, 0, len(res)-omitted)
 	for _, r := range res[omitted:] {
 		n := nodeView{ID: r.NodeID, Ref: r.Ref, Type: types[r.NodeID], Status: r.Status, Port: r.Port, Loop: r.Loop,
-			Attempts: r.Attempts, Ms: r.DurationMs, Output: trimMap(r.Output), Error: r.Error, Shot: r.Shot, ShotW: shotW[r.Shot]}
+			Attempts: r.Attempts, Ms: r.DurationMs, Output: trimMap(r.Output), Error: r.Error, ShotW: shotW[r.Shot]}
+		if tr.Shots[r.Shot] != nil { // shots: each chỉ giữ ảnh mới nhất – ảnh đã bỏ thì không báo tên
+			n.Shot = r.Shot
+		}
 		if r.Status == model.StatusFail {
 			n.Logs = r.Logs
 		}
@@ -111,18 +116,35 @@ func trimMap(m map[string]any) map[string]any {
 	return out
 }
 
-// shotImages – ảnh lúc node lỗi (mới nhất trước, tối đa maxShots) + rộng từng ảnh đã gửi theo tên.
-func shotImages(tr session.Trace) ([]mcp.Content, map[string]int) {
+// shotImages – ảnh gửi kèm + rộng từng ảnh đã gửi theo tên. want (AI xin theo tên) → đúng các ảnh đó (≤ maxWant);
+// không thì ảnh lúc node lỗi (≤ maxShots) + ảnh sau node mới nhất (≤ maxEachSent, shots: each), mới nhất trước.
+func shotImages(tr session.Trace, want []string) ([]mcp.Content, map[string]int) {
 	var out []mcp.Content
 	widths := map[string]int{}
-	for i := len(tr.Results) - 1; i >= 0 && len(out) < maxShots; i-- {
-		name := tr.Results[i].Shot
-		img := tr.Shots[name]
-		if img == nil || widths[name] > 0 {
-			continue
+	add := func(name string) {
+		if img := tr.Shots[name]; img != nil && widths[name] == 0 {
+			if c, w := pngContent(img); c != nil {
+				out, widths[name] = append(out, c), w
+			}
 		}
-		if c, w := pngContent(img); c != nil {
-			out, widths[name] = append(out, c), w
+	}
+	if len(want) > 0 {
+		for _, name := range want[:min(len(want), maxWant)] {
+			add(name)
+		}
+		return out, widths
+	}
+	fails, each := 0, 0
+	for i := len(tr.Results) - 1; i >= 0; i-- {
+		r := tr.Results[i]
+		switch {
+		case r.Shot == "":
+		case r.Status == model.StatusFail && fails < maxShots:
+			fails++
+			add(r.Shot)
+		case r.Status != model.StatusFail && each < maxEachSent:
+			each++
+			add(r.Shot)
 		}
 	}
 	return out, widths

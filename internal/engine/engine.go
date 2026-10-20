@@ -77,6 +77,10 @@ type Engine struct {
 
 	onNode   func(model.StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
 	shots    map[string]image.Image       // ảnh màn hình lúc node thất bại theo tên file (nil = không chụp – runlog.go)
+	failN    int                          // số ảnh lúc lỗi đã chụp (shots còn có ảnh sau mỗi node)
+	eachShot bool                         // chụp sau mỗi node thành công (AI xin – shots.go)
+	eachKeep []string                     // tên ảnh sau mỗi node còn giữ, cũ trước
+	eachN    int                          // số ảnh sau node đã chụp (đặt tên)
 	debug    bool                         // dừng ở node có Breakpoint (chạy từ app); không thì bỏ qua breakpoint
 	step     atomic.Bool                  // chạy từng node: dừng trước mỗi node (StepScript bật, ResumeScript tắt)
 	failed   string                       // id node làm lần chạy dừng vì lỗi (runner gửi engine:failed)

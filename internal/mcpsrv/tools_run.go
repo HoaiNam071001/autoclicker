@@ -29,6 +29,7 @@ type runIn struct {
 	StopAt string         `json:"stopAt,omitempty" jsonschema:"id / ref node: chạy xong node này thì dừng (kết quả reached)"`
 	Only   []string       `json:"only,omitempty" jsonschema:"chỉ chạy cụm node này (id / ref) – cạnh đi ra ngoài cụm bị bỏ"`
 	WaitS  *int           `json:"waitS,omitempty" jsonschema:"chờ tối đa bấy nhiêu giây rồi trả (mặc định 20, tối đa 30); chưa xong thì gọi wait_run"`
+	Shots  string         `json:"shots,omitempty" jsonschema:"fail (mặc định) = chụp màn lúc node lỗi; each = chụp thêm sau mỗi node thành công (sau delayAfter, giữ 12 ảnh mới nhất) – chậm hơn, dùng khi cần xem từng bước"`
 }
 
 type resumeIn struct {
@@ -37,11 +38,24 @@ type resumeIn struct {
 	StopAt string   `json:"stopAt,omitempty"`
 	Only   []string `json:"only,omitempty"`
 	WaitS  *int     `json:"waitS,omitempty"`
+	Shots  string   `json:"shots,omitempty" jsonschema:"fail | each – như run_script"`
 }
 
 type runIDIn struct {
-	RunID string `json:"runId"`
-	WaitS *int   `json:"waitS,omitempty" jsonschema:"chờ tối đa bấy nhiêu giây (mặc định 20, tối đa 30)"`
+	RunID string   `json:"runId"`
+	WaitS *int     `json:"waitS,omitempty" jsonschema:"chờ tối đa bấy nhiêu giây (mặc định 20, tối đa 30)"`
+	Shots []string `json:"shots,omitempty" jsonschema:"tên ảnh (trường shot của node) muốn xem – tối đa 4; mặc định gửi ảnh lỗi + vài ảnh mới nhất"`
+}
+
+// shotEach – tham số shots của run_script / resume_run.
+func shotEach(v string) (bool, error) {
+	switch v {
+	case "", "fail":
+		return false, nil
+	case "each":
+		return true, nil
+	}
+	return false, fmt.Errorf("shots “%s” không hợp lệ – fail hoặc each", v)
 }
 
 func (s *Server) addRunTools() {
@@ -50,7 +64,7 @@ func (s *Server) addRunTools() {
 		"Trả runId + kết quả từng node đã chạy; node lỗi có error.code / message / detail (chỗ khớp nhất, chữ đọc được, cửa sổ đang trước…) " +
 		"kèm ảnh màn hình lúc lỗi. Lỗi → sửa bằng update_script rồi resume_run."}, s.runScript)
 	addTool(s, KindRun, &mcp.Tool{Name: "wait_run", Description: "Chờ lần chạy runId xong (tối đa waitS giây) rồi trả kết quả như run_script. " +
-		"Chưa xong thì done=false + node đang chạy – gọi lại."}, s.waitRun)
+		"Chưa xong thì done=false + node đang chạy – gọi lại. Xem ảnh của node bất kỳ (trường shot, khi chạy với shots: each): shots = [tên ảnh]."}, s.waitRun)
 	addTool(s, KindRun, &mcp.Tool{Name: "stop_run", Description: "Dừng lần chạy runId đang chạy."}, s.stopRun)
 	addTool(s, KindRun, &mcp.Tool{Name: "resume_run", Description: "Chạy tiếp sau khi sửa: đọc lại kịch bản (bản mới nhất), " +
 		"chạy từ node đã lỗi (hoặc from) với output / biến các node trước lấy từ lần chạy runId – không chạy lại từ đầu."}, s.resumeRun)
@@ -61,10 +75,18 @@ func (s *Server) runScript(ctx context.Context, _ *mcp.CallToolRequest, in runIn
 	if err != nil {
 		return fail(err)
 	}
-	return s.start(ctx, path, in.Inputs, session.Options{From: in.From, StopAt: in.StopAt, Nodes: in.Only}, in.WaitS)
+	each, err := shotEach(in.Shots)
+	if err != nil {
+		return fail(err)
+	}
+	return s.start(ctx, path, in.Inputs, session.Options{From: in.From, StopAt: in.StopAt, Nodes: in.Only, ShotEach: each}, in.WaitS)
 }
 
 func (s *Server) resumeRun(ctx context.Context, _ *mcp.CallToolRequest, in resumeIn) (*mcp.CallToolResult, any, error) {
+	each, err := shotEach(in.Shots)
+	if err != nil {
+		return fail(err)
+	}
 	prev, err := s.back.Trace(in.RunID)
 	if err != nil {
 		return fail(err)
@@ -79,7 +101,7 @@ func (s *Server) resumeRun(ctx context.Context, _ *mcp.CallToolRequest, in resum
 	if from == "" {
 		return fail(errors.New("lần chạy trước không có node lỗi – cho biết from (node chạy tiếp)"))
 	}
-	return s.start(ctx, prev.Path, prev.Inputs, session.Options{From: from, StopAt: in.StopAt, Nodes: in.Only, SeedRun: in.RunID}, in.WaitS)
+	return s.start(ctx, prev.Path, prev.Inputs, session.Options{From: from, StopAt: in.StopAt, Nodes: in.Only, SeedRun: in.RunID, ShotEach: each}, in.WaitS)
 }
 
 // start đổi ref → id theo kịch bản hiện tại, chạy (Backend hỏi quyền), chờ tối đa waitS rồi trả vết chạy.
@@ -97,7 +119,7 @@ func (s *Server) start(ctx context.Context, path string, inputs map[string]any, 
 	if err != nil {
 		return fail(err)
 	}
-	return s.report(ctx, id, sc, waitS)
+	return s.report(ctx, id, sc, waitS, nil)
 }
 
 func (s *Server) waitRun(ctx context.Context, _ *mcp.CallToolRequest, in runIDIn) (*mcp.CallToolResult, any, error) {
@@ -106,15 +128,15 @@ func (s *Server) waitRun(ctx context.Context, _ *mcp.CallToolRequest, in runIDIn
 		return fail(err)
 	}
 	sc, _, _ := s.back.ReadScript(tr.Path) // chỉ để lấy loại node – đọc lỗi thì bỏ
-	return s.report(ctx, in.RunID, sc, in.WaitS)
+	return s.report(ctx, in.RunID, sc, in.WaitS, in.Shots)
 }
 
 func (s *Server) stopRun(_ context.Context, _ *mcp.CallToolRequest, in runIDIn) (*mcp.CallToolResult, any, error) {
 	return ok(map[string]any{"stopped": s.back.Stop(in.RunID)})
 }
 
-// report chờ tối đa waitS giây rồi trả vết chạy (chữ) + ảnh lúc node lỗi.
-func (s *Server) report(ctx context.Context, id string, sc model.Script, waitS *int) (*mcp.CallToolResult, any, error) {
+// report chờ tối đa waitS giây rồi trả vết chạy (chữ) + ảnh (want = tên ảnh AI xin; nil = ảnh lỗi + ảnh mới nhất).
+func (s *Server) report(ctx context.Context, id string, sc model.Script, waitS *int, want []string) (*mcp.CallToolResult, any, error) {
 	wait := defaultWaitS
 	if waitS != nil {
 		wait = min(max(*waitS, 0), maxWaitS)
@@ -126,7 +148,7 @@ func (s *Server) report(ctx context.Context, id string, sc model.Script, waitS *
 	if err != nil {
 		return fail(err)
 	}
-	imgs, widths := shotImages(tr)
+	imgs, widths := shotImages(tr, want)
 	res, _, err := ok(traceView(tr, sc, widths))
 	if err != nil {
 		return nil, nil, err
