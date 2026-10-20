@@ -21,6 +21,7 @@ import (
 // startAPI – gọi trong startup.
 func (a *App) startAPI() {
 	a.apiSrv = api.New(apiBackend{a}, a.hub)
+	a.startMCP()
 	token := store.NewToken()
 	l, err := a.apiSrv.Listen(0, token)
 	if err != nil {

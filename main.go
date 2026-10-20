@@ -20,6 +20,10 @@ var assets embed.FS
 
 func main() {
 	// `autoclicker run …` (bước 22): gửi lệnh sang app đang mở rồi thoát – không mở giao diện
+	// `autoclicker --mcp` (bước 31): MCP qua stdio cho AI – chuyển tiếp sang app; stdin / stdout là pipe của AI, không gắn console
+	if cli.IsMCP(os.Args[1:]) {
+		os.Exit(cli.NewClient(nil).MCP(os.Stdin, os.Stdout, os.Stderr))
+	}
 	if args := os.Args[1:]; cli.IsCommand(args) {
 		cli.AttachConsole()
 		sig := make(chan os.Signal, 1)

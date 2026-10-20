@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import {
-  ClearDraft, ConfirmQuit, LoadDraft, NewScript, OpenSample, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetDirty,
+  AIScripts, ClearDraft, ConfirmQuit, LoadDraft, NewScript, OpenSample, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetEditorState,
 } from '../wailsjs/go/main/App';
 import { model, store } from '../wailsjs/go/models';
 import { getEditor, markSaved, reloadScript, replaceScript, subscribe } from './store';
@@ -18,12 +18,13 @@ type Pending = { action: 'new' } | { action: 'open' } | { action: 'recent'; path
 
 type FileState = {
   recent: string[]; // mở gần đây, mới nhất trước
+  aiPaths: string[]; // trong recent: file AI tạo qua MCP (chip AI – bước 31)
   draftAt: number | null; // lần cuối ghi bản nháp (ms)
   error: string; // lỗi lưu / mở gần nhất
   pending: Pending | null; // đang hiện hộp thoại hỏi lưu
 };
 
-let fs: FileState = { recent: [], draftAt: null, error: '', pending: null };
+let fs: FileState = { recent: [], aiPaths: [], draftAt: null, error: '', pending: null };
 const listeners = new Set<() => void>();
 const setFs = (patch: Partial<FileState>) => {
   fs = { ...fs, ...patch };
@@ -42,7 +43,7 @@ const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 export const fileName = (path: string) => path.split(/[\\/]/).pop() ?? path;
 
-const refreshRecent = () => RecentScripts().then((recent) => setFs({ recent })).catch(() => {});
+const refreshRecent = () => Promise.all([RecentScripts(), AIScripts()]).then(([recent, aiPaths]) => setFs({ recent, aiPaths })).catch(() => {});
 
 // ---- Lưu ----
 
@@ -117,6 +118,7 @@ let revision = 0; // revision của file đang mở (storage.go ScriptFile.revis
 const normPath = (p: string) => p.replace(/\\/g, '/').toLowerCase();
 
 async function onScriptChanged(c: { path: string; revision: number }) {
+  refreshRecent(); // AI tạo / sửa file khác → thư viện thấy ngay
   const { path } = getEditor();
   if (!path || normPath(path) !== normPath(c.path) || c.revision <= revision) return;
   try {
@@ -132,7 +134,7 @@ async function onScriptChanged(c: { path: string; revision: number }) {
 
 let draftTimer: ReturnType<typeof setTimeout> | undefined;
 let lastScript: Script | null = null;
-let lastDirty = false;
+let lastState = ''; // path + dirty đã báo Go
 
 async function flushDraft() {
   clearTimeout(draftTimer);
@@ -147,9 +149,10 @@ async function flushDraft() {
 
 function watch() {
   const { script, path, dirty } = getEditor();
-  if (dirty !== lastDirty) {
-    lastDirty = dirty;
-    SetDirty(dirty).catch(() => {});
+  const state = `${dirty}|${path ?? ''}`;
+  if (state !== lastState) {
+    lastState = state;
+    SetEditorState(path ?? '', dirty).catch(() => {});
   }
   if (script === lastScript) return;
   lastScript = script;
@@ -172,8 +175,7 @@ async function init() {
     setFs({ error: errText(e) });
   }
   lastScript = getEditor().script;
-  lastDirty = !getEditor().dirty; // gửi trạng thái ban đầu cho Go
-  watch();
+  watch(); // lastState trống → gửi trạng thái ban đầu cho Go
   subscribe(watch);
   refreshRecent();
 }
@@ -186,4 +188,9 @@ if (inWails) {
     setFs({ pending: { action: 'quit' } });
   });
   EventsOn('script:changed', onScriptChanged);
+  // AI gọi open_in_app (MCP – bước 31); Go đã chặn khi đang dở kịch bản khác, còn lại vẫn qua hỏi lưu
+  EventsOn('mcp:open', (path: string) => {
+    if (location.hash) setWindowMode('main');
+    openRecent(path);
+  });
 }

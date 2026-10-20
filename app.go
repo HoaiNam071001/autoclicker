@@ -6,6 +6,7 @@ import (
 
 	"autoclicker/internal/api"
 	"autoclicker/internal/device"
+	"autoclicker/internal/mcpsrv"
 	"autoclicker/internal/model"
 	"autoclicker/internal/session"
 	"autoclicker/internal/store"
@@ -32,6 +33,8 @@ type App struct {
 	winDisp   int                       // màn cửa sổ đang nằm (-1 = chưa biết)
 	ovDisp    int                       // màn người dùng chọn cho overlay (-1 = màn chứa cửa sổ app)
 	dirty     bool                      // kịch bản đang soạn có thay đổi chưa lưu (storage.go)
+	editPath  string                    // file của kịch bản đang soạn ("" = chưa lưu)
+	mcp       *mcpsrv.Server            // MCP cho AI (mcpapi.go)
 	quitting  bool                      // đã hỏi xong, đóng thật
 
 	web        *web.Chrome        // Chrome của app cho giao diện (webapi.go) – tạo lười

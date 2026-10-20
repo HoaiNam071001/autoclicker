@@ -3,6 +3,16 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 31a – AI tạo / sửa kịch bản qua MCP · [phase3/31-mcp-ai.md](phase3/31-mcp-ai.md)
+
+- [ ] Bánh răng → *Cho AI soạn kịch bản (MCP)* đang bật → *Thêm vào Claude Desktop…* → hỏi đường dẫn → Ghi → thoát hẳn + mở lại Claude Desktop: thấy server `autoclicker` (8 tool). Claude Desktop bản Microsoft Store có thể dùng file cấu hình khác – báo lại nếu không thấy
+- [ ] Trên Claude: "tạo kịch bản mở bài Tinh Hà Say 2 trên YouTube, tên bài là input" → file mới trong Documents/Auto Clicker, *Mở gần đây* có chip **AI**; AI gọi `open_in_app` → app hiện lên, mở kịch bản; Xem trước đúng thứ tự; bấm Chạy phát nhạc
+- [ ] "đổi thành bài khác / thêm bước…" → AI sửa đúng kịch bản (app nạp lại, Ctrl+Z lấy lại bản trước); đang sửa dở kịch bản đó (chưa lưu) → AI ghi ra bản sao `… (AI).json`, bản của bạn không đổi
+- [ ] Đang có thay đổi chưa lưu ở kịch bản khác → AI gọi mở thì app không đổi kịch bản, AI báo lại
+- [ ] Claude Code: chép lệnh `claude mcp add …` trong Cài đặt → `/mcp` thấy autoclicker; app chưa mở → tự mở khi Claude gọi
+- [ ] Tắt công tắc MCP → AI gọi tool bị từ chối (báo bật trong Cài đặt); bật lại dùng được ngay. Cài đặt hiện 5 lệnh AI gần nhất (✓ / ✗)
+- [ ] Bật *API cho chương trình khác* → cấu hình *HTTP (client nối URL)* dùng được với client nối thẳng `http://127.0.0.1:<cổng>/mcp`
+
 ## 22 – Hẹn giờ / CLI / API local · [phase3/22-hen-gio-cli-api.md](phase3/22-hen-gio-cli-api.md)
 
 - [ ] Chạy tay như cũ (nút Chạy, F8 dừng, chạy từng node / chạy riêng node, xác nhận thao tác nguy hiểm, lịch sử chạy) – phần chạy đã chuyển sang `internal/session`

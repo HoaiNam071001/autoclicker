@@ -447,6 +447,64 @@ export namespace main {
 
 }
 
+export namespace mcpsrv {
+	
+	export class Call {
+	    // Go type: time
+	    at: any;
+	    tool: string;
+	    ok: boolean;
+	    error?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Call(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.at = this.convertValues(source["at"], null);
+	        this.tool = source["tool"];
+	        this.ok = source["ok"];
+	        this.error = source["error"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ClientConfig {
+	    client: string;
+	    where: string;
+	    text: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ClientConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.client = source["client"];
+	        this.where = source["where"];
+	        this.text = source["text"];
+	    }
+	}
+
+}
+
 export namespace model {
 	
 	export class AppInfo {
@@ -930,6 +988,18 @@ export namespace model {
 	        this.screenshot = source["screenshot"];
 	    }
 	}
+	export class ScriptMeta {
+	    createdBy?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ScriptMeta(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.createdBy = source["createdBy"];
+	    }
+	}
 	export class ScriptInput {
 	    key: string;
 	    label: string;
@@ -1238,6 +1308,7 @@ export namespace model {
 	    anchorMode?: string;
 	    inputs?: ScriptInput[];
 	    human?: string;
+	    meta?: ScriptMeta;
 	
 	    static createFrom(source: any = {}) {
 	        return new Script(source);
@@ -1256,6 +1327,7 @@ export namespace model {
 	        this.anchorMode = source["anchorMode"];
 	        this.inputs = this.convertValues(source["inputs"], ScriptInput);
 	        this.human = source["human"];
+	        this.meta = this.convertValues(source["meta"], ScriptMeta);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1276,6 +1348,7 @@ export namespace model {
 		    return a;
 		}
 	}
+	
 	
 	
 	
@@ -1596,10 +1669,23 @@ export namespace store {
 		}
 	}
 	
+	export class MCPSettings {
+	    enabled: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.enabled = source["enabled"];
+	    }
+	}
 	export class Settings {
 	    theme: string;
 	    recent?: string[];
 	    api: APISettings;
+	    mcp: MCPSettings;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -1610,6 +1696,7 @@ export namespace store {
 	        this.theme = source["theme"];
 	        this.recent = source["recent"];
 	        this.api = this.convertValues(source["api"], APISettings);
+	        this.mcp = this.convertValues(source["mcp"], MCPSettings);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

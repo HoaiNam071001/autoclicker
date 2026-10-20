@@ -6,6 +6,8 @@ require (
 	github.com/chromedp/cdproto v0.157.8
 	github.com/chromedp/chromedp v0.21.0
 	github.com/go-vgo/robotgo v1.3.5
+	github.com/google/jsonschema-go v0.4.3
+	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/robotn/gohook v0.50.0
 	github.com/wailsapp/wails/v2 v2.16.0
 	github.com/xuri/excelize/v2 v2.9.1
@@ -43,6 +45,8 @@ require (
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/samber/lo v1.49.1 // indirect
+	github.com/segmentio/asm v1.1.3 // indirect
+	github.com/segmentio/encoding v0.5.4 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.9 // indirect
 	github.com/tailscale/win v0.0.0-20260619195133-2d76c33a64c1 // indirect
 	github.com/tiendc/go-deepcopy v1.6.0 // indirect
@@ -61,12 +65,16 @@ require (
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/nfp v0.0.1 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/image v0.46.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/oauth2 v0.35.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/time v0.15.0 // indirect
 )
 
 // replace github.com/wailsapp/wails/v2 v2.16.0 => /Users/MAC/go/pkg/mod

@@ -22,6 +22,25 @@ type Settings struct {
 	Theme  string      `json:"theme"`            // light | dark | system
 	Recent []string    `json:"recent,omitempty"` // file kịch bản mở / lưu gần đây, mới nhất trước (storage.go)
 	API    APISettings `json:"api"`
+	MCP    MCPSettings `json:"mcp"`
+}
+
+// MCPSettings – cho AI kết nối qua MCP (bước 31): bật mặc định; route /mcp chạy trên cùng cổng API local.
+type MCPSettings struct {
+	Enabled bool `json:"enabled"`
+}
+
+// SetMCP lưu cài đặt MCP.
+func SetMCP(m MCPSettings) error {
+	settingsMu.Lock()
+	defer settingsMu.Unlock()
+	dir, err := ConfigDir()
+	if err != nil {
+		return err
+	}
+	s := loadSettings(dir)
+	s.MCP = m
+	return saveSettings(dir, s)
 }
 
 // APISettings – API local cho chương trình khác (bước 22): tắt mặc định; kênh cho CLI luôn bật (api.json).
@@ -54,7 +73,7 @@ func SetAPI(a APISettings) (APISettings, error) {
 }
 
 func defaultSettings() Settings {
-	return Settings{Theme: ThemeSystem, API: APISettings{Port: DefaultAPIPort}}
+	return Settings{Theme: ThemeSystem, API: APISettings{Port: DefaultAPIPort}, MCP: MCPSettings{Enabled: true}}
 }
 
 const settingsFile = "settings.json"

@@ -182,9 +182,13 @@ export interface Script {
   anchorMode?: AnchorMode; // điểm mới đặt neo theo: bỏ trống = góc gần nhất, start = luôn trên trái
   inputs?: ScriptInput[]; // giá trị hỏi khi bấm Chạy (bước 21b, internal/script/inputs.go)
   human?: HumanLevel; // thao tác giống người (bước 34, internal/humanize): trống / off = tắt
+  meta?: ScriptMeta; // nguồn gốc – AI tạo qua MCP (bước 31)
 }
 export type AnchorMode = 'start';
-const scriptMatchesGo: Same<keyof Script, keyof Fields<model.Script>> = true;
+export interface ScriptMeta {
+  createdBy?: 'ai';
+}
+const scriptMatchesGo: [Same<keyof Script, keyof Fields<model.Script>>, Same<keyof ScriptMeta, keyof Fields<model.ScriptMeta>>] = [true, true];
 void scriptMatchesGo;
 
 // ---- Input của kịch bản (bước 21b) – khớp ScriptInput trong internal/model/inputs.go ----

@@ -1,0 +1,87 @@
+// Cài đặt – AI qua MCP (bước 31): bật / tắt, thêm vào Claude Desktop (hỏi trước khi ghi file của Claude), đoạn cấu
+// hình mẫu cho từng client AI, các lệnh AI đã gọi gần đây.
+import { useEffect, useState } from 'react';
+import { AddToClaudeDesktop, ClaudeDesktopConfigPath, MCPClients, MCPLog, SetMCPSettings } from '../../../wailsjs/go/main/App';
+import { mcpsrv } from '../../../wailsjs/go/models';
+import { errorText } from '../../engineStore';
+import Select from '../Select';
+import { selectBox } from '../stepform/shared';
+import { Switch } from '../Switch';
+import { CopyButton, SettingCode } from './parts';
+
+const LOG_SHOWN = 5;
+const timeText = (at: string) => new Date(at).toLocaleTimeString('vi-VN', { hour12: false });
+
+export default function McpSettings({ enabled, onEnabled }: { enabled: boolean; onEnabled: (on: boolean) => void }) {
+  const [clients, setClients] = useState<mcpsrv.ClientConfig[]>([]);
+  const [client, setClient] = useState('Claude Desktop');
+  const [log, setLog] = useState<mcpsrv.Call[]>([]);
+  const [confirm, setConfirm] = useState(''); // đường dẫn file Claude Desktop đang hỏi ghi
+  const [msg, setMsg] = useState('');
+
+  useEffect(() => {
+    if (!enabled) return;
+    MCPClients().then(setClients).catch((e) => setMsg(errorText(e)));
+    MCPLog().then(setLog).catch(() => {});
+  }, [enabled]);
+
+  const toggle = (on: boolean) => {
+    onEnabled(on);
+    SetMCPSettings({ enabled: on }).catch((e) => setMsg(errorText(e)));
+  };
+  const add = () => {
+    setConfirm('');
+    AddToClaudeDesktop().then(() => setMsg('Đã thêm – thoát hẳn rồi mở lại Claude Desktop')).catch((e) => setMsg(errorText(e)));
+  };
+  const cfg = clients.find((c) => c.client === client) ?? clients[0];
+
+  return (
+    <>
+      <label className="flex items-center justify-between gap-3 border-t border-line pt-3">
+        <span className="flex flex-col">Cho AI soạn kịch bản (MCP)
+          <span className="text-xs text-muted">Claude, Cursor, Codex… tạo / sửa kịch bản – chưa chạy được</span>
+        </span>
+        <Switch on={enabled} onChange={toggle} label="Bật MCP" />
+      </label>
+      {enabled && (
+        <>
+          {confirm ? (
+            <div className="flex flex-col gap-1.5 rounded-control bg-soft p-2 text-xs">
+              Ghi mục “autoclicker” vào <span className="font-mono break-all">{confirm}</span>? Cài đặt khác của Claude giữ nguyên.
+              <span className="flex gap-1.5">
+                <button onClick={add} className="btn-primary rounded-control px-3 py-1 text-on-accent">Ghi</button>
+                <button onClick={() => setConfirm('')} className="rounded-control border border-line px-3 py-1 hover:bg-hover">Huỷ</button>
+              </span>
+            </div>
+          ) : (
+            <button onClick={() => ClaudeDesktopConfigPath().then(setConfirm).catch((e) => setMsg(errorText(e)))}
+              className="self-start rounded-control border border-line px-3 py-1.5 hover:bg-hover">Thêm vào Claude Desktop…</button>
+          )}
+          {cfg && (
+            <div className="flex flex-col gap-1 text-muted">
+              <span className="flex items-center gap-1.5">
+                <Select value={cfg.client} onChange={setClient} options={clients.map((c) => ({ value: c.client, label: c.client }))}
+                  className={`${selectBox} flex-1`} aria-label="Client AI" />
+                <CopyButton text={cfg.text} label="Chép cấu hình" />
+              </span>
+              <span className="text-xs">{cfg.where}</span>
+              <SettingCode>{cfg.text}</SettingCode>
+            </div>
+          )}
+          {log.length > 0 && (
+            <div className="flex flex-col gap-0.5 text-xs text-muted">Lệnh AI gần đây
+              {log.slice(0, LOG_SHOWN).map((c, i) => (
+                <span key={i} title={c.error} className="flex gap-2 font-mono">
+                  <span>{timeText(c.at)}</span>
+                  <span className={c.ok ? 'text-ok' : 'text-danger-text'}>{c.ok ? '✓' : '✗'}</span>
+                  <span className="truncate text-ink">{c.tool}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+      {msg && <span className="text-xs text-muted">{msg}</span>}
+    </>
+  );
+}

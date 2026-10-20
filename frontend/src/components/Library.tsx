@@ -10,17 +10,18 @@ import { scheduleOf, useSchedules } from '../scheduleStore';
 import { SidebarToggle } from './icons';
 import { ResizeHandle, usePanelWidth } from './PanelResize';
 import Samples from './samples/Samples';
-import { Fold, LibraryFooter } from './library/LibraryParts';
+import { AIChip, Fold, LibraryFooter } from './library/LibraryParts';
 import RunsDialog from './library/RunsDialog';
 import { LibraryRun, libraryRun, runDot } from './library/runs';
 
 export type { LibraryRun };
 
-export type LibraryScript = { name: string; unsaved?: boolean; schedule?: string };
+export type LibraryScript = { name: string; unsaved?: boolean; schedule?: string; ai?: boolean };
 export type LibraryProps = {
   scripts: LibraryScript[];
   active: number;
   recent: string[]; // đường dẫn file, mới nhất trước
+  aiRecent?: string[]; // trong recent: file AI tạo (chip AI)
   history: LibraryRun[];
   ready: boolean; // false: ô tìm / nút chưa hoạt động (trình duyệt – không có Go)
   onNew?: () => void;
@@ -49,17 +50,18 @@ const loadCollapsed = () => {
 export default function Library() {
   const { script, dirty, path } = useEditor();
   const sched = scheduleOf(useSchedules(), path);
-  const { recent } = useFile();
+  const { recent, aiPaths } = useFile();
   const log = useRunLog();
   const history = log.history.map((h) => libraryRun(h, log.open && !log.live && log.summary?.id === h.id));
+  const ai = script.meta?.createdBy === 'ai';
   return (
-    <LibraryView scripts={[{ name: script.name, unsaved: dirty, schedule: sched?.time }]} active={0} recent={recent.filter((r) => r !== path)} history={history}
+    <LibraryView scripts={[{ name: script.name, unsaved: dirty, schedule: sched?.time, ai }]} active={0} recent={recent.filter((r) => r !== path)} aiRecent={aiPaths} history={history}
       ready={inWails} onNew={newScript} onOpen={openScript} onSave={() => save()} onRecent={openRecent} onHistory={openRun}
       SamplesPanel={Samples} RunsPanel={RunsDialog} />
   );
 }
 
-export function LibraryView({ scripts, active, recent, history, ready, onNew, onOpen, onSave, onRecent, onHistory, SamplesPanel, RunsPanel }: LibraryProps) {
+export function LibraryView({ scripts, active, recent, aiRecent = [], history, ready, onNew, onOpen, onSave, onRecent, onHistory, SamplesPanel, RunsPanel }: LibraryProps) {
   const [collapsed, setCollapsed] = useState(loadCollapsed);
   const [samples, setSamples] = useState(false);
   const [runsOpen, setRunsOpen] = useState(false);
@@ -119,6 +121,7 @@ export function LibraryView({ scripts, active, recent, history, ready, onNew, on
               className={`relative flex h-[34px] items-center gap-2.5 rounded-md px-2.5 ${i === active ? 'bg-hover font-semibold' : 'hover:bg-hover'}`}>
               {i === active && <span className="absolute top-[9px] left-0 h-4 w-[3px] rounded-sm bg-accent" />}
               <span className="min-w-0 flex-1 truncate">{s.name}</span>
+              {s.ai && <AIChip />}
               {s.schedule && (
                 <span className="flex items-center gap-1 font-mono text-[11px] font-normal text-muted" title={`Hẹn chạy lúc ${s.schedule}`}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
@@ -135,7 +138,10 @@ export function LibraryView({ scripts, active, recent, history, ready, onNew, on
           <Fold title="Mở gần đây" storageKey="library-recent-open" summary={recent.length || undefined}>
             {recentShown.map((r) => (
               <a key={r} href="#" title={r} onClick={(e) => { e.preventDefault(); onRecent?.(r); }}
-                className="truncate rounded-md px-3 py-[7px] text-[13px] text-muted hover:bg-hover hover:text-ink">{fileName(r)}</a>
+                className="flex items-center gap-2 rounded-md px-3 py-[7px] text-[13px] text-muted hover:bg-hover hover:text-ink">
+                <span className="min-w-0 flex-1 truncate">{fileName(r)}</span>
+                {aiRecent.includes(r) && <AIChip />}
+              </a>
             ))}
             {recentShown.length === 0 && <span className="px-3 py-1 text-[13px] text-muted">{recent.length ? 'Không có file nào khớp' : 'Chưa có'}</span>}
           </Fold>

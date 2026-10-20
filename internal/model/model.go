@@ -275,4 +275,13 @@ type Script struct {
 	AnchorMode string        `json:"anchorMode,omitempty"` // "" = góc gần nhất | start = luôn trên trái
 	Inputs     []ScriptInput `json:"inputs,omitempty"`     // giá trị hỏi khi bấm Chạy (script/inputs.go)
 	Human      string        `json:"human,omitempty"`      // thao tác giống người: "" / off = tắt | low | medium | high
+	Meta       *ScriptMeta   `json:"meta,omitempty"`       // nguồn gốc kịch bản (AI tạo – bước 31)
 }
+
+// ScriptMeta – thông tin về kịch bản, không ảnh hưởng lúc chạy.
+type ScriptMeta struct {
+	CreatedBy string `json:"createdBy,omitempty"` // "ai" = AI tạo qua MCP (chip AI ở thư viện)
+}
+
+// CreatedByAI – giá trị ScriptMeta.CreatedBy của kịch bản AI tạo.
+const CreatedByAI = "ai"

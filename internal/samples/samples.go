@@ -1,6 +1,5 @@
 // Package samples – kịch bản mẫu để test từng loại bước (bước 33) + trang sân thử cục bộ chúng chạy trên.
-// Mẫu là JSON gọn {meta, script}: node chỉ ghi trường cần, còn lại lấy mặc định của model.NewStep; không có
-// edges thì nối các node theo thứ tự bằng cổng success. Không phụ thuộc UI / thiết bị – MCP (31) dùng lại được.
+// Mẫu là JSON gọn {meta, script} – script.Compact (node chỉ ghi trường cần, không có edges thì nối theo thứ tự). Không phụ thuộc UI / thiết bị – MCP (31) dùng lại được.
 package samples
 
 import (
@@ -40,15 +39,8 @@ type Info struct {
 }
 
 type sampleFile struct {
-	Meta   Info `json:"meta"`
-	Script struct {
-		Loops  int                 `json:"loops"`
-		Region *model.Rect         `json:"region"`
-		Start  string              `json:"start"`
-		Steps  []json.RawMessage   `json:"steps"`
-		Edges  []model.Edge        `json:"edges"`
-		Inputs []model.ScriptInput `json:"inputs"`
-	} `json:"script"`
+	Meta   Info           `json:"meta"`
+	Script script.Compact `json:"script"`
 }
 
 // List trả mọi mẫu, sắp theo độ khó rồi tên.
@@ -84,12 +76,17 @@ func Open(id, sandboxURL string) (model.Script, error) {
 	if err := fill(&sc, sandboxURL); err != nil {
 		return model.Script{}, fmt.Errorf("mẫu %s: %w", id, err)
 	}
-	// qua đúng đường mở file để có cùng kiểm tra / sửa ref như kịch bản người dùng
-	b, err := script.EncodeScript(sc)
+	return script.Checked(sc) // cùng kiểm tra / sửa ref như kịch bản người dùng
+}
+
+// Raw – phần script dạng gọn (script.Compact) của mẫu id, như trong file – làm ví dụ cho AI (MCP, bước 31).
+func Raw(id string) (json.RawMessage, error) {
+	b, err := scriptFS.ReadFile(path.Join("scripts", id+".json"))
 	if err != nil {
-		return model.Script{}, err
+		return nil, fmt.Errorf("không có mẫu %q", id)
 	}
-	return script.DecodeScript(b)
+	var f struct{ Script json.RawMessage }
+	return f.Script, json.Unmarshal(b, &f)
 }
 
 func ids() ([]string, error) {
@@ -116,58 +113,13 @@ func load(id string) (Info, model.Script, error) {
 	if err := json.Unmarshal(b, &f); err != nil {
 		return Info{}, model.Script{}, fmt.Errorf("mẫu %s hỏng: %w", id, err)
 	}
-	sc := model.NewScript()
-	sc.Name, sc.Region, sc.Inputs = f.Meta.Name, f.Script.Region, f.Script.Inputs
-	if f.Script.Loops > 0 {
-		sc.Loops = f.Script.Loops
-	}
-	for i, raw := range f.Script.Steps {
-		st, err := decodeStep(raw, i)
-		if err != nil {
-			return Info{}, model.Script{}, fmt.Errorf("mẫu %s node %d: %w", id, i+1, err)
-		}
-		sc.Steps = append(sc.Steps, st)
-	}
-	sc.Edges = f.Script.Edges
-	if len(sc.Edges) == 0 {
-		for i := 1; i < len(sc.Steps); i++ {
-			sc.Edges = append(sc.Edges, model.Edge{From: sc.Steps[i-1].ID, Port: model.PortSuccess, To: sc.Steps[i].ID})
-		}
-	}
-	for i := range sc.Edges {
-		if sc.Edges[i].ID == "" {
-			sc.Edges[i].ID = fmt.Sprintf("e%d", i+1)
-		}
-	}
-	sc.Start = f.Script.Start
-	if sc.Start == "" && len(sc.Steps) > 0 {
-		sc.Start = sc.Steps[0].ID
+	f.Script.Name = f.Meta.Name
+	sc, err := script.Expand(f.Script)
+	if err != nil {
+		return Info{}, model.Script{}, fmt.Errorf("mẫu %s: %w", id, err)
 	}
 	f.Meta.ID = id
 	return f.Meta, sc, nil
-}
-
-// decodeStep: mặc định theo loại (NewStep) rồi đè trường ghi trong mẫu; id / ref mặc định s<i> / n<i>.
-func decodeStep(raw json.RawMessage, i int) (model.Step, error) {
-	var head struct{ Type string }
-	if err := json.Unmarshal(raw, &head); err != nil {
-		return model.Step{}, err
-	}
-	st, err := model.NewStep(head.Type)
-	if err != nil {
-		return model.Step{}, err
-	}
-	st.ID, st.Ref = "", ""
-	if err := json.Unmarshal(raw, &st); err != nil {
-		return model.Step{}, err
-	}
-	if st.ID == "" {
-		st.ID = fmt.Sprintf("s%d", i+1)
-	}
-	if st.Ref == "" {
-		st.Ref = fmt.Sprintf("n%d", i+1)
-	}
-	return st, nil
 }
 
 // fill thay {{sandbox}} trong target và "@file" trong ảnh mẫu (node, điều kiện, case).

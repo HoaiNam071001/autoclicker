@@ -5,14 +5,21 @@ import {model} from '../models';
 import {main} from '../models';
 import {engine} from '../models';
 import {store} from '../models';
+import {mcpsrv} from '../models';
 import {session} from '../models';
 import {samples} from '../models';
+
+export function AIScripts():Promise<Array<string>>;
+
+export function AddToClaudeDesktop():Promise<string>;
 
 export function BrowserStatus():Promise<web.Status>;
 
 export function CancelPick():Promise<void>;
 
 export function CaptureTemplate(arg1:model.Rect):Promise<main.TemplateShot>;
+
+export function ClaudeDesktopConfigPath():Promise<string>;
 
 export function ClearDraft():Promise<void>;
 
@@ -43,6 +50,10 @@ export function ListSchedules():Promise<Array<model.Schedule>>;
 export function ListWindows():Promise<Array<model.WindowInfo>>;
 
 export function LoadDraft():Promise<store.Draft>;
+
+export function MCPClients():Promise<Array<mcpsrv.ClientConfig>>;
+
+export function MCPLog():Promise<Array<mcpsrv.Call>>;
 
 export function MousePos():Promise<model.Point>;
 
@@ -100,7 +111,9 @@ export function ScreenCaptureAllowed():Promise<boolean>;
 
 export function SetAPISettings(arg1:store.APISettings):Promise<store.APISettings>;
 
-export function SetDirty(arg1:boolean):Promise<void>;
+export function SetEditorState(arg1:string,arg2:boolean):Promise<void>;
+
+export function SetMCPSettings(arg1:store.MCPSettings):Promise<void>;
 
 export function SetOverlayDisplay(arg1:number):Promise<void>;
 

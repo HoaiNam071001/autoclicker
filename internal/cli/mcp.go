@@ -1,0 +1,94 @@
+package cli
+
+import (
+	"bufio"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+)
+
+// `autoclicker --mcp` (bước 31): MCP qua stdio cho AI chỉ chạy được server dạng lệnh (Claude Desktop, Codex CLI…).
+// Luôn chuyển tiếp sang /mcp của app đang mở (chưa mở thì mở) – quyền macOS tính theo tiến trình nên không tự chạy
+// engine trong tiến trình con của AI. /mcp stateless + trả JSON nên mỗi dòng JSON-RPC = một POST.
+
+// MCPFlag – đối số bật chế độ MCP stdio.
+const MCPFlag = "--mcp"
+
+// IsMCP – args (không gồm tên chương trình) là chế độ MCP stdio.
+func IsMCP(args []string) bool { return len(args) == 1 && args[0] == MCPFlag }
+
+// MCP đọc JSON-RPC từng dòng ở in, gửi sang app, ghi trả lời ra out (stdout chỉ chứa JSON-RPC; log ra errOut).
+func (c *Client) MCP(in io.Reader, out, errOut io.Writer) int {
+	sc := bufio.NewScanner(in)
+	sc.Buffer(make([]byte, 0, 1<<20), 32<<20)
+	connected := false
+	for sc.Scan() {
+		line := bytes.TrimSpace(sc.Bytes())
+		if len(line) == 0 {
+			continue
+		}
+		if !connected {
+			if err := c.connect(errOut); err != nil {
+				writeRPCError(out, line, "không nối được app Auto Clicker: "+err.Error())
+				continue
+			}
+			connected = true
+		}
+		res, err := c.postMCP(line)
+		if err != nil && c.try() { // app vừa mở lại (cổng / token mới) → thử lại một lần
+			res, err = c.postMCP(line)
+		}
+		if err != nil {
+			fmt.Fprintf(errOut, "MCP: %v\n", err)
+			writeRPCError(out, line, err.Error())
+			connected = false
+			continue
+		}
+		if len(res) > 0 {
+			out.Write(append(bytes.TrimSpace(res), '\n'))
+		}
+	}
+	return ExitOK
+}
+
+// postMCP gửi một message; trả body (rỗng với notification – 202).
+func (c *Client) postMCP(msg []byte) ([]byte, error) {
+	req, err := http.NewRequest("POST", c.base+"/mcp", bytes.NewReader(msg))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.token)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	res, err := c.HTTP.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	switch {
+	case res.StatusCode == http.StatusAccepted:
+		return nil, nil
+	case res.StatusCode != http.StatusOK:
+		return nil, fmt.Errorf("app trả %s: %s", res.Status, strings.TrimSpace(string(body)))
+	}
+	return body, nil
+}
+
+// writeRPCError – trả lỗi JSON-RPC cho request (có id); notification thì bỏ qua.
+func writeRPCError(out io.Writer, msg []byte, text string) {
+	var head struct {
+		ID json.RawMessage `json:"id"`
+	}
+	if json.Unmarshal(msg, &head) != nil || len(head.ID) == 0 {
+		return
+	}
+	b, _ := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": head.ID, "error": map[string]any{"code": -32000, "message": text}})
+	out.Write(append(b, '\n'))
+}

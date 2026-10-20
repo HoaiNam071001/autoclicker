@@ -1,0 +1,137 @@
+// Package mcpsrv – MCP server cho AI (bước 31): Claude / Cursor / Codex… tạo, đọc, sửa kịch bản trong app.
+// Route /mcp (Streamable HTTP, stateless, trả JSON) gắn vào API local (internal/api) – cùng 127.0.0.1 + token;
+// `autoclicker --mcp` (stdio) chuyển tiếp vào đây (internal/cli). Việc thật (file, app đang mở) ở Backend (main).
+// Thiết kế cho mọi AI: tham số phẳng, ít tool, chữ (JSON) trong kết quả, lỗi có cấu trúc để AI tự sửa.
+package mcpsrv
+
+import (
+	"context"
+	"net/http"
+	"sync"
+	"time"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"autoclicker/internal/model"
+)
+
+// Editor – kịch bản đang mở trên app.
+type Editor struct {
+	Path  string // "" = chưa lưu thành file
+	Dirty bool   // có thay đổi chưa lưu
+}
+
+// Display – một màn hình (toạ độ robotgo).
+type Display struct {
+	model.Rect
+	Scale float64 `json:"scale"` // tỷ lệ DPI / Retina (125 % → 1.25)
+	Main  bool    `json:"main"`
+}
+
+// Backend – việc thật (main.App). path luôn là đường dẫn tuyệt đối.
+type Backend interface {
+	Enabled() bool // công tắc MCP trong Cài đặt
+	Recent() []string
+	Editor() Editor
+	ScriptsDir() (string, error) // thư mục mặc định cho kịch bản AI tạo
+	ReadScript(path string) (model.Script, int, error)
+	// WriteScript ghi file (kiểm tra cấu trúc, revision -1 = không so – file mới), báo app nạp lại, thêm vào Mở gần đây.
+	WriteScript(path string, sc model.Script, revision int) (int, error)
+	OpenInApp(path string) error
+	Displays() []Display
+}
+
+// Server – MCP server + nhật ký lệnh AI đã gọi.
+type Server struct {
+	back Backend
+	mcp  *mcp.Server
+	log  *CallLog
+}
+
+const instructions = `Auto Clicker – app tự động click / gõ theo kịch bản dạng flow (node + cạnh, như n8n).
+Tạo kịch bản: đọc get_step_types (hoặc resource autoclicker://guide) → viết kịch bản → validate_script → create_script → open_in_app.
+Sửa: read_script (lấy revision) → update_script theo id / ref node. Thiếu thông tin (app nào, giá trị nào là input) thì hỏi lại người dùng trước.
+Bản này AI chỉ soạn kịch bản, chưa chạy được – người dùng bấm Chạy trên app.`
+
+func New(back Backend) *Server {
+	s := &Server{back: back, log: &CallLog{}}
+	s.mcp = mcp.NewServer(&mcp.Implementation{Name: "autoclicker", Title: "Auto Clicker", Version: "1.0"},
+		&mcp.ServerOptions{Instructions: instructions})
+	s.mcp.AddReceivingMiddleware(s.log.middleware)
+	s.addReadTools()
+	s.addWriteTools()
+	s.addDocs()
+	return s
+}
+
+// Handler – http.Handler cho route /mcp. Stateless + JSON: mỗi request độc lập, proxy stdio chỉ cần POST từng dòng.
+func (s *Server) Handler() http.Handler {
+	h := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return s.mcp },
+		&mcp.StreamableHTTPOptions{Stateless: true, JSONResponse: true})
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !s.back.Enabled() {
+			http.Error(w, "MCP đang tắt – bật trong Cài đặt của app Auto Clicker", http.StatusForbidden)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+// Log – nhật ký các lệnh AI đã gọi (mới nhất trước).
+func (s *Server) Log() []Call { return s.log.list() }
+
+// Call – một lần AI gọi tool.
+type Call struct {
+	At    time.Time `json:"at"`
+	Tool  string    `json:"tool"`
+	OK    bool      `json:"ok"`
+	Error string    `json:"error,omitempty"`
+}
+
+const maxCalls = 50
+
+type CallLog struct {
+	mu    sync.Mutex
+	calls []Call
+}
+
+func (l *CallLog) middleware(next mcp.MethodHandler) mcp.MethodHandler {
+	return func(ctx context.Context, method string, req mcp.Request) (mcp.Result, error) {
+		res, err := next(ctx, method, req)
+		if p, ok := req.GetParams().(*mcp.CallToolParamsRaw); ok && method == "tools/call" {
+			c := Call{At: time.Now(), Tool: p.Name, OK: err == nil}
+			if r, ok := res.(*mcp.CallToolResult); ok && r.IsError {
+				c.OK = false
+				c.Error = firstText(r)
+			} else if err != nil {
+				c.Error = err.Error()
+			}
+			l.add(c)
+		}
+		return res, err
+	}
+}
+
+func (l *CallLog) add(c Call) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.calls = append([]Call{c}, l.calls...)
+	if len(l.calls) > maxCalls {
+		l.calls = l.calls[:maxCalls]
+	}
+}
+
+func (l *CallLog) list() []Call {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return append([]Call{}, l.calls...)
+}
+
+func firstText(r *mcp.CallToolResult) string {
+	for _, c := range r.Content {
+		if t, ok := c.(*mcp.TextContent); ok {
+			return t.Text
+		}
+	}
+	return ""
+}

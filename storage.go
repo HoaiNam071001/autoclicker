@@ -133,10 +133,11 @@ func (a *App) ClearDraft() error { return store.ClearDraft() }
 
 // ---- Hỏi lưu khi đóng app ----
 
-// SetDirty: frontend báo kịch bản đang soạn có thay đổi chưa lưu – đóng app khi đó thì hỏi trước.
-func (a *App) SetDirty(dirty bool) {
+// SetEditorState: frontend báo kịch bản đang soạn (file, có thay đổi chưa lưu) – đóng app khi chưa lưu thì hỏi trước;
+// AI (MCP) không ghi đè kịch bản đang sửa dở.
+func (a *App) SetEditorState(path string, dirty bool) {
 	a.mu.Lock()
-	a.dirty = dirty
+	a.editPath, a.dirty = path, dirty
 	a.mu.Unlock()
 }
 
