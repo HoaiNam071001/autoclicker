@@ -19,11 +19,41 @@ const (
 )
 
 type Settings struct {
-	Theme  string   `json:"theme"`            // light | dark | system
-	Recent []string `json:"recent,omitempty"` // file kịch bản mở / lưu gần đây, mới nhất trước (storage.go)
+	Theme  string      `json:"theme"`            // light | dark | system
+	Recent []string    `json:"recent,omitempty"` // file kịch bản mở / lưu gần đây, mới nhất trước (storage.go)
+	API    APISettings `json:"api"`
 }
 
-func defaultSettings() Settings { return Settings{Theme: ThemeSystem} }
+// APISettings – API local cho chương trình khác (bước 22): tắt mặc định; kênh cho CLI luôn bật (api.json).
+type APISettings struct {
+	Enabled bool   `json:"enabled"`
+	Port    int    `json:"port"`
+	Token   string `json:"token,omitempty"`
+}
+
+// DefaultAPIPort – cổng mặc định của API cho chương trình khác.
+const DefaultAPIPort = 47800
+
+// SetAPI lưu cài đặt API; token trống thì tạo mới. Trả cài đặt đã lưu.
+func SetAPI(a APISettings) (APISettings, error) {
+	if a.Port <= 0 || a.Port > 65535 {
+		a.Port = DefaultAPIPort
+	}
+	if a.Token == "" {
+		a.Token = NewToken()
+	}
+	settingsMu.Lock()
+	defer settingsMu.Unlock()
+	dir, err := ConfigDir()
+	if err != nil {
+		return a, err
+	}
+	s := loadSettings(dir)
+	s.API = a
+	return a, saveSettings(dir, s)
+}
+
+func defaultSettings() Settings { return Settings{Theme: ThemeSystem, API: APISettings{Port: DefaultAPIPort}} }
 
 const settingsFile = "settings.json"
 

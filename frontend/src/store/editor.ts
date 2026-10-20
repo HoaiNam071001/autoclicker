@@ -126,6 +126,12 @@ export function replaceScript(script: Script, path: string | null, dirty: boolea
   setEditor({ script, path, dirty, selected: script.start || script.steps[0]?.id || '', picked: [], dragA: null, notice, multi: [], past: [], future: [], opened: state.opened + 1 });
 }
 
+// File đang mở bị ghi từ ngoài app (API / AI): nạp bản trên đĩa, bản đang soạn vào hoàn tác (Ctrl+Z lấy lại).
+export function reloadScript(script: Script, notice: string) {
+  restore(script, [...state.past, state.script].slice(-HISTORY_MAX), [], notice);
+  setEditor({ dirty: false });
+}
+
 // Sau khi lưu: đường dẫn + tên mới (Lưu thành đổi tên theo file), giữ nguyên phần còn lại đang soạn.
 // stillDirty: có sửa thêm trong lúc hộp thoại lưu đang mở.
 export const markSaved = (path: string, name: string, notice: string, stillDirty: boolean) =>

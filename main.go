@@ -2,6 +2,8 @@ package main
 
 import (
 	"embed"
+	"os"
+	"os/signal"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -9,6 +11,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 
+	"autoclicker/internal/cli"
 	"autoclicker/internal/winfloat"
 )
 
@@ -16,6 +19,14 @@ import (
 var assets embed.FS
 
 func main() {
+	// `autoclicker run …` (bước 22): gửi lệnh sang app đang mở rồi thoát – không mở giao diện
+	if args := os.Args[1:]; cli.IsCommand(args) {
+		cli.AttachConsole()
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, os.Interrupt)
+		os.Exit(cli.Main(args, cli.NewClient(sig), os.Stdout, os.Stderr))
+	}
+
 	winfloat.PrepareLaunch() // trước wails.Run – thanh mini / overlay nổi được trên app toàn màn hình (macOS)
 
 	// Create an instance of the app structure

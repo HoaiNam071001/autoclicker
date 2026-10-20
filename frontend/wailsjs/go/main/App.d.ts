@@ -94,6 +94,8 @@ export function ScreenBounds():Promise<model.Rect>;
 
 export function ScreenCaptureAllowed():Promise<boolean>;
 
+export function SetAPISettings(arg1:store.APISettings):Promise<store.APISettings>;
+
 export function SetDirty(arg1:boolean):Promise<void>;
 
 export function SetOverlayDisplay(arg1:number):Promise<void>;

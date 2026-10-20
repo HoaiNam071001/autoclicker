@@ -6,7 +6,7 @@ import {
   ClearDraft, ConfirmQuit, LoadDraft, NewScript, OpenSample, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetDirty,
 } from '../wailsjs/go/main/App';
 import { model, store } from '../wailsjs/go/models';
-import { getEditor, markSaved, replaceScript, subscribe } from './store';
+import { getEditor, markSaved, reloadScript, replaceScript, subscribe } from './store';
 import { inWails, setWindowMode } from './windowMode';
 import { Script } from './types';
 
@@ -54,6 +54,7 @@ export async function save(as = false): Promise<boolean> {
     const res = await (as ? SaveScriptAs : SaveScript)(toGo(script), path ?? '');
     if (!res.path) return false;
     // còn sửa trong lúc hộp thoại mở thì vẫn "chưa lưu" phần sửa đó
+    revision = res.revision;
     markSaved(res.path, res.script.name, `Đã lưu ${fileName(res.path)}`, getEditor().script !== script);
     setFs({ error: '' });
     refreshRecent();
@@ -74,11 +75,13 @@ async function run(p: Pending, discard = false) {
       if (discard) await ClearDraft().catch(() => {});
       return ConfirmQuit();
     }
+    revision = 0;
     if (p.action === 'new') return replaceScript(fromGo(await NewScript()), null, false, 'Kịch bản mới');
     // mẫu thử (bước 33): bản sao chưa có file – Lưu sẽ hỏi chỗ lưu, mẫu gốc không đổi
     if (p.action === 'sample') return replaceScript(fromGo(await OpenSample(p.id)), null, false, `Đã mở mẫu “${p.name}”`);
     const res = p.action === 'open' ? await OpenScript() : await OpenScriptPath(p.path);
     if (!res.path) return; // huỷ hộp thoại
+    revision = res.revision;
     replaceScript(fromGo(res.script), res.path, false, `Đã mở ${fileName(res.path)}`);
     setFs({ error: '' });
   } catch (e) {
@@ -106,6 +109,23 @@ export async function answerPending(choice: 'save' | 'discard' | 'cancel') {
   if (!p || choice === 'cancel') return;
   if (choice === 'save' && !(await save())) return;
   run(p, choice === 'discard');
+}
+
+// ---- Kịch bản bị ghi từ ngoài app (API / AI – bước 22): nạp lại, bản đang soạn vào hoàn tác ----
+
+let revision = 0; // revision của file đang mở (storage.go ScriptFile.revision); 0 = chưa biết
+const normPath = (p: string) => p.replace(/\\/g, '/').toLowerCase();
+
+async function onScriptChanged(c: { path: string; revision: number }) {
+  const { path } = getEditor();
+  if (!path || normPath(path) !== normPath(c.path) || c.revision <= revision) return;
+  try {
+    const res = await OpenScriptPath(path);
+    revision = res.revision;
+    reloadScript(fromGo(res.script), `${fileName(path)} vừa được sửa từ ngoài app – đã nạp lại (Ctrl+Z lấy lại bản trước)`);
+  } catch (e) {
+    setFs({ error: errText(e) });
+  }
 }
 
 // ---- Bản nháp tự lưu + báo Go có thay đổi chưa lưu ----
@@ -165,4 +185,5 @@ if (inWails) {
     if (location.hash) setWindowMode('main');
     setFs({ pending: { action: 'quit' } });
   });
+  EventsOn('script:changed', onScriptChanged);
 }

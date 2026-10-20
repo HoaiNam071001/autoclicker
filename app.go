@@ -19,6 +19,10 @@ type App struct {
 	mu       sync.Mutex
 	sess     *session.Manager // phiên chạy (nút Chạy, API, CLI, hẹn giờ)
 	hub      *api.Hub         // event cho SSE của API local
+	revs     *store.Revisions // revision file kịch bản (storage.go)
+	apiSrv   *api.Server      // API local (apiserver.go)
+	apiCLI   *api.Listener    // kênh cho CLI – luôn bật
+	apiExt   *api.Listener    // cổng cho chương trình khác – theo Cài đặt
 	mode     string           // chế độ cửa sổ hiện tại, xem window.go
 	mainRect winRect          // vị trí/kích thước main để khôi phục
 	mainMax  bool             // main đang phóng to (nút phóng to trên thanh tiêu đề) – phóng to lại khi quay về
@@ -34,7 +38,7 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	a := &App{mode: ModeMain, winDisp: -1, ovDisp: -1, hub: api.NewHub()}
+	a := &App{mode: ModeMain, winDisp: -1, ovDisp: -1, hub: api.NewHub(), revs: store.NewRevisions()}
 	a.sess = session.New(a.emit, session.Deps{})
 	return a
 }
@@ -44,6 +48,7 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.startHotkeys()
+	a.startAPI()
 	device.ExcludeSelfFromCapture() // Windows: thanh mini / overlay không lọt vào ảnh chụp khi tìm ảnh
 }
 
@@ -52,6 +57,7 @@ func (a *App) shutdown(ctx context.Context) {
 	a.StopScript()
 	a.CancelPick()
 	a.stopHotkeys()
+	a.stopAPI()
 }
 
 // NewStep trả bước mới với giá trị mặc định theo loại – dùng cho nút "+ Thêm bước".

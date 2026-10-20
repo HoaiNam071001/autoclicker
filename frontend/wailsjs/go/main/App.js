@@ -174,6 +174,10 @@ export function ScreenCaptureAllowed() {
   return window['go']['main']['App']['ScreenCaptureAllowed']();
 }
 
+export function SetAPISettings(arg1) {
+  return window['go']['main']['App']['SetAPISettings'](arg1);
+}
+
 export function SetDirty(arg1) {
   return window['go']['main']['App']['SetDirty'](arg1);
 }

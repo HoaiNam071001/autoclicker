@@ -24,8 +24,9 @@ const (
 
 // ScriptFile – kịch bản vừa mở và đường dẫn file của nó. Path "" = người dùng huỷ hộp thoại.
 type ScriptFile struct {
-	Script model.Script `json:"script"`
-	Path   string       `json:"path"`
+	Script   model.Script `json:"script"`
+	Path     string       `json:"path"`
+	Revision int          `json:"revision"` // store.Revisions – so với event script:changed để biết file bị ghi từ ngoài
 }
 
 // ---- Gọi từ frontend ----
@@ -39,11 +40,37 @@ func (a *App) SaveScript(sc model.Script, path string) (ScriptFile, error) {
 		return a.SaveScriptAs(sc, "")
 	}
 	sc.Version = model.ScriptVersion
-	if err := store.WriteScriptFile(path, sc); err != nil {
+	rev, err := a.revs.Write(path, -1, func() error { return store.WriteScriptFile(path, sc) })
+	if err != nil {
 		return ScriptFile{}, fmt.Errorf("không lưu được %s: %w", filepath.Base(path), err)
 	}
 	store.EditRecent(func(l []string) []string { return store.PushRecent(l, path) })
-	return ScriptFile{Script: sc, Path: path}, nil
+	return ScriptFile{Script: sc, Path: path, Revision: rev}, nil
+}
+
+// ScriptChanged – event "script:changed": file kịch bản vừa bị ghi từ ngoài app (API / AI).
+type ScriptChanged struct {
+	Path     string `json:"path"`
+	Revision int    `json:"revision"`
+	Source   string `json:"source"`
+}
+
+// writeScriptExternal – API / AI ghi kịch bản vào file: kiểm tra cấu trúc, base phải đúng revision hiện tại
+// (store.ConflictError nếu không), rồi báo frontend nạp lại (giữ hoàn tác). Trả revision mới.
+func (a *App) writeScriptExternal(path string, sc model.Script, base int, source string) (int, error) {
+	b, err := script.EncodeScript(sc)
+	if err != nil {
+		return 0, err
+	}
+	if sc, err = script.DecodeScript(b); err != nil { // kiểm tra như lúc mở file – file ghi ra luôn mở lại được
+		return 0, err
+	}
+	rev, err := a.revs.Write(path, base, func() error { return store.WriteScriptFile(path, sc) })
+	if err != nil {
+		return rev, err
+	}
+	a.emit("script:changed", ScriptChanged{Path: path, Revision: rev, Source: source})
+	return rev, nil
 }
 
 // SaveScriptAs hỏi chỗ lưu (gợi ý thư mục / tên từ path hoặc tên kịch bản) rồi ghi; tên kịch bản đổi theo tên file.
@@ -89,7 +116,7 @@ func (a *App) OpenScriptPath(path string) (ScriptFile, error) {
 		return ScriptFile{}, fmt.Errorf("không mở được %s: %w", filepath.Base(path), err)
 	}
 	store.EditRecent(func(l []string) []string { return store.PushRecent(l, path) })
-	return ScriptFile{Script: sc, Path: path}, nil
+	return ScriptFile{Script: sc, Path: path, Revision: a.revs.Get(path)}, nil
 }
 
 // RecentScripts trả danh sách file mở / lưu gần đây, mới nhất trước.
