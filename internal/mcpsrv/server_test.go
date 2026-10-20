@@ -19,20 +19,22 @@ import (
 
 // fakeBackend – file thật trong thư mục tạm, revision trong bộ nhớ.
 type fakeBackend struct {
-	dir    string
-	revs   *store.Revisions
-	recent []string
-	editor Editor
-	opened []string
-	sess   *session.Manager // phiên chạy thật, thiết bị giả (runBackend trong run_test.go)
-	in     *devicetest.FakeInput
+	dir      string
+	revs     *store.Revisions
+	recent   []string
+	editor   Editor
+	opened   []string
+	sess     *session.Manager // phiên chạy thật, thiết bị giả (runBackend trong run_test.go)
+	in       *devicetest.FakeInput
+	settings store.MCPSettings // tool tắt (31b2)
 }
 
-func (f *fakeBackend) Enabled() bool               { return true }
-func (f *fakeBackend) Recent() []string            { return f.recent }
-func (f *fakeBackend) Editor() Editor              { return f.editor }
-func (f *fakeBackend) ScriptsDir() (string, error) { return f.dir, nil }
-func (f *fakeBackend) OpenInApp(path string) error { f.opened = append(f.opened, path); return nil }
+func (f *fakeBackend) Enabled() bool                { return true }
+func (f *fakeBackend) ToolAllowed(c, t string) bool { return f.settings.ToolAllowed(c, t) }
+func (f *fakeBackend) Recent() []string             { return f.recent }
+func (f *fakeBackend) Editor() Editor               { return f.editor }
+func (f *fakeBackend) ScriptsDir() (string, error)  { return f.dir, nil }
+func (f *fakeBackend) OpenInApp(path string) error  { f.opened = append(f.opened, path); return nil }
 func (f *fakeBackend) Displays() []Display {
 	return []Display{{Rect: model.Rect{W: 1920, H: 1080}, Scale: 1, Main: true}}
 }

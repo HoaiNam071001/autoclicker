@@ -502,6 +502,22 @@ export namespace mcpsrv {
 	        this.text = source["text"];
 	    }
 	}
+	export class ToolInfo {
+	    name: string;
+	    kind: string;
+	    desc: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ToolInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.kind = source["kind"];
+	        this.desc = source["desc"];
+	    }
+	}
 
 }
 
@@ -1689,6 +1705,8 @@ export namespace store {
 	    enabled: boolean;
 	    run?: string;
 	    maxMinutes?: number;
+	    offTools?: string[];
+	    clients?: Record<string, Array<string>>;
 	
 	    static createFrom(source: any = {}) {
 	        return new MCPSettings(source);
@@ -1699,6 +1717,8 @@ export namespace store {
 	        this.enabled = source["enabled"];
 	        this.run = source["run"];
 	        this.maxMinutes = source["maxMinutes"];
+	        this.offTools = source["offTools"];
+	        this.clients = source["clients"];
 	    }
 	}
 	export class Settings {

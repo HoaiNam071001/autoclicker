@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 // Cấu hình app (không thuộc kịch bản), lưu ở os.UserConfigDir()/autoclicker/settings.json.
@@ -28,9 +29,11 @@ type Settings struct {
 // MCPSettings – cho AI kết nối qua MCP (bước 31): bật mặc định; route /mcp chạy trên cùng cổng API local.
 // Công tắc AI 4 mức (31b): Enabled = false → Tắt; còn lại theo Run: edit (chỉ soạn) | ask (chạy, hỏi trước – mặc định) | auto (tự chạy).
 type MCPSettings struct {
-	Enabled    bool   `json:"enabled"`
-	Run        string `json:"run,omitempty"`        // "" = ask
-	MaxMinutes int    `json:"maxMinutes,omitempty"` // trần thời gian mỗi lượt AI chạy; 0 = AIMaxMinutes
+	Enabled    bool                `json:"enabled"`
+	Run        string              `json:"run,omitempty"`        // "" = ask
+	MaxMinutes int                 `json:"maxMinutes,omitempty"` // trần thời gian mỗi lượt AI chạy; 0 = AIMaxMinutes
+	OffTools   []string            `json:"offTools,omitempty"`   // tool tắt mặc định cho mọi AI (31b2)
+	Clients    map[string][]string `json:"clients,omitempty"`    // tên loại AI → danh sách tool tắt riêng (thay hẳn mặc định)
 }
 
 // Mức chạy của AI (MCPSettings.Run).
@@ -181,4 +184,17 @@ func SetTheme(theme string) error {
 		return fmt.Errorf("không lưu được cấu hình: %w", err)
 	}
 	return nil
+}
+
+// OffToolsFor – tool tắt cho loại AI client: ghi đè riêng nếu có, không thì mặc định chung.
+func (m MCPSettings) OffToolsFor(client string) []string {
+	if off, ok := m.Clients[client]; ok && client != "" {
+		return off
+	}
+	return m.OffTools
+}
+
+// ToolAllowed – loại AI client được gọi tool này không.
+func (m MCPSettings) ToolAllowed(client, tool string) bool {
+	return !slices.Contains(m.OffToolsFor(client), tool)
 }

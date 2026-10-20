@@ -22,10 +22,11 @@ type emptyBackend struct {
 	dir string
 }
 
-func (b emptyBackend) Enabled() bool               { return true }
-func (b emptyBackend) Recent() []string            { return nil }
-func (b emptyBackend) Editor() mcpsrv.Editor       { return mcpsrv.Editor{} }
-func (b emptyBackend) ScriptsDir() (string, error) { return b.dir, nil }
+func (b emptyBackend) Enabled() bool                   { return true }
+func (b emptyBackend) ToolAllowed(string, string) bool { return true }
+func (b emptyBackend) Recent() []string                { return nil }
+func (b emptyBackend) Editor() mcpsrv.Editor           { return mcpsrv.Editor{} }
+func (b emptyBackend) ScriptsDir() (string, error)     { return b.dir, nil }
 func (b emptyBackend) ReadScript(string) (model.Script, int, error) {
 	return model.Script{}, 0, os.ErrNotExist
 }
@@ -82,5 +83,15 @@ func TestMCPNoApp(t *testing.T) {
 	}
 	if !IsMCP([]string{"--mcp"}) || IsMCP([]string{"run"}) {
 		t.Error("IsMCP")
+	}
+}
+
+func TestInitClient(t *testing.T) {
+	init := []byte(`{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"clientInfo":{"name":"cursor"}}}`)
+	if got := initClient(init, ""); got != "cursor" {
+		t.Errorf("initialize: %q", got)
+	}
+	if got := initClient([]byte(`{"jsonrpc":"2.0","id":2,"method":"tools/list"}`), "cursor"); got != "cursor" {
+		t.Errorf("dòng khác phải giữ tên cũ: %q", got)
 	}
 }

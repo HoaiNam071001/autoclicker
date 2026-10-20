@@ -45,14 +45,14 @@ type runIDIn struct {
 }
 
 func (s *Server) addRunTools() {
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "run_script", Description: "Chạy kịch bản đã lưu trên máy thật (chuột / phím thật). " +
+	addTool(s, KindRun, &mcp.Tool{Name: "run_script", Description: "Chạy kịch bản đã lưu trên máy thật (chuột / phím thật). " +
 		"Chạy cả, đến một node (stopAt), từ một node (from) hoặc chỉ một cụm (only). App hỏi người dùng trước khi chạy (tuỳ Cài đặt). " +
 		"Trả runId + kết quả từng node đã chạy; node lỗi có error.code / message / detail (chỗ khớp nhất, chữ đọc được, cửa sổ đang trước…) " +
 		"kèm ảnh màn hình lúc lỗi. Lỗi → sửa bằng update_script rồi resume_run."}, s.runScript)
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "wait_run", Description: "Chờ lần chạy runId xong (tối đa waitS giây) rồi trả kết quả như run_script. " +
+	addTool(s, KindRun, &mcp.Tool{Name: "wait_run", Description: "Chờ lần chạy runId xong (tối đa waitS giây) rồi trả kết quả như run_script. " +
 		"Chưa xong thì done=false + node đang chạy – gọi lại."}, s.waitRun)
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "stop_run", Description: "Dừng lần chạy runId đang chạy."}, s.stopRun)
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "resume_run", Description: "Chạy tiếp sau khi sửa: đọc lại kịch bản (bản mới nhất), " +
+	addTool(s, KindRun, &mcp.Tool{Name: "stop_run", Description: "Dừng lần chạy runId đang chạy."}, s.stopRun)
+	addTool(s, KindRun, &mcp.Tool{Name: "resume_run", Description: "Chạy tiếp sau khi sửa: đọc lại kịch bản (bản mới nhất), " +
 		"chạy từ node đã lỗi (hoặc from) với output / biến các node trước lấy từ lần chạy runId – không chạy lại từ đầu."}, s.resumeRun)
 }
 

@@ -102,6 +102,14 @@ export function MCPLog() {
   return window['go']['main']['App']['MCPLog']();
 }
 
+export function MCPSeenClients() {
+  return window['go']['main']['App']['MCPSeenClients']();
+}
+
+export function MCPTools() {
+  return window['go']['main']['App']['MCPTools']();
+}
+
 export function MousePos() {
   return window['go']['main']['App']['MousePos']();
 }

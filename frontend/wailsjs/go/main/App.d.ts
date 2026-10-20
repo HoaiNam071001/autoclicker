@@ -59,6 +59,10 @@ export function MCPClients():Promise<Array<mcpsrv.ClientConfig>>;
 
 export function MCPLog():Promise<Array<mcpsrv.Call>>;
 
+export function MCPSeenClients():Promise<Array<string>>;
+
+export function MCPTools():Promise<Array<mcpsrv.ToolInfo>>;
+
 export function MousePos():Promise<model.Point>;
 
 export function NewScript():Promise<model.Script>;

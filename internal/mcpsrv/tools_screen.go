@@ -33,10 +33,10 @@ type textLine struct {
 }
 
 func (s *Server) addScreenTools() {
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "describe_screen", Description: "Đọc màn hình bằng chữ (rẻ hơn ảnh): các dòng chữ (OCR) kèm khung " +
+	addTool(s, KindScreen, &mcp.Tool{Name: "describe_screen", Description: "Đọc màn hình bằng chữ (rẻ hơn ảnh): các dòng chữ (OCR) kèm khung " +
 		"theo toạ độ chuột + danh sách cửa sổ đang mở (trên cùng trước). Dùng để tìm chữ / nút cho node waitImage / clickImage (findBy text) " +
 		"hoặc biết cửa sổ nào đang trước."}, s.describeScreen)
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "screenshot", Description: "Chụp màn hình / vùng / cửa sổ, trả ảnh (thu nhỏ) + vùng + tỷ lệ: " +
+	addTool(s, KindScreen, &mcp.Tool{Name: "screenshot", Description: "Chụp màn hình / vùng / cửa sổ, trả ảnh (thu nhỏ) + vùng + tỷ lệ: " +
 		"toạ độ chuột = area.x + px ảnh × scale (y tương tự)."}, s.screenshot)
 }
 

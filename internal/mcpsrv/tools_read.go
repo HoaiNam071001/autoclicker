@@ -32,13 +32,13 @@ type ScriptEntry struct {
 }
 
 func (s *Server) addReadTools() {
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "list_scripts", Description: "Danh sách kịch bản: mở gần đây trên app + thư mục kịch bản của AI. " +
+	addTool(s, KindRead, &mcp.Tool{Name: "list_scripts", Description: "Danh sách kịch bản: mở gần đây trên app + thư mục kịch bản của AI. " +
 		"Mỗi mục: path, name, số node, createdBy (ai), open / unsaved (đang mở trên app)."}, s.listScripts)
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "read_script", Description: "Đọc một kịch bản: {path, revision, script}. " +
+	addTool(s, KindRead, &mcp.Tool{Name: "read_script", Description: "Đọc một kịch bản: {path, revision, script}. " +
 		"Giữ revision để gửi kèm update_script."}, s.readScript)
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "get_step_types", Description: "Hướng dẫn viết kịch bản: cấu trúc flow, biến {{…}}, trường chung, " +
+	addTool(s, KindRead, &mcp.Tool{Name: "get_step_types", Description: "Hướng dẫn viết kịch bản: cấu trúc flow, biến {{…}}, trường chung, " +
 		"từng loại node app hỗ trợ (mô tả, trường, ví dụ JSON, output, cổng ra) và mẹo viết kịch bản bền. Đọc trước khi tạo / sửa."}, s.stepTypes)
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "get_screen_info", Description: "Các màn hình: khung theo toạ độ chuột (x, y, w, h), tỷ lệ DPI / Retina, màn chính. " +
+	addTool(s, KindRead, &mcp.Tool{Name: "get_screen_info", Description: "Các màn hình: khung theo toạ độ chuột (x, y, w, h), tỷ lệ DPI / Retina, màn chính. " +
 		"Toạ độ trong kịch bản dùng cùng hệ này."}, s.screenInfo)
 }
 

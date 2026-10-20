@@ -30,6 +30,13 @@
     - Quyền (`mcprun.go`): `MCPSettings.Run` edit | ask (mặc định) | auto + `MaxMinutes` (mặc định 10); hỏi = event `ai:ask` → `AIRunDialog` (Cho phép lần này / đến khi đóng app / Từ chối, 90 s); chuyển về Tắt / Chỉ soạn huỷ lượt AI đang chạy
   - Kiểm tra tay: [checks.md](../checks.md) mục 31b
   - Xong khi: trên Claude Code nói "mở Notepad, gõ chào bạn, lưu ra Desktop/test.txt" khi app chưa mở → app tự mở thanh mini, AI tạo kịch bản, chạy; cố ý để một node lỗi (vd chờ chữ sai) → AI đọc detail / ảnh, sửa node, `resume_run` chạy tiếp từ node đó (Notepad không mở lại), file được lưu
+- [x] **31b2. MCP – chọn tool cho từng loại AI** *(người dùng yêu cầu 2026-10-20)* – Cài đặt → MCP hiện danh sách tool AI được gọi; bật / tắt từng tool, ghi đè riêng cho từng loại AI.
+  - [x] Go: `MCPSettings.OffTools` (mặc định chung) + `Clients[tên]` ghi đè (thay hẳn); /mcp stateless nên proxy `--mcp` đọc `clientInfo.name` lúc `initialize` rồi gắn header `X-Autoclicker-Client` vào mọi request, client HTTP thêm `?client=<tên>`; không rõ tên → mặc định chung
+  - [x] **Chặn thật**: tool tắt không có trong `tools/list` gửi cho client đó và bị từ chối (`tools/call`) nếu vẫn gọi; từ chối ghi vào nhật ký lệnh AI; áp dụng ngay ở request sau (server stateless nên không cần thông báo list_changed – client phải tải lại danh sách tool mới thấy thay đổi)
+  - [x] Danh sách tool lấy từ chính registry của `mcpsrv` (không chép tay – thêm tool mới tự có dòng); mỗi dòng: tên, mô tả ngắn, nhãn *chỉ đọc* / *sửa kịch bản* / *chạy / đụng máy*
+  - [x] UI `components/settings/McpTools.tsx` (+ `toolAccess.ts` có test): bảng tool + chọn "Mặc định / <client đã thấy>"; nút *Dùng mặc định* xoá ghi đè của client; mức Chỉ soạn / Hỏi / Tự chạy giữ nguyên, độc lập với bảng này
+  - Kiểm tra tay: [checks.md](../checks.md) mục 31b2
+  - Xong khi: tắt `screenshot` cho Cursor, bật cho Claude Code → Cursor không thấy / gọi bị từ chối, Claude Code vẫn chụp được
 - [ ] **31c. MCP – AI soạn bằng cách thử + ảnh mẫu** – phần còn lại của 31b / 31c cũ.
   - [ ] Tool `find_image` (so khớp mẫu của 25), `capture_template` (AI khoanh vùng trên ảnh chụp → lưu ảnh mẫu cạnh kịch bản cho `waitImage` / `clickImage`), `get_mouse_position`, `list_windows`
   - [ ] Ghim output node (như pin data n8n): lưu trên máy theo kịch bản, **không ghi vào file**; thẻ node có dấu ghim. App dùng chung `StopAt` / `Only` / `Seed` của 31b: chuột phải node → *Chạy đến đây* / *Chạy cụm đã chọn* / *Chạy tiếp từ đây (dùng kết quả lần trước)*

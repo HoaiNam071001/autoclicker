@@ -34,6 +34,8 @@ type Display struct {
 // Backend – việc thật (main.App). path luôn là đường dẫn tuyệt đối.
 type Backend interface {
 	Enabled() bool // công tắc MCP trong Cài đặt
+	// ToolAllowed – loại AI client ("" = không rõ) được gọi tool này không (Cài đặt → MCP, 31b2).
+	ToolAllowed(client, tool string) bool
 	Recent() []string
 	Editor() Editor
 	ScriptsDir() (string, error) // thư mục mặc định cho kịch bản AI tạo
@@ -60,6 +62,7 @@ type Server struct {
 	back Backend
 	mcp  *mcp.Server
 	log  *CallLog
+	acc  access
 }
 
 const instructions = `Auto Clicker – app tự động click / gõ theo kịch bản dạng flow (node + cạnh, như n8n).
@@ -73,7 +76,7 @@ func New(back Backend) *Server {
 	s := &Server{back: back, log: &CallLog{}}
 	s.mcp = mcp.NewServer(&mcp.Implementation{Name: "autoclicker", Title: "Auto Clicker", Version: "1.0"},
 		&mcp.ServerOptions{Instructions: instructions})
-	s.mcp.AddReceivingMiddleware(s.log.middleware)
+	s.mcp.AddReceivingMiddleware(s.log.middleware, s.accessMiddleware)
 	s.addReadTools()
 	s.addWriteTools()
 	s.addRunTools()
@@ -86,13 +89,14 @@ func New(back Backend) *Server {
 func (s *Server) Handler() http.Handler {
 	h := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return s.mcp },
 		&mcp.StreamableHTTPOptions{Stateless: true, JSONResponse: true})
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	wrapped := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !s.back.Enabled() {
 			http.Error(w, "MCP đang tắt – bật trong Cài đặt của app Auto Clicker", http.StatusForbidden)
 			return
 		}
 		h.ServeHTTP(w, r)
 	})
+	return withClient(wrapped)
 }
 
 // Log – nhật ký các lệnh AI đã gọi (mới nhất trước).

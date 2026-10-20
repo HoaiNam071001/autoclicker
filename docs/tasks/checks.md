@@ -14,6 +14,12 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 - [ ] Bật UniKey (Telex) → node Gõ chữ *Cách nhập: Tự chọn* gõ đoạn tiếng Việt + tiếng Anh ("too", "dd") vào Notepad / Chrome → đúng nguyên văn; clipboard trước đó (chữ) được trả lại sau khi dán
 - [ ] *Gõ phím* + UniKey bật → nhật ký node có cảnh báo bộ gõ; bật giống người → vẫn gõ từng phím; Gõ vào ô web chạy nền không hiện *Cách nhập* – xem inspector theme sáng + tối
 
+## 31b2 – chọn tool MCP cho từng loại AI · [phase3/31-mcp-ai.md](phase3/31-mcp-ai.md)
+
+- [ ] Bánh răng → MCP: có bảng *Tool AI được dùng* (mỗi tool một công tắc, nhãn nhóm); tắt `screenshot` ở *Mặc định* → AI nào chưa có danh sách riêng (kết nối lại) không thấy / không gọi được `screenshot`, bị báo `tool_disabled`
+- [ ] Kết nối Claude Code và Cursor (hoặc 2 client khác): sau lần đầu tên từng AI hiện trong ô chọn; tắt `screenshot` riêng cho Cursor, để Claude Code bật → Claude Code vẫn chụp được, Cursor không; *Dùng mặc định* xoá danh sách riêng
+- [ ] Khởi động lại app: các lựa chọn còn nguyên
+
 ## 31b – AI tự chạy, xem lỗi, sửa, chạy tiếp · [phase3/31-mcp-ai.md](phase3/31-mcp-ai.md)
 
 - [ ] Bánh răng → *Cho AI điều khiển (MCP)*: có *AI được chạy kịch bản* (Chỉ soạn / Hỏi trước khi chạy / Tự chạy) + *Tối đa mỗi lượt* – xem cả theme sáng + tối

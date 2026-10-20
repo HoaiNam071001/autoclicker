@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"autoclicker/internal/mcpsrv"
 )
 
 // `autoclicker --mcp` (bước 31): MCP qua stdio cho AI chỉ chạy được server dạng lệnh (Claude Desktop, Codex CLI…).
@@ -24,7 +26,7 @@ func IsMCP(args []string) bool { return len(args) == 1 && args[0] == MCPFlag }
 func (c *Client) MCP(in io.Reader, out, errOut io.Writer) int {
 	sc := bufio.NewScanner(in)
 	sc.Buffer(make([]byte, 0, 1<<20), 32<<20)
-	connected := false
+	connected, client := false, ""
 	for sc.Scan() {
 		line := bytes.TrimSpace(sc.Bytes())
 		if len(line) == 0 {
@@ -37,9 +39,10 @@ func (c *Client) MCP(in io.Reader, out, errOut io.Writer) int {
 			}
 			connected = true
 		}
-		res, err := c.postMCP(line)
+		client = initClient(line, client)
+		res, err := c.postMCP(line, client)
 		if err != nil && c.try() { // app vừa mở lại (cổng / token mới) → thử lại một lần
-			res, err = c.postMCP(line)
+			res, err = c.postMCP(line, client)
 		}
 		if err != nil {
 			fmt.Fprintf(errOut, "MCP: %v\n", err)
@@ -55,13 +58,16 @@ func (c *Client) MCP(in io.Reader, out, errOut io.Writer) int {
 }
 
 // postMCP gửi một message; trả body (rỗng với notification – 202).
-func (c *Client) postMCP(msg []byte) ([]byte, error) {
+func (c *Client) postMCP(msg []byte, client string) ([]byte, error) {
 	req, err := http.NewRequest("POST", c.base+"/mcp", bytes.NewReader(msg))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.token)
 	req.Header.Set("Content-Type", "application/json")
+	if client != "" {
+		req.Header.Set(mcpsrv.ClientHeader, client) // /mcp không giữ phiên – tên loại AI đi kèm mọi request (31b2)
+	}
 	req.Header.Set("Accept", "application/json, text/event-stream")
 	res, err := c.HTTP.Do(req)
 	if err != nil {
@@ -91,4 +97,20 @@ func writeRPCError(out io.Writer, msg []byte, text string) {
 	}
 	b, _ := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": head.ID, "error": map[string]any{"code": -32000, "message": text}})
 	out.Write(append(b, '\n'))
+}
+
+// initClient – tên client trong dòng initialize (clientInfo.name); dòng khác giữ tên cũ.
+func initClient(msg []byte, cur string) string {
+	var m struct {
+		Method string `json:"method"`
+		Params struct {
+			ClientInfo struct {
+				Name string `json:"name"`
+			} `json:"clientInfo"`
+		} `json:"params"`
+	}
+	if json.Unmarshal(msg, &m) != nil || m.Method != "initialize" || m.Params.ClientInfo.Name == "" {
+		return cur
+	}
+	return m.Params.ClientInfo.Name
 }

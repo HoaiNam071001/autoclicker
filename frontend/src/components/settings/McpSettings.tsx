@@ -1,13 +1,14 @@
 // Cài đặt – AI qua MCP (bước 31): bật / tắt, mức chạy (31b – AiRunSettings), thêm vào Claude Desktop (hỏi trước khi ghi file của Claude), đoạn cấu
 // hình mẫu cho từng client AI, các lệnh AI đã gọi gần đây.
 import { useEffect, useState } from 'react';
-import { AddToClaudeDesktop, ClaudeDesktopConfigPath, MCPClients, MCPLog } from '../../../wailsjs/go/main/App';
+import { AddToClaudeDesktop, ClaudeDesktopConfigPath, MCPClients, MCPLog, MCPSeenClients, MCPTools } from '../../../wailsjs/go/main/App';
 import { mcpsrv, store } from '../../../wailsjs/go/models';
 import { errorText } from '../../engineStore';
 import Select from '../Select';
 import { selectBox } from '../stepform/shared';
 import { Switch } from '../Switch';
 import AiRunSettings from './AiRunSettings';
+import McpTools from './McpTools';
 import { CopyButton, SettingCode } from './parts';
 
 const LOG_SHOWN = 5;
@@ -20,11 +21,16 @@ export default function McpSettings({ mcp, onChange }: { mcp: store.MCPSettings;
   const [log, setLog] = useState<mcpsrv.Call[]>([]);
   const [confirm, setConfirm] = useState(''); // đường dẫn file Claude Desktop đang hỏi ghi
   const [msg, setMsg] = useState('');
+  const [tools, setTools] = useState<mcpsrv.ToolInfo[]>([]);
+  const [seen, setSeen] = useState<string[]>([]);
+  const [toolClient, setToolClient] = useState(''); // '' = mặc định chung
 
   useEffect(() => {
     if (!enabled) return;
     MCPClients().then(setClients).catch((e) => setMsg(errorText(e)));
     MCPLog().then(setLog).catch(() => {});
+    MCPTools().then(setTools).catch(() => {});
+    MCPSeenClients().then(setSeen).catch(() => {});
   }, [enabled]);
 
   const add = () => {
@@ -44,6 +50,7 @@ export default function McpSettings({ mcp, onChange }: { mcp: store.MCPSettings;
       {enabled && (
         <>
           <AiRunSettings mcp={mcp} onChange={onChange} />
+          <McpTools mcp={mcp} tools={tools} seen={seen} client={toolClient} onClient={setToolClient} onChange={onChange} />
           {confirm ? (
             <div className="flex flex-col gap-1.5 rounded-control bg-soft p-2 text-xs">
               Ghi mục “autoclicker” vào <span className="font-mono break-all">{confirm}</span>? Cài đặt khác của Claude giữ nguyên.

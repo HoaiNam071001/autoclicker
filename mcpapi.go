@@ -117,3 +117,23 @@ func (b mcpBackend) Displays() []mcpsrv.Display {
 	}
 	return out
 }
+
+func (b mcpBackend) ToolAllowed(client, tool string) bool {
+	return store.CurrentSettings().MCP.ToolAllowed(client, tool)
+}
+
+// MCPTools – bảng tool cho Cài đặt (nhóm + mô tả lấy từ chính server).
+func (a *App) MCPTools() []mcpsrv.ToolInfo {
+	if a.mcp == nil {
+		return []mcpsrv.ToolInfo{}
+	}
+	return a.mcp.Tools()
+}
+
+// MCPSeenClients – các loại AI đã kết nối từ lúc mở app (để chọn ghi đè riêng).
+func (a *App) MCPSeenClients() []string {
+	if a.mcp == nil {
+		return []string{}
+	}
+	return a.mcp.Clients()
+}

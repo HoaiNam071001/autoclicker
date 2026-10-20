@@ -49,15 +49,15 @@ type edgeIn struct {
 }
 
 func (s *Server) addWriteTools() {
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "validate_script", Description: "Kiểm tra kịch bản (chưa lưu): cấu trúc flow + dữ liệu cần để chạy. " +
+	addTool(s, KindRead, &mcp.Tool{Name: "validate_script", Description: "Kiểm tra kịch bản (chưa lưu): cấu trúc flow + dữ liệu cần để chạy. " +
 		"Trả {ok, error, code, detail{stepId, ref, field, edgeId, input}} – sửa đúng chỗ rồi kiểm tra lại."}, s.validate)
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "create_script", Description: "Tạo một / nhiều kịch bản mới và lưu file (thư mục kịch bản của AI, " +
+	addTool(s, KindWrite, &mcp.Tool{Name: "create_script", Description: "Tạo một / nhiều kịch bản mới và lưu file (thư mục kịch bản của AI, " +
 		"hiện trong thư viện app với chip AI). Cấu trúc sai → không lưu, trả lỗi. Lưu được nhưng chưa chạy được (vd thiếu ảnh mẫu) → trả problems. " +
 		"Không tự mở trên app – gọi open_in_app."}, s.create)
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "update_script", Description: "Sửa một phần kịch bản theo id / ref node (không gửi lại cả file). " +
+	addTool(s, KindWrite, &mcp.Tool{Name: "update_script", Description: "Sửa một phần kịch bản theo id / ref node (không gửi lại cả file). " +
 		"Cần revision từ read_script; kịch bản đã đổi từ lúc đọc → lỗi conflict, đọc lại rồi sửa. " +
 		"Người dùng đang sửa dở kịch bản đó trên app → ghi ra bản sao (trả path mới)."}, s.update)
-	mcp.AddTool(s.mcp, &mcp.Tool{Name: "open_in_app", Description: "Mở kịch bản trên app cho người dùng xem / chạy. " +
+	addTool(s, KindApp, &mcp.Tool{Name: "open_in_app", Description: "Mở kịch bản trên app cho người dùng xem / chạy. " +
 		"Người dùng đang có thay đổi chưa lưu ở kịch bản khác → không mở, báo lại."}, s.openInApp)
 }
 
