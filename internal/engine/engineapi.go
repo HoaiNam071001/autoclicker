@@ -106,7 +106,7 @@ func (e *Engine) FindOnce(s model.Step) (FindResult, error) {
 		if err != nil {
 			return FindResult{}, err
 		}
-		res := FindResult{Found: ok, Area: area, Read: read, Ms: int(time.Since(start).Milliseconds()), X: hit.X, Y: hit.Y, W: hit.W, H: hit.H}
+		res := FindResult{Found: ok, Area: area, Read: vision.TextLines(read, 40), Ms: int(time.Since(start).Milliseconds()), X: hit.X, Y: hit.Y, W: hit.W, H: hit.H}
 		if ok {
 			res.Score = 100
 		}

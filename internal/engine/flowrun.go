@@ -19,19 +19,6 @@ import (
 // maxNodeRuns – số lần chạy node tối đa mỗi vòng (chặn vòng lặp không có node Đếm).
 const maxNodeRuns = 10000
 
-// notFoundErr – chờ ảnh / chữ / màu hết giờ không thấy (StepError code not_found).
-type notFoundErr struct {
-	msg    string
-	detail map[string]any // StepError.Detail (detail.go)
-}
-
-func (e *notFoundErr) Error() string { return e.msg }
-
-// timeoutErr – chờ hết giờ (StepError code timeout): giờ hẹn đã qua, cửa sổ / app không mở · đóng kịp.
-type timeoutErr struct{ msg string }
-
-func (e *timeoutErr) Error() string { return e.msg }
-
 // run chạy tới khi đủ số vòng, hết MaxMinutes hoặc ctx bị huỷ.
 // Hết thời gian là kết thúc bình thường (nil); bị huỷ trả ctx.Err().
 // MaxMinutes tính theo đồng hồ thật, kể cả lúc tạm dừng.

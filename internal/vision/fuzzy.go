@@ -61,3 +61,32 @@ func editDistance(a, b []rune) int {
 	}
 	return prev[len(b)]
 }
+
+// Similarity – got giống want bao nhiêu % (0–100) để xếp ứng viên gần đúng khi không tìm thấy (StepError.Detail):
+// so không dấu, bỏ hoa / thường, khoảng trắng; lấy đoạn trong got khớp want ít lỗi nhất (got dài hơn không bị trừ).
+func Similarity(got, want string) int {
+	g, _ := textKey(got, true)
+	w, _ := textKey(want, true)
+	m := len(w)
+	if m == 0 || len(g) == 0 {
+		return 0
+	}
+	cost, next := make([]int, m+1), make([]int, m+1)
+	for i := range cost {
+		cost[i] = i
+	}
+	best := cost[m]
+	for _, r := range g {
+		next[0] = 0 // đầu đoạn tự do
+		for i := 1; i <= m; i++ {
+			c := cost[i-1]
+			if r != w[i-1] {
+				c++
+			}
+			next[i] = min(c, cost[i]+1, next[i-1]+1)
+		}
+		cost, next = next, cost
+		best = min(best, cost[m])
+	}
+	return 100 * (m - best) / m
+}

@@ -29,15 +29,18 @@ func (e *Engine) appStep(ctx context.Context, s model.Step) (map[string]any, err
 			_, n := model.MainApp(procs)
 			return n > 0, err
 		}, func() error {
-			return &timeoutErr{fmt.Sprintf("app %s chưa có cửa sổ sau %s", s.AppName, fmtSeconds(s.TimeoutMs))}
+			apps, _ := e.apps.List()
+			return &timeoutErr{msg: fmt.Sprintf("app %s chưa có cửa sổ sau %s", s.AppName, fmtSeconds(s.TimeoutMs)), detail: appMiss(s, procs, apps)}
 		})
 		return appOutput(procs), err
 	case model.AppWaitQuit:
+		var procs []model.AppInfo
 		err := e.pollUntil(ctx, s, "app", func() (bool, error) {
-			procs, err := e.findApp(s)
+			var err error
+			procs, err = e.findApp(s)
 			return len(procs) == 0, err
 		}, func() error {
-			return &timeoutErr{fmt.Sprintf("app %s vẫn chạy sau %s", s.AppName, fmtSeconds(s.TimeoutMs))}
+			return &timeoutErr{msg: fmt.Sprintf("app %s vẫn chạy sau %s", s.AppName, fmtSeconds(s.TimeoutMs)), detail: appMiss(s, procs, nil)}
 		})
 		return appOutput(nil), err
 	case model.AppQuit, model.AppForceQuit:
@@ -133,7 +136,7 @@ func (e *Engine) waitGone(ctx context.Context, s model.Step, procs []model.AppIn
 	return e.pollUntil(ctx, w, "app", func() (bool, error) {
 		return len(e.alive(procs)) == 0, nil
 	}, func() error {
-		return &timeoutErr{fmt.Sprintf("app %s chưa thoát sau %s (có thể đang hỏi lưu)", s.AppName, fmtSeconds(timeoutMs))}
+		return &timeoutErr{msg: fmt.Sprintf("app %s chưa thoát sau %s (có thể đang hỏi lưu)", s.AppName, fmtSeconds(timeoutMs)), detail: appMiss(s, e.alive(procs), nil)}
 	})
 }
 

@@ -150,7 +150,7 @@ func (e *Engine) checkLeaf(c model.Cond, key string, snap *snapshot) (CondPart, 
 			part.Hit, part.Score, part.Text = &box, 100, c.FindText
 			part.Detail = fmt.Sprintf("thấy “%s” tại X %d Y %d", c.FindText, box.X+box.W/2, box.Y+box.H/2)
 		} else {
-			part.Detail = fmt.Sprintf("không thấy “%s”%s", c.FindText, readHint(read))
+			part.Detail = fmt.Sprintf("không thấy “%s”%s", c.FindText, readHint(vision.TextLines(read, 40)))
 		}
 	case model.CondElement:
 		v, err := e.elementCond(c, snap, &part)

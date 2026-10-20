@@ -26,7 +26,7 @@ const tips = `Viết kịch bản bền:
 Thử – sửa (chạy thật trên máy người dùng):
 - Chưa biết màn hình có gì: describe_screen (chữ + khung + cửa sổ) trước, screenshot khi cần nhìn bố cục.
 - Kịch bản dài: run_script với stopAt chạy từng đoạn, xem output từng node rồi resume_run from node kế để chạy tiếp – không chạy lại đoạn đã đúng.
-- Node lỗi: đọc error.code + error.detail (image: best / threshold / bestBox; text: read = các dòng đọc được trong vùng; context: cửa sổ đang trước, chuột) và ảnh lúc lỗi → update_script sửa đúng node → resume_run (chạy tiếp từ node lỗi, output / biến node trước giữ nguyên).
+- Node lỗi: đọc error.code + error.detail (image: best / threshold / bestBox; text: read = các dòng đọc được trong vùng kèm khung, closest = dòng giống nhất; element: near = phần tử gần giống (role, name, box, score); web: matched / count / hidden / covered / moving; window / app: near = cửa sổ / app tên gần giống, running = tiến trình khớp; context: cửa sổ đang trước, chuột) và ảnh lúc lỗi → update_script sửa đúng node → resume_run (chạy tiếp từ node lỗi, output / biến node trước giữ nguyên).
 - Toạ độ trên ảnh lúc lỗi → toạ độ chuột: shotArea.x + px × shotArea.w / shotWidth (y tương tự). Ưu tiên sửa sang tìm theo chữ hơn sửa toạ độ.
 - Bị từ chối quyền chạy / Cài đặt chỉ cho soạn: báo người dùng, không gọi lại liên tục.`
 

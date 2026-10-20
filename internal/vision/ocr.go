@@ -184,9 +184,9 @@ func Union(a, b model.Rect) model.Rect {
 	return model.Rect{X: x0, Y: y0, W: x1 - x0, H: y1 - y0}
 }
 
-// TextLines trả chữ các dòng (để báo "đọc được gì" khi không thấy), tối đa n dòng, bỏ trùng.
-func TextLines(lines []TextLine, n int) []string {
-	var out []string
+// ReadLines – các dòng theo thứ tự đọc, tối đa n dòng, bỏ dòng trống / trùng chữ (báo "đọc được gì" khi không thấy).
+func ReadLines(lines []TextLine, n int) []TextLine {
+	var out []TextLine
 	seen := map[string]bool{}
 	for _, l := range readingOrder(lines) {
 		t := strings.TrimSpace(l.Text)
@@ -194,10 +194,20 @@ func TextLines(lines []TextLine, n int) []string {
 			continue
 		}
 		seen[t] = true
-		out = append(out, t)
+		l.Text = t
+		out = append(out, l)
 		if len(out) == n {
 			break
 		}
+	}
+	return out
+}
+
+// TextLines – chữ của ReadLines.
+func TextLines(lines []TextLine, n int) []string {
+	var out []string
+	for _, l := range ReadLines(lines, n) {
+		out = append(out, l.Text)
 	}
 	return out
 }

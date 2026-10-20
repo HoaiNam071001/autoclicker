@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"autoclicker/internal/model"
 	"autoclicker/internal/script"
 )
 
@@ -53,7 +54,7 @@ func TestRunSeed(t *testing.T) {
 	}
 }
 
-// Lỗi không thấy chữ có detail: chữ cần tìm, các dòng đọc được, vùng, ngữ cảnh.
+// Lỗi không thấy chữ có detail: chữ cần tìm, các dòng đọc được (kèm khung), vùng, ngữ cảnh; không dòng nào giống → không closest.
 func TestFailDetail(t *testing.T) {
 	e, _ := sendFlow(-1, nil)
 	e.sc = script.RunFrom(e.sc, "w", true)
@@ -63,7 +64,7 @@ func TestFailDetail(t *testing.T) {
 		t.Fatal("không có lỗi")
 	}
 	d := r.Error.Detail
-	if d["kind"] != "text" || d["want"] != "Gửi" || !reflect.DeepEqual(d["read"], []string{"Đang tải"}) || d["context"] == nil {
+	if d["kind"] != "text" || d["want"] != "Gửi" || !reflect.DeepEqual(d["read"], []map[string]any{{"text": "Đang tải", "box": model.Rect{X: 100, Y: 50, W: 80, H: 20}}}) || d["closest"] != nil || d["context"] == nil {
 		t.Errorf("detail = %+v", d)
 	}
 }

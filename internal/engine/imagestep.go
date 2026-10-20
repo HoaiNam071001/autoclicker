@@ -163,7 +163,7 @@ func (e *Engine) findImage(ctx context.Context, s model.Step) (hit, error) {
 // findTextStep chờ tới khi đọc được chữ s.FindText trong vùng; trả khung chữ (toạ độ robotgo).
 func (e *Engine) findTextStep(ctx context.Context, s model.Step, area model.Rect) (hit, error) {
 	var at hit
-	var read []string
+	var read []vision.TextLine
 	_, err := e.waitLoop(ctx, s, "text", func() (bool, int, error) {
 		box, lines, ok, err := locateText(e.scr, e.ocr, area, s)
 		if err != nil {
@@ -177,8 +177,8 @@ func (e *Engine) findTextStep(ctx context.Context, s model.Step, area model.Rect
 		return true, 100, nil
 	})
 	if errors.Is(err, errTimeout) {
-		e.miss = &FindResult{Area: area, Read: read}
-		return hit{}, &notFoundErr{msg: fmt.Sprintf("không thấy chữ “%s” sau %s%s", s.FindText, fmtSeconds(s.TimeoutMs), readHint(read)), detail: textMiss(s.FindText, read, area)}
+		e.miss = &FindResult{Area: area, Read: vision.TextLines(read, 40)}
+		return hit{}, &notFoundErr{msg: fmt.Sprintf("không thấy chữ “%s” sau %s%s", s.FindText, fmtSeconds(s.TimeoutMs), readHint(e.miss.Read)), detail: textMiss(s.FindText, read, area)}
 	}
 	if err != nil {
 		return hit{}, err
@@ -187,7 +187,8 @@ func (e *Engine) findTextStep(ctx context.Context, s model.Step, area model.Rect
 }
 
 // locateText chụp vùng, đọc chữ, tìm theo s; hit theo toạ độ robotgo. Không thấy → trả các dòng đọc được.
-func locateText(scr device.Screen, ocr device.TextReader, area model.Rect, s model.Step) (hit model.Rect, read []string, ok bool, err error) {
+// read: ≤ 40 dòng, khung theo toạ độ màn hình (báo lỗi / detail).
+func locateText(scr device.Screen, ocr device.TextReader, area model.Rect, s model.Step) (hit model.Rect, read []vision.TextLine, ok bool, err error) {
 	img, err := scr.Capture(area)
 	if err != nil {
 		return model.Rect{}, nil, false, err
@@ -198,12 +199,15 @@ func locateText(scr device.Screen, ocr device.TextReader, area model.Rect, s mod
 	}
 	hits := vision.FindText(lines, vision.TextQuery{Text: s.FindText, Exact: s.TextExact, NoAccent: s.TextNoAccent})
 	n := max(s.Occurrence, 1)
-	if len(hits) < n {
-		return model.Rect{}, vision.TextLines(lines, 40), false, nil
-	}
 	k := vision.ImageScale(img, area)
-	b := hits[n-1].Box
-	return model.Rect{X: area.X + int(float64(b.X)/k), Y: area.Y + int(float64(b.Y)/k), W: int(float64(b.W) / k), H: int(float64(b.H) / k)}, nil, true, nil
+	if len(hits) < n {
+		read = vision.ReadLines(lines, 40)
+		for i := range read {
+			read[i].Box, read[i].Words = screenBox(read[i].Box, area, k), nil
+		}
+		return model.Rect{}, read, false, nil
+	}
+	return screenBox(hits[n-1].Box, area, k), nil, true, nil
 }
 
 // readHint – vài dòng đọc được, gợi ý vì sao không khớp (sai dấu, chữ khác…).

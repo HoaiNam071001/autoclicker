@@ -27,7 +27,7 @@ func (e *Engine) waitUntil(ctx context.Context, s model.Step) (map[string]any, e
 	if !target.After(now()) {
 		switch {
 		case s.IfPassed == model.PassedFail:
-			return nil, &timeoutErr{fmt.Sprintf("đã qua giờ %s (trễ %s)", target.Format("15:04:05.000"), fmtDur(now().Sub(target)))}
+			return nil, &timeoutErr{msg: fmt.Sprintf("đã qua giờ %s (trễ %s)", target.Format("15:04:05.000"), fmtDur(now().Sub(target)))}
 		case s.IfPassed == model.PassedTomorrow && !dated:
 			target = target.AddDate(0, 0, 1)
 		}

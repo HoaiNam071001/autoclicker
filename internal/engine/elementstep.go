@@ -84,6 +84,7 @@ func (e *Engine) findElementStep(ctx context.Context, s model.Step, settle bool)
 	}
 	var at hit
 	why, scrolled := "", -1
+	var miss func() map[string]any // StepError.Detail của lần chưa thấy cuối – chỉ tính khi hết giờ
 	_, err = e.waitLoop(ctx, s, "element", func() (bool, int, error) {
 		nodes, r, err := e.lookElement(s.ElementApp, q)
 		switch {
@@ -93,7 +94,7 @@ func (e *Engine) findElementStep(ctx context.Context, s model.Step, settle bool)
 		case err != nil:
 			return false, 0, err
 		case !r.Found:
-			why = missWhy(r, nodes, max(s.Occurrence, 1))
+			why, miss = missWhy(r, nodes, max(s.Occurrence, 1)), func() map[string]any { return elementMiss(s.Selectors, nodes, r, q) }
 			return false, 0, nil
 		case !r.Hit.Shown():
 			why = "phần tử nằm ngoài khung nhìn, cuộn tới không được"
@@ -120,7 +121,7 @@ func (e *Engine) findElementStep(ctx context.Context, s model.Step, settle bool)
 		return true, 100, nil
 	})
 	if errors.Is(err, errTimeout) {
-		return hit{}, &notFoundErr{msg: fmt.Sprintf("không thấy phần tử %s sau %s – %s", strings.Join(s.Selectors, " / "), fmtSeconds(s.TimeoutMs), why)}
+		return hit{}, &notFoundErr{msg: fmt.Sprintf("không thấy phần tử %s sau %s – %s", strings.Join(s.Selectors, " / "), fmtSeconds(s.TimeoutMs), why), detail: lazyDetail(miss)}
 	}
 	return at, err
 }

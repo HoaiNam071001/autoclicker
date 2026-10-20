@@ -53,3 +53,21 @@ func TestFuzzyIndex(t *testing.T) {
 		t.Errorf("editDistance = %d", d)
 	}
 }
+
+func TestSimilarity(t *testing.T) {
+	for _, c := range []struct {
+		got, want string
+		min, max  int
+	}{
+		{"Bấm Gửi ngay", "gửi", 100, 100},
+		{"Gui", "Gửi", 100, 100},
+		{"Gưi tin", "Gửi tin", 100, 100}, // so không dấu
+		{"Gởi tn", "Gửi tin", 60, 70},    // ơ ≠ ư + thiếu i
+		{"Đăng nhập", "Gửi", 0, 40},
+		{"", "Gửi", 0, 0},
+	} {
+		if s := Similarity(c.got, c.want); s < c.min || s > c.max {
+			t.Errorf("Similarity(%q, %q) = %d, cần %d–%d", c.got, c.want, s, c.min, c.max)
+		}
+	}
+}

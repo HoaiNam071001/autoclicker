@@ -39,9 +39,7 @@ func (e *Engine) readArea(area model.Rect) ([]vision.TextLine, error) {
 		return nil, err
 	}
 	k := vision.ImageScale(img, area)
-	conv := func(b model.Rect) model.Rect {
-		return model.Rect{X: area.X + int(float64(b.X)/k), Y: area.Y + int(float64(b.Y)/k), W: int(float64(b.W) / k), H: int(float64(b.H) / k)}
-	}
+	conv := func(b model.Rect) model.Rect { return screenBox(b, area, k) }
 	out := make([]vision.TextLine, len(lines))
 	for i, l := range lines {
 		out[i] = l // giữ mọi trường (Approx…), chỉ đổi khung sang toạ độ màn
@@ -67,6 +65,11 @@ func (e *Engine) displayOf(p model.Point) model.Rect {
 	return model.Rect{}
 }
 
+// screenBox đổi khung theo px ảnh chụp vùng area (k = vision.ImageScale) sang toạ độ màn hình.
+func screenBox(b, area model.Rect, k float64) model.Rect {
+	return model.Rect{X: area.X + int(float64(b.X)/k), Y: area.Y + int(float64(b.Y)/k), W: int(float64(b.W) / k), H: int(float64(b.H) / k)}
+}
+
 // readGot – một lần đọc: chữ thô + khung (phần tử, hoặc dòng chữ cạnh nhãn). why = vì sao chưa đọc được.
 type readGot struct {
 	ok    bool
@@ -75,6 +78,7 @@ type readGot struct {
 	box   model.Rect
 	role  string
 	count int
+	miss  func() map[string]any // chưa đọc được: StepError.Detail (chỉ tính khi hết giờ)
 }
 
 // nearOf – đọc chữ cạnh nhãn label trong các dòng lines (toạ độ màn hình).
@@ -96,7 +100,7 @@ func (e *Engine) readByElement(s model.Step, q element.Query) (readGot, error) {
 	case err != nil:
 		return readGot{}, err
 	case !r.Found:
-		return readGot{why: missWhy(r, nodes, max(s.Occurrence, 1))}, nil
+		return readGot{why: missWhy(r, nodes, max(s.Occurrence, 1)), miss: func() map[string]any { return elementMiss(s.Selectors, nodes, r, q) }}, nil
 	case s.ReadNear == "":
 		return readGot{ok: true, raw: r.Hit.Text(), box: r.Hit.Box, role: r.Hit.Role, count: r.Count}, nil
 	case !r.Hit.Shown():
@@ -125,7 +129,8 @@ func (e *Engine) readByText(s model.Step, area model.Rect) (readGot, error) {
 	hits := vision.FindText(lines, vision.TextQuery{Text: s.FindText, Exact: s.TextExact, NoAccent: s.TextNoAccent})
 	n := max(s.Occurrence, 1)
 	if len(hits) < n {
-		return readGot{why: "không thấy nhãn “" + s.FindText + "”" + readHint(vision.TextLines(lines, 40))}, nil
+		read := vision.ReadLines(lines, 40)
+		return readGot{why: "không thấy nhãn “" + s.FindText + "”" + readHint(vision.TextLines(read, 40)), miss: func() map[string]any { return textMiss(s.FindText, read, area) }}, nil
 	}
 	got := nearOf(lines, hits[n-1].Box, s)
 	got.count = len(hits)
@@ -149,8 +154,10 @@ func (e *Engine) elementRead(ctx context.Context, s model.Step) (map[string]any,
 	var got readGot
 	var value, base string
 	hasBase, why := false, ""
+	var miss func() map[string]any
 	_, err = e.waitLoop(ctx, s, "element", func() (bool, int, error) {
 		g, err := read()
+		miss = g.miss
 		if err != nil || !g.ok {
 			why = g.why
 			return false, 0, err
@@ -170,7 +177,7 @@ func (e *Engine) elementRead(ctx context.Context, s model.Step) (map[string]any,
 		return true, 100, nil
 	})
 	if errors.Is(err, errTimeout) {
-		return nil, &notFoundErr{msg: fmt.Sprintf("không đọc được %s sau %s – %s", what, fmtSeconds(s.TimeoutMs), why)}
+		return nil, &notFoundErr{msg: fmt.Sprintf("không đọc được %s sau %s – %s", what, fmtSeconds(s.TimeoutMs), why), detail: lazyDetail(miss)}
 	}
 	if err != nil {
 		return nil, err

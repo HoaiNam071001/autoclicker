@@ -22,6 +22,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 31b – AI tự chạy, xem lỗi, sửa, chạy tiếp · [phase3/31-mcp-ai.md](phase3/31-mcp-ai.md)
 
+- [ ] Chi tiết lỗi gần đúng: bảo AI chạy kịch bản có node sai nhẹ – chờ chữ “Gưi” (thật là “Gửi”), phần tử `text=Mua ngey`, cửa sổ / app gõ sai tên (vd `chromium`) → `wait_run` trả `error.detail` có `closest` / `near` chỉ đúng chữ / phần tử / cửa sổ / app thật (kèm khung), AI tự sửa node rồi `resume_run` qua
 - [ ] Bánh răng → *Cho AI điều khiển (MCP)*: có *AI được chạy kịch bản* (Chỉ soạn / Hỏi trước khi chạy / Tự chạy) + *Tối đa mỗi lượt* – xem cả theme sáng + tối
 - [ ] Thoát hẳn app → trên Claude Code / Desktop bảo AI làm việc cần chạy (vd "mở Notepad, gõ chào bạn, lưu ra Desktop/test.txt") → app tự mở **không hiện màn chính**; mức *Hỏi*: hiện hộp "AI muốn chạy …" (Enter = cho phép lần này, Esc = từ chối); khi chạy chỉ thấy thanh mini, chạy xong vẫn giữ thanh mini; bấm Dừng trên thanh mini → mở màn chính
 - [ ] *Từ chối* → AI báo bị từ chối, không gọi lại liên tục; *Cho phép đến khi đóng app* → lần sau cùng kịch bản không hỏi; mức *Chỉ soạn* → AI báo chỉ được soạn

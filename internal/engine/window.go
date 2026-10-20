@@ -105,10 +105,11 @@ func (e *Engine) waitWindow(ctx context.Context, s model.Step) (model.WindowInfo
 		return ok, err
 	}, func() error {
 		msg := fmt.Sprintf("không thấy cửa sổ %s sau %s", windowName(s), fmtSeconds(s.TimeoutMs))
+		wins, _ := e.wins.List() // đọc lỗi → không có ứng viên, vẫn báo lỗi chính
 		if s.WinOp == model.WinWaitOpen {
-			return &timeoutErr{msg}
+			return &timeoutErr{msg: msg, detail: windowMiss(s, wins)}
 		}
-		return &notFoundErr{msg: msg}
+		return &notFoundErr{msg: msg, detail: windowMiss(s, wins)}
 	})
 	return w, err
 }
@@ -118,7 +119,7 @@ func (e *Engine) waitWindowGone(ctx context.Context, s model.Step) error {
 		_, ok, err := e.findWindow(s)
 		return !ok, err
 	}, func() error {
-		return &timeoutErr{fmt.Sprintf("cửa sổ %s vẫn mở sau %s", windowName(s), fmtSeconds(s.TimeoutMs))}
+		return &timeoutErr{msg: fmt.Sprintf("cửa sổ %s vẫn mở sau %s", windowName(s), fmtSeconds(s.TimeoutMs))}
 	})
 }
 

@@ -2,21 +2,62 @@ package engine
 
 import (
 	"errors"
+	"sort"
 
+	"autoclicker/internal/element"
 	"autoclicker/internal/model"
+	"autoclicker/internal/vision"
 )
 
 // Chi tiết lỗi có cấu trúc (StepError.Detail – bước 31b): AI / người đọc để tự sửa node thay vì đoán từ câu chữ.
 //   chờ / click ảnh: {kind: image, best, threshold, bestBox, area}
-//   chờ / click chữ: {kind: text, want, read[], area}
+//   chờ / click chữ: {kind: text, want, read[{text, box}], closest {text, box, score}, area}
 //   chờ màu:         {kind: pixel, point, actual, want, tolerance}
+//   phần tử:         {kind: element, selectors, read (số phần tử đã đọc), count, near[{role, name, box, score}]}
+//   web:             {kind: web, selectors, tab, matched, count, hidden, covered, moving, offView, loading, hover, noTab}
+//   cửa sổ:          {kind: window, app, title, near[{title, app, box, minimized, score}]}
+//   ứng dụng:        {kind: app, app, running[] (khớp tên – vd chưa có cửa sổ / chưa thoát), near[{name, id, score}]}
 //   mọi node lỗi:    context {foreground {title, app, box}, mouse {x, y}, screen, displays, shotArea}
+
+// notFoundErr – chờ ảnh / chữ / màu / phần tử / web / cửa sổ hết giờ không thấy (StepError code not_found).
+type notFoundErr struct {
+	msg    string
+	detail map[string]any // StepError.Detail
+}
+
+func (e *notFoundErr) Error() string { return e.msg }
+
+// timeoutErr – chờ hết giờ (StepError code timeout): giờ hẹn đã qua, cửa sổ / app không mở · đóng kịp.
+type timeoutErr struct {
+	msg    string
+	detail map[string]any // StepError.Detail
+}
+
+func (e *timeoutErr) Error() string { return e.msg }
+
+// lazyDetail – detail tính lúc báo lỗi (nil = không có).
+func lazyDetail(f func() map[string]any) map[string]any {
+	if f == nil {
+		return nil
+	}
+	return f()
+}
+
+// nearMax – số ứng viên gần đúng tối đa mỗi loại; nearScore – % giống tối thiểu (dưới đó coi như không liên quan).
+const (
+	nearMax   = 8
+	nearScore = 50
+)
 
 // errDetail – phần chi tiết riêng của lỗi (nil = không có).
 func errDetail(err error) map[string]any {
 	var nf *notFoundErr
-	if errors.As(err, &nf) && nf.detail != nil {
+	if errors.As(err, &nf) {
 		return nf.detail
+	}
+	var late *timeoutErr
+	if errors.As(err, &late) {
+		return late.detail
 	}
 	return nil
 }
@@ -26,11 +67,92 @@ func imageMiss(m FindResult, threshold int) map[string]any {
 		"bestBox": model.Rect{X: m.X, Y: m.Y, W: m.W, H: m.H}, "area": m.Area}
 }
 
-func textMiss(want string, read []string, area model.Rect) map[string]any {
-	if read == nil {
-		read = []string{}
+// textMiss – read: dòng đọc được (toạ độ màn hình, locateText); closest: dòng giống chữ cần tìm nhất (≥ nearScore).
+func textMiss(want string, read []vision.TextLine, area model.Rect) map[string]any {
+	lines := make([]map[string]any, 0, len(read))
+	var closest map[string]any
+	best := nearScore - 1
+	for _, l := range read {
+		lines = append(lines, map[string]any{"text": l.Text, "box": l.Box})
+		if sc := vision.Similarity(l.Text, want); sc > best {
+			best, closest = sc, map[string]any{"text": l.Text, "box": l.Box, "score": sc}
+		}
 	}
-	return map[string]any{"kind": "text", "want": want, "read": read, "area": area}
+	d := map[string]any{"kind": "text", "want": want, "read": lines, "area": area}
+	if closest != nil {
+		d["closest"] = closest
+	}
+	return d
+}
+
+func elementMiss(selectors []string, nodes []element.Node, r element.Result, q element.Query) map[string]any {
+	return map[string]any{"kind": "element", "selectors": selectors, "read": len(nodes), "count": r.Count,
+		"near": element.NearMatches(nodes, q, nearMax)}
+}
+
+// webMiss – trạng thái lần tìm cuối; chỉ ghi trường có giá trị cho gọn.
+func webMiss(f webTry, lines []string) map[string]any {
+	d := map[string]any{"kind": "web", "selectors": lines, "tab": f.Tab, "count": f.Count}
+	if f.Selector >= 0 && f.Selector < len(lines) {
+		d["matched"] = lines[f.Selector]
+	}
+	for k, v := range map[string]any{"hidden": f.Hidden, "covered": f.Covered, "hover": f.hover} {
+		if v != 0 && v != "" {
+			d[k] = v
+		}
+	}
+	for k, v := range map[string]bool{"moving": f.Moving, "offView": f.OffView, "loading": f.Loading, "noTab": f.NoTab} {
+		if v {
+			d[k] = true
+		}
+	}
+	return d
+}
+
+// windowMiss – cửa sổ giống app / tiêu đề cần tìm nhất (trung bình phần đã nhập).
+func windowMiss(s model.Step, wins []model.WindowInfo) map[string]any {
+	type near struct {
+		model.WindowInfo
+		Score int `json:"score"`
+	}
+	var out []near
+	for _, w := range wins {
+		sum, n := 0, 0
+		if s.WinApp != "" {
+			sum, n = sum+max(vision.Similarity(w.App, s.WinApp), vision.Similarity(w.AppID, s.WinApp)), n+1
+		}
+		if s.WinTitle != "" {
+			sum, n = sum+vision.Similarity(w.Title, s.WinTitle), n+1
+		}
+		if n > 0 && sum/n >= nearScore {
+			out = append(out, near{w, sum / n})
+		}
+	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i].Score > out[j].Score })
+	return map[string]any{"kind": "window", "app": s.WinApp, "title": s.WinTitle, "near": out[:min(len(out), nearMax)]}
+}
+
+// appMiss – running: tiến trình khớp tên lúc hết giờ; near: app đang chạy có tên giống nhất (bỏ trùng tên).
+func appMiss(s model.Step, running, apps []model.AppInfo) map[string]any {
+	type near struct {
+		Name  string `json:"name"`
+		ID    string `json:"id,omitempty"`
+		Score int    `json:"score"`
+	}
+	var out []near
+	seen := map[string]bool{}
+	for _, a := range apps {
+		sc := max(vision.Similarity(a.Name, s.AppName), vision.Similarity(a.ID, s.AppName))
+		if sc >= nearScore && !seen[a.Name] {
+			seen[a.Name] = true
+			out = append(out, near{a.Name, a.ID, sc})
+		}
+	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i].Score > out[j].Score })
+	if running == nil {
+		running = []model.AppInfo{}
+	}
+	return map[string]any{"kind": "app", "app": s.AppName, "running": running, "near": out[:min(len(out), nearMax)]}
 }
 
 func pixelMiss(p model.Point, actual, want string, tolerance int) map[string]any {

@@ -18,7 +18,8 @@
   - [ ] Người dùng đụng chuột lúc AI đang chạy (vị trí khác chỗ engine vừa đặt) → tạm dừng, `wait_run` báo AI lý do
   - [x] Lịch sử chạy (20 F5) ghi lần nào do AI chạy; `autoclicker://guide` thêm mục *vòng thử – sửa* (chạy đến node, đọc detail, sửa, `resume_run`)
   - [x] Test Go: client MCP in-memory + thiết bị giả – lỗi ở node ảnh → `wait_run` có detail + ảnh → `update_script` → `resume_run` chạy tiếp đúng biến cũ, không chạy lại node trước
-  - [ ] `error.detail` cho web / phần tử / cửa sổ / ứng dụng: ứng viên gần đúng có cấu trúc (hiện mới nằm trong câu `message`); dòng OCR kèm khung trong detail chữ (hiện chỉ chữ)
+  - [x] `error.detail` cho web / phần tử / cửa sổ / ứng dụng: ứng viên gần đúng có cấu trúc (hiện mới nằm trong câu `message`); dòng OCR kèm khung trong detail chữ (hiện chỉ chữ)
+  - [ ] Web detail thêm: số phần tử khớp **từng** selector + đoạn `PageOutline` quanh chỗ cần tìm (cần sửa script tìm trong trang – hiện chỉ có số khớp của selector đã dùng + trạng thái lần tìm cuối)
   - [ ] `shots: "each"` – chụp sau mỗi node khi AI xin (hiện chỉ chụp lúc node lỗi + `screenshot`)
   - [ ] Công tắc AI trên **thanh mini** + chấm báo khi AI đang điều khiển (hiện chỉ trong Cài đặt)
   - Đã làm (2026-10-20):
@@ -27,6 +28,7 @@
     - MCP thêm 6 tool: `run_script`, `wait_run`, `stop_run`, `resume_run` (`tools_run.go`, chờ tối đa 20–30 s rồi trả, vết chạy `trace.go` – 40 node cuối, ảnh lỗi ≤ 2 ảnh rộng ≤ 1280 kèm `shotWidth`), `describe_screen`, `screenshot` (`tools_screen.go`). Toạ độ trên ảnh: AI tự đổi bằng `area` + `scale` (thay cho Go đổi – một công thức, không thêm tool)
     - Không làm tool `show_app` riêng – `open_in_app` đã mở màn chính
     - App: `--mcp` mở app bằng `--background` (`StartHidden`); lượt chạy từ ngoài xong thì giữ thanh mini khi `InBackground`; người dùng mở màn chính (Dừng trên thanh mini / hộp hỏi / `open_in_app`) thì thôi chế độ nền
+    - Detail lỗi (2026-10-20, sau): chữ – `read[{text, box}]` toạ độ màn + `closest` (dòng giống nhất ≥ 50 %); phần tử (chờ / click / Đọc phần tử) – `near[{role, name, box, score}]` qua `element.NearMatches`; web – `matched` / `count` / `hidden` / `covered` / `moving` / `offView` / `loading` / `hover` / `noTab`; cửa sổ – `near` cửa sổ giống app / tiêu đề; app – `running` (khớp tên nhưng chưa có cửa sổ / chưa thoát) + `near` app tên giống. % giống chung `vision.Similarity` (không dấu, đoạn khớp ít lỗi nhất); `timeoutErr` cũng mang detail; ứng viên chỉ tính lúc hết giờ, không mỗi vòng chờ
     - Quyền (`mcprun.go`): `MCPSettings.Run` edit | ask (mặc định) | auto + `MaxMinutes` (mặc định 10); hỏi = event `ai:ask` → `AIRunDialog` (Cho phép lần này / đến khi đóng app / Từ chối, 90 s); chuyển về Tắt / Chỉ soạn huỷ lượt AI đang chạy
   - Kiểm tra tay: [checks.md](../checks.md) mục 31b
   - Xong khi: trên Claude Code nói "mở Notepad, gõ chào bạn, lưu ra Desktop/test.txt" khi app chưa mở → app tự mở thanh mini, AI tạo kịch bản, chạy; cố ý để một node lỗi (vd chờ chữ sai) → AI đọc detail / ảnh, sửa node, `resume_run` chạy tiếp từ node đó (Notepad không mở lại), file được lưu

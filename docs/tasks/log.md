@@ -187,3 +187,4 @@
 - 2026-10-20 Kế hoạch (người dùng yêu cầu): 31b2 – chọn tool MCP cho từng loại AI (chặn thật, mặc định chung + ghi đè từng client)
 - 2026-10-20 Xong code 31b2: chọn tool MCP theo loại AI (mặc định chung + ghi đè, chặn thật qua header client)
 - 2026-10-20 Kế hoạch (người dùng yêu cầu): 40 – OCR tiếng Việt trên Windows bằng PaddleOCR (ONNX, kèm sẵn exe, Windows.Media.Ocr dự phòng) + tìm ảnh so cạnh / mặt nạ / kiểm tra màu; sau 31b, trước 31c
+- **2026-10-20** – 31b: `error.detail` có cấu trúc cho chữ (dòng OCR kèm khung + `closest`), phần tử (`near` – `element.NearMatches`), web (trạng thái lần tìm cuối), cửa sổ / ứng dụng (`near`, `running`); `vision.Similarity`, `timeoutErr` có detail. go vet + go test các package đụng tới OK (TestGuardPath + mcpsrv lỗi sẵn do container root / không màn hình); check-docs 0 lỗi; chưa thử tay.
