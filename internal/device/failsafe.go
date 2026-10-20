@@ -51,19 +51,22 @@ func inCorner(x, y int, corners []model.Point) bool {
 	return false
 }
 
-// TrackingInput bọc Input, ghi lại điểm engine vừa đưa chuột tới – để kịch bản có điểm ở góc
-// màn hình không tự kích hoạt dừng khẩn cấp.
+// TrackingInput bọc Input, ghi lại các điểm engine vừa đưa chuột tới – để kịch bản có điểm ở góc màn hình không tự
+// kích hoạt dừng khẩn cấp, và để biết chuột đổi chỗ là do người dùng (WatchTouch).
 type TrackingInput struct {
 	Input
-	mu      sync.Mutex
-	lastX   int
-	lastY   int
-	hasLast bool
+	mu     sync.Mutex
+	recent [trackKeep]model.Point // vòng tròn các điểm gần nhất – đọc vị trí xen giữa lúc ghi điểm kế và lúc chuột tới
+	n      int                    // số điểm đã ghi
 }
+
+// trackKeep – số điểm engine gần nhất còn nhớ (đi theo đường cong ~5 ms một bước, đọc vị trí mỗi failsafeEvery).
+const trackKeep = 16
 
 func (t *TrackingInput) record(x, y int) {
 	t.mu.Lock()
-	t.lastX, t.lastY, t.hasLast = x, y, true
+	t.recent[t.n%trackKeep] = model.Point{X: x, Y: y}
+	t.n++
 	t.mu.Unlock()
 }
 
@@ -82,11 +85,16 @@ func (t *TrackingInput) Drag(x, y int, button string) error {
 	return t.Input.Drag(x, y, button)
 }
 
-// movedByEngine – (x, y) có phải điểm engine vừa đưa chuột tới không.
+// movedByEngine – (x, y) có phải một trong các điểm engine vừa đưa chuột tới không.
 func (t *TrackingInput) movedByEngine(x, y int) bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	return t.hasLast && abs(x-t.lastX) <= engineMoveTol && abs(y-t.lastY) <= engineMoveTol
+	for i := range min(t.n, trackKeep) {
+		if p := t.recent[i]; abs(x-p.X) <= engineMoveTol && abs(y-p.Y) <= engineMoveTol {
+			return true
+		}
+	}
+	return false
 }
 
 func abs(n int) int {
@@ -111,6 +119,27 @@ func WatchCorners(ctx context.Context, location func() (int, int), corners []mod
 		if inCorner(x, y, corners) && !t.movedByEngine(x, y) {
 			onHit()
 			return
+		}
+	}
+}
+
+// WatchTouch – lượt AI đang chạy (31b): chuột đổi chỗ tới điểm engine không đưa tới = người dùng đụng chuột → onTouch
+// (mỗi lần đụng một lần). paused(): đang tạm dừng thì người dùng được dùng chuột – chỉ ghi lại vị trí.
+func WatchTouch(ctx context.Context, location func() (int, int), t *TrackingInput, paused func() bool, onTouch func()) {
+	tick := time.NewTicker(failsafeEvery)
+	defer tick.Stop()
+	px, py := location()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick.C:
+		}
+		x, y := location()
+		moved := abs(x-px) > engineMoveTol || abs(y-py) > engineMoveTol
+		px, py = x, y
+		if moved && !paused() && !t.movedByEngine(x, y) {
+			onTouch()
 		}
 	}
 }

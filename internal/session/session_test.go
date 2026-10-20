@@ -48,6 +48,7 @@ func testManager(t *testing.T) (*Manager, *events, *[]model.RunRecord) {
 		AllowDanger: func(model.Script, string, string) (bool, error) { return false, nil },
 		Browser:     func(func(x, y int) error) (web.Browser, func(), error) { return nil, func() {}, nil },
 		Corners:     func(context.Context, *device.TrackingInput, func()) {},
+		Touch:       func(context.Context, *device.TrackingInput, func() bool, func()) {},
 		SaveRun: func(rec model.RunRecord, _ string, _ map[string]image.Image) error {
 			mu.Lock()
 			saved = append(saved, rec)
@@ -138,4 +139,51 @@ func TestValidateErrorAndUnknown(t *testing.T) {
 	if _, err := m.Wait(context.Background(), "x"); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("runId lạ: %v", err)
 	}
+}
+
+// Lượt AI: người dùng đụng chuột → tạm dừng trước node kế, Progress.PausedBy = touch; Tiếp tục thì chạy xong.
+// Lượt người dùng tự chạy không theo dõi.
+func TestAITouchPauses(t *testing.T) {
+	m, _, _ := testManager(t)
+	watched := make(chan string, 2)
+	m.deps.Touch = func(_ context.Context, _ *device.TrackingInput, _ func() bool, onTouch func()) {
+		watched <- "ai"
+		time.Sleep(50 * time.Millisecond)
+		onTouch()
+	}
+	sc := waitScript(t, 200)
+	s2 := sc.Steps[0]
+	s2.ID, s2.Ref = "s2", "n2"
+	sc.Steps = append(sc.Steps, s2)
+	sc.Edges = []model.Edge{{ID: "e1", From: "s1", Port: model.PortSuccess, To: "s2"}}
+
+	id, err := m.Start(sc, nil, Options{Source: SourceAI})
+	if err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(500 * time.Millisecond)
+	st, _ := m.Status(id)
+	if st.Done() || st.Progress == nil || !st.Progress.Paused || st.Progress.PausedBy != "touch" {
+		t.Fatalf("phải tạm dừng vì đụng chuột: %+v %+v", st, st.Progress)
+	}
+	m.Resume()
+	if st, err := m.Wait(context.Background(), id); err != nil || st.State != StateSuccess {
+		t.Fatalf("tiếp tục: %+v %v", st, err)
+	}
+
+	if _, err := m.Wait(context.Background(), mustStart(t, m, waitScript(t, 1), Options{Source: SourceUser})); err != nil {
+		t.Fatal(err)
+	}
+	if len(watched) != 1 {
+		t.Errorf("chỉ lượt AI mới theo dõi chuột (%d lượt)", len(watched))
+	}
+}
+
+func mustStart(t *testing.T, m *Manager, sc model.Script, o Options) string {
+	t.Helper()
+	id, err := m.Start(sc, nil, o)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return id
 }

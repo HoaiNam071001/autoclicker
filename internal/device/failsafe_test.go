@@ -3,6 +3,7 @@ package device
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -88,4 +89,43 @@ func TestWatchCorners(t *testing.T) {
 	case <-time.After(5 * failsafeEvery):
 		t.Fatal("không dừng khi người dùng rê chuột vào góc")
 	}
+}
+
+func TestWatchTouch(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	mouse := &fakeMouse{x: 500, y: 500}
+	tin := &TrackingInput{Input: &devicetest.FakeInput{}}
+	var paused atomic.Bool
+	touched := make(chan struct{}, 4)
+	go WatchTouch(ctx, mouse.loc, tin, paused.Load, func() { touched <- struct{}{} })
+	time.Sleep(failsafeEvery / 2)
+	quiet := func(why string) {
+		t.Helper()
+		select {
+		case <-touched:
+			t.Fatal(why)
+		case <-time.After(3 * failsafeEvery):
+		}
+	}
+
+	// Engine đi theo đường cong: vị trí đọc được trễ vài bước so với điểm ghi mới nhất vẫn là do engine.
+	for i := range 5 {
+		tin.MoveStep(500+i*10, 500)
+	}
+	mouse.set(531, 500)
+	quiet("báo nhầm khi engine di chuột")
+
+	// Người dùng kéo chuột đi chỗ khác → báo.
+	mouse.set(800, 300)
+	select {
+	case <-touched:
+	case <-time.After(5 * failsafeEvery):
+		t.Fatal("không báo khi người dùng đụng chuột")
+	}
+
+	// Đang tạm dừng: người dùng dùng chuột thoải mái.
+	paused.Store(true)
+	mouse.set(100, 100)
+	quiet("báo khi đang tạm dừng")
 }

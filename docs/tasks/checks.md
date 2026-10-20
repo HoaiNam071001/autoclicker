@@ -22,6 +22,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 31b – AI tự chạy, xem lỗi, sửa, chạy tiếp · [phase3/31-mcp-ai.md](phase3/31-mcp-ai.md)
 
+- [ ] AI chạy kịch bản dài (vd 5 node click có `delayAfter` 1 s) → giữa chừng rê chuột → app tạm dừng trước node kế, thanh mini “Bạn vừa đụng chuột – đã tạm dừng”, AI gọi `wait_run` thấy `pausedBy: touch`; bấm ▶ chạy tiếp được. Khi AI đang tự di chuột (giống người, đường cong) thì không báo nhầm; lượt bạn tự chạy thì rê chuột không tạm dừng
 - [ ] AI chạy kịch bản → thanh mini có chip “● AI · Tự chạy / Hỏi” (chấm nhấp nháy); bấm chip → 4 nút mức; chọn *Chỉ soạn* → lượt AI dừng ngay, Cài đặt → MCP cũng đổi theo; chạy tay (nút Chạy) thì không có chip – xem cả theme sáng + tối
 - [ ] Bảo AI chạy kịch bản 4–5 node với `shots: "each"` → mỗi node có `shot`, kết quả gửi kèm 3 ảnh mới nhất (đúng cảnh sau khi node chạy xong + chờ `delayAfter`), AI xin ảnh node đầu bằng `wait_run shots: [...]` được; thời gian chạy không bị nhân đôi `delayAfter`; Lịch sử chạy có các ảnh đó
 - [ ] (Windows) Node Mở Notepad, `delayAfter` 2 s → output có `window` “Untitled - Notepad” (hoặc tiếng Việt), `newWindow` true, node vẫn chờ đúng ~2 s; mở URL khi Chrome đang mở sẵn → `newWindow` false, `window` = Chrome. Click / gõ / phím sau đó → output `window` / `windowApp` là cửa sổ đang ở trước

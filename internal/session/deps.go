@@ -22,6 +22,8 @@ type Deps struct {
 	Browser func(move func(x, y int) error) (b web.Browser, close func(), err error)
 	// Corners – dừng khẩn khi chuột chạm góc màn hình (chạy tới khi ctx huỷ).
 	Corners func(ctx context.Context, in *device.TrackingInput, onHit func())
+	// Touch – lượt AI: người dùng đụng chuột (chuột tới chỗ engine không đưa tới) → onTouch (chạy tới khi ctx huỷ).
+	Touch   func(ctx context.Context, in *device.TrackingInput, paused func() bool, onTouch func())
 	SaveRun func(rec model.RunRecord, path string, shots map[string]image.Image) error
 }
 
@@ -54,6 +56,11 @@ func (d Deps) withDefaults() Deps {
 	if d.Corners == nil {
 		d.Corners = func(ctx context.Context, in *device.TrackingInput, onHit func()) {
 			device.WatchCorners(ctx, device.Location, device.HardCorners(device.Displays()), in, onHit)
+		}
+	}
+	if d.Touch == nil {
+		d.Touch = func(ctx context.Context, in *device.TrackingInput, paused func() bool, onTouch func()) {
+			device.WatchTouch(ctx, device.Location, in, paused, onTouch)
 		}
 	}
 	if d.SaveRun == nil {

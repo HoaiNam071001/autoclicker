@@ -24,6 +24,7 @@ func fakeSession() (*session.Manager, *devicetest.FakeInput) {
 		AllowDanger: func(model.Script, string, string) (bool, error) { return false, nil },
 		Browser:     func(func(x, y int) error) (web.Browser, func(), error) { return nil, func() {}, nil },
 		Corners:     func(context.Context, *device.TrackingInput, func()) {},
+		Touch:       func(context.Context, *device.TrackingInput, func() bool, func()) {},
 		SaveRun:     func(model.RunRecord, string, map[string]image.Image) error { return nil },
 	}), in
 }
@@ -50,7 +51,6 @@ func (f *fakeBackend) ReadText(image.Image) ([]vision.TextLine, error) {
 func (f *fakeBackend) Windows() ([]model.WindowInfo, error) {
 	return []model.WindowInfo{{Title: "Notepad", App: "notepad", Box: model.Rect{X: 100, Y: 100, W: 800, H: 600}}}, nil
 }
-
 
 // Vòng thử – sửa: n2 dùng biến của node chạy sau nó → lỗi; sửa n2 rồi resume_run → chạy tiếp từ n2 với kết quả n1 cũ,
 // n1 không chạy lại.

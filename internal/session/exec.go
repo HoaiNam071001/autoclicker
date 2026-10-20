@@ -79,6 +79,9 @@ func (m *Manager) exec(ctx context.Context, r *run, canDanger bool) {
 	m.setState(r, StateRunning)
 
 	go m.deps.Corners(ctx, in, func() { m.StopWith(StopByCorner) })
+	if st.Source == SourceAI { // người dùng cầm chuột lúc AI đang điều khiển → nhường: tạm dừng, wait_run báo AI
+		go m.deps.Touch(ctx, in, eng.Paused, func() { eng.PauseTouched() })
+	}
 
 	rec.StartedAt = m.deps.Now()
 	err = eng.Run(ctx)

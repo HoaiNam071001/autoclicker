@@ -7,6 +7,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"autoclicker/internal/engine"
 	"autoclicker/internal/model"
 	"autoclicker/internal/session"
 	"autoclicker/internal/vision"
@@ -78,7 +79,7 @@ func traceView(tr session.Trace, sc model.Script, shotW map[string]int) map[stri
 		v["failedStep"] = tr.FailedStep
 	}
 	if p := tr.Progress; !tr.Done() && p != nil {
-		v["current"] = map[string]any{"id": p.NodeID, "ref": p.Ref, "wait": p.Wait, "paused": p.Paused}
+		v["current"] = map[string]any{"id": p.NodeID, "ref": p.Ref, "wait": p.Wait, "paused": p.Paused, "pausedBy": p.PausedBy}
 	}
 	v["next"] = nextHint(tr)
 	return v
@@ -87,6 +88,8 @@ func traceView(tr session.Trace, sc model.Script, shotW map[string]int) map[stri
 // nextHint – việc AI nên làm tiếp.
 func nextHint(tr session.Trace) string {
 	switch {
+	case !tr.Done() && tr.Progress != nil && tr.Progress.PausedBy == engine.PausedTouch:
+		return "người dùng vừa đụng chuột nên app đã tạm dừng (nhường người dùng) – đừng chạy lại; chờ người dùng bấm Tiếp tục trên thanh mini (wait_run) hoặc hỏi người dùng / stop_run"
 	case !tr.Done():
 		return "chưa xong – gọi wait_run"
 	case tr.State == session.StateFail && tr.FailedStep != "":

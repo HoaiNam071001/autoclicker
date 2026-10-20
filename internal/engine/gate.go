@@ -23,9 +23,24 @@ func (e *Engine) Resume() bool {
 	if !e.gate.resume() {
 		return false
 	}
-	e.update(true, func(p *Progress) { p.Break = "" })
+	e.update(true, func(p *Progress) { p.Break, p.PausedBy = "", "" })
 	return true
 }
+
+// PausedTouch – Progress.PausedBy: người dùng đụng chuột lúc AI đang chạy (31b – device.WatchTouch).
+const PausedTouch = "touch"
+
+// PauseTouched tạm dừng vì người dùng đụng chuột; thanh mini / wait_run báo lý do, người dùng bấm Tiếp tục để chạy tiếp.
+func (e *Engine) PauseTouched() bool {
+	if !e.gate.pause() {
+		return false
+	}
+	e.update(true, func(p *Progress) { p.PausedBy = PausedTouch })
+	return true
+}
+
+// Paused – đang tạm dừng (nút, debug, đụng chuột).
+func (e *Engine) Paused() bool { return e.gate.paused() }
 
 // Step chạy node kế rồi dừng lại (debug, F10); đang chạy thì dừng trước node sau.
 func (e *Engine) Step() bool {

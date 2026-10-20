@@ -59,7 +59,7 @@ export default function MiniBar() {
       title={!running ? 'Chưa chạy'
         : counting ? `Bắt đầu sau ${engine.countdown} giây…`
         : !p ? 'Đang bắt đầu…'
-        : `${p.break ? `Dừng trước ${BREAK_LABEL[p.break]} · ` : paused ? 'Tạm dừng · ' : ''}${progressNode(p, steps)}`}
+        : `${p.break ? `Dừng trước ${BREAK_LABEL[p.break]} · ` : p.pausedBy === 'touch' && paused ? 'Bạn vừa đụng chuột – đã tạm dừng · ' : paused ? 'Tạm dừng · ' : ''}${progressNode(p, steps)}`}
       lines={[
         ...(p?.counter || p?.retry ? [[p.counter && counterText(p.counter), p.retry && `thử lại ${p.retry} / ${p.retries}`].filter(Boolean).join('   ')] : []),
         ...(w ? [w.kind === 'time' ? `chờ đến giờ – còn ${fmtCountdown(w.timeoutMs - waitNow)}`

@@ -29,12 +29,13 @@ type Progress struct {
 	Clicks    int           `json:"clicks"`
 	ElapsedMs int64         `json:"elapsedMs"` // không tính thời gian tạm dừng
 	Paused    bool          `json:"paused"`
-	Wait      *WaitProgress `json:"wait,omitempty"`    // đang chờ ảnh / pixel
-	Retry     int           `json:"retry,omitempty"`   // đang thử lại lần thứ mấy (0 = lần đầu)
-	Retries   int           `json:"retries,omitempty"` // số lần thử lại tối đa của bước hiện tại
-	Break     string        `json:"break,omitempty"`   // đang dừng trước node NodeID vì debug: breakpoint | step
-	From      *FromPort     `json:"from,omitempty"`    // node vừa chạy xong + cổng đi ra tới node này (nil: node đầu vòng)
-	Counter   *CounterLoop  `json:"counter,omitempty"` // node Đếm gần nhất còn lượt – đang ở trong vòng lặp của nó
+	PausedBy  string        `json:"pausedBy,omitempty"` // tạm dừng không do nút Tạm dừng: PausedTouch
+	Wait      *WaitProgress `json:"wait,omitempty"`     // đang chờ ảnh / pixel
+	Retry     int           `json:"retry,omitempty"`    // đang thử lại lần thứ mấy (0 = lần đầu)
+	Retries   int           `json:"retries,omitempty"`  // số lần thử lại tối đa của bước hiện tại
+	Break     string        `json:"break,omitempty"`    // đang dừng trước node NodeID vì debug: breakpoint | step
+	From      *FromPort     `json:"from,omitempty"`     // node vừa chạy xong + cổng đi ra tới node này (nil: node đầu vòng)
+	Counter   *CounterLoop  `json:"counter,omitempty"`  // node Đếm gần nhất còn lượt – đang ở trong vòng lặp của nó
 }
 
 // FromPort – node trước + cổng ra đã đi (thanh mini: "n2 · thất bại → n5").

@@ -25,6 +25,10 @@ const STATES: { note: string; props: Parameters<typeof MiniBarView>[0] }[] = [
     props: { title: 'n3 · Click nút Gửi', lines: [], icon: 'click', progress: 0.5, paused: false, countdown: 0, canPause: true, onPause: noop, onStop: noop, ai: { level: 'auto', onLevel: noop }, aiOpen: true },
   },
   {
+    note: 'AI đang chạy, người dùng đụng chuột → tự tạm dừng (bấm ▶ để chạy tiếp)',
+    props: { title: 'Bạn vừa đụng chuột – đã tạm dừng · n3 · Click nút Gửi', lines: ['vòng 1 / 1   3 click   00:12'], icon: 'click', progress: 0.5, paused: true, countdown: 0, canPause: true, onPause: noop, onStop: noop, ai: { level: 'auto', onLevel: noop } },
+  },
+  {
     note: 'Đang chạy (đã có)',
     props: { title: 'n5 · Gõ chữ', lines: ['vòng 4 / 10   142 click   02:05'], icon: 'type', progress: 0.36, paused: false, countdown: 0, canPause: true, onPause: noop, onStop: noop },
   },
