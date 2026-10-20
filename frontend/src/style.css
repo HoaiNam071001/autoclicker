@@ -209,7 +209,7 @@
 @utility ring-selected {
   border: 1px solid transparent;
   background:
-    linear-gradient(var(--c-surface), var(--c-surface)) padding-box,
+    linear-gradient(var(--c-raised), var(--c-raised)) padding-box,
     linear-gradient(135deg, var(--c-accent), color-mix(in srgb, var(--c-accent) 25%, transparent)) border-box;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--c-accent) 12%, transparent);
 }
