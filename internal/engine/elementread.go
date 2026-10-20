@@ -170,7 +170,7 @@ func (e *Engine) elementRead(ctx context.Context, s model.Step) (map[string]any,
 		return true, 100, nil
 	})
 	if errors.Is(err, errTimeout) {
-		return nil, &notFoundErr{fmt.Sprintf("không đọc được %s sau %s – %s", what, fmtSeconds(s.TimeoutMs), why)}
+		return nil, &notFoundErr{msg: fmt.Sprintf("không đọc được %s sau %s – %s", what, fmtSeconds(s.TimeoutMs), why)}
 	}
 	if err != nil {
 		return nil, err

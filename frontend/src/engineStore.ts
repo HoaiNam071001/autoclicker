@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { DangerCheck, RunScript, ValidateScript } from '../wailsjs/go/main/App';
+import { DangerCheck, InBackground, RunScript, ValidateScript } from '../wailsjs/go/main/App';
 import { askDanger } from './dangerConfirm';
 import { model, session } from '../wailsjs/go/models';
 import { EventsOn } from '../wailsjs/runtime/runtime';
@@ -57,7 +57,8 @@ if (inWails) {
   EventsOn('hotkey:error', (hotkeyError: string) => set({ hotkeyError }));
   EventsOn('engine:stopped', (stopReason: string) => set({ stopReason }));
   EventsOn('engine:progress', (progress: Progress) => set({ progress, receivedAt: Date.now() }));
-  // Chạy từ ngoài (API / CLI / hẹn giờ – bước 22): không qua runScript nên tự thu thành thanh mini, xong thì về màn chính.
+  // Chạy từ ngoài (API / CLI / hẹn giờ – bước 22, AI – 31): không qua runScript nên tự thu thành thanh mini, xong thì về
+  // màn chính – trừ khi app do AI mở nền (InBackground): giữ thanh mini, người dùng bấm Dừng trên thanh mới mở màn chính.
   EventsOn('run:started', (r: { source: string; preset?: string }) => {
     if (r.source === 'user') return;
     set({ preset: r.preset ?? '' });
@@ -68,7 +69,9 @@ if (inWails) {
     if (!external) return;
     external = false;
     if (st.error) set({ lastError: st.error });
-    void setWindowMode('main');
+    void InBackground().then((bg) => {
+      if (!bg) void setWindowMode('main');
+    });
   });
 }
 

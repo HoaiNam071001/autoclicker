@@ -20,7 +20,10 @@ import (
 const maxNodeRuns = 10000
 
 // notFoundErr – chờ ảnh / chữ / màu hết giờ không thấy (StepError code not_found).
-type notFoundErr struct{ msg string }
+type notFoundErr struct {
+	msg    string
+	detail map[string]any // StepError.Detail (detail.go)
+}
 
 func (e *notFoundErr) Error() string { return e.msg }
 
@@ -65,10 +68,14 @@ func (e *Engine) Run(ctx context.Context) error {
 
 	for loop := 1; sc.Loops == 0 || loop <= sc.Loops; loop++ {
 		err := e.runLoop(runCtx, loop)
+		if err == nil && e.reached {
+			return nil
+		}
 		if err == nil {
 			continue
 		}
 		if ctx.Err() == nil && errors.Is(err, context.DeadlineExceeded) {
+			e.timedOut = true
 			return nil // hết MaxMinutes
 		}
 		if ctx.Err() != nil {
@@ -84,6 +91,9 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 	e.rv = runVars{byRef: map[string]*model.StepResult{}, vars: map[string]any{}}
 	e.results = map[string]*model.StepResult{}
 	e.counts = map[string]int{}
+	if loop == 1 {
+		e.plant()
+	}
 	var trail []string // các node gần nhất – báo lỗi lặp vô hạn
 	e.setProg(func(p *Progress) { p.From, p.Counter = nil, nil })
 	cur := e.sc.Start
@@ -97,6 +107,7 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 		e.breakBefore(s, loop)
 		res, wait := e.execNode(ctx, s, loop)
 		if res.Status == model.StatusFail {
+			e.addContext(&res)
 			e.shoot(&res)
 		}
 		e.results[s.ID], e.rv.byRef[s.Ref], e.rv.last = &res, &res, &res
@@ -115,6 +126,10 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 			e.failed = s.ID
 			return fmt.Errorf("vòng %d, %s: %s", loop, s.Ref, res.Error.Message)
 		}
+		if s.ID == e.stopAt {
+			e.reached = true
+			return nil
+		}
 		if res.Status == model.StatusSuccess {
 			if err := Sleep(ctx, wait); err != nil {
 				return err
@@ -123,6 +138,24 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 		cur = next
 	}
 	return nil
+}
+
+// plant nạp kết quả + biến của lần chạy trước (Options.Seed) – node đã bị xoá thì bỏ; ref lấy theo kịch bản hiện tại.
+func (e *Engine) plant() {
+	if e.seed == nil {
+		return
+	}
+	for id, r := range e.seed.Results {
+		s, ok := e.byID[id]
+		if !ok {
+			continue
+		}
+		r.Ref = s.Ref
+		e.results[id], e.rv.byRef[s.Ref] = &r, &r
+	}
+	for k, v := range e.seed.Vars {
+		e.rv.vars[k] = v
+	}
 }
 
 // trackFlow ghi node vừa chạy (+ lượt Đếm) vào tiến độ.
@@ -225,7 +258,7 @@ func (e *Engine) execNode(ctx context.Context, s model.Step, loop int) (res mode
 		return res, 0
 	}
 	res.Status, res.Port, res.Output = model.StatusFail, model.PortFail, failOut
-	res.Error = &model.StepError{Code: errCode(err), Message: err.Error()}
+	res.Error = &model.StepError{Code: errCode(err), Message: err.Error(), Detail: errDetail(err)}
 	logf("error", "%v", err)
 	return res, 0
 }

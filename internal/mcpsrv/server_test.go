@@ -11,7 +11,9 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/model"
+	"autoclicker/internal/session"
 	"autoclicker/internal/store"
 )
 
@@ -22,6 +24,8 @@ type fakeBackend struct {
 	recent []string
 	editor Editor
 	opened []string
+	sess   *session.Manager // phiên chạy thật, thiết bị giả (runBackend trong run_test.go)
+	in     *devicetest.FakeInput
 }
 
 func (f *fakeBackend) Enabled() bool               { return true }
@@ -43,6 +47,7 @@ func (f *fakeBackend) WriteScript(p string, sc model.Script, rev int) (int, erro
 func connect(t *testing.T) (*mcp.ClientSession, *fakeBackend) {
 	t.Helper()
 	back := &fakeBackend{dir: t.TempDir(), revs: store.NewRevisions()}
+	back.sess, back.in = fakeSession()
 	srv := New(back)
 	ct, st := mcp.NewInMemoryTransports()
 	ctx := context.Background()

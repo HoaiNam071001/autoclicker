@@ -6,6 +6,7 @@ package mcpsrv
 
 import (
 	"context"
+	"image"
 	"net/http"
 	"sync"
 	"time"
@@ -13,6 +14,8 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"autoclicker/internal/model"
+	"autoclicker/internal/session"
+	"autoclicker/internal/vision"
 )
 
 // Editor – kịch bản đang mở trên app.
@@ -39,6 +42,17 @@ type Backend interface {
 	WriteScript(path string, sc model.Script, revision int) (int, error)
 	OpenInApp(path string) error
 	Displays() []Display
+
+	// Chạy (31b): Run hỏi quyền theo công tắc AI (Cài đặt) rồi session.Start; Wait / Trace / Stop theo runId.
+	Run(path string, values map[string]any, opt session.Options) (string, error)
+	Wait(ctx context.Context, id string) error
+	Trace(id string) (session.Trace, error)
+	Stop(id string) bool
+
+	// Nhìn màn hình (31b).
+	Capture(r model.Rect) (image.Image, error)
+	ReadText(img image.Image) ([]vision.TextLine, error)
+	Windows() ([]model.WindowInfo, error) // theo thứ tự chồng – trên cùng trước
 }
 
 // Server – MCP server + nhật ký lệnh AI đã gọi.
@@ -49,9 +63,11 @@ type Server struct {
 }
 
 const instructions = `Auto Clicker – app tự động click / gõ theo kịch bản dạng flow (node + cạnh, như n8n).
-Tạo kịch bản: đọc get_step_types (hoặc resource autoclicker://guide) → viết kịch bản → validate_script → create_script → open_in_app.
+Tạo kịch bản: đọc get_step_types (hoặc resource autoclicker://guide) → viết kịch bản → validate_script → create_script.
 Sửa: read_script (lấy revision) → update_script theo id / ref node. Thiếu thông tin (app nào, giá trị nào là input) thì hỏi lại người dùng trước.
-Bản này AI chỉ soạn kịch bản, chưa chạy được – người dùng bấm Chạy trên app.`
+Thử – sửa: run_script (cả / stopAt / only) → node lỗi có error.detail + ảnh → update_script → resume_run (chạy tiếp từ node lỗi, giữ biến).
+Xem màn hình: describe_screen (chữ + cửa sổ, rẻ) trước, screenshot khi cần nhìn. Người dùng muốn xem / tự chạy: open_in_app.
+App có thể chỉ cho soạn hoặc hỏi người dùng trước khi chạy (Cài đặt) – bị từ chối thì báo người dùng, không thử lại liên tục.`
 
 func New(back Backend) *Server {
 	s := &Server{back: back, log: &CallLog{}}
@@ -60,6 +76,8 @@ func New(back Backend) *Server {
 	s.mcp.AddReceivingMiddleware(s.log.middleware)
 	s.addReadTools()
 	s.addWriteTools()
+	s.addRunTools()
+	s.addScreenTools()
 	s.addDocs()
 	return s
 }

@@ -26,8 +26,37 @@ type Settings struct {
 }
 
 // MCPSettings – cho AI kết nối qua MCP (bước 31): bật mặc định; route /mcp chạy trên cùng cổng API local.
+// Công tắc AI 4 mức (31b): Enabled = false → Tắt; còn lại theo Run: edit (chỉ soạn) | ask (chạy, hỏi trước – mặc định) | auto (tự chạy).
 type MCPSettings struct {
-	Enabled bool `json:"enabled"`
+	Enabled    bool   `json:"enabled"`
+	Run        string `json:"run,omitempty"`        // "" = ask
+	MaxMinutes int    `json:"maxMinutes,omitempty"` // trần thời gian mỗi lượt AI chạy; 0 = AIMaxMinutes
+}
+
+// Mức chạy của AI (MCPSettings.Run).
+const (
+	AIRunEdit = "edit"
+	AIRunAsk  = "ask"
+	AIRunAuto = "auto"
+)
+
+// AIMaxMinutes – trần mặc định mỗi lượt AI chạy.
+const AIMaxMinutes = 10
+
+// RunMode – mức chạy đã chuẩn hoá ("" / lạ → ask).
+func (m MCPSettings) RunMode() string {
+	if m.Run == AIRunEdit || m.Run == AIRunAuto {
+		return m.Run
+	}
+	return AIRunAsk
+}
+
+// Limit – trần phút mỗi lượt AI chạy.
+func (m MCPSettings) Limit() int {
+	if m.MaxMinutes > 0 {
+		return m.MaxMinutes
+	}
+	return AIMaxMinutes
 }
 
 // SetMCP lưu cài đặt MCP.

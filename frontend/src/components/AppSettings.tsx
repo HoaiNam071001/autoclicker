@@ -1,7 +1,7 @@
 // Cài đặt app (nút bánh răng trên thanh tiêu đề): chạy từ ngoài app – dòng lệnh, API local (bước 22, settings/ApiSettings)
 // và AI qua MCP (bước 31, settings/McpSettings).
 import { useState } from 'react';
-import { GetSettings, SetAPISettings } from '../../wailsjs/go/main/App';
+import { GetSettings, SetAPISettings, SetMCPSettings } from '../../wailsjs/go/main/App';
 import { store } from '../../wailsjs/go/models';
 import { errorText } from '../engineStore';
 import { usePopover } from './usePopover';
@@ -25,7 +25,12 @@ export default function AppSettings() {
     SetAPISettings(api).then((saved) => { setSettings((s) => s && store.Settings.createFrom({ ...s, api: saved })); setError(''); })
       .catch((e) => setError(errorText(e)));
   };
-  const setMcp = (enabled: boolean) => settings && setSettings(store.Settings.createFrom({ ...settings, mcp: { enabled } }));
+  const saveMcp = (patch: Partial<store.MCPSettings>) => {
+    if (!settings) return;
+    const mcp = store.MCPSettings.createFrom({ ...settings.mcp, ...patch });
+    setSettings(store.Settings.createFrom({ ...settings, mcp }));
+    SetMCPSettings(mcp).then(() => setError('')).catch((e) => setError(errorText(e)));
+  };
 
   return (
     <div ref={ref} className="relative">
@@ -34,7 +39,7 @@ export default function AppSettings() {
       {open && settings && (
         <div role="dialog" aria-label="Cài đặt" className="absolute right-0 top-full z-30 mt-1 flex max-h-[calc(100vh-64px)] w-[360px] flex-col gap-3 overflow-y-auto rounded-[10px] border border-line bg-surface p-3.5 text-[13px] shadow-[0_12px_32px_rgb(0_0_0/.14)]">
           <ApiSettings api={settings.api} onChange={saveApi} />
-          <McpSettings enabled={settings.mcp.enabled} onEnabled={setMcp} />
+          <McpSettings mcp={settings.mcp} onChange={saveMcp} />
           {error && <span className="text-danger-text">{error}</span>}
         </div>
       )}

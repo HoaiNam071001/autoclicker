@@ -1,18 +1,20 @@
-// Cài đặt – AI qua MCP (bước 31): bật / tắt, thêm vào Claude Desktop (hỏi trước khi ghi file của Claude), đoạn cấu
+// Cài đặt – AI qua MCP (bước 31): bật / tắt, mức chạy (31b – AiRunSettings), thêm vào Claude Desktop (hỏi trước khi ghi file của Claude), đoạn cấu
 // hình mẫu cho từng client AI, các lệnh AI đã gọi gần đây.
 import { useEffect, useState } from 'react';
-import { AddToClaudeDesktop, ClaudeDesktopConfigPath, MCPClients, MCPLog, SetMCPSettings } from '../../../wailsjs/go/main/App';
-import { mcpsrv } from '../../../wailsjs/go/models';
+import { AddToClaudeDesktop, ClaudeDesktopConfigPath, MCPClients, MCPLog } from '../../../wailsjs/go/main/App';
+import { mcpsrv, store } from '../../../wailsjs/go/models';
 import { errorText } from '../../engineStore';
 import Select from '../Select';
 import { selectBox } from '../stepform/shared';
 import { Switch } from '../Switch';
+import AiRunSettings from './AiRunSettings';
 import { CopyButton, SettingCode } from './parts';
 
 const LOG_SHOWN = 5;
 const timeText = (at: string) => new Date(at).toLocaleTimeString('vi-VN', { hour12: false });
 
-export default function McpSettings({ enabled, onEnabled }: { enabled: boolean; onEnabled: (on: boolean) => void }) {
+export default function McpSettings({ mcp, onChange }: { mcp: store.MCPSettings; onChange: (patch: Partial<store.MCPSettings>) => void }) {
+  const enabled = mcp.enabled;
   const [clients, setClients] = useState<mcpsrv.ClientConfig[]>([]);
   const [client, setClient] = useState('Claude Desktop');
   const [log, setLog] = useState<mcpsrv.Call[]>([]);
@@ -25,10 +27,6 @@ export default function McpSettings({ enabled, onEnabled }: { enabled: boolean; 
     MCPLog().then(setLog).catch(() => {});
   }, [enabled]);
 
-  const toggle = (on: boolean) => {
-    onEnabled(on);
-    SetMCPSettings({ enabled: on }).catch((e) => setMsg(errorText(e)));
-  };
   const add = () => {
     setConfirm('');
     AddToClaudeDesktop().then(() => setMsg('Đã thêm – thoát hẳn rồi mở lại Claude Desktop')).catch((e) => setMsg(errorText(e)));
@@ -38,13 +36,14 @@ export default function McpSettings({ enabled, onEnabled }: { enabled: boolean; 
   return (
     <>
       <label className="flex items-center justify-between gap-3 border-t border-line pt-3">
-        <span className="flex flex-col">Cho AI soạn kịch bản (MCP)
-          <span className="text-xs text-muted">Claude, Cursor, Codex… tạo / sửa kịch bản – chưa chạy được</span>
+        <span className="flex flex-col">Cho AI điều khiển (MCP)
+          <span className="text-xs text-muted">Claude, Cursor, Codex… tạo / sửa / chạy thử kịch bản</span>
         </span>
-        <Switch on={enabled} onChange={toggle} label="Bật MCP" />
+        <Switch on={enabled} onChange={(on) => onChange({ enabled: on })} label="Bật MCP" />
       </label>
       {enabled && (
         <>
+          <AiRunSettings mcp={mcp} onChange={onChange} />
           {confirm ? (
             <div className="flex flex-col gap-1.5 rounded-control bg-soft p-2 text-xs">
               Ghi mục “autoclicker” vào <span className="font-mono break-all">{confirm}</span>? Cài đặt khác của Claude giữ nguyên.

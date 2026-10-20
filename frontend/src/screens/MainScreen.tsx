@@ -11,6 +11,7 @@ import RunDialog from '../components/inputs/RunDialog';
 import { newScript, openScript, save, useFile } from '../scriptFile';
 import SaveChangesDialog from '../components/SaveChangesDialog';
 import DangerConfirmDialog from '../components/DangerConfirmDialog';
+import AIRunDialog from '../components/AIRunDialog';
 import TitleBar from '../components/TitleBar';
 import Library from '../components/Library';
 import FlowEditor from '../components/flow/FlowEditor';
@@ -95,6 +96,7 @@ export default function MainScreen() {
       </StatusBar>
       <SaveChangesDialog />
       <DangerConfirmDialog />
+      <AIRunDialog />
       {runForm.open && (
         <RunDialog scriptName={script.name} inputs={inputViews(script)} sections={runSections(script)}
           presets={runForm.memory.presets ?? []} initialValues={runForm.memory.last} initialPreset={runForm.memory.lastPreset} initialRemember={!!runForm.memory.autoRun}

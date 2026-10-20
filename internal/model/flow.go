@@ -56,6 +56,9 @@ type StepResult struct {
 type StepError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
+	// Detail – dữ liệu có cấu trúc để AI / người tự sửa node (bước 31b): chỗ khớp nhất, chữ đọc được, màu thật…
+	// và "context" (cửa sổ đang trước, chuột, màn hình) – xem engine/detail.go.
+	Detail map[string]any `json:"detail,omitempty"`
 }
 
 type LogLine struct {

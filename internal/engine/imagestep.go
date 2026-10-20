@@ -152,7 +152,7 @@ func (e *Engine) findImage(ctx context.Context, s model.Step) (hit, error) {
 	})
 	if errors.Is(err, errTimeout) {
 		e.miss = &miss
-		return hit{}, &notFoundErr{fmt.Sprintf("không thấy ảnh mẫu sau %s (khớp nhất %d%%, cần %d%%)", fmtSeconds(s.TimeoutMs), best, s.Threshold)}
+		return hit{}, &notFoundErr{msg: fmt.Sprintf("không thấy ảnh mẫu sau %s (khớp nhất %d%%, cần %d%%)", fmtSeconds(s.TimeoutMs), best, s.Threshold), detail: imageMiss(miss, s.Threshold)}
 	}
 	if err != nil {
 		return hit{}, err
@@ -178,7 +178,7 @@ func (e *Engine) findTextStep(ctx context.Context, s model.Step, area model.Rect
 	})
 	if errors.Is(err, errTimeout) {
 		e.miss = &FindResult{Area: area, Read: read}
-		return hit{}, &notFoundErr{fmt.Sprintf("không thấy chữ “%s” sau %s%s", s.FindText, fmtSeconds(s.TimeoutMs), readHint(read))}
+		return hit{}, &notFoundErr{msg: fmt.Sprintf("không thấy chữ “%s” sau %s%s", s.FindText, fmtSeconds(s.TimeoutMs), readHint(read)), detail: textMiss(s.FindText, read, area)}
 	}
 	if err != nil {
 		return hit{}, err
@@ -267,7 +267,7 @@ func (e *Engine) waitPixel(ctx context.Context, s model.Step) (string, error) {
 		return d <= s.Tolerance, 100 - d*100/255, nil
 	})
 	if errors.Is(err, errTimeout) {
-		return "", &notFoundErr{fmt.Sprintf("điểm X %d Y %d vẫn màu %s sau %s (cần %s ± %d)", p.X, p.Y, last, fmtSeconds(s.TimeoutMs), s.Color, s.Tolerance)}
+		return "", &notFoundErr{msg: fmt.Sprintf("điểm X %d Y %d vẫn màu %s sau %s (cần %s ± %d)", p.X, p.Y, last, fmtSeconds(s.TimeoutMs), s.Color, s.Tolerance), detail: pixelMiss(p, last, s.Color, s.Tolerance)}
 	}
 	return last, err
 }

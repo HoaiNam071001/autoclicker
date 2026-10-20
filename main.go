@@ -22,7 +22,9 @@ func main() {
 	// `autoclicker run …` (bước 22): gửi lệnh sang app đang mở rồi thoát – không mở giao diện
 	// `autoclicker --mcp` (bước 31): MCP qua stdio cho AI – chuyển tiếp sang app; stdin / stdout là pipe của AI, không gắn console
 	if cli.IsMCP(os.Args[1:]) {
-		os.Exit(cli.NewClient(nil).MCP(os.Stdin, os.Stdout, os.Stderr))
+		c := cli.NewClient(nil)
+		c.Launch = cli.LaunchBackground // app chưa mở thì mở nền – AI chạy mới hiện thanh mini
+		os.Exit(c.MCP(os.Stdin, os.Stdout, os.Stderr))
 	}
 	if args := os.Args[1:]; cli.IsCommand(args) {
 		cli.AttachConsole()
@@ -35,6 +37,7 @@ func main() {
 
 	// Create an instance of the app structure
 	app := NewApp()
+	app.background = cli.IsBackground(os.Args[1:])
 
 	// Create application with options
 	err := wails.Run(&options.App{
@@ -47,6 +50,7 @@ func main() {
 		// Frameless + nền trong suốt cố định từ đầu (Wails v2 không đổi được lúc chạy) để overlay nhìn xuyên được.
 		// Mỗi màn tự vẽ nền; MainScreen có thanh tiêu đề riêng để kéo cửa sổ.
 		Frameless:        true,
+		StartHidden:      app.background,
 		BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 0},
 		Mac:              &mac.Options{WebviewIsTransparent: true},
 		// Windows: chỉ WebviewIsTransparent thì cửa sổ Win32 vẫn đặc – cần WindowIsTranslucent (không bitmap nền) và

@@ -36,6 +36,9 @@ type App struct {
 	editPath  string                    // file của kịch bản đang soạn ("" = chưa lưu)
 	mcp       *mcpsrv.Server            // MCP cho AI (mcpapi.go)
 	quitting  bool                      // đã hỏi xong, đóng thật
+	ai        aiGate                    // hỏi quyền AI chạy (mcprun.go)
+	// app do AI mở nền (`--background`, bước 31b): khởi động ẩn, AI chạy thì chỉ hiện thanh mini; người dùng mở màn chính thì thôi
+	background bool
 
 	web        *web.Chrome        // Chrome của app cho giao diện (webapi.go) – tạo lười
 	pickCancel context.CancelFunc // huỷ lần Chọn phần tử đang chờ
@@ -43,7 +46,8 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	a := &App{mode: ModeMain, winDisp: -1, ovDisp: -1, hub: api.NewHub(), revs: store.NewRevisions(), schedRuns: map[string]model.Schedule{}}
+	a := &App{mode: ModeMain, winDisp: -1, ovDisp: -1, hub: api.NewHub(), revs: store.NewRevisions(), schedRuns: map[string]model.Schedule{},
+		ai: aiGate{pending: map[string]chan string{}, allowed: map[string]bool{}}}
 	a.sess = session.New(a.emit, session.Deps{})
 	a.sess.OnEnd = a.onRunEnd
 	return a

@@ -66,7 +66,7 @@ func (e *Engine) webFindQ(ctx context.Context, s model.Step, q web.Query, lines 
 		return last.ok, 0, err
 	})
 	if errors.Is(err, errTimeout) {
-		return last, lines, &notFoundErr{webMissMsg(s, last, lines, q.CheckOnly && s.WebGone)}
+		return last, lines, &notFoundErr{msg: webMissMsg(s, last, lines, q.CheckOnly && s.WebGone)}
 	}
 	return last, lines, err
 }

@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"image"
 	"sync"
 	"time"
 
@@ -59,8 +60,14 @@ type Options struct {
 	Source    string `json:"source,omitempty"` // user (mặc định) | schedule | cli | api | ai
 	Preset    string `json:"preset,omitempty"` // tên bộ giá trị input đã dùng – chỉ để hiện / ghi
 	From      string `json:"from,omitempty"`   // debug: chạy một vòng bắt đầu từ node này thay cho start
-	Only      bool   `json:"only,omitempty"`   // cùng From: chỉ chạy riêng node From (RunNode cho AI – 31c)
+	Only      bool   `json:"only,omitempty"`   // cùng From: chỉ chạy riêng node From (Thử node; AI chạy cụm dùng Nodes)
 	Step      bool   `json:"step,omitempty"`   // debug: dừng trước mỗi node, Tiếp / F10 chạy node kế
+	// chạy một phần (AI – 31b): chạy xong node StopAt thì dừng; Nodes = chỉ chạy cụm node này (cạnh ra ngoài cụm bị bỏ);
+	// SeedRun = runId lần chạy trước – kết quả node + biến của nó nạp sẵn (chạy tiếp từ node lỗi với biến cũ)
+	StopAt     string   `json:"stopAt,omitempty"`
+	Nodes      []string `json:"nodes,omitempty"`
+	SeedRun    string   `json:"seedRun,omitempty"`
+	MaxMinutes int      `json:"maxMinutes,omitempty"` // trần thời gian lượt chạy (AI) – kịch bản đặt dài hơn / không đặt thì dùng trần này
 	// dấu vân tay thao tác nguy hiểm người dùng vừa đồng ý (DangerCheck) – chạy được và ghi nhớ; trống = chỉ chạy khi đã đồng ý trước đó
 	ConfirmDanger string `json:"confirmDanger,omitempty"`
 }
@@ -78,6 +85,8 @@ type Status struct {
 	Progress   *engine.Progress `json:"progress,omitempty"`
 	Error      string           `json:"error,omitempty"`
 	FailedStep string           `json:"failedStep,omitempty"` // node làm lần chạy dừng vì lỗi
+	Reached    bool             `json:"reached,omitempty"`    // dừng vì đã chạy xong node StopAt
+	TimedOut   bool             `json:"timedOut,omitempty"`   // dừng vì hết thời gian tối đa (kịch bản / trần mỗi lượt AI)
 }
 
 // Done – phiên đã kết thúc (thành công / lỗi / bị dừng).
@@ -94,6 +103,12 @@ type run struct {
 	eng    *engine.Engine
 	done   chan struct{}
 	err    error // lỗi của lần chạy (nil khi xong / bị dừng) – đọc sau khi done đóng
+
+	// vết chạy cho AI (Trace) – ghi dưới Manager.mu
+	results []model.StepResult
+	seed    *engine.Carry          // Options.SeedRun đã tra ra
+	carry   *engine.Carry          // kết quả + biến vòng cuối (có khi xong) – SeedRun của lần sau
+	shots   map[string]image.Image // ảnh lúc node lỗi theo StepResult.Shot
 }
 
 // Manager – một lúc chạy một phiên; giữ trạng thái vài phiên gần nhất.
@@ -132,10 +147,11 @@ func (m *Manager) Start(sc model.Script, values map[string]any, opt Options) (st
 	if opt.Source == "" {
 		opt.Source = SourceUser
 	}
-	if opt.From != "" {
-		sc = script.RunFrom(sc, opt.From, opt.Only)
+	sc, seed, err := m.part(sc, opt)
+	if err != nil {
+		return "", err
 	}
-	sc, err := script.ResolveInputs(sc, values)
+	sc, err = script.ResolveInputs(sc, values)
 	if err != nil {
 		return "", err
 	}
@@ -154,7 +170,7 @@ func (m *Manager) Start(sc model.Script, values map[string]any, opt Options) (st
 	now := m.deps.Now()
 	id := m.newID(now)
 	ctx, cancel := context.WithCancel(context.Background())
-	r := &run{sc: sc, opt: opt, values: values, cancel: cancel, done: make(chan struct{}),
+	r := &run{sc: sc, opt: opt, values: values, cancel: cancel, done: make(chan struct{}), seed: seed,
 		status: Status{RunID: id, Script: sc.Name, Path: opt.Path, Source: opt.Source, Preset: opt.Preset, State: StateCountdown, StartedAt: now}}
 	m.cur = r
 	m.remember(r)

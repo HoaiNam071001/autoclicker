@@ -21,7 +21,14 @@ const tips = `Viết kịch bản bền:
 - Chờ có thể hết giờ → nối cổng fail (thử lại bằng counter + cạnh quay lại, hoặc end fail kèm message rõ ràng) thay vì để kịch bản dừng không rõ lý do.
 - Toạ độ (click theo điểm) theo hệ của get_screen_info; chưa biết vị trí thì hỏi người dùng hoặc tìm theo chữ.
 - Không dùng loại node không có trong danh sách. Ảnh mẫu (template) chỉ chụp được bằng app – AI dùng tìm theo chữ (findBy "text").
-- Dạng gọn: node chỉ cần type + trường cần (còn lại lấy mặc định), id / ref tự đặt (s1, s2… / n1, n2…) nếu bỏ trống, không có edges thì nối các node theo thứ tự bằng cổng success.`
+- Dạng gọn: node chỉ cần type + trường cần (còn lại lấy mặc định), id / ref tự đặt (s1, s2… / n1, n2…) nếu bỏ trống, không có edges thì nối các node theo thứ tự bằng cổng success.
+
+Thử – sửa (chạy thật trên máy người dùng):
+- Chưa biết màn hình có gì: describe_screen (chữ + khung + cửa sổ) trước, screenshot khi cần nhìn bố cục.
+- Kịch bản dài: run_script với stopAt chạy từng đoạn, xem output từng node rồi resume_run from node kế để chạy tiếp – không chạy lại đoạn đã đúng.
+- Node lỗi: đọc error.code + error.detail (image: best / threshold / bestBox; text: read = các dòng đọc được trong vùng; context: cửa sổ đang trước, chuột) và ảnh lúc lỗi → update_script sửa đúng node → resume_run (chạy tiếp từ node lỗi, output / biến node trước giữ nguyên).
+- Toạ độ trên ảnh lúc lỗi → toạ độ chuột: shotArea.x + px × shotArea.w / shotWidth (y tương tự). Ưu tiên sửa sang tìm theo chữ hơn sửa toạ độ.
+- Bị từ chối quyền chạy / Cài đặt chỉ cho soạn: báo người dùng, không gọi lại liên tục.`
 
 // guide – nội dung get_step_types / autoclicker://guide.
 type guide struct {

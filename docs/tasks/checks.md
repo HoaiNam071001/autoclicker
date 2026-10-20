@@ -3,9 +3,18 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 31b – AI tự chạy, xem lỗi, sửa, chạy tiếp · [phase3/31-mcp-ai.md](phase3/31-mcp-ai.md)
+
+- [ ] Bánh răng → *Cho AI điều khiển (MCP)*: có *AI được chạy kịch bản* (Chỉ soạn / Hỏi trước khi chạy / Tự chạy) + *Tối đa mỗi lượt* – xem cả theme sáng + tối
+- [ ] Thoát hẳn app → trên Claude Code / Desktop bảo AI làm việc cần chạy (vd "mở Notepad, gõ chào bạn, lưu ra Desktop/test.txt") → app tự mở **không hiện màn chính**; mức *Hỏi*: hiện hộp "AI muốn chạy …" (Enter = cho phép lần này, Esc = từ chối); khi chạy chỉ thấy thanh mini, chạy xong vẫn giữ thanh mini; bấm Dừng trên thanh mini → mở màn chính
+- [ ] *Từ chối* → AI báo bị từ chối, không gọi lại liên tục; *Cho phép đến khi đóng app* → lần sau cùng kịch bản không hỏi; mức *Chỉ soạn* → AI báo chỉ được soạn
+- [ ] Cố ý cho một node lỗi (vd chờ chữ không có trên màn) → AI nhận ảnh màn hình lúc lỗi + `error.detail` (các dòng chữ đọc được, cửa sổ đang trước), tự sửa node, `resume_run` chạy tiếp từ node đó – các node trước **không** chạy lại (Notepad không mở lần nữa)
+- [ ] AI chạy `stopAt` từng đoạn rồi chạy tiếp; `describe_screen` trả chữ đúng chỗ (toạ độ khớp khi click thử), `screenshot` thấy đúng màn – thử thêm màn 125 % / màn phụ
+- [ ] Đang AI chạy mà chuyển công tắc MCP sang tắt / *Chỉ soạn* → lượt chạy dừng ngay; F8 / chuột chạm góc vẫn dừng; Lịch sử chạy ghi nguồn **AI**
+
 ## 31a – AI tạo / sửa kịch bản qua MCP · [phase3/31-mcp-ai.md](phase3/31-mcp-ai.md)
 
-- [ ] Bánh răng → *Cho AI soạn kịch bản (MCP)* đang bật → *Thêm vào Claude Desktop…* → hỏi đường dẫn → Ghi → thoát hẳn + mở lại Claude Desktop: thấy server `autoclicker` (8 tool). Claude Desktop bản Microsoft Store có thể dùng file cấu hình khác – báo lại nếu không thấy
+- [ ] Bánh răng → *Cho AI điều khiển (MCP)* đang bật → *Thêm vào Claude Desktop…* → hỏi đường dẫn → Ghi → thoát hẳn + mở lại Claude Desktop: thấy server `autoclicker` (14 tool). Claude Desktop bản Microsoft Store có thể dùng file cấu hình khác – báo lại nếu không thấy
 - [ ] Trên Claude: "tạo kịch bản mở bài Tinh Hà Say 2 trên YouTube, tên bài là input" → file mới trong Documents/Auto Clicker, *Mở gần đây* có chip **AI**; AI gọi `open_in_app` → app hiện lên, mở kịch bản; Xem trước đúng thứ tự; bấm Chạy phát nhạc
 - [ ] "đổi thành bài khác / thêm bước…" → AI sửa đúng kịch bản (app nạp lại, Ctrl+Z lấy lại bản trước); đang sửa dở kịch bản đó (chưa lưu) → AI ghi ra bản sao `… (AI).json`, bản của bạn không đổi
 - [ ] Đang có thay đổi chưa lưu ở kịch bản khác → AI gọi mở thì app không đổi kịch bản, AI báo lại

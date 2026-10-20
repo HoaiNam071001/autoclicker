@@ -16,8 +16,11 @@ import (
 	"autoclicker/internal/store"
 )
 
-// emptyBackend – app không có kịch bản nào.
-type emptyBackend struct{ dir string }
+// emptyBackend – app không có kịch bản nào (tool chạy / xem màn hình không dùng trong test này – nhúng interface cho đủ kiểu).
+type emptyBackend struct {
+	mcpsrv.Backend
+	dir string
+}
 
 func (b emptyBackend) Enabled() bool               { return true }
 func (b emptyBackend) Recent() []string            { return nil }
@@ -34,7 +37,7 @@ func (b emptyBackend) Displays() []mcpsrv.Display { return nil }
 
 func TestMCPProxy(t *testing.T) {
 	srv := api.New(nil, api.NewHub())
-	srv.Handle("/mcp", mcpsrv.New(emptyBackend{t.TempDir()}).Handler())
+	srv.Handle("/mcp", mcpsrv.New(emptyBackend{dir: t.TempDir()}).Handler())
 	l, err := srv.Listen(0, "tok")
 	if err != nil {
 		t.Fatal(err)

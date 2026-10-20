@@ -13,6 +13,8 @@ export function AIScripts():Promise<Array<string>>;
 
 export function AddToClaudeDesktop():Promise<string>;
 
+export function AnswerAIRun(arg1:string,arg2:string):Promise<void>;
+
 export function BrowserStatus():Promise<web.Status>;
 
 export function CancelPick():Promise<void>;
@@ -40,6 +42,8 @@ export function GetInputMemory(arg1:string):Promise<store.InputMemory>;
 export function GetRun(arg1:string,arg2:string,arg3:string):Promise<model.RunRecord>;
 
 export function GetSettings():Promise<store.Settings>;
+
+export function InBackground():Promise<boolean>;
 
 export function ListApps():Promise<Array<model.AppInfo>>;
 

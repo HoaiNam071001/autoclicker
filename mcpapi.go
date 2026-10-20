@@ -3,8 +3,6 @@ package main
 import (
 	"os"
 
-	"github.com/wailsapp/wails/v2/pkg/runtime"
-
 	"autoclicker/internal/device"
 	"autoclicker/internal/mcpsrv"
 	"autoclicker/internal/model"
@@ -22,7 +20,14 @@ func (a *App) startMCP() {
 }
 
 // SetMCPSettings bật / tắt MCP.
-func (a *App) SetMCPSettings(m store.MCPSettings) error { return store.SetMCP(m) }
+// Chuyển về Tắt / Chỉ soạn thì huỷ ngay lượt AI đang chạy.
+func (a *App) SetMCPSettings(m store.MCPSettings) error {
+	if err := store.SetMCP(m); err != nil {
+		return err
+	}
+	a.stopAIRun(m)
+	return nil
+}
 
 // MCPLog – các lệnh AI đã gọi gần đây (mới nhất trước) cho Cài đặt.
 func (a *App) MCPLog() []mcpsrv.Call {
@@ -99,8 +104,7 @@ func (b mcpBackend) WriteScript(path string, sc model.Script, rev int) (int, err
 
 // OpenInApp – frontend mở file (scriptFile.ts, nghe "mcp:open") và đưa cửa sổ lên trước.
 func (b mcpBackend) OpenInApp(path string) error {
-	runtime.WindowUnminimise(b.a.ctx)
-	runtime.WindowShow(b.a.ctx)
+	b.a.showMain()
 	b.a.emit("mcp:open", path)
 	return nil
 }

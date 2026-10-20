@@ -108,7 +108,7 @@ func (e *Engine) waitWindow(ctx context.Context, s model.Step) (model.WindowInfo
 		if s.WinOp == model.WinWaitOpen {
 			return &timeoutErr{msg}
 		}
-		return &notFoundErr{msg}
+		return &notFoundErr{msg: msg}
 	})
 	return w, err
 }

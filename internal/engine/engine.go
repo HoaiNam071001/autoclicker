@@ -75,19 +75,23 @@ type Engine struct {
 	allowDanger bool                           // người dùng đã xác nhận thao tác nguy hiểm của kịch bản (Options.AllowDanger)
 	browser     web.Browser                    // node web (webstep.go) – nil = không điều khiển trình duyệt
 
-	onNode  func(model.StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
-	shots   map[string]image.Image       // ảnh màn hình lúc node thất bại theo tên file (nil = không chụp – runlog.go)
-	debug   bool                         // dừng ở node có Breakpoint (chạy từ app); không thì bỏ qua breakpoint
-	step    atomic.Bool                  // chạy từng node: dừng trước mỗi node (StepScript bật, ResumeScript tắt)
-	failed  string                       // id node làm lần chạy dừng vì lỗi (runner gửi engine:failed)
-	miss    *FindResult                  // node chờ ảnh hết giờ: chỗ giống nhất (để xem lại vì sao không thấy)
-	tpls    map[string]vision.Gray       // ảnh mẫu đã giải mã theo id node
-	ocrMemo map[model.Rect]ocrMemo       // chữ đọc lần trước theo vùng chụp – điểm ảnh không đổi thì khỏi OCR lại (elementread.go)
-	byID    map[string]model.Step        // node theo id (run đặt)
-	order   map[string]int               // số thứ tự hiển thị của node (model.FlowOrder) – thanh mini
-	results map[string]*model.StepResult // kết quả lần chạy gần nhất của từng node trong vòng này
-	rv      runVars                      // bảng tra biến {{nX…}} / {{last…}} / {{vars…}}
-	counts  map[string]int               // node Đếm: số lần đã đi qua trong vòng này
+	onNode   func(model.StepResult)       // mỗi node chạy xong (event engine:node) – có thể nil
+	shots    map[string]image.Image       // ảnh màn hình lúc node thất bại theo tên file (nil = không chụp – runlog.go)
+	debug    bool                         // dừng ở node có Breakpoint (chạy từ app); không thì bỏ qua breakpoint
+	step     atomic.Bool                  // chạy từng node: dừng trước mỗi node (StepScript bật, ResumeScript tắt)
+	failed   string                       // id node làm lần chạy dừng vì lỗi (runner gửi engine:failed)
+	miss     *FindResult                  // node chờ ảnh hết giờ: chỗ giống nhất (để xem lại vì sao không thấy)
+	tpls     map[string]vision.Gray       // ảnh mẫu đã giải mã theo id node
+	ocrMemo  map[model.Rect]ocrMemo       // chữ đọc lần trước theo vùng chụp – điểm ảnh không đổi thì khỏi OCR lại (elementread.go)
+	byID     map[string]model.Step        // node theo id (run đặt)
+	order    map[string]int               // số thứ tự hiển thị của node (model.FlowOrder) – thanh mini
+	results  map[string]*model.StepResult // kết quả lần chạy gần nhất của từng node trong vòng này
+	rv       runVars                      // bảng tra biến {{nX…}} / {{last…}} / {{vars…}}
+	counts   map[string]int               // node Đếm: số lần đã đi qua trong vòng này
+	stopAt   string                       // Options.StopAt
+	seed     *Carry                       // Options.Seed
+	reached  bool                         // đã tới StopAt
+	timedOut bool                         // dừng vì hết MaxMinutes (kết thúc bình thường)
 
 	last    model.Point // chỗ engine vừa đưa chuột tới – cho bước kéo "từ điểm trước đó"
 	hasLast bool

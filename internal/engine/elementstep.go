@@ -120,7 +120,7 @@ func (e *Engine) findElementStep(ctx context.Context, s model.Step, settle bool)
 		return true, 100, nil
 	})
 	if errors.Is(err, errTimeout) {
-		return hit{}, &notFoundErr{fmt.Sprintf("không thấy phần tử %s sau %s – %s", strings.Join(s.Selectors, " / "), fmtSeconds(s.TimeoutMs), why)}
+		return hit{}, &notFoundErr{msg: fmt.Sprintf("không thấy phần tử %s sau %s – %s", strings.Join(s.Selectors, " / "), fmtSeconds(s.TimeoutMs), why)}
 	}
 	return at, err
 }

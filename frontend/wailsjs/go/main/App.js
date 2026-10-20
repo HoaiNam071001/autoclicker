@@ -10,6 +10,10 @@ export function AddToClaudeDesktop() {
   return window['go']['main']['App']['AddToClaudeDesktop']();
 }
 
+export function AnswerAIRun(arg1, arg2) {
+  return window['go']['main']['App']['AnswerAIRun'](arg1, arg2);
+}
+
 export function BrowserStatus() {
   return window['go']['main']['App']['BrowserStatus']();
 }
@@ -64,6 +68,10 @@ export function GetRun(arg1, arg2, arg3) {
 
 export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
+}
+
+export function InBackground() {
+  return window['go']['main']['App']['InBackground']();
 }
 
 export function ListApps() {

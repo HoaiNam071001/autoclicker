@@ -36,7 +36,7 @@ func (e *Engine) webType(ctx context.Context, s model.Step) (map[string]any, err
 		return nil, err
 	}
 	if !ok {
-		return nil, &notFoundErr{fmt.Sprintf("đã click vào “%s” nhưng ô nhập không nhận focus (đang focus: %s) – cách tìm có trỏ đúng ô nhập không?", lines[f.Selector], at)}
+		return nil, &notFoundErr{msg: fmt.Sprintf("đã click vào “%s” nhưng ô nhập không nhận focus (đang focus: %s) – cách tìm có trỏ đúng ô nhập không?", lines[f.Selector], at)}
 	}
 	if err := e.webKeys(ctx, s); err != nil {
 		return nil, err
@@ -164,7 +164,7 @@ func (e *Engine) scrollUntil(ctx context.Context, s model.Step) (map[string]any,
 		return false, 0, e.webWheel(ctx, s, boxTry.at)
 	})
 	if errors.Is(err, errTimeout) {
-		return nil, &notFoundErr{scrollMissMsg(s, last, boxTry, lines, boxLines, n)}
+		return nil, &notFoundErr{msg: scrollMissMsg(s, last, boxTry, lines, boxLines, n)}
 	}
 	if err != nil {
 		return nil, err

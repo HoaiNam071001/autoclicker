@@ -47,7 +47,7 @@ func (m *Manager) exec(ctx context.Context, r *run, canDanger bool) {
 	defer closeBr()
 	eng := engine.New(in, r.sc, engine.Options{
 		Screen: m.deps.Screen(), Displays: m.deps.Displays(), Debug: st.Source == SourceUser, StepMode: r.opt.Step, KeepShots: true,
-		Browser: br, AllowDanger: canDanger,
+		Browser: br, AllowDanger: canDanger, StopAt: r.opt.StopAt, Seed: r.seed,
 		OnProgress: func(p engine.Progress) {
 			m.mu.Lock()
 			r.status.Progress = &p
@@ -56,6 +56,7 @@ func (m *Manager) exec(ctx context.Context, r *run, canDanger bool) {
 		},
 		OnNode: func(res model.StepResult) {
 			rec.Add(res, types[res.NodeID])
+			m.noteNode(r, res)
 			m.emit("engine:node", res)
 		},
 	})
@@ -83,6 +84,10 @@ func (m *Manager) exec(ctx context.Context, r *run, canDanger bool) {
 	err = eng.Run(ctx)
 	rec.DurationMs = m.deps.Now().Sub(rec.StartedAt).Milliseconds()
 	rec.Status, rec.Error = outcome(err)
+	carry := eng.Carry()
+	m.mu.Lock()
+	r.carry, r.shots, r.status.Reached, r.status.TimedOut = &carry, eng.Shots(), eng.Reached(), eng.TimedOut()
+	m.mu.Unlock()
 	if e := m.deps.SaveRun(rec, r.opt.Path, eng.Shots()); e != nil {
 		m.emit("log:error", "lưu lịch sử chạy: "+e.Error()) // lịch sử chỉ là phụ – vẫn báo xong
 	}

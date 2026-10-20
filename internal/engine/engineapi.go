@@ -26,12 +26,39 @@ type Options struct {
 	KeepShots   bool                   // chụp màn hình lúc node thất bại (lịch sử chạy)
 	Browser     web.Browser            // node web + node Mở bằng Chrome của app; nil = không có (node web lỗi code browser)
 	AllowDanger bool                   // cho thao tác nguy hiểm (xoá file, buộc thoát app, đóng cửa sổ) – runner đặt khi người dùng đã xác nhận (script.DangerOps)
+	StopAt      string                 // chạy xong node này thì dừng (kết thúc bình thường – Reached) – AI chạy đến node (31b)
+	Seed        *Carry                 // kết quả node + biến của lần chạy trước, nạp vào đầu vòng 1 – chạy tiếp từ node lỗi
 }
+
+// Carry – kết quả node (theo id) + biến {{vars.…}} của vòng cuối một lần chạy, để lần sau chạy tiếp mà biến node trước vẫn có.
+type Carry struct {
+	Results map[string]model.StepResult `json:"results"`
+	Vars    map[string]any              `json:"vars"`
+}
+
+// Carry – kết quả + biến của vòng cuối (đọc sau khi Run xong).
+func (e *Engine) Carry() Carry {
+	c := Carry{Results: map[string]model.StepResult{}, Vars: map[string]any{}}
+	for id, r := range e.results {
+		c.Results[id] = *r
+	}
+	for k, v := range e.rv.vars {
+		c.Vars[k] = v
+	}
+	return c
+}
+
+// Reached – lần chạy dừng vì tới node StopAt.
+func (e *Engine) Reached() bool { return e.reached }
+
+// TimedOut – lần chạy dừng vì hết MaxMinutes (không lỗi – kịch bản chạy "trong N phút" là bình thường).
+func (e *Engine) TimedOut() bool { return e.timedOut }
 
 // New – engine cho một lần chạy kịch bản sc. in = nil khi không thao tác chuột / phím (Thử node, Thử tìm).
 func New(in device.Input, sc model.Script, o Options) *Engine {
 	e := newEngine(in, sc, o.OnProgress)
 	e.screen, e.displays, e.onNode, e.debug, e.browser, e.allowDanger = o.Screen, o.Displays, o.OnNode, o.Debug, o.Browser, o.AllowDanger
+	e.stopAt, e.seed = o.StopAt, o.Seed
 	e.step.Store(o.StepMode)
 	if o.KeepShots {
 		e.shots = map[string]image.Image{}

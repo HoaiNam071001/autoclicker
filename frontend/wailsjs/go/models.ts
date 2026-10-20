@@ -794,6 +794,7 @@ export namespace model {
 	export class StepError {
 	    code: string;
 	    message: string;
+	    detail?: Record<string, any>;
 	
 	    static createFrom(source: any = {}) {
 	        return new StepError(source);
@@ -803,6 +804,7 @@ export namespace model {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.code = source["code"];
 	        this.message = source["message"];
+	        this.detail = source["detail"];
 	    }
 	}
 	export class StepResult {
@@ -1492,6 +1494,10 @@ export namespace session {
 	    from?: string;
 	    only?: boolean;
 	    step?: boolean;
+	    stopAt?: string;
+	    nodes?: string[];
+	    seedRun?: string;
+	    maxMinutes?: number;
 	    confirmDanger?: string;
 	
 	    static createFrom(source: any = {}) {
@@ -1507,6 +1513,10 @@ export namespace session {
 	        this.from = source["from"];
 	        this.only = source["only"];
 	        this.step = source["step"];
+	        this.stopAt = source["stopAt"];
+	        this.nodes = source["nodes"];
+	        this.seedRun = source["seedRun"];
+	        this.maxMinutes = source["maxMinutes"];
 	        this.confirmDanger = source["confirmDanger"];
 	    }
 	}
@@ -1523,6 +1533,8 @@ export namespace session {
 	    progress?: engine.Progress;
 	    error?: string;
 	    failedStep?: string;
+	    reached?: boolean;
+	    timedOut?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Status(source);
@@ -1541,6 +1553,8 @@ export namespace session {
 	        this.progress = this.convertValues(source["progress"], engine.Progress);
 	        this.error = source["error"];
 	        this.failedStep = source["failedStep"];
+	        this.reached = source["reached"];
+	        this.timedOut = source["timedOut"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1671,6 +1685,8 @@ export namespace store {
 	
 	export class MCPSettings {
 	    enabled: boolean;
+	    run?: string;
+	    maxMinutes?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new MCPSettings(source);
@@ -1679,6 +1695,8 @@ export namespace store {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.enabled = source["enabled"];
+	        this.run = source["run"];
+	        this.maxMinutes = source["maxMinutes"];
 	    }
 	}
 	export class Settings {
