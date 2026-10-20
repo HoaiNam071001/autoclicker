@@ -38,7 +38,7 @@ func (a *App) SetWindowMode(mode string) error {
 		if a.mainMax {
 			runtime.WindowUnmaximise(a.ctx)
 		}
-		x, y := runtime.WindowGetPosition(a.ctx)
+		x, y := a.windowPos()
 		w, h := runtime.WindowGetSize(a.ctx)
 		a.mainRect = winRect{x, y, w, h}
 		a.winDisp = a.detectDisplay()

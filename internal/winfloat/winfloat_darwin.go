@@ -22,6 +22,18 @@ static void prepare_launch(void) {
 static const NSWindowCollectionBehavior floatBehavior =
 	NSWindowCollectionBehaviorCanJoinAllSpaces | NSWindowCollectionBehaviorFullScreenAuxiliary;
 
+// Màn chính đi theo Space đang đứng: đang ở Space 2 bấm icon Dock → cửa sổ dời sang Space 2 thay vì kéo người dùng
+// về Space nơi nó mở. Loại trừ với CanJoinAllSpaces (đặt cả hai thì AppKit ném lỗi) nên bỏ floatBehavior trước.
+static void set_normal_behavior(NSWindow *w) {
+	[w setCollectionBehavior:([w collectionBehavior] & ~floatBehavior) | NSWindowCollectionBehaviorMoveToActiveSpace];
+}
+
+static void follow_active_space(void) {
+	dispatch_async(dispatch_get_main_queue(), ^{
+		for (NSWindow *w in [NSApp windows]) set_normal_behavior(w);
+	});
+}
+
 // on: nổi trên mọi Space (kể cả app toàn màn hình), không icon Dock trong lúc đó. focus: nhận bàn phím (overlay);
 // thanh mini không giành focus của app đang được điều khiển.
 static void set_floating(int on, int focus) {
@@ -35,7 +47,7 @@ static void set_floating(int on, int focus) {
 				[w orderFrontRegardless];
 				if (focus) [w makeKeyWindow];
 			} else {
-				[w setCollectionBehavior:[w collectionBehavior] & ~floatBehavior];
+				set_normal_behavior(w);
 				[w setLevel:NSNormalWindowLevel];
 			}
 		}
@@ -51,6 +63,9 @@ import "C"
 
 // PrepareLaunch – gọi đầu main(), trước wails.Run (đang ở luồng chính).
 func PrepareLaunch() { C.prepare_launch() }
+
+// FollowActiveSpace – gọi lúc khởi động (OnStartup): màn chính hiện ở Space đang đứng.
+func FollowActiveSpace() { C.follow_active_space() }
 
 // Set bật / tắt chế độ nổi cho các cửa sổ của app. Gọi sau WindowSetAlwaysOnTop của Wails (cùng hàng đợi luồng chính
 // nên chạy sau, mức cửa sổ của mình đè lên mức Wails đặt).

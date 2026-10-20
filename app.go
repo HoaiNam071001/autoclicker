@@ -11,6 +11,7 @@ import (
 	"autoclicker/internal/session"
 	"autoclicker/internal/store"
 	"autoclicker/internal/web"
+	"autoclicker/internal/winfloat"
 )
 
 // App struct
@@ -63,6 +64,7 @@ func (a *App) startup(ctx context.Context) {
 	a.stopBg = stop
 	a.startScheduler(bg)
 	device.ExcludeSelfFromCapture() // Windows: thanh mini / overlay không lọt vào ảnh chụp khi tìm ảnh
+	winfloat.FollowActiveSpace()    // macOS: màn chính hiện ở Space đang đứng
 }
 
 // shutdown is called when the app is closing.

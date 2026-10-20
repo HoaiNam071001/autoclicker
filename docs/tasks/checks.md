@@ -3,6 +3,11 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## Sửa – cửa sổ mất sau khi chạy (Windows 2 màn) / chọn Space (macOS)
+
+- [ ] Windows, 2 màn (màn chính không ở góc 0,0 – vd màn chính bên phải màn phụ): đặt cửa sổ app trên màn chính → Chạy → xong thì màn chính hiện lại đúng chỗ cũ; thử thêm cửa sổ đang phóng to, cửa sổ trên màn phụ, mở / đóng overlay
+- [ ] macOS nhiều Space: app mở ở Space 1 → sang Space 2 bấm icon Dock → cửa sổ dời sang Space 2 (không nhảy về Space 1); chạy xong thanh mini → về màn chính vẫn ở Space đang đứng; overlay / thanh mini vẫn nổi trên app toàn màn hình
+
 ## Sửa – mở notepad.exe / gõ chữ khi bật bộ gõ tiếng Việt · [phase3/23-cuon-mo-url.md](phase3/23-cuon-mo-url.md)
 
 - [ ] Node Mở target `notepad.exe` (không đường dẫn) → mở Notepad, không mở Chrome; `youtube.com/…`, `parroto.app` vẫn mở trình duyệt

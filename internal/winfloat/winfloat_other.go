@@ -5,4 +5,6 @@ package winfloat
 
 func PrepareLaunch() {}
 
+func FollowActiveSpace() {}
+
 func Set(on, focus bool) {}
