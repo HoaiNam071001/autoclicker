@@ -91,6 +91,7 @@ func (a *App) SetWindowMode(mode string) error {
 type DisplayInfo struct {
 	Index   int        `json:"index"`
 	Rect    model.Rect `json:"rect"`
+	Work    model.Rect `json:"work"`    // vùng làm việc (trừ taskbar / thanh menu) – overlay vẽ khung đích node Cửa sổ
 	Main    bool       `json:"main"`    // màn chính – "toàn màn hình" (vùng = nil) tính theo màn này
 	Current bool       `json:"current"` // cửa sổ app / overlay đang ở màn này
 }
@@ -106,7 +107,7 @@ func (a *App) Displays() []DisplayInfo {
 	}
 	out := make([]DisplayInfo, len(ds))
 	for i, r := range ds {
-		out[i] = DisplayInfo{Index: i, Rect: r, Main: i == 0, Current: i == cur}
+		out[i] = DisplayInfo{Index: i, Rect: r, Work: device.SystemWindows{}.WorkArea(r), Main: i == 0, Current: i == cur}
 	}
 	return out
 }

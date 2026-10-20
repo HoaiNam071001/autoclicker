@@ -21,6 +21,8 @@ import { captureTargetStep, capturesRect, useImageState } from '../imageSteps';
 import { Eye, Region, SelectIcon, StepIcon } from '../components/icons';
 import { anchorLinesOf, buildMarkers, MIN_REGION, pathOutlines, rectOf, scrollArrowsOf } from '../overlay/geometry';
 import { overlayHint } from '../overlay/hint';
+import { windowBoxes } from '../overlay/windowBoxes';
+import { WindowBoxes } from '../components/overlay/WindowBoxes';
 import { useAutoHideBar, useCapture, useDisplays, useFlash, useRefState } from '../components/overlay/hooks';
 import { CaptureBox, FindBoxes, RegionBox } from '../components/overlay/Shapes';
 import { JitterBoxes, MarkerDots, OverlayLines } from '../components/overlay/MarkerLayer';
@@ -213,6 +215,9 @@ export default function OverlayScreen() {
   const anchorLines = preview ? [] : anchorLinesOf(markers.filter((m) => alt || m.id === (focus ?? selected)), toClientRect(boundsOf(liveRegion)));
   const scrollArrows = preview ? [] : scrollArrowsOf(view.steps, ends, toClient, { w: window.innerWidth, h: window.innerHeight });
   const focusStep = focus ? steps.find((x) => x.id === focus) ?? null : null;
+  // Khung đích node Cửa sổ; Xem trước: chỉ khung của node đang diễn. Trình duyệt (không có Displays): màn chính.
+  const winBoxes = windowBoxes(steps, displays.length ? displays : [{ rect: boundsOf(null), work: boundsOf(null), current: true }])
+    .filter((b) => !preview || b.id === sim.step);
 
   // Khoanh ảnh: khung đang kéo hoặc đã kéo xong.
   const capRect = tool === 'capture' && !focus ? (dragFrom ? rectOf(dragFrom, cursor) : cap) : null;
@@ -246,6 +251,7 @@ export default function OverlayScreen() {
           onUse={capture.use} onRedo={capture.reset} />
       )}
       {shown && <RegionBox rect={shown} size={shownSize} dim={!!focus} />}
+      <WindowBoxes boxes={winBoxes} toClientRect={toClientRect} focus={focus} selected={preview ? sim.step : selected} />
 
       <OverlayLines anchorLines={anchorLines} scrollArrows={scrollArrows} markers={markers} dragA={dragA && toClient(dragA)} cursor={cursor} focus={focus}
         paths={preview ? [] : pathOutlines(view.steps, ends, toClient)} />

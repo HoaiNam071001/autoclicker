@@ -250,6 +250,7 @@ export namespace main {
 	export class DisplayInfo {
 	    index: number;
 	    rect: model.Rect;
+	    work: model.Rect;
 	    main: boolean;
 	    current: boolean;
 	
@@ -261,6 +262,7 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.index = source["index"];
 	        this.rect = this.convertValues(source["rect"], model.Rect);
+	        this.work = this.convertValues(source["work"], model.Rect);
 	        this.main = source["main"];
 	        this.current = source["current"];
 	    }

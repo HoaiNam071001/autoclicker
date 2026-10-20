@@ -3,6 +3,12 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 26 W3b – Overlay vẽ khung đích node Cửa sổ · [phase3/26-cua-so-ung-dung.md](phase3/26-cua-so-ung-dung.md)
+
+- [ ] Mở mẫu **Cửa sổ – đặt 1280 × 800 bên trái rồi chụp** → mở overlay: thấy khung nét đứt 1280 × 800 ở góc trái trên, nhãn `n… · chrome → 1280 × 800 tại 0, 0 · màn chứa cửa sổ lúc chạy`; chọn node đó → viền liền. Đổi Đặt ở Phải / Giữa / Đầy / Toạ độ → khung đổi theo, Đầy không đè taskbar
+- [ ] Xem trước mẫu đó: khung chỉ hiện lúc tới node Cửa sổ (kèm bong bóng *không đổi cửa sổ thật*), cửa sổ thật không bị dời
+- [ ] 2 màn hình / màn 125 %: chọn Màn hình 2 → khung vẽ trên màn 2 (mở overlay sang màn 2), khớp chỗ cửa sổ nằm sau khi Chạy
+
 ## 26 A1–A3 – Node Ứng dụng + xác nhận thao tác nguy hiểm · [phase3/26-cua-so-ung-dung.md](phase3/26-cua-so-ung-dung.md)
 
 - [ ] Mẫu thử **Ứng dụng – mở Notepad, gõ chữ rồi thoát** (đóng Notepad trước): lần đầu hiện hộp *Kịch bản này sẽ thoát app / đóng cửa sổ* liệt kê n6; Cho phép → Notepad mở, có dòng chữ rồi tự tắt; chạy lại không hỏi nữa. Notepad đang mở sẵn → đi nhánh Đang chạy, dừng báo lỗi, không đụng Notepad
