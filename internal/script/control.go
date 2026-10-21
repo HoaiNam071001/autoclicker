@@ -173,7 +173,7 @@ func checkControl(s *model.Step) error {
 	if !slices.Contains(model.ListFroms, s.ListFrom) {
 		return fmt.Errorf("nguồn danh sách không hợp lệ: %q (trống = chữ / biến | file)", s.ListFrom)
 	}
-	return nil
+	return checkText(s)
 }
 
 // validateControl – node điều khiển đủ dữ liệu để chạy (validateScript gọi). inside: điểm nằm trong vùng.
@@ -226,6 +226,10 @@ func validateControl(i int, s model.Step, inside func(model.Point) bool) error {
 	case model.StepEnd:
 		if s.EndStatus != model.EndSuccess && s.EndStatus != model.EndFail {
 			return stepErr(i, s, "endStatus", "chọn kết thúc thành công hay thất bại")
+		}
+	case model.StepTextMatch, model.StepTextSplit, model.StepTextClean, model.StepTextNumber:
+		if err := validateText(i, s); err != nil {
+			return err
 		}
 	case model.StepCalc:
 		if err := CheckCalc(s.Value); err != nil {

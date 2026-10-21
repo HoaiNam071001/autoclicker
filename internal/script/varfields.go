@@ -146,6 +146,15 @@ func VarFields(s *model.Step) []VarField {
 		add("value", &s.Value, false)
 	case model.StepCalc:
 		out = append(out, VarField{Name: "value", Ptr: &s.Value, Calc: true})
+	case model.StepTextMatch:
+		add("value", &s.Value, false)
+		add("pattern", &s.Pattern, false)
+	case model.StepTextSplit, model.StepTextNumber:
+		add("value", &s.Value, false)
+	case model.StepTextClean:
+		add("value", &s.Value, false)
+		add("replaceFrom", &s.ReplaceFrom, false)
+		add("replaceTo", &s.ReplaceTo, false)
 	case model.StepForEach:
 		if s.ListFrom == model.ListFile {
 			add("filePath", &s.FilePath, false)

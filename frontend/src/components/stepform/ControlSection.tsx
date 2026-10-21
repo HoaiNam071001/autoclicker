@@ -8,7 +8,7 @@ import { addInput } from '../../scriptInputs';
 import { pickCondColor, startCapture, testNode, useImageState } from '../../imageSteps';
 import { inWails, openOverlay } from '../../windowMode';
 import { Step } from '../../types';
-import { PreviewList } from '../../../wailsjs/go/main/App';
+import { PreviewList, PreviewText } from '../../../wailsjs/go/main/App';
 import { model } from '../../../wailsjs/go/models';
 import { useNodeVars } from './shared';
 
@@ -27,6 +27,7 @@ export default function ControlSection({ step: s }: { step: Step }) {
       reanchor: (p, ax, ay) => anchorPoint(toScreen(p, script.region), boundsOf(script.region), ax, ay),
       busy: busy === s.id,
       previewList: inWails ? () => PreviewList(model.Step.createFrom(s)) : undefined,
+      previewText: inWails ? () => PreviewText(model.Step.createFrom(s)) : undefined,
     },
   };
   return (

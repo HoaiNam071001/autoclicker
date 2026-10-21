@@ -19,6 +19,9 @@ func TestValidateControl(t *testing.T) {
 		"cộng cần một số":        modeltest.Node("a", "n1", model.StepSetVar, func(s *model.Step) { s.VarOp, s.Value = model.VarAdd, "abc" }),
 		"chưa nhập biểu thức":    modeltest.Node("a", "n1", model.StepCalc, nil),
 		"thiếu dấu )":            modeltest.Node("a", "n1", model.StepCalc, func(s *model.Step) { s.Value = "round({{n1.output.x}}" }),
+		"chưa có chữ cần xử lý":  modeltest.Node("a", "n1", model.StepTextSplit, nil),
+		"chưa nhập mẫu regex":    modeltest.Node("a", "n1", model.StepTextMatch, func(s *model.Step) { s.Value = "x" }),
+		"mẫu regex không hợp lệ": modeltest.Node("a", "n1", model.StepTextClean, func(s *model.Step) { s.Value, s.ReplaceFrom, s.ReplaceRegex = "x", "(", true }),
 		"không có cổng":          modeltest.Node("a", "n1", model.StepCounter, nil),
 	}
 	for want, s := range bad {

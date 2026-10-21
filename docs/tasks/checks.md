@@ -3,7 +3,12 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 42 – Dữ liệu & luồng (G1, G2, G3, G4a) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+## 42 – Dữ liệu & luồng (G1, G2, G3, G4a, G4b) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+
+- [ ] (G4b) Mẫu thử *Xử lý chữ – lọc, lấy số, ngày, làm sạch, tách* chạy thành công: ô gõ chữ hiện “A123 | 1234000 | true | 25/10 14:30 | nguyen van an | Táo;Cam;Xoài;”
+- [ ] (G4b) Nhóm Dữ liệu có 4 node mới (Số & ngày, Lọc mẫu, Tách chữ, Làm sạch chữ), tìm được bằng từ không dấu (“lay so”, “regex”, “bo dau”); icon + thẻ node hiện dòng chi tiết đúng, cả theme sáng + tối
+- [ ] (G4b) Inspector: gõ chữ không có biến → bấm *Chạy thử* hiện output (vd Số & ngày “Giá: 1.234.000 đ” → value 1234000; Lọc mẫu `\d+` trên “Hết hàng” → báo lỗi đỏ không có chỗ khớp); chữ có biến → hiện *Có biến – kết quả biết khi chạy*; Số & ngày đổi Việc → hiện ô Kiểu viết / Số lẻ / Mẫu ngày
+- [ ] (G4b) Số kiểu Việt đọc từ trang thật (Đọc phần tử OCR → Số & ngày): “1.329.000đ”, “12,5 kg”, giá có chữ O thay số 0 (OCR Windows)
 
 - [ ] (G4a) Mẫu thử *Tính toán – giá kèm thuế* chạy thành công: ô gõ chữ hiện “120000 → 129600 (true); 45000 → 48600 (false); 9900 → 10692 (false); ”
 - [ ] (G4a) Thêm node *Tính toán* (nhóm Dữ liệu): gõ `2 * (3 + 1)` → inspector hiện *Kết quả: 8*; gõ `1 +` → báo lỗi đỏ + thẻ node cảnh báo *Biểu thức sai*; chèn biến → *Kết quả biết khi chạy*; bảng cú pháp đọc được ở cả theme sáng + tối

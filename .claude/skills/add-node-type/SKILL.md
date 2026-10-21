@@ -9,7 +9,7 @@ description: Thêm một loại node mới vào flow (vd focus cửa sổ, web D
 
 ## Go
 
-- [ ] `internal/model/model.go`: hằng `StepXxx`, thêm vào `StepTypes`, `IsControl` nếu là node điều khiển, trường mới của `Step` (json camelCase, `omitempty` cho trường riêng loại), mặc định trong `NewStep`.
+- [ ] `internal/model/kinds.go`: hằng `StepXxx`, thêm vào `StepTypes`, `IsControl` nếu là node điều khiển; `internal/model/model.go`: trường mới của `Step` (json camelCase, `omitempty` cho trường riêng loại), mặc định trong `NewStep`.
 - [ ] `~/go/bin/wails generate module`.
 - [ ] `internal/script/check.go` `checkStep` (node điều khiển: `control.go` `checkControl`): miền giá trị hợp lệ khi mở file.
 - [ ] `internal/script/validate.go` `ValidateScript` (điều khiển: `control.go` `validateControl`): dữ liệu đủ để chạy (lỗi `stepErr(i, s, "<field>", …)` – trường lỗi để UI / AI chỉ đúng chỗ); `script/flowcheck.go` nếu node trỏ node khác.

@@ -1,0 +1,167 @@
+{
+ "meta": {
+  "name": "Xử lý chữ – lọc, lấy số, ngày, làm sạch, tách",
+  "description": "Chữ giả như đọc được từ trang (“Giá: 1.234.000 đ · Mã đơn: A123 · Giao 25/10/2026 14:30”) đi qua 4 node xử lý chữ: Lọc mẫu lấy mã đơn, Số & ngày lấy giá rồi Tính toán so ngưỡng 1 000 000, Số & ngày đọc ngày giao, Làm sạch chữ bỏ dấu + chữ thường, Tách chữ “Táo, Cam,, Xoài” rồi Lặp qua danh sách gõ từng phần. Đúng: ô hiện “A123 | 1234000 | true | 25/10 14:30 | nguyen van an | Táo;Cam;Xoài;”. Bấm vào từng node, sửa chữ vào (bỏ biến) rồi bấm Chạy thử trong inspector để xem kết quả ngay.",
+  "app": "Điều khiển",
+  "level": 1,
+  "page": "type.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/type.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "O GO CHU",
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "click",
+    "points": [
+     {
+      "x": 0,
+      "y": 0,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "delayAfter": 300
+   },
+   {
+    "type": "setVar",
+    "varName": "raw",
+    "varOp": "set",
+    "value": "Giá: 1.234.000 đ · Mã đơn: A123 · Giao 25/10/2026 14:30"
+   },
+   {
+    "type": "textMatch",
+    "value": "{{vars.raw}}",
+    "pattern": "Mã đơn: (\\w+)"
+   },
+   {
+    "type": "textNumber",
+    "value": "{{vars.raw}}"
+   },
+   {
+    "type": "calc",
+    "value": "{{n6.output.value}} > 1000000"
+   },
+   {
+    "type": "textNumber",
+    "value": "{{vars.raw}}",
+    "numOp": "date",
+    "dateLayout": "dd/MM HH:mm"
+   },
+   {
+    "type": "textClean",
+    "value": "  Nguyễn   Văn  An ",
+    "stripAccents": true,
+    "caseMode": "lower",
+    "trim": true
+   },
+   {
+    "type": "type",
+    "text": "{{n5.output.text}} | {{n6.output.value}} | {{n7.output.value}} | {{n8.output.text}} | {{n9.output.text}} | ",
+    "delayAfter": 300
+   },
+   {
+    "type": "textSplit",
+    "value": "Táo, Cam,, Xoài",
+    "separator": ","
+   },
+   {
+    "type": "forEach",
+    "value": "{{n11.output.items}}"
+   },
+   {
+    "type": "type",
+    "text": "{{n12.output.item}};",
+    "delayAfter": 200
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã xử lý {{n12.output.count}} phần"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "success",
+    "to": "s7"
+   },
+   {
+    "from": "s7",
+    "port": "success",
+    "to": "s8"
+   },
+   {
+    "from": "s8",
+    "port": "success",
+    "to": "s9"
+   },
+   {
+    "from": "s9",
+    "port": "success",
+    "to": "s10"
+   },
+   {
+    "from": "s10",
+    "port": "success",
+    "to": "s11"
+   },
+   {
+    "from": "s11",
+    "port": "success",
+    "to": "s12"
+   },
+   {
+    "from": "s12",
+    "port": "item",
+    "to": "s13"
+   },
+   {
+    "from": "s13",
+    "port": "success",
+    "to": "s12"
+   },
+   {
+    "from": "s12",
+    "port": "done",
+    "to": "s14"
+   }
+  ]
+ }
+}

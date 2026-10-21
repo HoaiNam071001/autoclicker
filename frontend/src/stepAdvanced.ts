@@ -10,6 +10,7 @@ import type { IfPassed } from './flow/waitUntil';
 import type { Shape } from './flow/shape';
 import type { WinMatch, WinOp, WinPreset } from './flow/window';
 import type { AppOp } from './flow/app';
+import type { CaseMode, NumOp, NumStyle } from './flow/textNodes';
 import type { KV, Rect } from './types';
 
 export interface AdvancedFields {
@@ -65,4 +66,21 @@ export interface AdvancedFields {
   appName?: string; // tên app / tên exe / bundle id; nhận {{biến}}
   appMatch?: WinMatch; // như winMatch
   appForce?: boolean; // thoát: quá giờ chưa thoát thì buộc thoát
+}
+
+// Node xử lý chữ (bước 42 G4b, internal/textop) – chữ vào ở value
+export interface TextFields {
+  pattern?: string; // textMatch: regex RE2 (nhóm () đầu nếu có); nhận {{biến}}
+  matchAll?: boolean; // textMatch: mọi chỗ khớp vào items
+  separator?: string; // textSplit: '' = mỗi dòng; \n \t = xuống dòng / tab
+  replaceFrom?: string; // textClean: chuỗi cần thay; nhận {{biến}}
+  replaceTo?: string; // textClean: thay bằng; nhận {{biến}}
+  replaceRegex?: boolean; // textClean: replaceFrom là regex ($1 = nhóm 1)
+  stripAccents?: boolean; // textClean: bỏ dấu tiếng Việt
+  caseMode?: CaseMode; // textClean: '' = giữ
+  trim?: boolean; // textClean: gọn khoảng trắng, bỏ dòng trống
+  numOp?: NumOp; // textNumber: '' = lấy số
+  decimals?: number; // textNumber format: số chữ số thập phân
+  numStyle?: NumStyle; // textNumber format: '' = 1.234.567,5
+  dateLayout?: string; // textNumber date: '' = dd/MM/yyyy
 }

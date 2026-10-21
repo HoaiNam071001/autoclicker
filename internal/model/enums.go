@@ -148,3 +148,31 @@ const (
 	ScrollModeIn    = "in"
 	ScrollModeUntil = "until"
 )
+
+// Hoa / thường của node Làm sạch chữ (Step.CaseMode, bước 42 G4b).
+const (
+	CaseKeep  = ""      // giữ nguyên
+	CaseLower = "lower" // chữ thường
+	CaseUpper = "upper" // CHỮ HOA
+	CaseTitle = "title" // Hoa Đầu Mỗi Từ
+)
+
+var CaseModes = []string{CaseKeep, CaseLower, CaseUpper, CaseTitle}
+
+// Việc của node Số & ngày (Step.NumOp, bước 42 G4b).
+const (
+	NumExtract = ""       // lấy số đầu tiên trong chữ: 1.234.000 đ → 1234000 (output value là số)
+	NumFormat  = "format" // định dạng số theo NumStyle + Decimals
+	NumDate    = "date"   // đọc ngày giờ, xuất theo DateLayout
+)
+
+var NumOps = []string{NumExtract, NumFormat, NumDate}
+
+// Kiểu viết số của Số & ngày định dạng số (Step.NumStyle).
+const (
+	NumStyleVN    = ""      // 1.234.567,5
+	NumStyleEN    = "en"    // 1,234,567.5
+	NumStylePlain = "plain" // 1234567.5
+)
+
+var NumStyles = []string{NumStyleVN, NumStyleEN, NumStylePlain}

@@ -96,6 +96,9 @@ func NewStep(stepType string) (Step, error) {
 	case StepSetVar:
 		s.VarName, s.VarOp = "ten", VarSet
 	case StepCalc: // biểu thức người dùng tự điền – trống thì kiểm tra báo thiếu
+	case StepTextMatch, StepTextSplit, StepTextNumber: // chữ vào (Value) người dùng tự trỏ biến
+	case StepTextClean:
+		s.Trim = true
 	default:
 		return Step{}, fmt.Errorf("loại bước không hợp lệ: %q", stepType)
 	}

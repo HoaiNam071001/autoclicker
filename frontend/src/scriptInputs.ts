@@ -79,7 +79,9 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
     case 'switch': return { ...s, value: f(s.value ?? ''), cases: s.cases?.map((c) => ({ ...c, match: f(c.match ?? '') })) };
     case 'switchScreen': return { ...s, cases: s.cases?.map((c) => (c.cond ? { ...c, cond: cond(c.cond) } : c)) };
     case 'end': return { ...s, message: f(s.message ?? '') };
-    case 'setVar': case 'calc': return { ...s, value: f(s.value ?? '') };
+    case 'setVar': case 'calc': case 'textSplit': case 'textNumber': return { ...s, value: f(s.value ?? '') };
+    case 'textMatch': return { ...s, value: f(s.value ?? ''), pattern: s.pattern && f(s.pattern) };
+    case 'textClean': return { ...s, value: f(s.value ?? ''), replaceFrom: s.replaceFrom && f(s.replaceFrom), replaceTo: s.replaceTo && f(s.replaceTo) };
     case 'forEach': return s.listFrom === 'file' ? { ...s, filePath: f(s.filePath ?? ''), sheet: s.sheet && f(s.sheet) } : { ...s, value: f(s.value ?? '') };
     default: return s;
   }

@@ -103,6 +103,8 @@ export function PixelColorAt(arg1:number,arg2:number):Promise<string>;
 
 export function PreviewList(arg1:model.Step):Promise<engine.ListPreview>;
 
+export function PreviewText(arg1:model.Step):Promise<main.TextPreview>;
+
 export function RecentScripts():Promise<Array<string>>;
 
 export function RemoveSchedule(arg1:string):Promise<void>;

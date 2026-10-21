@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Kiểm tra tài liệu / quy tắc lệch với code. Chạy: python3 scripts/check-docs.py (thoát 1 nếu có lỗi).
 - Mọi method public của App và mọi event EventsEmit phải có trong docs/ARCHITECTURE.md.
-- Mọi loại node trong StepTypes (internal/model/model.go) phải có nhãn (types.ts), icon (icons.tsx), mô tả (internal/model/steptypes.go).
+- Mọi loại node trong StepTypes (internal/model/kinds.go) phải có nhãn (types.ts), icon (icons.tsx), mô tả (internal/model/steptypes.go).
 - Cảnh báo (không lỗi): file code > 300 dòng (quy tắc *Một file một việc*); file code chưa có trong bản đồ file."""
 import glob
 import os
@@ -32,11 +32,11 @@ for name, src in go_src.items():
             errors.append(f'ARCHITECTURE.md thiếu event "{m.group(1)}" ({name})')
 
 # Loại node: hằng trong stepTypes → giá trị chuỗi.
-model = go_src['internal/model/model.go']
+model = go_src['internal/model/kinds.go']
 consts = dict(re.findall(r'^\s*(Step\w+)\s*=\s*"(\w+)"', model, re.M))
 listed = re.search(r'var StepTypes = \[\]string\{(.+?)\}', model, re.S)
 if not listed:
-    errors.append('không thấy var StepTypes trong internal/model/model.go – sửa check-docs.py')
+    errors.append('không thấy var StepTypes trong internal/model/kinds.go – sửa check-docs.py')
 types = [consts[c] for c in re.findall(r'Step\w+', listed.group(1)) if c in consts] if listed else []
 for rel in ('frontend/src/types.ts', 'frontend/src/components/icons.tsx', 'internal/model/steptypes.go'):
     src = read(rel)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"ghosthand/internal/model"
 	"ghosthand/internal/script"
@@ -113,6 +114,9 @@ func (e *Engine) runControl(ctx context.Context, s model.Step, logf func(level, 
 		}
 		logf("info", "%s", s.Message)
 		return "", map[string]any{"message": s.Message}, nil // lời nhắn hiện ở thanh trạng thái / nhật ký (F5)
+
+	case model.StepTextMatch, model.StepTextSplit, model.StepTextClean, model.StepTextNumber:
+		return RunTextNode(s, time.Now())
 
 	case model.StepCalc:
 		v, err := script.EvalCalc(s.Value)

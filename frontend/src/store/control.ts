@@ -18,6 +18,10 @@ const DEFAULTS: Record<ControlType, () => Partial<Step>> = {
   end: () => ({ endStatus: 'success', message: '' }),
   setVar: () => ({ varName: 'ten', varOp: 'set', value: '' }),
   calc: () => ({ value: '' }),
+  textMatch: () => ({ value: '' }),
+  textSplit: () => ({ value: '' }),
+  textClean: () => ({ value: '', trim: true }),
+  textNumber: () => ({ value: '' }),
 };
 
 export function addControl(type: ControlType) {

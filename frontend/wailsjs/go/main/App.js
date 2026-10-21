@@ -190,6 +190,10 @@ export function PreviewList(arg1) {
   return window['go']['main']['App']['PreviewList'](arg1);
 }
 
+export function PreviewText(arg1) {
+  return window['go']['main']['App']['PreviewText'](arg1);
+}
+
 export function RecentScripts() {
   return window['go']['main']['App']['RecentScripts']();
 }

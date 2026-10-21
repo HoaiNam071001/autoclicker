@@ -50,6 +50,10 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   counter: { desc: 'Đếm số lần đi qua: còn lượt thì ra cổng Còn lượt, đủ số lần thì ra Hết lượt.', use: 'Lặp một đoạn N lần, giới hạn số lần thử lại.' },
   end: { desc: 'Kết thúc vòng chạy, ghi thành công hoặc thất bại kèm lời nhắn.', use: 'Cuối một nhánh: báo “Đã đặt hàng”, hoặc dừng với lỗi “Hết hàng”.' },
   calc: { desc: 'Tính một biểu thức từ số đọc được: cộng trừ nhân chia, làm tròn, so sánh, và / hoặc.', use: 'Tính tổng tiền, so giá với ngưỡng rồi rẽ nhánh bằng Nếu, đổi đơn vị.' },
+  textMatch: { desc: 'Lấy phần chữ khớp một mẫu (regex) trong chữ đọc được – chỗ đầu hoặc mọi chỗ; không khớp thì ra Không khớp.', use: 'Lấy mã đơn, số điện thoại, email trong đoạn chữ dài; kiểm tra chữ có đúng dạng.' },
+  textSplit: { desc: 'Tách chữ thành danh sách theo dấu phẩy, dấu chấm phẩy hay mỗi dòng.', use: 'Danh sách từ khoá “a, b, c” → Lặp qua danh sách làm từng cái.' },
+  textClean: { desc: 'Làm sạch chữ: thay chữ, bỏ dấu, đổi hoa / thường, bỏ khoảng trắng thừa.', use: 'Chuẩn hoá tên trước khi so sánh, đổi “Đà Nẵng” thành “da-nang” cho URL.' },
+  textNumber: { desc: 'Lấy số từ chữ kiểu “1.234.000 đ”, viết số có dấu ngăn nghìn, hoặc đọc và viết lại ngày giờ.', use: 'Đọc giá → lấy số → Tính toán so ngưỡng; ghi ngày hôm nay vào tên file.' },
   setVar: { desc: 'Đặt hoặc cộng một biến để node sau đọc bằng {{vars.tên}}.', use: 'Đếm số đơn đã xử lý, ghi lại kết quả giữa các nhánh.' },
 };
 

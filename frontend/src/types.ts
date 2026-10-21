@@ -1,5 +1,6 @@
 import { model } from '../wailsjs/go/models';
-import type { AdvancedFields } from './stepAdvanced';
+import type { AdvancedFields, TextFields } from './stepAdvanced';
+import { TEXT_TYPES, type TextType } from './flow/textNodes';
 import type { ReadFrom, ScrollMode } from './flow/web';
 
 // Neo của một trục (anchor.ts, khớp internal/script/anchor.go): bỏ trống = start (cách cạnh trái / trên).
@@ -46,9 +47,9 @@ void edgeMatchesGo, resultMatchesGo;
 export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'findAll' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'waitUntil' | 'path'
   | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
-export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'forEach' | 'end' | 'setVar' | 'calc';
+export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'forEach' | 'end' | 'setVar' | 'calc' | TextType;
 export type StepType = ActionType | ControlType;
-export const CONTROL_TYPES: ControlType[] = ['if', 'switch', 'switchScreen', 'counter', 'forEach', 'end', 'setVar', 'calc'];
+export const CONTROL_TYPES: ControlType[] = ['if', 'switch', 'switchScreen', 'counter', 'forEach', 'end', 'setVar', 'calc', ...TEXT_TYPES];
 export const isControl = (t: StepType): t is ControlType => (CONTROL_TYPES as StepType[]).includes(t);
 
 // Điều kiện của node Nếu / case của Switch theo màn hình – khớp Cond trong model.go (internal/engine/cond.go).
@@ -85,7 +86,7 @@ export type TypeMode = '' | 'keys' | 'paste';
 export type HumanLevel = 'off' | 'low' | 'medium' | 'high';
 
 // Node của flow (bước 20) – khớp Step trong model.go.
-export interface Step extends AdvancedFields {
+export interface Step extends AdvancedFields, TextFields {
   id: string;
   type: StepType;
   ref: string; // mã ngắn n1, n2… (duy nhất) – biến {{n2.output.x}}
@@ -163,7 +164,7 @@ export interface Step extends AdvancedFields {
   // node điều khiển (bước 20 F3)
   cond?: Cond; // if
   cases?: Case[]; // switch / switchScreen
-  value?: string; // switch: giá trị cần xét; setVar: giá trị gán / cộng; forEach: danh sách; calc: biểu thức
+  value?: string; // switch: giá trị cần xét; setVar: giá trị gán / cộng; forEach: danh sách; calc: biểu thức; xử lý chữ: chữ vào
   max?: number; // counter: số lần đi cổng next tối đa
   listFrom?: '' | 'file'; // forEach: '' = chữ / biến (mảng JSON hoặc mỗi dòng một phần tử) | file = CSV / xlsx filePath
   endStatus?: 'success' | 'fail'; // end
@@ -284,6 +285,10 @@ export const STEP_LABEL: Record<StepType, string> = {
   end: 'Kết thúc',
   setVar: 'Đặt biến',
   calc: 'Tính toán',
+  textMatch: 'Lọc mẫu',
+  textSplit: 'Tách chữ',
+  textClean: 'Làm sạch chữ',
+  textNumber: 'Số & ngày',
 };
 
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);

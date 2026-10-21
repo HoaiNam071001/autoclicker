@@ -502,6 +502,20 @@ export namespace main {
 	        this.h = source["h"];
 	    }
 	}
+	export class TextPreview {
+	    port: string;
+	    output: Record<string, any>;
+	
+	    static createFrom(source: any = {}) {
+	        return new TextPreview(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.port = source["port"];
+	        this.output = source["output"];
+	    }
+	}
 
 }
 
@@ -1251,6 +1265,19 @@ export namespace model {
 	    message?: string;
 	    varName?: string;
 	    varOp?: string;
+	    pattern?: string;
+	    matchAll?: boolean;
+	    separator?: string;
+	    replaceFrom?: string;
+	    replaceTo?: string;
+	    replaceRegex?: boolean;
+	    stripAccents?: boolean;
+	    caseMode?: string;
+	    trim?: boolean;
+	    numOp?: string;
+	    decimals?: number;
+	    numStyle?: string;
+	    dateLayout?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Step(source);
@@ -1380,6 +1407,19 @@ export namespace model {
 	        this.message = source["message"];
 	        this.varName = source["varName"];
 	        this.varOp = source["varOp"];
+	        this.pattern = source["pattern"];
+	        this.matchAll = source["matchAll"];
+	        this.separator = source["separator"];
+	        this.replaceFrom = source["replaceFrom"];
+	        this.replaceTo = source["replaceTo"];
+	        this.replaceRegex = source["replaceRegex"];
+	        this.stripAccents = source["stripAccents"];
+	        this.caseMode = source["caseMode"];
+	        this.trim = source["trim"];
+	        this.numOp = source["numOp"];
+	        this.decimals = source["decimals"];
+	        this.numStyle = source["numStyle"];
+	        this.dateLayout = source["dateLayout"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

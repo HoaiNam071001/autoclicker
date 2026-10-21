@@ -82,7 +82,7 @@ func portsOf(s Step) []string {
 		return []string{PortItem, PortDone}
 	case StepEnd:
 		return []string{}
-	case StepSetVar, StepCalc:
+	case StepSetVar, StepCalc, StepTextSplit, StepTextClean:
 		return []string{PortSuccess}
 	case StepApp:
 		if s.AppOp == AppCheck {

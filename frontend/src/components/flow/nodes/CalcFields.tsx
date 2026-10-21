@@ -30,7 +30,7 @@ export default function CalcFields({ ctx: { step: s, set, vars } }: { ctx: CondC
       </div>
       <span className={hint}>
         Node sau dùng <span className="var-token">{`${s.ref}.output.value`}</span> – rẽ nhánh theo kết quả bằng node <b className="text-ink">Nếu</b>.
-        Số kiểu <span className="font-mono">1.234.000 đ</span> là chữ: lấy số trước (Đọc phần tử → Lấy số).
+        Số kiểu <span className="font-mono">1.234.000 đ</span> là chữ: lấy số trước bằng node <b className="text-ink">Số &amp; ngày</b>.
       </span>
     </div>
   );
