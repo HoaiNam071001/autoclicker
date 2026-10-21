@@ -15,9 +15,10 @@ const closeBtn = `${winBase} hover:bg-danger hover:text-white`;
 
 export default function TitleBar() {
   return (
-    // double click vùng kéo = phóng to / thu về, giống cửa sổ thường
-    <div className="drag flex h-9 flex-none items-center gap-2 bg-chrome pl-3.5" 
-      onDoubleClick={(e) => inWails && !(e.target as HTMLElement).closest('button') && WindowToggleMaximise()}>
+    // double click vùng kéo = phóng to / thu về, giống cửa sổ thường. Sự kiện từ modal / popup con cũng nổi lên đây
+    // → chỉ nhận khi chỗ bấm thật sự là vùng kéo (cùng biến CSS Wails dùng).
+    <div className="drag flex h-9 flex-none items-center gap-2 bg-chrome pl-3.5"
+      onDoubleClick={(e) => inWails && isDragArea(e.target as HTMLElement) && WindowToggleMaximise()}>
       <Logo className="h-[15px] w-[15px] flex-none" />
       <span className="text-xs text-muted">Ghosthand</span>
       <ThemeSwitch />
@@ -38,6 +39,10 @@ export default function TitleBar() {
       )}
     </div>
   );
+}
+
+function isDragArea(el: HTMLElement) {
+  return getComputedStyle(el).getPropertyValue('--wails-draggable').trim() === 'drag';
 }
 
 const THEMES: { id: Theme; label: string; icon: ReactNode }[] = [

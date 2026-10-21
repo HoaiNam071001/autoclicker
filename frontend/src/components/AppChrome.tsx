@@ -69,7 +69,7 @@ function LoopButton({ summary, children }: { summary: string; children: ReactNod
         <Loop className="h-3.5 w-3.5" /><span className="font-mono text-[12.5px]">{summary}</span>
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-20 mt-1.5 w-[340px] rounded-panel border border-line bg-surface p-4 shadow-[0_8px_28px_rgb(0_0_0/.16)]">
+        <div role="dialog" aria-label="Cài đặt lặp / đếm ngược" className="absolute right-0 top-full z-20 mt-1.5 w-[340px] rounded-panel border border-line bg-surface p-4 shadow-[0_8px_28px_rgb(0_0_0/.16)]">
           {children}
         </div>
       )}

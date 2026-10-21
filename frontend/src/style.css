@@ -251,11 +251,13 @@ body {
   border: 1px dashed var(--c-accent);
 }
 
-/* Cửa sổ frameless: vùng có class .drag kéo được cửa sổ; nút / ô nhập bên trong vẫn bấm được. */
+/* Cửa sổ frameless: vùng có class .drag kéo được cửa sổ; nút / ô nhập bên trong vẫn bấm được.
+   Biến CSS kế thừa → modal (.fixed) / popup (role dialog, menu) mở từ trong thanh cũng phải no-drag,
+   không thì kéo / double click trong modal sẽ kéo / phóng to cửa sổ. */
 .drag {
   --wails-draggable: drag;
 }
-.drag :is(button, input, select, kbd, a) {
+.drag :is(button, input, select, textarea, kbd, a, .fixed, [role=dialog], [role=menu]) {
   --wails-draggable: no-drag;
 }
 
