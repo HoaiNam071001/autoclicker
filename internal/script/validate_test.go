@@ -209,3 +209,27 @@ func TestValidateFindAll(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateBrowserTab(t *testing.T) {
+	open := modeltest.Node("o", "n1", model.StepOpen, func(s *model.Step) { s.Target = "a.vn" })
+	tab := func(f func(s *model.Step)) model.Script {
+		return model.Script{Loops: 1, Steps: []model.Step{open, modeltest.Node("t", "n2", model.StepBrowserTab, f)}}
+	}
+	cases := map[string]model.Script{
+		"":                         tab(func(s *model.Step) { s.TabOp, s.TabFrom = model.TabClose, "o" }),
+		"tab cần chờ":              tab(func(s *model.Step) { s.TabOp = model.TabWaitOpen }),
+		"cần chờ đóng":             tab(func(s *model.Step) { s.TabOp = model.TabWaitClose }),
+		"regex không hợp lệ":       tab(func(s *model.Step) { s.Tab, s.TabMatch = "(", model.MatchRegex }),
+		"không phải URL":           tab(func(s *model.Step) { s.TabOp, s.URL = model.TabNew, "Notepad" }),
+		"không còn trong kịch bản": tab(func(s *model.Step) { s.TabFrom = "x" }),
+		"không dùng tab của node":  tab(func(s *model.Step) { s.TabOp, s.TabFrom = model.TabNew, "o" }),
+	}
+	cases["không phải node Mở"] = model.Script{Loops: 1, Steps: []model.Step{modeltest.Node("w", "n1", model.StepWait, nil),
+		modeltest.Node("t", "n2", model.StepBrowserTab, func(s *model.Step) { s.TabFrom = "w" })}}
+	for want, c := range cases {
+		err := script.ValidateScript(scripttest.Linear(c), model.Rect{})
+		if want == "" && err != nil || want != "" && (err == nil || !strings.Contains(err.Error(), want)) {
+			t.Errorf("muốn %q, có %v", want, err)
+		}
+	}
+}

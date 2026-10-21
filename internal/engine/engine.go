@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"ghosthand/internal/browser"
 	"ghosthand/internal/device"
 	"ghosthand/internal/humanize"
 	"ghosthand/internal/launch"
@@ -73,6 +74,7 @@ type Engine struct {
 	audio       device.Audio                   // node Hệ thống – âm lượng (system.go) – test thay bằng bản giả
 	wins        device.Windows                 // node Cửa sổ (window.go) – test thay bằng bản giả
 	apps        device.Apps                    // node Ứng dụng (app.go) – test thay bằng bản giả
+	tabs        browser.Backend                // node Tab trình duyệt (browsertab.go) – test thay bằng bản giả
 	allowDanger bool                           // người dùng đã xác nhận thao tác nguy hiểm của kịch bản (Options.AllowDanger)
 	browser     web.Browser                    // node web (webstep.go) – nil = không điều khiển trình duyệt
 
@@ -118,7 +120,7 @@ type Engine struct {
 }
 
 func newEngine(in device.Input, sc model.Script, onProgress func(Progress)) *Engine {
-	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, elems: device.SystemElements{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{}, audio: device.SystemAudio{}, wins: device.SystemWindows{}, apps: device.SystemApps{},
+	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, elems: device.SystemElements{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{}, audio: device.SystemAudio{}, wins: device.SystemWindows{}, apps: device.SystemApps{}, tabs: browser.System{},
 		rng: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))}
 }
 

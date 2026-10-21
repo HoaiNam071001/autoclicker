@@ -1,0 +1,70 @@
+{
+ "meta": {
+  "name": "Tab trình duyệt – mở, chuyển, đóng đúng tab",
+  "description": "Mở danh sách sân thử bằng Chrome thường → đọc tab vừa mở → mở thêm Bảng click ở tab mới → chờ tab đó → liệt kê tab mở từ file (sân thử) → quay lại tab danh sách, tải lại → đóng tab Bảng click rồi đóng đúng tab node Mở đã mở. Đúng: Chrome chuyển qua lại 2 tab rồi đóng cả hai, các tab khác giữ nguyên; lời kết thúc ghi tiêu đề tab và số tab mở từ file (≥ 2).",
+  "app": "Trình duyệt",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Hiện chỉ chạy trên macOS. Cần Google Chrome; lần đầu macOS hỏi cho phép Ghosthand điều khiển Chrome (Automation) – bấm OK. Mở sẵn vài tab khác trong Chrome để thấy mẫu không đóng nhầm."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/index.html",
+    "app": "Google Chrome",
+    "delayAfter": 2000
+   },
+   {
+    "type": "browserTab",
+    "tabFrom": "s1",
+    "timeoutMs": 5000
+   },
+   {
+    "type": "browserTab",
+    "tabOp": "new",
+    "url": "{{sandbox}}/click.html",
+    "delayAfter": 1000
+   },
+   {
+    "type": "browserTab",
+    "tabOp": "waitOpen",
+    "tab": "click.html",
+    "timeoutMs": 5000
+   },
+   {
+    "type": "browserTab",
+    "tabOp": "list",
+    "tab": "file://"
+   },
+   {
+    "type": "browserTab",
+    "tabOp": "switch",
+    "tabFrom": "s1",
+    "delayAfter": 1000
+   },
+   {
+    "type": "browserTab",
+    "tabOp": "reload",
+    "delayAfter": 1000
+   },
+   {
+    "type": "browserTab",
+    "tabOp": "close",
+    "tab": "click.html",
+    "delayAfter": 800
+   },
+   {
+    "type": "browserTab",
+    "tabOp": "close",
+    "tabFrom": "s1"
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Tab đầu: {{n2.output.title}} ({{n2.output.browser}}); có {{n5.output.count}} tab mở từ file; đã đóng 2 tab"
+   }
+  ]
+ }
+}

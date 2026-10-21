@@ -109,7 +109,7 @@ export function copyNodes(g: FlowGraph, ids: string[]): Clip | null {
   return structuredClone({ steps, edges: g.edges.filter((e) => pick.has(e.from) && pick.has(e.to)) });
 }
 
-// Dán: id + mã mới, vị trí lệch `offset`. Trong phần dán, cạnh / imageFrom / biến {{nX.…}} trỏ node đã chép thì đổi sang
+// Dán: id + mã mới, vị trí lệch `offset`. Trong phần dán, cạnh / imageFrom / tabFrom / biến {{nX.…}} trỏ node đã chép thì đổi sang
 // bản sao; trỏ node ngoài thì giữ (dán cùng kịch bản vẫn đúng, kịch bản khác thì Kiểm tra báo). Chưa có start → node dán đầu tiên.
 export function pasteNodes(g: FlowGraph, clip: Clip, newId: () => string, offset: { x: number; y: number }): FlowGraph & { ids: string[] } {
   const ids = new Map<string, string>();
@@ -128,6 +128,7 @@ export function pasteNodes(g: FlowGraph, clip: Clip, newId: () => string, offset
     ref: refs.get(s.ref)!,
     pos: s.pos && { x: s.pos.x + offset.x, y: s.pos.y + offset.y },
     imageFrom: s.imageFrom && (ids.get(s.imageFrom) ?? s.imageFrom),
+    tabFrom: s.tabFrom && (ids.get(s.tabFrom) ?? s.tabFrom),
     text: reVar(s.text) ?? '',
     findText: reVar(s.findText),
     target: reVar(s.target),

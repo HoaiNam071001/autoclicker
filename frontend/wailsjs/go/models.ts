@@ -1256,6 +1256,10 @@ export namespace model {
 	    appName?: string;
 	    appMatch?: string;
 	    appForce?: boolean;
+	    tabOp?: string;
+	    browser?: string;
+	    tabMatch?: string;
+	    tabFrom?: string;
 	    cond?: Cond;
 	    cases?: Case[];
 	    value?: string;
@@ -1398,6 +1402,10 @@ export namespace model {
 	        this.appName = source["appName"];
 	        this.appMatch = source["appMatch"];
 	        this.appForce = source["appForce"];
+	        this.tabOp = source["tabOp"];
+	        this.browser = source["browser"];
+	        this.tabMatch = source["tabMatch"];
+	        this.tabFrom = source["tabFrom"];
 	        this.cond = this.convertValues(source["cond"], Cond);
 	        this.cases = this.convertValues(source["cases"], Case);
 	        this.value = source["value"];

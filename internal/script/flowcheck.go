@@ -89,6 +89,9 @@ func validateFlow(sc model.Script) error {
 				return stepErr(i, s, "imageFrom", "node %s không có chỗ thấy (khung x, y, w, h trên màn hình)", sc.Steps[j].Ref)
 			}
 		}
+		if err := validateTabFrom(sc, idx, i, s); err != nil {
+			return err
+		}
 		if err := checkNumVarPins(sc, i, s); err != nil {
 			return err
 		}

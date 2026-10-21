@@ -66,7 +66,8 @@ func (e *Engine) withFocus(out map[string]any) map[string]any {
 
 // openStep mở rồi tự chờ DelayAfter (execNode không chờ thêm), trong lúc chờ dò cửa sổ mới hiện: thấy → window /
 // windowApp của nó + newWindow = true; hết giờ không thấy (vd mở URL vào tab mới của Chrome đang mở) → cửa sổ đang ở
-// trước + newWindow = false. Thấy sớm vẫn chờ đủ – giữ đúng thời gian người dùng đặt.
+// trước + newWindow = false. Thấy sớm vẫn chờ đủ – giữ đúng thời gian người dùng đặt. Có node Tab trình duyệt làm với
+// tab node này mở (TabFrom) thì cuối cùng ghi thêm tab đang hiện của trình duyệt ở trước (tabId, tabUrl… – browsertab.go).
 func (e *Engine) openStep(ctx context.Context, s model.Step, wait int) (map[string]any, error) {
 	before, listErr := e.wins.List()
 	known := map[uint64]bool{}
@@ -99,7 +100,13 @@ func (e *Engine) openStep(ctx context.Context, s model.Step, wait int) (map[stri
 			return nil, err
 		}
 	}
-	return out, Sleep(ctx, max(left(), 0))
+	if err := Sleep(ctx, max(left(), 0)); err != nil {
+		return nil, err
+	}
+	if e.opensTab(s.ID) {
+		e.putOpenedTab(ctx, out)
+	}
+	return out, nil
 }
 
 // newWindow – cửa sổ trên cùng không thu nhỏ chưa có trong known.

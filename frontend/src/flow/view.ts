@@ -9,6 +9,7 @@ import { firstSelector } from './element';
 import { reachable } from './edit';
 import { CASE_PREFIX, flowOrder, PORT_FAIL, PORT_SUCCESS, PortShape, portsOf } from './model';
 import { checkCalc } from './calc';
+import { browserTabOutputs, browserTabWarning } from './browserTab';
 import { isTextNode, textDetail, textOutputs, textPortLabel, textWarning } from './textNodes';
 
 // Nhãn + màu cổng ra. Cổng case:<key> lấy nhãn từ case của node.
@@ -86,6 +87,7 @@ function warningOf(s: Step, reachable: boolean, refs: Map<string, string>): stri
   }
   if (s.type === 'calc' && checkCalc(s.value ?? '')) return s.value?.trim() ? 'Biểu thức sai' : 'Chưa nhập biểu thức';
   if (isTextNode(s.type)) return textWarning(s);
+  if (s.type === 'browserTab') return browserTabWarning(s, refs);
   if (s.type === 'forEach' && listSource(s) === '—') return s.listFrom === 'file' ? 'Chưa chọn file CSV / Excel' : 'Danh sách trống';
   return undefined;
 }
@@ -187,6 +189,7 @@ function ownOutputs(s: Step): OutputField[] {
       { key: 'minimized', desc: 'đang thu nhỏ (true / false)' }, { key: 'pid', desc: 'mã tiến trình' }];
     case 'app': return [{ key: 'running', desc: 'đang chạy (true / false)' }, { key: 'pid', desc: 'mã tiến trình' }, { key: 'name', desc: 'tên app' },
       { key: 'id', desc: 'đường dẫn exe / bundle id' }, { key: 'windows', desc: 'số cửa sổ đang mở' }];
+    case 'browserTab': return browserTabOutputs(s);
     case 'system': return [{ key: 'volume', desc: 'âm lượng sau khi chạy (%)' }, { key: 'muted', desc: 'đang tắt tiếng (true / false)' }];
     case 'file': return s.fileOp === 'trash' ? [{ key: 'count', desc: 'số file đã xoá' }, { key: 'files', desc: 'tên các file đã xoá' }]
       : s.fileOp === 'emptyTrash' ? [] : s.fileOp === 'row' ? [{ key: 'path', desc: 'đường dẫn file' }, { key: 'rows', desc: 'số dòng sau khi thêm' }]

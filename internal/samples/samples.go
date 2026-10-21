@@ -122,7 +122,7 @@ func load(id string) (Info, model.Script, error) {
 	return f.Meta, sc, nil
 }
 
-// fill thay {{sandbox}} trong target và "@file" trong ảnh mẫu (node, điều kiện, case).
+// fill thay {{sandbox}} trong target / url và "@file" trong ảnh mẫu (node, điều kiện, case).
 func fill(sc *model.Script, sandboxURL string) error {
 	var err error
 	tpl := func(t *string) {
@@ -143,6 +143,7 @@ func fill(sc *model.Script, sandboxURL string) error {
 	for i := range sc.Steps {
 		st := &sc.Steps[i]
 		st.Target = strings.ReplaceAll(st.Target, SandboxVar, sandboxURL)
+		st.URL = strings.ReplaceAll(st.URL, SandboxVar, sandboxURL)
 		tpl(&st.Template)
 		cond(st.Cond)
 		for j := range st.Cases {

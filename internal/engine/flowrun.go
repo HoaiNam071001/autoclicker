@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"ghosthand/internal/browser"
 	"ghosthand/internal/device"
 	"ghosthand/internal/model"
 	"ghosthand/internal/script"
@@ -276,13 +277,13 @@ func errCode(err error) string {
 	var network *networkErr
 	var late *timeoutErr
 	switch {
-	case errors.As(err, &nf):
+	case errors.As(err, &nf), errors.Is(err, browser.ErrTabGone):
 		return model.ErrNotFound
 	case errors.As(err, &end):
 		return model.ErrEnd
 	case errors.As(err, &bad), errors.As(err, &badQuery):
 		return model.ErrInvalidInput
-	case errors.As(err, &noBrowser):
+	case errors.As(err, &noBrowser), errors.Is(err, browser.ErrNotRunning):
 		return model.ErrBrowser
 	case errors.As(err, &status):
 		return model.ErrHTTPStatus
@@ -290,7 +291,8 @@ func errCode(err error) string {
 		return model.ErrNetwork
 	case errors.As(err, &late):
 		return model.ErrTimeout
-	case errors.Is(err, device.ErrNoPermission), errors.Is(err, device.ErrNoAccessibility), errors.Is(err, errDangerNotAllowed):
+	case errors.Is(err, device.ErrNoPermission), errors.Is(err, device.ErrNoAccessibility), errors.Is(err, errDangerNotAllowed),
+		errors.Is(err, browser.ErrNoAutomation):
 		return model.ErrPermission
 	}
 	return model.ErrInternal

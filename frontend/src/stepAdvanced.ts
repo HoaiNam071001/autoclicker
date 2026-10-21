@@ -10,6 +10,7 @@ import type { IfPassed } from './flow/waitUntil';
 import type { Shape } from './flow/shape';
 import type { WinMatch, WinOp, WinPreset } from './flow/window';
 import type { AppOp } from './flow/app';
+import type { BrowserName, TabOp } from './flow/browserTab';
 import type { CaseMode, NumOp, NumStyle } from './flow/textNodes';
 import type { KV, Rect } from './types';
 
@@ -30,7 +31,7 @@ export interface AdvancedFields {
   filePath?: string; // clipOp image: file PNG; nhận {{biến}}
   // HTTP (bước 35 N3, internal/engine/http.go) – mọi ô chữ nhận {{biến}}
   method?: HttpMethod; // bỏ trống = GET
-  url?: string; // biến chèn nguyên văn – giá trị cần mã hoá đặt trong query
+  url?: string; // biến chèn nguyên văn – giá trị cần mã hoá đặt trong query; browserTab new: URL tab mới
   query?: KV[];
   headers?: KV[];
   bodyType?: BodyType; // bỏ trống = không body
@@ -66,6 +67,11 @@ export interface AdvancedFields {
   appName?: string; // tên app / tên exe / bundle id; nhận {{biến}}
   appMatch?: WinMatch; // như winMatch
   appForce?: boolean; // thoát: quá giờ chưa thoát thì buộc thoát
+  // tab trình duyệt (bước 43 B1, internal/engine/browsertab.go) – tab: tiêu đề / URL tab cần làm; url: tab mới; timeoutMs: chờ tab
+  tabOp?: TabOp; // bỏ trống = đọc tab
+  browser?: BrowserName; // bỏ trống = trình duyệt đang ở trước
+  tabMatch?: WinMatch; // như winMatch – so tab với tiêu đề và URL
+  tabFrom?: string; // id node Mở: làm với tab node đó vừa mở (bỏ qua tab)
 }
 
 // Node xử lý chữ (bước 42 G4b, internal/textop) – chữ vào ở value

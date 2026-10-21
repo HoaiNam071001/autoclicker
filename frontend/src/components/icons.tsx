@@ -129,6 +129,7 @@ export const STEP_ICON = {
   open: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18',
   window: 'M4 5h16v14H4zM4 9h16',
   app: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM16.5 13v7M13 16.5h7', // lưới app + dấu cộng
+  browserTab: 'M3 8h18v11H3zM3 8V5h7l1.5 3M12 5h5l1.5 3M7 13h10', // cửa sổ có 2 tab
   group: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
   // node điều khiển của flow (bước 20)
   if: 'M12 3l9 9-9 9-9-9zM12 8v5M12 16v.01',
