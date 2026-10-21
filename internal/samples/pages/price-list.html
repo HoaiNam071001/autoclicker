@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  main { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+  #bar { padding: 14px 18px; border-radius: 12px; background: var(--ink); color: #fff; font-size: 22px; font-weight: 800; display: flex; gap: 30px; }
+  #lines { font-weight: 400; font-size: 16px; align-self: center; }
+  .rows { display: flex; flex-direction: column; gap: 12px; max-width: 720px; }
+  .row { height: 64px; border-radius: 12px; display: flex; align-items: center; gap: 18px; padding: 0 18px; background: var(--surface); border: 1px solid var(--line); }
+  .row .emoji { font-size: 36px; }
+  .row .name { flex: 1; font-size: 24px; font-weight: 800; }
+  .row .btn { font-size: 18px; padding: 10px 18px; }
+  .row .btn.done { background: var(--ok); }
+  /* khung xương lúc tải phủ cả hàng – Chờ màn hình thấy rõ trang còn đổi (spinner nhỏ dưới ngưỡng 1 %) */
+  .row.skel { border: 0; background: linear-gradient(90deg, #d1d5db 25%, #f3f4f6 50%, #d1d5db 75%) 0 0 / 300% 100%; animation: shimmer 1s linear infinite; }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -50% 0; } }
+</style></head>
+<body>
+<main>
+  <div id="bar"><span id="count">ĐÃ CHỌN: 0 MÓN</span><span id="total">TỔNG: 0 Đ</span><span id="lines"></span></div>
+  <div class="rows" id="rows"></div>
+  <div class="stats"></div>
+  <div class="log"></div>
+</main>
+<script src="sandbox.js"></script>
+<script>
+  // Bảng giá (bước 42 G5): tải 1,5–3 s (khung xương) rồi hiện 6 món, mỗi món một nút cùng chữ THÊM kèm giá kiểu Việt
+  // (“THÊM 15.000 đ”) – Tìm tất cả thấy đủ 6 nút, Số & ngày lấy giá từ chữ của nút. ?ms=… cố định thời gian tải.
+  // Không ghi chữ “thêm” ở chỗ khác (nhật ký, thanh trên) để Tìm tất cả chỉ thấy 6 nút.
+  sb.header('Bảng giá');
+  const items = [['🍎', 'TÁO', 15000], ['🍊', 'CAM', 12000], ['🥭', 'XOÀI', 30000], ['🍌', 'CHUỐI', 8000], ['🍉', 'DƯA HẤU', 45000], ['🍇', 'NHO', 60000]];
+  const fmt = (n) => n.toLocaleString('vi-VN') + ' đ';
+  const rows = document.getElementById('rows');
+  const setEarly = sb.stat('Bấm lúc đang tải'), setTwice = sb.stat('Bấm lặp một món');
+  const picked = new Set();
+  let ready = false, early = 0, twice = 0;
+  rows.innerHTML = items.map(() => '<div class="row skel"></div>').join('');
+  const q = +new URLSearchParams(location.search).get('ms');
+  setTimeout(() => {
+    ready = true;
+    rows.innerHTML = items.map(([e, n, p], i) =>
+      `<div class="row"><span class="emoji">${e}</span><span class="name">${n}</span><button class="btn" data-i="${i}">THÊM ${fmt(p)}</button></div>`).join('');
+    sb.log('đã tải bảng giá');
+  }, q || sb.rand(1500, 3000));
+  rows.addEventListener('click', (e) => {
+    if (!ready) { setEarly(++early); return; }
+    const i = e.target.dataset.i;
+    if (i === undefined) return;
+    const [, n, p] = items[i];
+    if (picked.has(n)) { setTwice(++twice); return; }
+    picked.add(n);
+    e.target.classList.add('done');
+    const total = items.filter(([, n2]) => picked.has(n2)).reduce((s, [, , p2]) => s + p2, 0);
+    document.getElementById('count').textContent = `ĐÃ CHỌN: ${picked.size} MÓN`;
+    document.getElementById('total').textContent = `TỔNG: ${fmt(total).toUpperCase()}`;
+    document.getElementById('lines').textContent = [...picked].join(' · ');
+    sb.log(`chọn ${n} (${fmt(p)})`);
+  });
+</script>
+</body></html>

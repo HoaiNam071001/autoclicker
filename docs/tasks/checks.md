@@ -3,7 +3,9 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 42 – Dữ liệu & luồng (G1, G2, G3, G4a, G4b) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+## 42 – Dữ liệu & luồng (G1–G5) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+
+- [ ] (G5) Mẫu thử *Bảng giá – chọn món rẻ* chạy thành công (macOS + Windows): thanh trên hiện “ĐÃ CHỌN: 4 MÓN” (TÁO · CAM · XOÀI · CHUỐI), “TỔNG: 65.000 Đ”; ô *Bấm lúc đang tải* và *Bấm lặp một món* = 0; Thử tìm ở node Tìm tất cả thấy đúng 6 nút THÊM (không dính chữ khác trên trang)
 
 - [ ] (G4b) Mẫu thử *Xử lý chữ – lọc, lấy số, ngày, làm sạch, tách* chạy thành công: ô gõ chữ hiện “A123 | 1234000 | true | 25/10 14:30 | nguyen van an | Táo;Cam;Xoài;”
 - [ ] (G4b) Nhóm Dữ liệu có 4 node mới (Số & ngày, Lọc mẫu, Tách chữ, Làm sạch chữ), tìm được bằng từ không dấu (“lay so”, “regex”, “bo dau”); icon + thẻ node hiện dòng chi tiết đúng, cả theme sáng + tối
