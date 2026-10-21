@@ -134,6 +134,7 @@ export const STEP_ICON = {
   switch: 'M3 12h5M8 12c3 0 3-6 7-6h6M8 12h13M8 12c3 0 3 6 7 6h6',
   switchScreen: 'M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 12h3M11 12c2 0 2-3 5-3M11 12c2 0 2 3 5 3',
   counter: 'M9 4L7 20M17 4l-2 16M4 9h16M3 15h16',
+  forEach: 'M4 6h11M4 12h7M4 18h7M17 10v8m0 0l-3-3m3 3l3-3',
   end: 'M5 21V4M5 4h12l-2.5 4L17 12H5',
   setVar: 'M8 4c-2 0-3 1-3 3v2.5C5 11 4 12 3 12c1 0 2 1 2 2.5V17c0 2 1 3 3 3M16 4c2 0 3 1 3 3v2.5c0 1.5 1 2.5 2 2.5-1 0-2 1-2 2.5V17c0 2-1 3-3 3',
 } as const;

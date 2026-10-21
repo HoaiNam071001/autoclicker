@@ -14,6 +14,7 @@ const DEFAULTS: Record<ControlType, () => Partial<Step>> = {
   switch: () => ({ value: '', cases: [newCase([], false), newCase([{ key: 'c1' }], false)] }),
   switchScreen: () => ({ cases: [newCase([], true), newCase([{ key: 'c1' }], true)], timeoutMs: 3000, intervalMs: 250 }),
   counter: () => ({ max: 10 }),
+  forEach: () => ({ value: '' }),
   end: () => ({ endStatus: 'success', message: '' }),
   setVar: () => ({ varName: 'ten', varOp: 'set', value: '' }),
 };

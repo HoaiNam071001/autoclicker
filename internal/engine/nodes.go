@@ -97,6 +97,9 @@ func (e *Engine) runControl(ctx context.Context, s model.Step, logf func(level, 
 		logf("info", "đã đi qua %d lần (tối đa %d) – hết lượt", n, s.Max)
 		return model.PortDone, map[string]any{"count": n}, nil
 
+	case model.StepForEach:
+		return e.forEachStep(s, logf)
+
 	case model.StepEnd:
 		if s.EndStatus == model.EndFail {
 			msg := s.Message

@@ -78,6 +78,8 @@ func portsOf(s Step) []string {
 		return casePorts(s.Cases, PortNone)
 	case StepCounter:
 		return []string{PortNext, PortDone}
+	case StepForEach:
+		return []string{PortItem, PortDone}
 	case StepEnd:
 		return []string{}
 	case StepSetVar:

@@ -3,6 +3,7 @@ package script
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strconv"
@@ -169,6 +170,9 @@ func checkControl(s *model.Step) error {
 	if s.Max < 0 {
 		return errors.New("số lần tối đa không âm")
 	}
+	if !slices.Contains(model.ListFroms, s.ListFrom) {
+		return fmt.Errorf("nguồn danh sách không hợp lệ: %q (trống = chữ / biến | file)", s.ListFrom)
+	}
 	return nil
 }
 
@@ -215,6 +219,10 @@ func validateControl(i int, s model.Step, inside func(model.Point) bool) error {
 		if s.Max < 1 {
 			return stepErr(i, s, "max", "số lần tối đa phải ≥ 1")
 		}
+	case model.StepForEach:
+		if err := validateForEach(i, s); err != nil {
+			return err
+		}
 	case model.StepEnd:
 		if s.EndStatus != model.EndSuccess && s.EndStatus != model.EndFail {
 			return stepErr(i, s, "endStatus", "chọn kết thúc thành công hay thất bại")
@@ -230,6 +238,24 @@ func validateControl(i int, s model.Step, inside func(model.Point) bool) error {
 		} else if s.VarOp != model.VarSet {
 			return stepErr(i, s, "varOp", "chọn gán hay cộng")
 		}
+	}
+	return nil
+}
+
+// validateForEach – nguồn danh sách đủ để chạy: chữ / biến không trống, file .csv / .xlsx.
+func validateForEach(i int, s model.Step) error {
+	if s.ListFrom != model.ListFile {
+		if strings.TrimSpace(s.Value) == "" {
+			return stepErr(i, s, "value", "chưa có danh sách – mảng JSON, biến (vd {{n3.output.json.items}}) hoặc mỗi dòng một phần tử")
+		}
+		return nil
+	}
+	p := strings.TrimSpace(s.FilePath)
+	if p == "" {
+		return stepErr(i, s, "filePath", "chưa chọn file .csv / .xlsx")
+	}
+	if ext := strings.ToLower(filepath.Ext(p)); ext != ".csv" && ext != ".xlsx" && !NodeVarRe.MatchString(p) && !varRe.MatchString(p) {
+		return stepErr(i, s, "filePath", "chỉ đọc được file .csv hoặc .xlsx (file này: %q)", filepath.Base(p))
 	}
 	return nil
 }

@@ -24,7 +24,10 @@ export type CondTools = {
   pickColor?: (at: CondAt) => void; // lấy màu đang hiện tại điểm
   reanchor?: (p: StepPoint, ax: Anchor, ay: Anchor) => StepPoint; // đổi neo, giữ chỗ trên màn hình
   busy?: boolean;
+  previewList?: () => Promise<ListPreview>; // Lặp qua danh sách: đọc thử danh sách (Go PreviewList)
 };
+// Kết quả đọc thử danh sách – khớp engine.ListPreview (foreach.go).
+export type ListPreview = { count: number; columns?: { name: string; key: string }[]; first?: unknown };
 export type CondCtx = { step: Step; set: (p: Partial<Step>) => void; vars: VarProps; tools?: CondTools };
 
 const KINDS: { id: CondKind; label: string }[] = [

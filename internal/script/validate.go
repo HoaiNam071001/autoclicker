@@ -147,7 +147,7 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if err := checkWebKey(i, s); err != nil {
 				return err
 			}
-		case model.StepIf, model.StepSwitch, model.StepSwitchScreen, model.StepCounter, model.StepEnd, model.StepSetVar:
+		case model.StepIf, model.StepSwitch, model.StepSwitchScreen, model.StepCounter, model.StepForEach, model.StepEnd, model.StepSetVar:
 			if err := validateControl(i, s, inside); err != nil {
 				return err
 			}

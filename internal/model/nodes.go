@@ -7,7 +7,8 @@ const (
 	PortDefault = "default" // switch: không case nào khớp
 	PortNone    = "none"    // switchScreen: hết giờ không case nào hiện
 	PortNext    = "next"    // counter: còn lượt
-	PortDone    = "done"    // counter: hết lượt
+	PortDone    = "done"    // counter: hết lượt; forEach: hết danh sách
+	PortItem    = "item"    // forEach: còn phần tử
 	PortYes     = "yes"     // app kiểm tra: đang chạy
 	PortNo      = "no"      // app kiểm tra: không chạy
 	CasePrefix  = "case:"

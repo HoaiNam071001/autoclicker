@@ -173,7 +173,7 @@ func checkStep(s *model.Step) error {
 		if err := checkWebFields(s); err != nil {
 			return err
 		}
-	case model.StepIf, model.StepSwitch, model.StepSwitchScreen, model.StepCounter, model.StepEnd, model.StepSetVar:
+	case model.StepIf, model.StepSwitch, model.StepSwitchScreen, model.StepCounter, model.StepForEach, model.StepEnd, model.StepSetVar:
 		if err := checkControl(s); err != nil {
 			return err
 		}

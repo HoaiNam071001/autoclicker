@@ -34,6 +34,14 @@ const (
 
 var WaitModes = []string{WaitStable, WaitChange}
 
+// Nguồn danh sách của node Lặp qua danh sách (Step.ListFrom, bước 42 G2).
+const (
+	ListText = ""     // Value: mảng JSON (vd {{n3.output.json.items}}) hoặc chữ – mỗi dòng không trống một phần tử
+	ListFile = "file" // FilePath .csv / .xlsx (Sheet): dòng đầu là tên cột, mỗi dòng sau một phần tử {cột: giá trị}
+)
+
+var ListFroms = []string{ListText, ListFile}
+
 // Mức thao tác giống người (Script.Human, Step.Human – bước 34, internal/humanize). Kịch bản "" = tắt; node "" = theo
 // kịch bản. Kịch bản mới (NewScript) bật sẵn mức vừa.
 const (
@@ -122,3 +130,21 @@ const (
 )
 
 var ReadNears = []string{"", ReadNearRight, ReadNearBelow}
+
+// Step.FindBy
+const (
+	FindByText    = "text"
+	FindByElement = "element" // phần tử màn hình qua Accessibility (bước 37)
+)
+
+// Step.ReadFrom (webRead)
+const (
+	ReadValue = "value"
+	ReadAttr  = "attr"
+)
+
+// Step.ScrollMode (webScroll)
+const (
+	ScrollModeIn    = "in"
+	ScrollModeUntil = "until"
+)

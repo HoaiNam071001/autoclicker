@@ -19,6 +19,7 @@ const PORTS: Record<string, Omit<PortView, 'id'>> = {
   none: { label: 'Không thấy', kind: 'neutral' },
   next: { label: 'Còn lượt', kind: 'neutral' },
   done: { label: 'Hết lượt', kind: 'neutral' },
+  item: { label: 'Mỗi phần tử', kind: 'neutral' },
   yes: { label: 'Đang chạy', kind: 'neutral' },
   no: { label: 'Không chạy', kind: 'neutral' },
 };
@@ -29,6 +30,7 @@ export function portView(id: string, s?: Pick<Step, 'type' | 'cases'>): PortView
     return { id, label: c?.label || key, kind: 'neutral' };
   }
   if (id === PORT_SUCCESS && s?.type === 'setVar') return { id, label: 'Tiếp', kind: 'ok' };
+  if (id === 'done' && s?.type === 'forEach') return { id, label: 'Hết danh sách', kind: 'neutral' };
   return { id, ...(PORTS[id] ?? { label: id, kind: 'neutral' }) };
 }
 export const portViews = (s: PortShape) => portsOf(s).map((p) => portView(p, s));
@@ -79,6 +81,7 @@ function warningOf(s: Step, reachable: boolean, refs: Map<string, string>): stri
       if (m) return `Case ${c.label || c.key}: ${m.toLowerCase()}`;
     }
   }
+  if (s.type === 'forEach' && listSource(s) === '—') return s.listFrom === 'file' ? 'Chưa chọn file CSV / Excel' : 'Danh sách trống';
   return undefined;
 }
 
@@ -112,6 +115,15 @@ export function condText(c: Cond): string {
   }
 }
 
+// Nguồn danh sách của Lặp qua danh sách: tên file / biến / số dòng.
+export function listSource(s: Pick<Step, 'listFrom' | 'filePath' | 'value'>): string {
+  if (s.listFrom === 'file') return s.filePath?.trim() ? s.filePath.trim().split(/[\\/]/).pop()! : '—';
+  const v = (s.value ?? '').trim();
+  if (!v) return '—';
+  if (/^\{\{[^}]+\}\}$/.test(v) || v.startsWith('[')) return v.length > 40 ? `${v.slice(0, 39)}…` : v;
+  return `${v.split('\n').filter((l) => l.trim()).length} dòng`;
+}
+
 const sec = (ms: number) => `${(ms / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} s`;
 // Dòng chi tiết trên thẻ node điều khiển.
 function controlDetail(s: Step): string {
@@ -121,6 +133,7 @@ function controlDetail(s: Step): string {
     case 'switch': return `${s.value || '—'} · ${n} case`;
     case 'switchScreen': return `chờ tối đa ${sec(s.timeoutMs ?? 0)} · ${n} case`;
     case 'counter': return `tối đa ${s.max ?? 0} lần`;
+    case 'forEach': return listSource(s);
     case 'end': return s.endStatus === 'fail' ? `thất bại${s.message ? ` · ${s.message}` : ''}` : `thành công${s.message ? ` · ${s.message}` : ''}`;
     case 'setVar': return `vars.${s.varName || '?'} ${s.varOp === 'add' ? '+=' : '='} ${s.value ?? ''}`;
     default: return '';
@@ -191,6 +204,8 @@ function ownOutputs(s: Step): OutputField[] {
     case 'switch': return [{ key: 'case', desc: 'case khớp (default nếu không)' }, { key: 'value', desc: 'giá trị đã xét' }];
     case 'switchScreen': return [{ key: 'case', desc: 'case hiện trước (none nếu không)' }, ...FOUND];
     case 'counter': return [{ key: 'count', desc: 'số lần đã đi qua' }];
+    case 'forEach': return [{ key: 'item', desc: s.listFrom === 'file' ? 'dòng đang xét – item.<cột>' : 'phần tử đang xét (object: item.<khoá>)' },
+      { key: 'index', desc: 'thứ tự phần tử (từ 1)' }, { key: 'count', desc: 'số phần tử' }];
     case 'setVar': return [{ key: 'name', desc: 'tên biến' }, { key: 'value', desc: 'giá trị sau khi đặt' }];
     default: return [];
   }

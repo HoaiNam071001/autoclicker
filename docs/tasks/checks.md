@@ -3,7 +3,11 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 42 – Dữ liệu & luồng (G1) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+## 42 – Dữ liệu & luồng (G1, G2) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+
+- [ ] (G2) Mẫu thử *Lặp qua danh sách* chạy thành công: ô gõ chữ hiện “1. Táo; 2. Cam; 3. Xoài; ”, lời nhắn *Đã gõ 3 phần tử*; thanh mini ghi *lượt n4 1 / 3…* trong lúc lặp
+- [ ] (G2) Thêm node *Lặp qua danh sách* (nhóm Luồng): thẻ có cổng *Mỗi phần tử* / *Hết danh sách*; đổi sang *File CSV / Excel*, chọn file CSV tiếng Việt có BOM (lưu từ Excel, dấu ; ) → *Đọc thử* hiện đúng số dòng + cột → `n?.output.item.<khoá>`; file .xlsx nhiều sheet; xem cả theme sáng + tối
+- [ ] (G2) Xem trước (nút Xem trước + menu Nhánh): chọn *Mỗi phần tử* đi 1 lượt rồi hết, chọn *Hết danh sách* ra luôn
 
 - [ ] (G1) Mẫu thử *Chờ màn hình đứng yên* (trang Tải chậm) chạy thành công: node Chờ màn hình đi tiếp ngay khi khung xương ngừng nhấp nháy, sau LÀM MỚI chờ được tới khi trang phản hồi; ô *Bấm lúc đang tải* = 0 (chạy thật tự động 2026-10-21 hỏng ở bước click theo chữ – trang mở không nằm trên cùng, OCR đọc chữ cửa sổ khác; mẫu cũ `cho-chu` hỏng y hệt → do môi trường)
 - [ ] (G1) Thêm node *Chờ màn hình* từ bảng thêm node (nhóm Chờ): inspector có Chờ tới khi (Đứng yên / Thay đổi), Vùng theo dõi (Vùng cố định → Khoanh trên màn hình… ghi đúng vùng), Đứng yên, Ngưỡng đổi; thanh mini ghi *đang chờ màn hình*; xem cả theme sáng + tối

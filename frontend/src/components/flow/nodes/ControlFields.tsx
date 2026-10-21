@@ -7,6 +7,7 @@ import { errText, Field, hint } from '../../stepform/shared';
 import { Trash } from '../../icons';
 import VarTextInput from '../../inputs/VarTextInput';
 import CondEditor, { CondCtx } from './CondEditor';
+import ForEachFields from './ForEachFields';
 import { newCase } from '../../../flow/cond';
 import type { Case, CaseOp, Step } from '../../../types';
 
@@ -22,6 +23,7 @@ export default function ControlFields({ ctx }: { ctx: CondCtx }) {
     case 'switch': return <SwitchFields ctx={ctx} />;
     case 'switchScreen': return <SwitchScreenFields ctx={ctx} />;
     case 'counter': return <CounterFields ctx={ctx} />;
+    case 'forEach': return <ForEachFields ctx={ctx} />;
     case 'end': return <EndFields ctx={ctx} />;
     case 'setVar': return <SetVarFields ctx={ctx} />;
     default: return null;

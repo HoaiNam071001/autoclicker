@@ -80,6 +80,7 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
     case 'switchScreen': return { ...s, cases: s.cases?.map((c) => (c.cond ? { ...c, cond: cond(c.cond) } : c)) };
     case 'end': return { ...s, message: f(s.message ?? '') };
     case 'setVar': return { ...s, value: f(s.value ?? '') };
+    case 'forEach': return s.listFrom === 'file' ? { ...s, filePath: f(s.filePath ?? ''), sheet: s.sheet && f(s.sheet) } : { ...s, value: f(s.value ?? '') };
     default: return s;
   }
 }

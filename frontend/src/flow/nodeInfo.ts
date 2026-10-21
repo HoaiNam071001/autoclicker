@@ -45,6 +45,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   if: { desc: 'Kiểm tra điều kiện (thấy chữ / ảnh / màu, so giá trị) rồi đi nhánh Đúng hoặc Sai.', use: 'Đã đăng nhập thì bỏ qua bước đăng nhập; hết hàng thì dừng.' },
   switch: { desc: 'So một giá trị (input, kết quả node trước) với nhiều trường hợp, mỗi trường hợp một nhánh.', use: 'Rẽ theo trạng thái đơn hàng, theo lựa chọn nhập lúc Chạy.' },
   switchScreen: { desc: 'Xem màn hình đang hiện gì (theo chữ / ảnh) rồi đi nhánh tương ứng.', use: 'Trang có thể ra nhiều kiểu: màn đăng nhập, captcha, trang chính…' },
+  forEach: { desc: 'Chạy đoạn phía sau một lần cho mỗi phần tử của danh sách (dòng chữ, mảng JSON, file CSV / Excel), hết thì ra cổng Hết danh sách.', use: 'Làm cùng một việc cho từng khách hàng / đơn hàng / dòng dữ liệu.' },
   counter: { desc: 'Đếm số lần đi qua: còn lượt thì ra cổng Còn lượt, đủ số lần thì ra Hết lượt.', use: 'Lặp một đoạn N lần, giới hạn số lần thử lại.' },
   end: { desc: 'Kết thúc vòng chạy, ghi thành công hoặc thất bại kèm lời nhắn.', use: 'Cuối một nhánh: báo “Đã đặt hàng”, hoặc dừng với lỗi “Hết hàng”.' },
   setVar: { desc: 'Đặt hoặc cộng một biến để node sau đọc bằng {{vars.tên}}.', use: 'Đếm số đơn đã xử lý, ghi lại kết quả giữa các nhánh.' },

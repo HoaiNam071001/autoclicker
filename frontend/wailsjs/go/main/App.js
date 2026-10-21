@@ -186,6 +186,10 @@ export function PixelColorAt(arg1, arg2) {
   return window['go']['main']['App']['PixelColorAt'](arg1, arg2);
 }
 
+export function PreviewList(arg1) {
+  return window['go']['main']['App']['PreviewList'](arg1);
+}
+
 export function RecentScripts() {
   return window['go']['main']['App']['RecentScripts']();
 }

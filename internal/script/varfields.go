@@ -143,6 +143,13 @@ func VarFields(s *model.Step) []VarField {
 		add("message", &s.Message, false)
 	case model.StepSetVar:
 		add("value", &s.Value, false)
+	case model.StepForEach:
+		if s.ListFrom == model.ListFile {
+			add("filePath", &s.FilePath, false)
+			add("sheet", &s.Sheet, false)
+		} else {
+			add("value", &s.Value, false)
+		}
 	}
 	return out
 }

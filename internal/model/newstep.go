@@ -88,6 +88,7 @@ func NewStep(stepType string) (Step, error) {
 		s.TimeoutMs, s.IntervalMs = 3000, 250
 	case StepCounter:
 		s.Max = 10
+	case StepForEach: // danh sách người dùng tự điền – trống thì kiểm tra báo thiếu
 	case StepEnd:
 		s.EndStatus = EndSuccess
 	case StepSetVar:

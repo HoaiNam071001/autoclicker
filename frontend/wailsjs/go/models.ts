@@ -162,6 +162,54 @@ export namespace engine {
 	        this.port = source["port"];
 	    }
 	}
+	export class ListColumn {
+	    name: string;
+	    key: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListColumn(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.key = source["key"];
+	    }
+	}
+	export class ListPreview {
+	    count: number;
+	    columns: ListColumn[];
+	    first?: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new ListPreview(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.count = source["count"];
+	        this.columns = this.convertValues(source["columns"], ListColumn);
+	        this.first = source["first"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class NodeTest {
 	    port: string;
 	    known: boolean;
@@ -1192,6 +1240,7 @@ export namespace model {
 	    cases?: Case[];
 	    value?: string;
 	    max?: number;
+	    listFrom?: string;
 	    endStatus?: string;
 	    message?: string;
 	    varName?: string;
@@ -1318,6 +1367,7 @@ export namespace model {
 	        this.cases = this.convertValues(source["cases"], Case);
 	        this.value = source["value"];
 	        this.max = source["max"];
+	        this.listFrom = source["listFrom"];
 	        this.endStatus = source["endStatus"];
 	        this.message = source["message"];
 	        this.varName = source["varName"];

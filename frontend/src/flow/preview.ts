@@ -1,5 +1,6 @@
 // Xem trước đi theo đồ thị (bước 20 F6): node rẽ nhánh đi cổng người dùng chọn trong menu Nhánh (mặc định cổng đầu –
-// success / Đúng / case đầu), Đếm chạy 1 lượt rồi Hết lượt, vòng lặp không có Đếm thì dừng sau 2 lần.
+// success / Đúng / case đầu), Đếm chạy 1 lượt rồi Hết lượt, Lặp qua danh sách (chọn Mỗi phần tử) 1 lượt rồi Hết danh
+// sách, vòng lặp không có Đếm thì dừng sau 2 lần.
 // Hàm thuần – Simulation gọi từng node, test ở preview.test.ts.
 import type { PortView } from '../components/flow/model';
 import type { Script, Step } from '../types';
@@ -10,7 +11,7 @@ export type BranchChoices = Record<string, string>; // id node → cổng xem tr
 export type BranchNode = { id: string; ref: string; title: string; ports: PortView[] };
 
 type Flow = Pick<Script, 'steps' | 'start' | 'edges'>;
-const CHOOSABLE = new Set(['if', 'switch', 'switchScreen']);
+const CHOOSABLE = new Set(['if', 'switch', 'switchScreen', 'forEach']);
 const MAX_EDGE_USES = 2; // một cạnh đi quá chừng này lần trong một lượt xem trước = lặp không có Đếm
 
 // Node cho chọn nhánh: Nếu / Switch, và node đang bật có cổng khác cổng đầu được nối (vd Chờ ảnh nối Thất bại).
@@ -27,6 +28,7 @@ export const newWalk = (): Walk => ({ counts: {}, used: {} });
 export type Hop = {
   id: string; port: string; next: string;
   count?: { n: number; max: number }; // node Đếm: lượt thứ mấy
+  item?: number; // Lặp qua danh sách: phần tử thứ mấy (0 = hết danh sách)
   stop?: 'end' | 'fail' | 'loop'; // end: node Kết thúc; fail: thất bại không có nhánh; loop: lặp không có Đếm
 };
 
@@ -41,6 +43,11 @@ export function previewHop(sc: Flow, s: Step, choices: BranchChoices, w: Walk): 
     w.counts[s.id] = more ? n : 0; // hết lượt thì đếm lại như engine (nodes.go)
     hop.port = more ? 'next' : 'done';
     hop.count = { n, max };
+  } else if (s.type === 'forEach' && s.enabled) {
+    const more = choices[s.id] !== 'done' && !w.counts[s.id];
+    w.counts[s.id] = more ? 1 : 0; // xem trước 1 phần tử rồi hết danh sách (đi vào lần nữa thì lại từ đầu như engine)
+    hop.port = more ? 'item' : 'done';
+    hop.item = more ? 1 : 0;
   } else if (s.enabled) {
     const ports = portsOf(s);
     hop.port = ports.includes(choices[s.id]) ? choices[s.id] : ports[0];
@@ -55,6 +62,7 @@ export function previewHop(sc: Flow, s: Step, choices: BranchChoices, w: Walk): 
 // Chữ một chặng trên đường đã đi: "n2", "n2 ✗", "n4 Sai", "n5 (1/10)", "n5 hết lượt".
 export function hopText(h: Hop, s: Step): string {
   if (h.count) return `${s.ref} ${h.port === 'next' ? `(${h.count.n}/${h.count.max})` : 'hết lượt'}`;
+  if (h.item !== undefined) return `${s.ref} ${h.item ? `(phần tử ${h.item})` : 'hết danh sách'}`;
   if (h.port === PORT_SUCCESS || !h.port) return s.ref;
   if (h.port === PORT_FAIL) return `${s.ref} ✗`;
   return `${s.ref} ${portView(h.port, s).label}`;

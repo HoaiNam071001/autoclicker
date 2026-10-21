@@ -73,11 +73,12 @@ func (e *Engine) Run(ctx context.Context) error {
 	return nil
 }
 
-// runLoop chạy một vòng flow. Kết quả / biến đặt lại mỗi vòng (Đếm cũng đếm lại từ 0).
+// runLoop chạy một vòng flow. Kết quả / biến đặt lại mỗi vòng (Đếm đếm lại từ 0, Lặp qua danh sách nạp lại).
 func (e *Engine) runLoop(ctx context.Context, loop int) error {
 	e.rv = runVars{byRef: map[string]*model.StepResult{}, vars: map[string]any{}}
 	e.results = map[string]*model.StepResult{}
 	e.counts = map[string]int{}
+	e.lists = map[string]*listCursor{}
 	if loop == 1 {
 		e.plant()
 	}
@@ -146,17 +147,24 @@ func (e *Engine) plant() {
 	}
 }
 
-// trackFlow ghi node vừa chạy (+ lượt Đếm) vào tiến độ.
+// trackFlow ghi node vừa chạy (+ lượt Đếm / phần tử thứ mấy của Lặp qua danh sách) vào tiến độ.
 func trackFlow(p *Progress, s model.Step, res model.StepResult) {
 	p.From = &FromPort{Ref: s.Ref, Port: res.Port}
-	if s.Type != model.StepCounter || res.Status != model.StatusSuccess {
+	if s.Type != model.StepCounter && s.Type != model.StepForEach || res.Status != model.StatusSuccess {
 		return
 	}
-	if res.Port == model.PortNext {
+	switch res.Port {
+	case model.PortNext:
 		n, _ := res.Output["count"].(int)
 		p.Counter = &CounterLoop{Ref: s.Ref, Count: n, Max: s.Max}
-	} else if p.Counter != nil && p.Counter.Ref == s.Ref {
-		p.Counter = nil // hết lượt – ra khỏi vòng
+	case model.PortItem:
+		i, _ := res.Output["index"].(int)
+		n, _ := res.Output["count"].(int)
+		p.Counter = &CounterLoop{Ref: s.Ref, Count: i, Max: n}
+	default:
+		if p.Counter != nil && p.Counter.Ref == s.Ref {
+			p.Counter = nil // hết lượt – ra khỏi vòng
+		}
 	}
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { makeStep } from '../types';
+import { makeStep, type Step } from '../types';
 import { chain } from './edit';
 import { coordSources, nodeVarOptions, nodeViews, outputsOf } from './view';
 
@@ -61,6 +61,19 @@ describe('node điều khiển', () => {
     expect(b.detail).toBe('{{n1.output.case}} = a');
     expect(c.ports).toEqual([]);
     expect(c.detail).toBe('thất bại · lỗi');
+  });
+
+  it('Lặp qua danh sách: cổng, chi tiết theo nguồn, output, cảnh báo trống', () => {
+    const v = (p: Partial<Step>) => nodeViews({ steps: [makeStep({ id: 'f', ref: 'n1', type: 'forEach', ...p })], start: 'f', edges: [] })[0];
+    const lines = v({ value: 'a\n\nb\n' });
+    expect(lines.ports.map((p) => p.label)).toEqual(['Mỗi phần tử', 'Hết danh sách']);
+    expect(lines.detail).toBe('2 dòng');
+    expect(lines.warn).toBeUndefined();
+    expect(v({ value: '{{n3.output.json.items}}' }).detail).toBe('{{n3.output.json.items}}');
+    expect(v({ listFrom: 'file', filePath: 'C:\\data\\khach.csv' }).detail).toBe('khach.csv');
+    expect(v({ value: ' ' }).warn).toBe('Danh sách trống');
+    expect(v({ listFrom: 'file' }).warn).toBe('Chưa chọn file CSV / Excel');
+    expect(outputsOf(makeStep({ id: 'f', type: 'forEach' })).map((o) => o.key).slice(0, 3)).toEqual(['item', 'index', 'count']);
   });
 });
 

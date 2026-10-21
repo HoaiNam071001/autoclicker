@@ -17,6 +17,7 @@ export function portsOf(s: PortShape): string[] {
     case 'switch': return cases('default');
     case 'switchScreen': return cases('none');
     case 'counter': return ['next', 'done'];
+    case 'forEach': return ['item', 'done'];
     case 'end': return [];
     case 'setVar': return [PORT_SUCCESS];
     case 'app': if (!s.appOp) return ['yes', 'no'];

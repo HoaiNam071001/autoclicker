@@ -46,9 +46,9 @@ void edgeMatchesGo, resultMatchesGo;
 export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'waitUntil' | 'path'
   | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
-export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'end' | 'setVar';
+export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'forEach' | 'end' | 'setVar';
 export type StepType = ActionType | ControlType;
-export const CONTROL_TYPES: ControlType[] = ['if', 'switch', 'switchScreen', 'counter', 'end', 'setVar'];
+export const CONTROL_TYPES: ControlType[] = ['if', 'switch', 'switchScreen', 'counter', 'forEach', 'end', 'setVar'];
 export const isControl = (t: StepType): t is ControlType => (CONTROL_TYPES as StepType[]).includes(t);
 
 // Điều kiện của node Nếu / case của Switch theo màn hình – khớp Cond trong model.go (internal/engine/cond.go).
@@ -161,8 +161,9 @@ export interface Step extends AdvancedFields {
   // node điều khiển (bước 20 F3)
   cond?: Cond; // if
   cases?: Case[]; // switch / switchScreen
-  value?: string; // switch: giá trị cần xét; setVar: giá trị gán / cộng
+  value?: string; // switch: giá trị cần xét; setVar: giá trị gán / cộng; forEach: danh sách
   max?: number; // counter: số lần đi cổng next tối đa
+  listFrom?: '' | 'file'; // forEach: '' = chữ / biến (mảng JSON hoặc mỗi dòng một phần tử) | file = CSV / xlsx filePath
   endStatus?: 'success' | 'fail'; // end
   message?: string; // end: lời nhắn / lời báo lỗi
   varName?: string; // setVar
@@ -276,6 +277,7 @@ export const STEP_LABEL: Record<StepType, string> = {
   switch: 'Switch theo giá trị',
   switchScreen: 'Switch theo màn hình',
   counter: 'Đếm',
+  forEach: 'Lặp qua danh sách',
   end: 'Kết thúc',
   setVar: 'Đặt biến',
 };

@@ -45,7 +45,7 @@ const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự tron
 	`(khoá theo outputs của loại node, cộng startedAt / durationMs mọi node đều có; window / windowApp của click / double / drag / type / key = ` +
 	`cửa sổ đang ở trước sau thao tác – kiểm tra có gõ / bấm vào đúng app không; chưa có trên macOS); ` +
 	`{{last.…}} = node vừa chạy trước; {{vars.<tên>}} = biến node setVar đặt. Biến nhận được trong: text, target, findText, selectors, tab, ` +
-	`elementApp, cond (findText, selectors, elementApp, left, right), cases (match, cond), value, message. ` +
+	`elementApp, cond (findText, selectors, elementApp, left, right), cases (match, cond), value, message, filePath, sheet. ` +
 	`Điểm trên màn hình (points của click, double, hold, drag, scroll, waitPixel) nhận toạ độ từ biến: {"xVar":"{{n2.output.x}} + 20","yVar":"{{n2.output.y}}"} – ` +
 	`có xVar / yVar thì bỏ qua x, y và neo; mỗi ô là số hoặc biến cộng / trừ px, biến node phải là output của node đó (vd x, y, w, h của waitImage); ` +
 	`kết quả là toạ độ màn hình (như output waitImage), không tính theo vùng; drag dragRelative: points[1] từ biến là độ lệch so với A. ` +
@@ -53,7 +53,7 @@ const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự tron
 	`nhận biến qua numVars: [{"field":"amount","expr":"{{n2.output.count}} + 1"}] – lúc chạy giá trị expr (số hoặc biến cộng / trừ, như xVar) ` +
 	`thay cho trường đó; biến node phải là output của node đó; ra số sai khoảng (vd clicks < 1, số âm) → node fail invalid_input. ` +
 	`Node điều khiển rẽ nhánh theo cổng: if (true / false), switch / switchScreen (case:<key> theo từng case, rồi default / none), ` +
-	`counter (next / done – dùng để giới hạn vòng lặp), end (không có cổng: kết thúc vòng, fail = dừng kịch bản báo lỗi), setVar (success). ` +
+	`counter (next / done – dùng để giới hạn vòng lặp), forEach (item / done – lặp qua danh sách: item → thân vòng → cạnh quay lại forEach), end (không có cổng: kết thúc vòng, fail = dừng kịch bản báo lỗi), setVar (success). ` +
 	`Điều kiện cond: {kind: text | image | element | pixel | value | all | any, not}: text = thấy chữ findText (textExact, textAccent, occurrence, searchArea); ` +
 	`element = có phần tử selectors trong cửa sổ app elementApp (như findBy "element" của waitImage; không cuộn); ` +
 	`image = thấy ảnh mẫu template (templateScale, threshold, matchMode, colorTol, searchArea – như waitImage); pixel = points[0] có màu color ± tolerance; ` +
@@ -185,6 +185,9 @@ var stepTypeDocs = []StepTypeDoc{
 	{StepCounter, "Đếm", "Đếm số lần đi qua trong vòng này: lần 1..max → cổng next, lần max+1 → done (rồi đếm lại từ 0). Đặt trên đường quay lại của vòng lặp để giới hạn số lần thử (vd không thấy nút → Đếm → next: cuộn rồi tìm lại; done: Kết thúc báo lỗi).",
 		[]string{"max"}, []string{"enabled"},
 		`{"id":"s1","ref":"n1","type":"counter","max":10,"enabled":true}`, []string{"count"}, nil},
+	{StepForEach, "Lặp qua danh sách", "Lặp thân vòng một lần cho mỗi phần tử: lần đầu đi vào thì nạp danh sách, mỗi lần đi vào lấy phần tử kế → cổng item (output item, index đếm từ 1, count), hết → cổng done (rồi quên danh sách – đi vào lần nữa thì nạp lại từ đầu). Cuối thân vòng nối cạnh quay lại chính node này. listFrom trống: value = mảng JSON (thường là biến trỏ output mảng, vd {{n3.output.json.items}}) hoặc chữ – mỗi dòng không trống một phần tử; listFrom \"file\": filePath .csv / .xlsx (sheet trống = sheet đầu) – dòng đầu là tên cột, mỗi dòng sau là item {cột: giá trị} → {{n4.output.item.<cột>}} (CSV tự nhận dấu , ; tab, bỏ BOM). Phần tử object đọc sâu {{n4.output.item.name}}, phần tử chữ {{n4.output.item}}. Danh sách rỗng → done ngay. Không đọc được file / mảng JSON hỏng → node lỗi invalid_input, dừng kịch bản. Tối đa 10000 lần chạy node mỗi vòng kịch bản vẫn áp dụng.",
+		[]string{"listFrom", "value", "filePath", "sheet"}, []string{"enabled"},
+		`{"id":"s1","ref":"n1","type":"forEach","listFrom":"file","filePath":"~/Documents/khach-hang.csv","enabled":true}`, []string{"item", "index", "count"}, nil},
 	{StepEnd, "Kết thúc", "Kết thúc vòng chạy: endStatus success = xong vòng bình thường (còn vòng lặp thì chạy vòng sau); fail = dừng kịch bản, báo lỗi message (error.code end). Không có cổng ra; thành công có message thì output {message} – hiện cho người dùng khi chạy xong. Nhận {{biến}} trong message.",
 		[]string{"endStatus", "message"}, []string{"enabled"},
 		`{"id":"s1","ref":"n1","type":"end","endStatus":"fail","message":"Không thấy nút Nhắn tin","enabled":true}`, []string{"message"}, nil},

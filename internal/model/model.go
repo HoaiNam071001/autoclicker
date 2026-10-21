@@ -46,6 +46,7 @@ const (
 	StepSwitch       = "switch"       // so Value với từng case (Op / Match) → case:<key>, không case nào khớp → default
 	StepSwitchScreen = "switchScreen" // chờ tới TimeoutMs, case (Cond ảnh / chữ / màu) nào đúng trước → case:<key>, hết giờ → none
 	StepCounter      = "counter"      // đếm số lần đi qua trong vòng: lần 1..Max → next, lần Max+1 → done (rồi đếm lại từ 0)
+	StepForEach      = "forEach"      // lặp qua danh sách (ListFrom): mỗi lần đi vào lấy một phần tử → item, hết → done (engine/foreach.go, bước 42 G2)
 	StepEnd          = "end"          // kết thúc vòng: EndStatus success (chạy vòng sau) / fail (dừng kịch bản, báo Message)
 	StepSetVar       = "setVar"       // đặt biến {{vars.VarName}} = Value (VarOp set) hoặc cộng thêm Value (add)
 )
@@ -53,12 +54,12 @@ const (
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
 	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepWebWait, StepWebClick,
-	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
+	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
 func IsControl(t string) bool {
 	switch t {
-	case StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar:
+	case StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar:
 		return true
 	}
 	return false
@@ -199,8 +200,9 @@ type Step struct {
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>
-	Value     string `json:"value,omitempty"`     // switch: giá trị cần xét; setVar: giá trị gán / cộng; nhận {{biến}}
+	Value     string `json:"value,omitempty"`     // switch: giá trị cần xét; setVar: giá trị gán / cộng; forEach: danh sách; nhận {{biến}}
 	Max       int    `json:"max,omitempty"`       // counter: số lần đi cổng next tối đa
+	ListFrom  string `json:"listFrom,omitempty"`  // forEach: ListFroms – "" = chữ / biến Value | file = CSV / xlsx FilePath (+ Sheet)
 	EndStatus string `json:"endStatus,omitempty"` // end: success | fail
 	Message   string `json:"message,omitempty"`   // end: lời nhắn (fail = lời báo lỗi); nhận {{biến}}
 	VarName   string `json:"varName,omitempty"`   // setVar: tên biến
@@ -223,24 +225,6 @@ func (s Step) NumVarOf(field string) string {
 	}
 	return ""
 }
-
-// Step.FindBy
-const (
-	FindByText    = "text"
-	FindByElement = "element" // phần tử màn hình qua Accessibility (bước 37)
-)
-
-// Step.ReadFrom (webRead)
-const (
-	ReadValue = "value"
-	ReadAttr  = "attr"
-)
-
-// Step.ScrollMode (webScroll)
-const (
-	ScrollModeIn    = "in"
-	ScrollModeUntil = "until"
-)
 
 // Retry – node thất bại (không thấy ảnh / chữ / màu, lỗi) thì thử lại thêm Count lần, nghỉ DelayMs giữa các lần.
 // Thử hết vẫn lỗi → StepResult fail, đi ra cổng fail (không nối thì dừng kịch bản).

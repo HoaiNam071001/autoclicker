@@ -63,6 +63,7 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'if', label: 'Nếu', info: NODE_INFO.if, keywords: 'if dieu kien re nhanh else thay chu anh mau so sanh', run: () => addControl('if') },
       { icon: 'switchScreen', label: 'Switch theo màn hình', info: NODE_INFO.switchScreen, keywords: 'switch case man hinh thay', run: () => addControl('switchScreen') },
       { icon: 'switch', label: 'Switch theo giá trị', info: NODE_INFO.switch, keywords: 'switch case gia tri bien', run: () => addControl('switch') },
+      { icon: 'forEach', label: 'Lặp qua danh sách', info: NODE_INFO.forEach, keywords: 'foreach lap qua danh sach moi phan tu dong csv excel xlsx mang json loop list', run: () => addControl('forEach') },
       { icon: 'counter', label: 'Đếm', info: NODE_INFO.counter, keywords: 'counter lap loop dem gioi han so lan thu', run: () => addControl('counter') },
       { icon: 'end', label: 'Kết thúc', info: NODE_INFO.end, keywords: 'end stop dung ket thuc', run: () => addControl('end') },
     ],

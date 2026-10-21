@@ -41,6 +41,18 @@ describe('previewHop', () => {
     });
   });
 
+  it('Lặp qua danh sách: chọn Mỗi phần tử → 1 lượt rồi hết; chọn Hết danh sách → ra luôn', () => {
+    const steps = [
+      makeStep({ id: 'f', ref: 'n1', type: 'forEach', value: 'a' }),
+      makeStep({ id: 't', ref: 'n2', type: 'type' }),
+      makeStep({ id: 'x', ref: 'n3', type: 'end' }),
+    ];
+    const edges = [e('f', 'item', 't'), e('t', 'success', 'f'), e('f', 'done', 'x')];
+    expect(walk(steps, edges).route).toEqual(['n1 (phần tử 1)', 'n2', 'n1 hết danh sách', 'n3']);
+    expect(walk(steps, edges, { f: 'done' }).route).toEqual(['n1 hết danh sách', 'n3']);
+    expect(branchNodes({ steps, start: 'f', edges }).map((b) => b.ports.map((p) => p.label))).toEqual([['Mỗi phần tử', 'Hết danh sách']]);
+  });
+
   it('thất bại không có nhánh → dừng báo lỗi; cổng chọn không còn → về cổng đầu', () => {
     expect(walk(fb.slice(0, 2), [e('w', 'success', 'c')], { w: 'fail' }).stop).toBe('n1 thất bại, không có nhánh Thất bại – dừng báo lỗi');
     expect(walk(fb, fbEdges, { w: 'case:x' }).route).toEqual(['n1', 'n2']);

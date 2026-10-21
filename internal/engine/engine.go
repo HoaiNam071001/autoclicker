@@ -35,7 +35,7 @@ type Progress struct {
 	Retries   int           `json:"retries,omitempty"`  // số lần thử lại tối đa của bước hiện tại
 	Break     string        `json:"break,omitempty"`    // đang dừng trước node NodeID vì debug: breakpoint | step
 	From      *FromPort     `json:"from,omitempty"`     // node vừa chạy xong + cổng đi ra tới node này (nil: node đầu vòng)
-	Counter   *CounterLoop  `json:"counter,omitempty"`  // node Đếm gần nhất còn lượt – đang ở trong vòng lặp của nó
+	Counter   *CounterLoop  `json:"counter,omitempty"`  // node Đếm / Lặp qua danh sách gần nhất còn lượt – đang ở trong vòng lặp của nó
 }
 
 // FromPort – node trước + cổng ra đã đi (thanh mini: "n2 · thất bại → n5").
@@ -44,7 +44,7 @@ type FromPort struct {
 	Port string `json:"port"`
 }
 
-// CounterLoop – lượt hiện tại của node Đếm (thanh mini: "lượt n5 3 / 10").
+// CounterLoop – lượt hiện tại của node Đếm / Lặp qua danh sách (thanh mini: "lượt n5 3 / 10").
 type CounterLoop struct {
 	Ref   string `json:"ref"`
 	Count int    `json:"count"`
@@ -93,6 +93,7 @@ type Engine struct {
 	results  map[string]*model.StepResult // kết quả lần chạy gần nhất của từng node trong vòng này
 	rv       runVars                      // bảng tra biến {{nX…}} / {{last…}} / {{vars…}}
 	counts   map[string]int               // node Đếm: số lần đã đi qua trong vòng này
+	lists    map[string]*listCursor       // node Lặp qua danh sách: danh sách đã nạp + phần tử kế (foreach.go)
 	stopAt   string                       // Options.StopAt
 	seed     *Carry                       // Options.Seed
 	shotsDir string                       // Options.ShotsDir
