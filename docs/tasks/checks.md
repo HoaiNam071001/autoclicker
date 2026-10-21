@@ -5,6 +5,8 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 46 – MCP web tinh chỉnh (A0–A3, A2) · [phase3/46-mcp-web-tinh-chinh.md](phase3/46-mcp-web-tinh-chinh.md)
 
+- [ ] (A1) Kịch bản có vùng: nhờ Claude chụp `screenshot` rồi tạo node click theo toạ độ trên ảnh với `coordSpace: "absolute"` → chạy click đúng chỗ; marker trên overlay đúng chỗ, inspector ghi *Màn hình*; đổi vùng không dời điểm đó; node thường ngoài vùng → lỗi nêu "gốc vùng X,Y" + gợi ý coordSpace
+
 - [ ] Mở sân thử *Form kiểu antd* (Mẫu thử → trang): để Claude gọi `read_web_outline` với `dialog: true` → thấy ô Mã nhân viên / Ngày sinh / nút Lưu của hộp thoại, không lẫn ô lọc lưới
 - [ ] `webType` vào ô Mã nhân viên (selector role=textbox[name="Mã nhân viên"]) → gõ vào ô trong hộp thoại; `text="Ngày sinh"` và ô Thành phố (focus chậm) gõ được, không báo "không nhận focus"
 - [ ] Trang tự mở popup (window.open) → `probe_page` không url / `read_web_outline` đọc đúng tab popup; truyền `tab` = id tab đọc được tab cũ

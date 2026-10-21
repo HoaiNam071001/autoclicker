@@ -154,8 +154,8 @@ export function changeStepType(id: string, type: StepType) {
   if (need >= 1 && points.length === 0) points.push({ x: 0, y: 0 });
   if (need === 2 && points.length === 1) {
     const a = points[0];
-    const b = toScreen(a, sc.region);
-    points.push(usesVar(a) ? { ...a, xVar: `${a.xVar} + 100` } : anchorPoint({ x: b.x + 100, y: b.y }, boundsOf(sc.region), a.ax, a.ay));
+    const b = toScreen(a, sc.region, s);
+    points.push(usesVar(a) ? { ...a, xVar: `${a.xVar} + 100` } : anchorPoint({ x: b.x + 100, y: b.y }, boundsOf(sc.region, s), a.ax, a.ay));
   }
   const next: Step = {
     ...s,

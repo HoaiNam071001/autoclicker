@@ -75,7 +75,7 @@ func (e *Engine) drawPoints(s model.Step) ([]model.Point, error) {
 	if s.Shape == model.ShapeLine {
 		out := make([]model.Point, 0, len(s.Points)+1)
 		for _, p := range s.Points {
-			q, err := e.pointAt(p)
+			q, err := e.pointAt(s, p)
 			if err != nil {
 				return nil, err
 			}
@@ -86,7 +86,7 @@ func (e *Engine) drawPoints(s model.Step) ([]model.Point, error) {
 		}
 		return out, nil
 	}
-	c, err := e.pointAt(s.Points[0])
+	c, err := e.pointAt(s, s.Points[0])
 	if err != nil {
 		return nil, err
 	}

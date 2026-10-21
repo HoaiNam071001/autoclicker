@@ -23,6 +23,14 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 		q := ResolvePoint(p, b)
 		return b.W == 0 || q.X >= b.X && q.X <= b.X+b.W && q.Y >= b.Y && q.Y <= b.Y+b.H
 	}
+	// Node absolute: toạ độ màn hình thật, kiểm tra trong khung màn hình (không cộng gốc vùng).
+	insideStep := func(s model.Step, p model.Point) bool {
+		if s.CoordSpace != CoordAbsolute {
+			return inside(p)
+		}
+		sb := StepBounds(sc, screen, s)
+		return sb.W == 0 || p.X >= 0 && p.X <= sb.W && p.Y >= 0 && p.Y <= sb.H
+	}
 	enabled := 0
 	for i, s := range sc.Steps {
 		if !s.Enabled {
@@ -147,9 +155,9 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 		}
 		for j := 0; j < need; j++ {
 			skip := s.Type == model.StepDrag && (j == 0 && s.DragFromPrev || j == 1 && s.DragRelative)
-			if !skip && !inside(s.Points[j]) {
-				q := ResolvePoint(s.Points[j], b)
-				return stepErr(i, s, "points", "điểm X %d Y %d nằm ngoài vùng", q.X, q.Y)
+			if !skip && !insideStep(s, s.Points[j]) {
+				q := ResolvePoint(s.Points[j], StepBounds(sc, screen, s))
+				return stepErr(i, s, "points", "điểm X %d Y %d nằm ngoài vùng%s", q.X, q.Y, outsideHint(s, b))
 			}
 		}
 		if r := s.Retry; r != nil && (r.Count < 0 || r.Count > model.MaxRetries || r.DelayMs < 0) {
@@ -160,6 +168,14 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 		return &model.ScriptError{Msg: "kịch bản không có node nào được bật"}
 	}
 	return nil
+}
+
+// outsideHint nêu gốc toạ độ đang cộng để dễ thấy nhầm vùng / màn hình (toạ độ AI lấy từ screenshot là tuyệt đối).
+func outsideHint(s model.Step, b model.Rect) string {
+	if s.CoordSpace == CoordAbsolute {
+		return " (toạ độ tuyệt đối trên màn hình, gốc 0,0)"
+	}
+	return fmt.Sprintf(" (toạ độ đã cộng gốc vùng %d,%d; muốn dùng toạ độ màn hình như ảnh screenshot thì đặt coordSpace \"absolute\")", b.X, b.Y)
 }
 
 // checkFindWait – chỗ thứ mấy + thời gian chờ của node tự tìm chữ / phần tử.

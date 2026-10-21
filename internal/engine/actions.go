@@ -44,8 +44,8 @@ func (e *Engine) move(ctx context.Context, x, y, size int) error {
 }
 
 // pointAt – toạ độ màn hình của điểm (neo theo vùng / màn hình, hoặc tính từ biến đã thay – F5b).
-func (e *Engine) pointAt(p model.Point) (model.Point, error) {
-	q, err := script.PointOnScreen(p, script.Bounds(e.sc, e.screen))
+func (e *Engine) pointAt(s model.Step, p model.Point) (model.Point, error) {
+	q, err := script.PointOnScreen(p, script.StepBounds(e.sc, e.screen, s))
 	if err != nil {
 		return q, &invalidErr{err.Error()}
 	}
@@ -115,7 +115,7 @@ func (e *Engine) doStep(ctx context.Context, s model.Step) error {
 	in := e.in
 	// pt: toạ độ màn hình của điểm i (theo neo / biến), mỗi lần gọi lệch ngẫu nhiên ± JitterPx.
 	pt := func(i int) (int, int, error) {
-		p, err := e.pointAt(s.Points[i])
+		p, err := e.pointAt(s, s.Points[i])
 		return e.jitter(p.X, s.JitterPx), e.jitter(p.Y, s.JitterPx), err
 	}
 

@@ -34,7 +34,7 @@ export function setAnchor(id: string, index: number, ax: Anchor, ay: Anchor) {
   const s = steps.find((x) => x.id === id);
   const p = s?.points[index];
   if (!s || !p) return;
-  const q = anchorPoint(toScreen(p, region), boundsOf(region), ax, ay);
+  const q = anchorPoint(toScreen(p, region, s), boundsOf(region, s), ax, ay);
   updateStep(id, { points: s.points.map((x, i) => (i === index ? q : x)) });
 }
 
@@ -49,11 +49,11 @@ export function setPointVar(id: string, index: number, on: boolean) {
   const { xVar: xs = '', yVar: ys = '', ...plain } = p;
   let q: StepPoint = plain;
   if (on) {
-    const at = rel ? p : toScreen(p, region);
+    const at = rel ? p : toScreen(p, region, s);
     q = { ...p, xVar: String(at.x), yVar: String(at.y) };
   } else if (/^-?\d+$/.test(xs.trim()) && /^-?\d+$/.test(ys.trim())) {
     const at = { x: Number(xs), y: Number(ys) };
-    q = rel ? { ...plain, ...at } : toRelative(at, region, plain) ?? plain;
+    q = rel ? { ...plain, ...at } : toRelative(at, region, plain, s) ?? plain;
   }
   updateStep(id, { points: s.points.map((x, i) => (i === index ? q : x)) });
 }
@@ -189,7 +189,7 @@ export function movePoint(id: string, index: number, screen: Point): boolean {
   const sc = script();
   const step = sc.steps.find((s) => s.id === id);
   if (!step) return false;
-  const rel = toRelative(screen, sc.region, step.points[index]);
+  const rel = toRelative(screen, sc.region, step.points[index], step);
   if (!rel) {
     setNotice(`Điểm X ${screen.x} Y ${screen.y} nằm ngoài vùng – giữ vị trí cũ`);
     return false;
@@ -233,7 +233,7 @@ export function setDragRelative(id: string, on: boolean) {
   if (ends?.start && ends.end) {
     b = on
       ? { x: ends.end.x - ends.start.x, y: ends.end.y - ends.start.y }
-      : toRelative(ends.end, sc.region) ?? anchorPoint(ends.end, boundsOf(sc.region), undefined, undefined);
+      : toRelative(ends.end, sc.region, undefined, s) ?? anchorPoint(ends.end, boundsOf(sc.region, s), undefined, undefined);
   }
   updateStep(id, { dragRelative: on, points: [s.points[0], b] });
 }

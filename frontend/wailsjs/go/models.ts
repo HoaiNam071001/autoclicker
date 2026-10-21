@@ -1089,6 +1089,7 @@ export namespace model {
 	    dragMs: number;
 	    dragFromPrev: boolean;
 	    dragRelative: boolean;
+	    coordSpace?: string;
 	    text: string;
 	    typeMode?: string;
 	    keys: string[];
@@ -1209,6 +1210,7 @@ export namespace model {
 	        this.dragMs = source["dragMs"];
 	        this.dragFromPrev = source["dragFromPrev"];
 	        this.dragRelative = source["dragRelative"];
+	        this.coordSpace = source["coordSpace"];
 	        this.text = source["text"];
 	        this.typeMode = source["typeMode"];
 	        this.keys = source["keys"];
@@ -1927,6 +1929,7 @@ export namespace web {
 	    }
 	}
 	export class Tab {
+	    id: string;
 	    title: string;
 	    url: string;
 	
@@ -1936,6 +1939,7 @@ export namespace web {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
 	        this.title = source["title"];
 	        this.url = source["url"];
 	    }

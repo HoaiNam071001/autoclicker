@@ -37,6 +37,18 @@ func ResolvePoint(p model.Point, b model.Rect) model.Point {
 	return model.Point{X: resolveAxis(p.X, p.Ax, b.X, b.W), Y: resolveAxis(p.Y, p.Ay, b.Y, b.H)}
 }
 
+// CoordAbsolute – Step.CoordSpace: điểm là toạ độ màn hình thật, không cộng gốc vùng (khớp ảnh screenshot).
+const CoordAbsolute = "absolute"
+
+// StepBounds – khung tính toạ độ điểm của node s: absolute thì gốc (0,0) của màn hình, còn lại như Bounds.
+// Phải khớp stepBounds trong frontend/src/anchor.ts.
+func StepBounds(sc model.Script, screen model.Rect, s model.Step) model.Rect {
+	if s.CoordSpace == CoordAbsolute {
+		return model.Rect{W: screen.X + screen.W, H: screen.Y + screen.H}
+	}
+	return Bounds(sc, screen)
+}
+
 // Bounds trả khung tính toạ độ điểm: vùng của kịch bản, không có thì màn hình.
 func Bounds(sc model.Script, screen model.Rect) model.Rect {
 	if sc.Region != nil {

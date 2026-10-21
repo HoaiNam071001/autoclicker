@@ -78,6 +78,7 @@ type Step struct {
 	DragMs        int      `json:"dragMs"`
 	DragFromPrev  bool     `json:"dragFromPrev"`       // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
 	DragRelative  bool     `json:"dragRelative"`       // drag: points[1] là độ lệch (dx, dy) so với điểm bắt đầu
+	CoordSpace    string   `json:"coordSpace,omitempty"` // node có điểm: "" | region = toạ độ cộng gốc vùng của kịch bản; absolute = toạ độ màn hình (như ảnh screenshot)
 	Text          string   `json:"text"`               // type / webType: chuỗi cần gõ
 	TypeMode      string   `json:"typeMode,omitempty"` // type / webType: TypeModes – "" tự chọn | keys gõ phím | paste dán
 	Keys          []string `json:"keys"`               // key: phím chính theo tên robotgo (enter, tab, a, f5…)

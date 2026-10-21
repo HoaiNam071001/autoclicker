@@ -1,20 +1,28 @@
 // Toạ độ điểm của node: khung vùng / màn hình, đổi điểm lưu (neo) ↔ toạ độ màn hình, điểm đầu / cuối của bước chuột.
 // Hàm đọc state, không đổi state – dùng chung cho nodes / points / multi và overlay, xem trước.
-import { anchorPoint, insideBounds, nearestAnchor, resolvePoint, usesVar } from '../anchor';
+import { anchorPoint, insideBounds, nearestAnchor, resolvePoint, stepBounds, usesVar } from '../anchor';
 import { flowOrder } from '../flow/model';
 import { Point, Rect, Script, Step, StepPoint } from '../types';
 import { getEditor } from './editor';
 
-// Khung tính toạ độ điểm: vùng, không có thì màn hình chính (bounds trong anchor.go).
-export const boundsOf = (region: Rect | null): Rect => region ?? getEditor().screen;
+// Khung tính toạ độ điểm: vùng, không có thì màn hình chính (Bounds trong anchor.go); s = node có coordSpace "absolute"
+// thì gốc (0,0) của màn hình, không theo vùng (StepBounds).
+type Space = Pick<Step, 'coordSpace'>;
+export const boundsOf = (region: Rect | null, s?: Space): Rect => {
+  const screen = getEditor().screen;
+  return stepBounds(s ?? {}, region ?? screen, screen);
+};
+
+// Node tính toạ độ theo màn hình, không theo vùng (đổi vùng không dời điểm của nó).
+export const isAbsolute = (s: Space) => s.coordSpace === 'absolute';
 
 // Điểm đã lưu (neo theo vùng) → toạ độ màn hình thật.
-export const toScreen = (p: StepPoint, region: Rect | null): Point => resolvePoint(p, boundsOf(region));
+export const toScreen = (p: StepPoint, region: Rect | null, s?: Space): Point => resolvePoint(p, boundsOf(region, s));
 
 // Toạ độ màn hình → điểm lưu: like = điểm cũ để giữ neo (kéo marker, chọn lại), không có thì neo theo cài đặt kịch bản
 // (góc gần nhất / luôn trên trái). null nếu nằm ngoài vùng.
-export const toRelative = (p: Point, r: Rect | null, like?: StepPoint): StepPoint | null => {
-  const b = boundsOf(r);
+export const toRelative = (p: Point, r: Rect | null, like?: StepPoint, s?: Space): StepPoint | null => {
+  const b = boundsOf(r, s);
   if (!insideBounds(p, b)) return null;
   if (like) return anchorPoint(p, b, like.ax, like.ay);
   return getEditor().script.anchorMode === 'start' ? anchorPoint(p, b, 'start', 'start') : nearestAnchor(p, b);
@@ -48,7 +56,7 @@ export function endpoints(sc: Pick<Script, 'steps' | 'start' | 'edges'>, region:
   for (const id of flowOrder(sc)) {
     const s = byId.get(id)!;
     if (!s.enabled || !s.points.length) continue;
-    const at = (p: StepPoint) => (usesVar(p) ? null : toScreen(p, region));
+    const at = (p: StepPoint) => (usesVar(p) ? null : toScreen(p, region, s));
     if (s.type === 'waitPixel') { // có điểm (marker) nhưng không di chuột
       const p = at(s.points[0]);
       out.set(s.id, { start: p, end: p, prevStep: null });

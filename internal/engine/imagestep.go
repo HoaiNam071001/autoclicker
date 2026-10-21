@@ -236,7 +236,7 @@ func (e *Engine) waitPixel(ctx context.Context, s model.Step) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	p, err := e.pointAt(s.Points[0])
+	p, err := e.pointAt(s, s.Points[0])
 	if err != nil {
 		return "", err
 	}

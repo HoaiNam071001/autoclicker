@@ -82,3 +82,8 @@ export function anchorSummary({ x, y, ax, ay }: StepPoint): string {
   const px = part(x, axisOf(ax), 'x'), py = part(y, axisOf(ay), 'y');
   return axisOf(ax) === 'ratio' ? `${px} · ${py}` : `${px}, ${py.replace(/^cách /, axisOf(ay) === axisOf(ax) ? '' : 'cách ')}`;
 }
+
+// Khung tính toạ độ điểm của node: coordSpace "absolute" = gốc (0,0) của màn hình, còn lại là khung b (vùng hoặc màn hình).
+// Phải khớp StepBounds trong internal/script/anchor.go.
+export const stepBounds = (s: { coordSpace?: string }, b: Rect, screen: Rect): Rect =>
+  s.coordSpace === 'absolute' ? { x: 0, y: 0, w: screen.x + screen.w, h: screen.y + screen.h } : b;

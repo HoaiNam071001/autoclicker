@@ -196,7 +196,7 @@ export async function pickColor(stepId: string) {
   if (!s?.points[0] || usesVar(s.points[0]) || !inWails) return; // điểm từ biến: chỉ biết lúc chạy
   set({ busy: stepId, error: '' });
   try {
-    const p = toScreen(s.points[0], script.region);
+    const p = toScreen(s.points[0], script.region, s);
     const color = await PixelColorAt(p.x, p.y);
     updateStep(stepId, { color });
     setNotice(`Màu tại X ${p.x} Y ${p.y}: ${color}`);

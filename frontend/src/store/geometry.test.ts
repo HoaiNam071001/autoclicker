@@ -26,3 +26,18 @@ describe('điểm dùng biến', () => {
     expect(selectableIndexes(makeStep({ id: 'd', type: 'drag', points: [{ x: 1, y: 1 }, v] }))).toEqual([0]);
   });
 });
+
+// coordSpace absolute (46 A1): điểm là toạ độ màn hình thật, không cộng gốc vùng.
+describe('coordSpace absolute', () => {
+  const region = { x: 100, y: 50, w: 400, h: 300 };
+  const steps = [
+    makeStep({ id: 'a', ref: 'n1', type: 'click', points: [{ x: 10, y: 20 }] }),
+    makeStep({ id: 'b', ref: 'n2', type: 'click', coordSpace: 'absolute', points: [{ x: 10, y: 20 }] }),
+  ];
+  const ends = endpoints({ steps, start: 'a', edges: chain(['a', 'b']) }, region);
+
+  it('marker node absolute không cộng gốc vùng', () => {
+    expect(ends.get('a')?.start).toEqual({ x: 110, y: 70 });
+    expect(ends.get('b')?.start).toEqual({ x: 10, y: 20 });
+  });
+});

@@ -3,7 +3,7 @@ import { anchorPoint, insideBounds } from '../anchor';
 import { apply, IDENTITY, Mat, rectToRect, translate } from '../transform';
 import { Point, Rect, Script, Step } from '../types';
 import { getEditor, setEditor, setNotice, updateScript } from './editor';
-import { boundsOf, endpoints, pointKey, selectableIndexes, toScreen } from './geometry';
+import { boundsOf, endpoints, isAbsolute, pointKey, selectableIndexes, toScreen } from './geometry';
 
 const script = () => getEditor().script;
 
@@ -64,11 +64,11 @@ export const selectNodes = (ids: string[]) =>
 // (f(A + Δ) − f(A), không cộng phần dời). Trả số điểm rơi ra ngoài khung mới – khác 0 thì người gọi không nên áp dụng.
 function mapPoints(sc: Script, from: Rect | null, to: Rect | null, f: (p: Point) => Point, pick: (id: string, j: number) => boolean) {
   const ends = endpoints(sc, from);
-  const nb = boundsOf(to);
   let outside = 0;
   const round = (p: Point) => ({ x: Math.round(p.x), y: Math.round(p.y) });
   const steps = sc.steps.map((s) => {
     if (!selectableIndexes(s).some((j) => pick(s.id, j))) return s;
+    const nb = boundsOf(to, s);
     const points = s.points.map((p, j) => {
       if (!pick(s.id, j) || !selectableIndexes(s).includes(j)) return p;
       if (s.type === 'drag' && j === 1 && s.dragRelative) {
@@ -77,7 +77,7 @@ function mapPoints(sc: Script, from: Rect | null, to: Rect | null, f: (p: Point)
         const fa = f(a), fb = f({ x: a.x + p.x, y: a.y + p.y });
         return round({ x: fb.x - fa.x, y: fb.y - fa.y });
       }
-      const q = round(f(toScreen(p, from)));
+      const q = round(f(toScreen(p, from, s)));
       if (!insideBounds(q, nb)) outside++;
       return anchorPoint(q, nb, p.ax, p.ay);
     });
@@ -111,7 +111,6 @@ export function transformSelected(m: Mat, what: string): boolean {
 // Hai lượt: ghi điểm thường trước, rồi tính lại B "lệch so với A" theo điểm bắt đầu mới (A có thể vừa dời).
 export function moveSelectedTo(next: Map<string, Point>, what: string) {
   const sc = script();
-  const b = boundsOf(sc.region);
   const round = (p: Point) => ({ x: Math.round(p.x), y: Math.round(p.y) });
   const isRel = (s: Step, j: number) => s.type === 'drag' && j === 1 && s.dragRelative;
   let outside = 0;
@@ -120,6 +119,7 @@ export function moveSelectedTo(next: Map<string, Point>, what: string) {
     points: s.points.map((p, j) => {
       const q = next.get(pointKey(s.id, j));
       if (!q || isRel(s, j)) return p;
+      const b = boundsOf(sc.region, s);
       if (!insideBounds(round(q), b)) outside++;
       return anchorPoint(round(q), b, p.ax, p.ay);
     }),
@@ -131,7 +131,7 @@ export function moveSelectedTo(next: Map<string, Point>, what: string) {
       const q = next.get(pointKey(s.id, j));
       const start = ends.get(s.id)?.start;
       if (!q || !isRel(s, j) || !start) return p;
-      if (!insideBounds(round(q), b)) outside++;
+      if (!insideBounds(round(q), boundsOf(sc.region, s))) outside++;
       return { x: Math.round(q.x) - start.x, y: Math.round(q.y) - start.y };
     }),
   }));
@@ -147,17 +147,22 @@ export type RegionMapMode = 'anchor' | 'scale' | 'screen';
 export function regionMapping(to: Rect | null, mode: RegionMapMode) {
   const sc = script();
   const f = mode === 'scale' ? rectToRect(boundsOf(sc.region), boundsOf(to)) : IDENTITY;
-  return mapPoints(sc, sc.region, to, (p) => apply(f, p), () => mode !== 'anchor');
+  // node absolute không theo vùng – đổi vùng không dời điểm của nó
+  const abs = new Set(sc.steps.filter(isAbsolute).map((s) => s.id));
+  return mapPoints(sc, sc.region, to, (p) => apply(f, p), (id) => mode !== 'anchor' && !abs.has(id));
 }
 
 // Số điểm rơi ra ngoài vùng mới với từng cách – hiện trong hộp chọn.
 export function mappingOutside(to: Rect | null, mode: RegionMapMode) {
   if (mode !== 'anchor') return regionMapping(to, mode).outside;
-  const b = boundsOf(to);
+  const sc = script();
   let n = 0;
-  endpoints(script(), to).forEach((e) => [e.start, e.end].forEach((p, j) => {
-    if (p && (j === 0 || e.end !== e.start) && !insideBounds(p, b)) n++;
-  }));
+  endpoints(sc, to).forEach((e, id) => {
+    const b = boundsOf(to, sc.steps.find((s) => s.id === id));
+    [e.start, e.end].forEach((p, j) => {
+      if (p && (j === 0 || e.end !== e.start) && !insideBounds(p, b)) n++;
+    });
+  });
   return n;
 }
 

@@ -58,13 +58,15 @@ export function pathOutlines(steps: Step[], ends: Ends, toClient: ToClient): { i
 export type AnchorLine = { key: string; x1: number; y1: number; x2: number; y2: number; text: string };
 
 // Đường neo (bước 29): từ marker tới cạnh / giữa của khung (toạ độ cửa sổ) mà điểm đang neo – ngang cho X, dọc cho Y.
-export function anchorLinesOf(markers: Marker[], frame: Rect): AnchorLine[] {
+// frame: khung neo, hoặc hàm theo id node (node coordSpace absolute neo theo màn hình, không theo vùng).
+export function anchorLinesOf(markers: Marker[], frame: Rect | ((id: string) => Rect)): AnchorLine[] {
   const edge = (a: StepPoint['ax'], o: number, size: number) => (a === 'end' ? o + size : a === 'center' ? o + size / 2 : o);
   return markers.flatMap((m) => {
     if (!m.pt) return [];
     const p = m.pt;
-    const ex = edge(p.ax, frame.x, frame.w);
-    const ey = edge(p.ay, frame.y, frame.h);
+    const f = typeof frame === 'function' ? frame(m.id) : frame;
+    const ex = edge(p.ax, f.x, f.w);
+    const ey = edge(p.ay, f.y, f.h);
     return [
       { key: `${m.label}x`, x1: ex, y1: m.at.y, x2: m.at.x, y2: m.at.y, text: fmtAxis(p.x, p.ax) },
       { key: `${m.label}y`, x1: m.at.x, y1: ey, x2: m.at.x, y2: m.at.y, text: fmtAxis(p.y, p.ay) },

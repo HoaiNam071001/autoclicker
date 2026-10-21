@@ -3,7 +3,7 @@ import NumInput from '../NumInput';
 import Segmented from '../Segmented';
 import AnchorField from '../steps/AnchorField';
 import ScrollMap from '../steps/ScrollMap';
-import { boundsOf, endpoints, setAnchor, setScrollAt, toScreen, updateStep, useScript } from '../../store';
+import { boundsOf, endpoints, isAbsolute, setAnchor, setScrollAt, toScreen, updateStep, useScript } from '../../store';
 import { pinnedInput, setPinnedValue } from '../../scriptInputs';
 import { insideBounds } from '../../anchor';
 import { SCROLL_NOTCH_PX, ScrollDirection, Step } from '../../types';
@@ -13,6 +13,7 @@ import PointSource from './PointSource';
 export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetPoint }) {
   const script = useScript();
   const { region } = script;
+  const inZone = region && !isAbsolute(s); // node absolute: toạ độ màn hình, không theo vùng
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   return (
           <>
@@ -40,9 +41,9 @@ export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetP
             {(menu) => <>
             <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
               pick={<PickButton step={s} />} menu={menu} />
-            {!insideBounds(toScreen(s.points[0], region), boundsOf(region)) && (
+            {!insideBounds(toScreen(s.points[0], region, s), boundsOf(region, s)) && (
               <span className={errText}>
-                Điểm nằm ngoài {region ? 'vùng' : 'màn hình'} ({boundsOf(region).w} × {boundsOf(region).h}) – chuột không tới được, chạy sẽ báo lỗi.
+                Điểm nằm ngoài {inZone ? 'vùng' : 'màn hình'} ({boundsOf(region, s).w} × {boundsOf(region, s).h}) – chuột không tới được, chạy sẽ báo lỗi.
                 Muốn cuộn xa hơn thì tăng số nấc / quãng cuộn.
               </span>
             )}
@@ -50,7 +51,7 @@ export function ScrollFields({ step: s, setPoint }: { step: Step; setPoint: SetP
           </PointSource>
         ) : null}
         <Field label="Cuộn tới đâu" wide group>
-          <ScrollMap bounds={boundsOf(region)} label={region ? 'Vùng' : 'Màn hình'} direction={s.direction ?? 'down'} amount={s.amount ?? 0}
+          <ScrollMap bounds={boundsOf(region, s)} label={inZone ? 'Vùng' : 'Màn hình'} direction={s.direction ?? 'down'} amount={s.amount ?? 0}
             at={endpoints(script, region).get(s.id)?.start ?? null} />
         </Field>
       </>

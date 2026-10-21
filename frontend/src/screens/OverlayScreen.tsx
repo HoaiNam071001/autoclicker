@@ -212,7 +212,8 @@ export default function OverlayScreen() {
   const selPoints = markers.filter((m) => multi.includes(m.key)).map((m) => m.scr);
   const selBox = selPoints.length ? bbox(selPoints) : null;
   // Đường neo: bước đang chọn / xem riêng, giữ Alt thì mọi điểm.
-  const anchorLines = preview ? [] : anchorLinesOf(markers.filter((m) => alt || m.id === (focus ?? selected)), toClientRect(boundsOf(liveRegion)));
+  const anchorLines = preview ? [] : anchorLinesOf(markers.filter((m) => alt || m.id === (focus ?? selected)),
+    (id) => toClientRect(boundsOf(liveRegion, view.steps.find((s) => s.id === id))));
   const scrollArrows = preview ? [] : scrollArrowsOf(view.steps, ends, toClient, { w: window.innerWidth, h: window.innerHeight });
   const focusStep = focus ? steps.find((x) => x.id === focus) ?? null : null;
   // Khung đích node Cửa sổ; Xem trước: chỉ khung của node đang diễn. Trình duyệt (không có Displays): màn chính.

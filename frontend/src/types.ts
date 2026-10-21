@@ -100,6 +100,7 @@ export interface Step extends AdvancedFields {
   dragMs: number;
   dragFromPrev: boolean; // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
   dragRelative: boolean; // drag: points[1] là độ lệch (dx, dy) so với điểm bắt đầu
+  coordSpace?: "region" | "absolute"; // node có điểm: absolute = toạ độ màn hình thật (không cộng gốc vùng)
   text: string; // type / webType: chuỗi cần gõ
   typeMode?: TypeMode; // type / webType: bỏ trống = tự chọn (Windows + không giống người: dán)
   keys: string[]; // key: phím chính theo tên robotgo (enter, tab, a, f5…)

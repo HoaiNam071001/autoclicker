@@ -150,3 +150,28 @@ func TestValidateElementRead(t *testing.T) {
 		t.Errorf("err = %v", err)
 	}
 }
+
+func TestValidateCoordSpaceAbsolute(t *testing.T) {
+	r := model.Rect{X: 500, Y: 300, W: 400, H: 300}
+	screen := model.Rect{W: 1920, H: 1080}
+	mk := func(space string) model.Script {
+		return scripttest.Linear(model.Script{Loops: 1, Region: &r, Steps: []model.Step{
+			modeltest.Step(model.StepClick, func(s *model.Step) { s.Points = []model.Point{{X: 100, Y: 100}}; s.CoordSpace = space }),
+		}})
+	}
+	// region: 100,100 cộng gốc vùng = 600,400 → trong vùng; absolute: 100,100 là chỗ thật, ngoài vùng nhưng trong màn hình → hợp lệ
+	for _, sp := range []string{"", "region", "absolute"} {
+		if err := script.ValidateScript(mk(sp), screen); err != nil {
+			t.Errorf("coordSpace %q: %v", sp, err)
+		}
+	}
+	// ngoài màn hình: lỗi nêu gốc đang cộng
+	sc := mk("")
+	sc.Steps[0].Points = []model.Point{{X: 900, Y: 10}}
+	if err := script.ValidateScript(sc, screen); err == nil || !strings.Contains(err.Error(), "gốc vùng 500,300") {
+		t.Errorf("err = %v", err)
+	}
+	if p := script.ResolvePoint(model.Point{X: 100, Y: 100}, script.StepBounds(sc, screen, model.Step{CoordSpace: "absolute"})); p != (model.Point{X: 100, Y: 100}) {
+		t.Errorf("absolute = %v", p)
+	}
+}

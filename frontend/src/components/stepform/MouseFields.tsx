@@ -3,7 +3,7 @@ import { useState } from 'react';
 import NumInput from '../NumInput';
 import Segmented from '../Segmented';
 import AnchorField, { AnchorMap } from '../steps/AnchorField';
-import { boundsOf, endpoints, refOf, setAnchor, setDragFromPrev, setDragRelative, updateStep, useScript } from '../../store';
+import { boundsOf, endpoints, isAbsolute, refOf, setAnchor, setDragFromPrev, setDragRelative, updateStep, useScript } from '../../store';
 import { numVarOf, Step } from '../../types';
 import { usesVar } from '../../anchor';
 import PointSource from './PointSource';
@@ -13,6 +13,7 @@ export const isMouse = (s: Step) => s.type === 'click' || s.type === 'double' ||
 
 export function MouseFields({ step: s, setPoint }: { step: Step; setPoint: SetPoint }) {
   const { region } = useScript();
+  const inZone = region && !isAbsolute(s); // node absolute: toạ độ màn hình, không theo vùng
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   const mouse = isMouse(s);
   return (
@@ -25,7 +26,7 @@ export function MouseFields({ step: s, setPoint }: { step: Step; setPoint: SetPo
         <PointSource step={s} index={0} setPoint={setPoint}
           label={s.type === 'path' ? 'Tâm hình' : 'Vị trí'}>
           {(menu) => <AnchorField value={s.points[0]} onChange={(p) => setPoint(0, p)} onAnchor={(ax, ay) => setAnchor(s.id, 0, ax, ay)}
-            pick={<PickButton step={s} />} menu={menu} bounds={boundsOf(region)} boundsLabel={region ? 'Vùng' : 'Màn hình'} />}
+            pick={<PickButton step={s} />} menu={menu} bounds={boundsOf(region, s)} boundsLabel={inZone ? 'Vùng' : 'Màn hình'} />}
         </PointSource>
       )}
       {s.type === 'drag' && s.points.length >= 2 && <DragPoints step={s} setPoint={setPoint} />}
@@ -58,8 +59,9 @@ export function JitterField({ step: s }: { step: Step }) {
 function DragPoints({ step: s, setPoint }: { step: Step; setPoint: SetPoint }) {
   const script = useScript();
   const { region } = script;
+  const inZone = region && !isAbsolute(s);
   const ends = endpoints(script, region).get(s.id);
-  const inRegion = region && <span className="ml-1.5 text-xs">(trong vùng)</span>;
+  const inRegion = inZone && <span className="ml-1.5 text-xs">(trong vùng)</span>;
   // Bản đồ chung A + B: chọn điểm nào để đổi neo (chỉ điểm lưu vị trí – không phải "từ điểm trước" / "lệch so với A").
   const editable = [!s.dragFromPrev && !usesVar(s.points[0]) && 'A', !s.dragRelative && !usesVar(s.points[1]) && 'B'].filter(Boolean) as ('A' | 'B')[];
   const [pick, setPick] = useState<'A' | 'B'>('A');
@@ -108,13 +110,13 @@ function DragPoints({ step: s, setPoint }: { step: Step; setPoint: SetPoint }) {
       </div>
       <div className="col-span-2 flex flex-col gap-1.5 text-muted">
         <span className="flex items-center gap-2">
-          <span className="flex-1">Neo trên {region ? 'vùng' : 'màn hình'}</span>
+          <span className="flex-1">Neo trên {inZone ? 'vùng' : 'màn hình'}</span>
           {editable.length > 1 && (
             <Segmented value={cur} onChange={(v: 'A' | 'B') => setPick(v)} label="Đổi neo cho điểm"
               options={[{ id: 'A', label: 'A' }, { id: 'B', label: 'B' }]} />
           )}
         </span>
-        <AnchorMap bounds={boundsOf(region)} label={region ? 'Vùng' : 'Màn hình'}
+        <AnchorMap bounds={boundsOf(region, s)} label={inZone ? 'Vùng' : 'Màn hình'}
           value={cur ? s.points[curIdx] : undefined} onAnchor={cur ? (ax, ay) => setAnchor(s.id, curIdx, ax, ay) : undefined}
           marks={[
             ...(ends?.start ? [{ at: ends.start, text: 'A', active: cur === 'A' }] : []),
