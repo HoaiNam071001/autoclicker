@@ -5,6 +5,10 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 46 – MCP web tinh chỉnh (A0–A3, A2) · [phase3/46-mcp-web-tinh-chinh.md](phase3/46-mcp-web-tinh-chinh.md)
 
+- [ ] (B1) Nhờ Claude “thử bấm nút X trên trang đang mở” → AI dùng run_script với script tạm: hộp hỏi ghi *Kịch bản tạm*, không có nút *Cho phép đến khi đóng app*; không có file kịch bản mới, không thêm lịch sử chạy
+- [ ] (B2) Nhờ Claude đổi một node Click thành Double click / node Nếu thành Chờ → node giữ tên + vị trí trên canvas, cạnh true / false bị bỏ và AI báo lại
+- [ ] (B3) Mẫu thử *Web: phím trên trang* chạy thành công khi Chrome của app bị cửa sổ khác che; bàn phím thật không gõ gì; thêm node *Phím trên trang web* từ bảng thêm node, inspector có phím + Tab
+- [ ] (B4) Claude gọi `screenshot` với `webTab` khi Chrome của app bị che → vẫn ra ảnh đúng trang; chạy `shots: each` → ảnh trả theo thứ tự node, có chú thích
 - [ ] (A4) Hai tab cùng trang trên Chrome của app: Claude gọi `probe_page` / `read_web_outline` → có `tab` + `tabs` kèm id; node web đặt `tab` = id chạy đúng tab đó; Chrome của app mở lại thì id cũ báo “không thấy tab” kèm gợi ý ghi chuỗi URL
 - [ ] (A3) Mẫu thử *Web: form trong hộp thoại* chạy thành công; trên inspector node web thấy *Tìm trong* (Cả trang / Hộp thoại đang mở), *Chỗ thứ*, webType có *Bỏ kiểm tra focus*; *Thử tìm* với `label="Ngày sinh"` khoanh đúng ô ngày; chọn *Hộp thoại đang mở* trên trang không có hộp thoại → báo rõ
 - [ ] (A1) Kịch bản có vùng: nhờ Claude chụp `screenshot` rồi tạo node click theo toạ độ trên ảnh với `coordSpace: "absolute"` → chạy click đúng chỗ; marker trên overlay đúng chỗ, inspector ghi *Màn hình*; đổi vùng không dời điểm đó; node thường ngoài vùng → lỗi nêu "gốc vùng X,Y" + gợi ý coordSpace

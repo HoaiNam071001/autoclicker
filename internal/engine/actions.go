@@ -72,6 +72,8 @@ func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[strin
 		return e.webType(ctx, s)
 	case model.StepWebRead:
 		return e.webRead(ctx, s)
+	case model.StepWebKey:
+		return e.webKey(ctx, s)
 	case model.StepWebScroll:
 		return e.webScroll(ctx, s)
 	case model.StepElementRead:

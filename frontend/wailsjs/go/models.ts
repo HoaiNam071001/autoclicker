@@ -1537,6 +1537,7 @@ export namespace session {
 	    seedRun?: string;
 	    maxMinutes?: number;
 	    shotEach?: boolean;
+	    noHistory?: boolean;
 	    confirmDanger?: string;
 	
 	    static createFrom(source: any = {}) {
@@ -1557,6 +1558,7 @@ export namespace session {
 	        this.seedRun = source["seedRun"];
 	        this.maxMinutes = source["maxMinutes"];
 	        this.shotEach = source["shotEach"];
+	        this.noHistory = source["noHistory"];
 	        this.confirmDanger = source["confirmDanger"];
 	    }
 	}

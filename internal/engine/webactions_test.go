@@ -152,3 +152,20 @@ func TestWebNoDialogMessage(t *testing.T) {
 		t.Errorf("lỗi %v", err)
 	}
 }
+
+// webKey (46 B3): phím đi qua trình duyệt (CDP), không đụng bàn phím thật; output keys + tab.
+func TestWebKey(t *testing.T) {
+	b := &fakeBrowser{}
+	in, res, err := runWeb(t, b, webNode(model.StepWebKey, func(s *model.Step) {
+		s.Keys, s.Modifiers, s.Tab, s.KeyMode = []string{"tab", "enter"}, []string{"shift"}, "shop", model.KeySequence
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(in.Lines()) != 0 || len(b.bg) != 1 || b.bg[0] != "keys shop [shift] [tab enter] true" {
+		t.Errorf("bàn phím thật %q, trình duyệt %q", in.Lines(), b.bg)
+	}
+	if res[0].Output["keys"] != "shift+tab+enter" || res[0].Output["tab"] != "https://shop.vn/" {
+		t.Errorf("output %v", res[0].Output)
+	}
+}

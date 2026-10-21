@@ -30,6 +30,7 @@ export const STEP_DEFAULTS: Partial<Record<StepType, Partial<Step>>> = {
   webType: { clicks: 0, selectors: ['text='], webClear: true, timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
   webRead: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 0 },
   elementRead: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 250, delayAfter: 0 },
+  webKey: { clicks: 0, keys: ['enter'], delayAfter: 300 },
   webScroll: { clicks: 0, selectors: ['text='], direction: 'down', amount: 3, timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
 };
 

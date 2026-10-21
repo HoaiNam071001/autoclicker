@@ -103,8 +103,8 @@ export async function playNode(s: Step, e: Ends | undefined, p: Player) {
         await p.wait(TYPE_CHAR_MS);
       }
       return;
-    case 'key':
-      p.patch({ bubble: `⌨ ${fmtKey(s)}` });
+    case 'key': case 'webKey':
+      p.patch({ bubble: `⌨ ${fmtKey(s)}${s.type === 'webKey' ? ' (Chrome của app)' : ''}` });
       return p.wait(KEY_SHOW_MS);
     case 'scroll': return playScroll(s, e, p);
     case 'waitImage':

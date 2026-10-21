@@ -171,6 +171,21 @@ func (b mcpBackend) ReadOutline(ctx context.Context, tab string, onlyDialog bool
 	return o, c.Status(ctx).Tabs, nil
 }
 
+// TabShot – chỉ chụp tab đang mở, không bật trình duyệt: không đụng chuột / phím nên mọi mức AI đều dùng được.
+func (b mcpBackend) TabShot(ctx context.Context, tab string) (web.TabShot, error) {
+	c, err := b.a.browser()
+	if err != nil {
+		return web.TabShot{}, err
+	}
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+	sh, err := c.Screenshot(ctx, tab)
+	if errors.Is(err, web.ErrNoBrowser) {
+		return web.TabShot{}, errors.New("Chrome của app chưa mở – dùng probe_page(url) hoặc node open (webBrowser) để mở trang trước")
+	}
+	return sh, err
+}
+
 func (b mcpBackend) SetNodePref(p string) error {
 	if err := store.SetNodePref(p); err != nil {
 		return err

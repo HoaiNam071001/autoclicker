@@ -74,6 +74,7 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'webClick', label: 'Click phần tử web', info: NODE_INFO.webClick, keywords: 'web dom html selector css xpath aria role nut bam click', run: () => addStep('webClick') },
       { icon: 'webType', label: 'Gõ vào ô web', info: NODE_INFO.webType, keywords: 'web dom html o nhap input go chu dien form dang nhap', run: () => addStep('webType') },
       { icon: 'webRead', label: 'Đọc phần tử web', info: NODE_INFO.webRead, keywords: 'web dom html doc chu gia tri thuoc tinh href bien lay du lieu', run: () => addStep('webRead') },
+      { icon: 'webKey', label: 'Phím trên trang web', info: NODE_INFO.webKey, keywords: 'web dom phim key enter tab esc chrome nen', run: () => addStep('webKey') },
       { icon: 'webScroll', label: 'Cuộn trang web', info: NODE_INFO.webScroll, keywords: 'web dom html cuon lan scroll feed toi khi thay', run: () => addStep('webScroll') },
     ],
   },

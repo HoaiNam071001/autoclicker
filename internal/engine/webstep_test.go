@@ -234,3 +234,8 @@ func TestOpenInWebBrowser(t *testing.T) {
 		t.Errorf("mở %q", b.opened)
 	}
 }
+
+func (b *fakeBrowser) Keys(_ context.Context, tab string, keys, mods []string, sequence bool) (string, error) {
+	b.bg = append(b.bg, fmt.Sprintf("keys %s %v %v %v", tab, mods, keys, sequence))
+	return "https://shop.vn/", b.err
+}

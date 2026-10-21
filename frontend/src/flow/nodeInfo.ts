@@ -37,6 +37,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   webType: { desc: 'Tìm ô nhập trong trang web, bấm vào rồi gõ chữ (xoá chữ cũ nếu muốn).', use: 'Điền form đăng ký, ô tìm kiếm, bình luận.' },
   elementRead: { desc: 'Đọc chữ / giá trị của phần tử trong cửa sổ app đang mở (Chrome thường, app khác) – chữ chính xác, không qua OCR.', use: 'Lấy giá, số dư, nội dung ô nhập trên trang đã đăng nhập sẵn (macOS).' },
   webRead: { desc: 'Đọc chữ, giá trị hoặc thuộc tính của phần tử trong trang web vào biến.', use: 'Lấy giá, mã đơn, số dư, link để node sau dùng hoặc so sánh.' },
+  webKey: { desc: 'Bấm phím vào trang trên Chrome của app – không cần Chrome ở trước, không đụng bàn phím thật.', use: 'Esc đóng hộp thoại, Tab sang ô kế, Enter gửi form – phím không rơi vào app khác.' },
   webScroll: { desc: 'Cuộn trang web tới phần tử, cuộn trong một khung, hoặc cuộn tới khi thấy phần tử.', use: 'Đưa nút cuối trang vào tầm nhìn, lăn feed tới bài cần tìm.' },
   window: { desc: 'Đưa cửa sổ lên trước, chờ mở / đóng, đặt vị trí + cỡ, thu nhỏ hay đóng.', use: 'Đầu kịch bản: cố định cửa sổ để toạ độ click, ảnh mẫu không lệch giữa các lần chạy.' },
   app: { desc: 'Kiểm tra app đang chạy (rẽ nhánh), chờ app mở xong / thoát hẳn, thoát hay buộc thoát app.', use: 'App chưa chạy thì Mở rồi chờ có cửa sổ; cuối kịch bản tắt app.' },

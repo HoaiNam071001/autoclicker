@@ -22,8 +22,9 @@ type Patch struct {
 	RemoveEdges []string            `json:"removeEdges,omitempty"` // id cạnh
 }
 
-// ApplyPatch trả bản sao kịch bản đã sửa (chưa kiểm tra – gọi Checked sau).
-func ApplyPatch(sc model.Script, p Patch) (model.Script, error) {
+// ApplyPatch trả bản sao kịch bản đã sửa (chưa kiểm tra – gọi Checked sau) và các cạnh bị bỏ vì node đổi loại không còn
+// cổng đó (patchtype.go).
+func ApplyPatch(sc model.Script, p Patch) (model.Script, []model.Edge, error) {
 	sc.Steps = slices.Clone(sc.Steps)
 	sc.Edges = slices.Clone(sc.Edges)
 	if p.Name != nil {
@@ -38,21 +39,24 @@ func ApplyPatch(sc model.Script, p Patch) (model.Script, error) {
 	if p.Inputs != nil {
 		sc.Inputs = p.Inputs
 	}
+	var dropped []model.Edge
 	for i, raw := range p.Steps {
-		if err := upsertStep(&sc, raw); err != nil {
-			return model.Script{}, &model.ScriptError{Field: "steps", Msg: fmt.Sprintf("steps[%d]: %v", i, err)}
+		d, err := upsertStep(&sc, raw)
+		dropped = append(dropped, d...)
+		if err != nil {
+			return model.Script{}, nil, &model.ScriptError{Field: "steps", Msg: fmt.Sprintf("steps[%d]: %v", i, err)}
 		}
 	}
 	for _, ref := range p.RemoveSteps {
 		if err := removeStep(&sc, ref); err != nil {
-			return model.Script{}, err
+			return model.Script{}, nil, err
 		}
 	}
 	for _, id := range p.RemoveEdges {
 		n := len(sc.Edges)
 		sc.Edges = slices.DeleteFunc(sc.Edges, func(e model.Edge) bool { return e.ID == id })
 		if len(sc.Edges) == n {
-			return model.Script{}, &model.ScriptError{Field: "edges", Edge: id, Msg: fmt.Sprintf("không có cạnh %q", id)}
+			return model.Script{}, nil, &model.ScriptError{Field: "edges", Edge: id, Msg: fmt.Sprintf("không có cạnh %q", id)}
 		}
 	}
 	for _, e := range p.Edges {
@@ -69,15 +73,15 @@ func ApplyPatch(sc model.Script, p Patch) (model.Script, error) {
 		sc.Start = p.Start
 	}
 	RefsToIDs(&sc)
-	return sc, nil
+	return sc, dropped, nil
 }
 
 // upsertStep: id / ref trùng node đã có → đè từng trường có trong raw (trường gửi lên thay cả giá trị, kể cả mảng /
-// object lồng); không có → node mới.
-func upsertStep(sc *model.Script, raw json.RawMessage) error {
-	var key struct{ ID, Ref string }
+// object lồng); không có → node mới. Gửi type khác loại cũ → dựng lại node theo loại mới (retypeStep), trả cạnh bị bỏ.
+func upsertStep(sc *model.Script, raw json.RawMessage) ([]model.Edge, error) {
+	var key struct{ ID, Ref, Type string }
 	if err := json.Unmarshal(raw, &key); err != nil {
-		return err
+		return nil, err
 	}
 	at := -1
 	if key.ID != "" || key.Ref != "" {
@@ -92,22 +96,30 @@ func upsertStep(sc *model.Script, raw json.RawMessage) error {
 		}
 		st, err := ExpandStep(raw, id, "") // ref trống → Checked đặt số nhỏ nhất chưa dùng
 		if err != nil {
-			return err
+			return nil, err
 		}
 		sc.Steps = append(sc.Steps, st)
-		return nil
+		return nil, nil
+	}
+	if key.Type != "" && key.Type != sc.Steps[at].Type {
+		st, err := retypeStep(sc.Steps[at], raw, key.Type)
+		if err != nil {
+			return nil, err
+		}
+		sc.Steps[at] = st
+		return dropBadPorts(sc, st), nil
 	}
 	merged, err := mergeJSON(sc.Steps[at], raw)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var st model.Step
 	if err := json.Unmarshal(merged, &st); err != nil {
-		return err
+		return nil, err
 	}
 	st.ID = sc.Steps[at].ID // id ổn định – cạnh trỏ theo id
 	sc.Steps[at] = st
-	return nil
+	return nil, nil
 }
 
 func mergeJSON(base any, raw json.RawMessage) ([]byte, error) {

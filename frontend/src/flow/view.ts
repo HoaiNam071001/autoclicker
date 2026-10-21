@@ -184,6 +184,7 @@ function ownOutputs(s: Step): OutputField[] {
       { key: 'count', desc: s.findBy === 'text' ? 'số chỗ thấy nhãn' : 'số phần tử khớp' }, ...(s.findBy === 'text' ? [] : [{ key: 'role', desc: 'vai trò phần tử' }]),
       ...FOUND.slice(0, 4)];
     case 'webRead': return [{ key: 'text', desc: 'giá trị đọc được' }, { key: 'count', desc: 'số phần tử khớp' }, { key: 'selector', desc: 'cách tìm đã khớp' }];
+    case 'webKey': return [{ key: 'keys', desc: 'tổ hợp đã bấm, vd shift+tab' }, { key: 'tab', desc: 'URL tab đã bấm' }];
     case 'webScroll': return [...WEB_FOUND, ...(s.scrollMode === 'until' ? [{ key: 'scrolls', desc: 'số lần đã lăn' }] : [])];
     case 'if': return [{ key: 'result', desc: 'true / false' }, ...FOUND.map((f) => ({ ...f, desc: `${f.desc} (điều kiện ảnh / chữ đúng)` }))];
     case 'switch': return [{ key: 'case', desc: 'case khớp (default nếu không)' }, { key: 'value', desc: 'giá trị đã xét' }];

@@ -1,0 +1,34 @@
+{
+ "meta": {
+  "name": "Web: phím trên trang (không cần Chrome ở trước)",
+  "description": "Bấm phím vào trang qua Chrome của app (node Phím trên trang web) – không đụng bàn phím thật, Chrome bị che vẫn chạy: gõ tài khoản (chạy nền), Tab sang ô mật khẩu, bấm lần lượt 1 2 3 4 5 6, Enter gửi form, đọc tên trên màn XIN CHÀO. Đúng: kết thúc thành công “XIN CHÀO DEMO”; trong lúc chạy bàn phím thật không gõ gì vào app khác.",
+  "app": "Web (DOM)",
+  "level": 2,
+  "page": "login.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {"type": "open", "target": "{{sandbox}}/login.html", "webBrowser": true, "delayAfter": 500},
+   {"type": "webType", "selectors": ["label=\"TÊN TÀI KHOẢN\"", "css=#u"], "text": "demo", "webClear": true, "webBackground": true,
+    "timeoutMs": 5000, "intervalMs": 200, "delayAfter": 200},
+   {"type": "webKey", "keys": ["tab"], "delayAfter": 200},
+   {"type": "webKey", "keys": ["1", "2", "3", "4", "5", "6"], "keyMode": "sequence", "delayAfter": 200},
+   {"type": "webKey", "keys": ["enter"], "delayAfter": 300},
+   {"type": "webRead", "selectors": ["css=#who"], "timeoutMs": 5000, "intervalMs": 200},
+   {"type": "if", "cond": {"kind": "value", "left": "{{n6.output.text}}", "op": "eq", "right": "DEMO"}},
+   {"type": "end", "endStatus": "success", "message": "XIN CHÀO {{n6.output.text}}"},
+   {"type": "end", "endStatus": "fail", "message": "Đọc được “{{n6.output.text}}”, cần DEMO"}
+  ],
+  "edges": [
+   {"from": "s1", "port": "success", "to": "s2"},
+   {"from": "s2", "port": "success", "to": "s3"},
+   {"from": "s3", "port": "success", "to": "s4"},
+   {"from": "s4", "port": "success", "to": "s5"},
+   {"from": "s5", "port": "success", "to": "s6"},
+   {"from": "s6", "port": "success", "to": "s7"},
+   {"from": "s7", "port": "true", "to": "s8"},
+   {"from": "s7", "port": "false", "to": "s9"}
+  ]
+ }
+}

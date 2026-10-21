@@ -2,6 +2,7 @@ package mcpsrv
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -27,6 +28,11 @@ type areaIn struct {
 	H      int    `json:"h,omitempty"`
 }
 
+type shotIn struct {
+	areaIn
+	WebTab string `json:"webTab,omitempty" jsonschema:"chụp riêng một tab của Chrome của app qua trình duyệt (id tab từ probe_page / read_web_outline, hoặc chuỗi trong URL; \"active\" = tab đang hiện) – đúng tab kể cả khi Chrome bị che; bỏ qua window / vùng"`
+}
+
 type textLine struct {
 	Text string     `json:"text"`
 	Box  model.Rect `json:"box"`
@@ -37,7 +43,7 @@ func (s *Server) addScreenTools() {
 		"theo toạ độ chuột + danh sách cửa sổ đang mở (trên cùng trước). Dùng để tìm chữ / nút cho node waitImage / clickImage (findBy text) " +
 		"hoặc biết cửa sổ nào đang trước."}, s.describeScreen)
 	addTool(s, KindScreen, &mcp.Tool{Name: "screenshot", Description: "Chụp màn hình / vùng / cửa sổ, trả ảnh (thu nhỏ) + vùng + tỷ lệ: " +
-		"toạ độ chuột = area.x + px ảnh × scale (y tương tự)."}, s.screenshot)
+		"toạ độ chuột = area.x + px ảnh × scale (y tương tự). webTab: chụp một tab Chrome của app (khung nhìn trang, toạ độ trong trang = px ảnh × scale)."}, s.screenshot)
 }
 
 // area – vùng cần xem: cửa sổ khớp tên > vùng gửi lên > màn chính.
@@ -65,8 +71,11 @@ func (s *Server) area(in areaIn) (model.Rect, error) {
 	return model.Rect{}, fmt.Errorf("không đọc được màn hình")
 }
 
-func (s *Server) screenshot(_ context.Context, _ *mcp.CallToolRequest, in areaIn) (*mcp.CallToolResult, any, error) {
-	r, err := s.area(in)
+func (s *Server) screenshot(ctx context.Context, _ *mcp.CallToolRequest, in shotIn) (*mcp.CallToolResult, any, error) {
+	if t := strings.TrimSpace(in.WebTab); t != "" {
+		return s.tabShot(ctx, t)
+	}
+	r, err := s.area(in.areaIn)
 	if err != nil {
 		return fail(err)
 	}
@@ -79,6 +88,31 @@ func (s *Server) screenshot(_ context.Context, _ *mcp.CallToolRequest, in areaIn
 		return fail(fmt.Errorf("không mã hoá được ảnh"))
 	}
 	res, _, err := ok(map[string]any{"area": r, "imageWidth": w, "scale": float64(r.W) / float64(w)})
+	if err != nil {
+		return nil, nil, err
+	}
+	res.Content = append(res.Content, c)
+	return res, nil, nil
+}
+
+// tabShot – ảnh một tab Chrome của app (webTab "active" = tab đang hiện); chỉ trang http(s) như read_web_outline.
+func (s *Server) tabShot(ctx context.Context, tab string) (*mcp.CallToolResult, any, error) {
+	if tab == "active" {
+		tab = ""
+	}
+	sh, err := s.back.TabShot(ctx, tab)
+	if err != nil {
+		return fail(err)
+	}
+	if !isWebURL(sh.URL) {
+		return fail(errors.New("tab không phải trang http:// / https://"))
+	}
+	c, w := pngContent(sh.Image)
+	if c == nil {
+		return fail(fmt.Errorf("không mã hoá được ảnh"))
+	}
+	res, _, err := ok(map[string]any{"tab": sh.Tab, "url": sh.URL, "imageWidth": w, "scale": float64(sh.CSSWidth) / float64(w),
+		"note": "toạ độ trong trang (CSS px, như webBackground / outline) = px ảnh × scale – không phải toạ độ chuột"})
 	if err != nil {
 		return nil, nil, err
 	}

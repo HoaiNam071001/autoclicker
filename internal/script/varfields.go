@@ -62,6 +62,8 @@ func VarFields(s *model.Step) []VarField {
 				add(fmt.Sprintf("scrollIn[%d]", i), &s.ScrollIn[i], false)
 			}
 		}
+	case model.StepWebKey:
+		add("tab", &s.Tab, false)
 	case model.StepElementRead:
 		if s.FindBy == model.FindByText {
 			add("findText", &s.FindText, false)

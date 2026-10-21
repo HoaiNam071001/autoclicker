@@ -23,7 +23,8 @@ const (
 )
 
 type runIn struct {
-	Path   string         `json:"path" jsonschema:"kịch bản đã lưu (đường dẫn hoặc tên – xem list_scripts)"`
+	Path   string         `json:"path,omitempty" jsonschema:"kịch bản đã lưu (đường dẫn hoặc tên – xem list_scripts); bỏ trống khi gửi script"`
+	Script any            `json:"script,omitempty" jsonschema:"kịch bản tạm (dạng như create_script) – chạy thử không lưu file, không ghi lịch sử; sửa rồi gửi lại ở resume_run"`
 	Inputs map[string]any `json:"inputs,omitempty" jsonschema:"giá trị input {key: giá trị}; thiếu thì lấy mặc định của input"`
 	From   string         `json:"from,omitempty" jsonschema:"id / ref node bắt đầu (biến của node trước trống, trừ khi resume_run)"`
 	StopAt string         `json:"stopAt,omitempty" jsonschema:"id / ref node: chạy xong node này thì dừng (kết quả reached)"`
@@ -34,6 +35,7 @@ type runIn struct {
 
 type resumeIn struct {
 	RunID  string   `json:"runId" jsonschema:"lần chạy trước (đã xong) – lấy kết quả node + biến của nó"`
+	Script any      `json:"script,omitempty" jsonschema:"lần chạy trước là kịch bản tạm: bản đã sửa (bỏ trống = bản đã gửi lần trước)"`
 	From   string   `json:"from,omitempty" jsonschema:"id / ref node chạy tiếp; trống = node đã lỗi"`
 	StopAt string   `json:"stopAt,omitempty"`
 	Only   []string `json:"only,omitempty"`
@@ -59,10 +61,11 @@ func shotEach(v string) (bool, error) {
 }
 
 func (s *Server) addRunTools() {
-	addTool(s, KindRun, &mcp.Tool{Name: "run_script", Description: "Chạy kịch bản đã lưu trên máy thật (chuột / phím thật). " +
+	addTool(s, KindRun, &mcp.Tool{Name: "run_script", Description: "Chạy kịch bản trên máy thật (chuột / phím thật): kịch bản đã lưu (path) hoặc kịch bản tạm (script – thử nhanh, không tạo file, không ghi lịch sử). " +
 		"Chạy cả, đến một node (stopAt), từ một node (from) hoặc chỉ một cụm (only). App hỏi người dùng trước khi chạy (tuỳ Cài đặt). " +
 		"Trả runId + kết quả từng node đã chạy; node lỗi có error.code / message / detail (chỗ khớp nhất, chữ đọc được, cửa sổ đang trước…) " +
-		"kèm ảnh màn hình lúc lỗi. Lỗi → sửa bằng update_script rồi resume_run."}, s.runScript)
+		"kèm ảnh màn hình lúc lỗi. Lỗi → sửa bằng update_script (kịch bản tạm: gửi script đã sửa vào resume_run) rồi resume_run. " +
+		"Kịch bản tạm chạy ổn mà người dùng muốn giữ → create_script."}, s.runScript)
 	addTool(s, KindRun, &mcp.Tool{Name: "wait_run", Description: "Chờ lần chạy runId xong (tối đa waitS giây) rồi trả kết quả như run_script. " +
 		"Chưa xong thì done=false + node đang chạy – gọi lại. Xem ảnh của node bất kỳ (trường shot, khi chạy với shots: each): shots = [tên ảnh]."}, s.waitRun)
 	addTool(s, KindRun, &mcp.Tool{Name: "stop_run", Description: "Dừng lần chạy runId đang chạy."}, s.stopRun)
@@ -71,15 +74,42 @@ func (s *Server) addRunTools() {
 }
 
 func (s *Server) runScript(ctx context.Context, _ *mcp.CallToolRequest, in runIn) (*mcp.CallToolResult, any, error) {
-	path, err := s.resolvePath(in.Path)
-	if err != nil {
-		return fail(err)
-	}
 	each, err := shotEach(in.Shots)
 	if err != nil {
 		return fail(err)
 	}
-	return s.start(ctx, path, in.Inputs, session.Options{From: in.From, StopAt: in.StopAt, Nodes: in.Only, ShotEach: each}, in.WaitS)
+	opt := session.Options{From: in.From, StopAt: in.StopAt, Nodes: in.Only, ShotEach: each}
+	if in.Script != nil {
+		if in.Path != "" {
+			return fail(errors.New("chỉ gửi một trong path (kịch bản đã lưu) hoặc script (kịch bản tạm)"))
+		}
+		sc, err := parseScript(in.Script)
+		if err != nil {
+			return fail(err)
+		}
+		return s.start(ctx, sc, "", in.Inputs, opt, in.WaitS)
+	}
+	path, err := s.resolvePath(in.Path)
+	if err != nil {
+		return fail(err)
+	}
+	sc, _, err := s.back.ReadScript(path)
+	if err != nil {
+		return fail(err)
+	}
+	return s.start(ctx, sc, path, in.Inputs, opt, in.WaitS)
+}
+
+// scriptOf – kịch bản của lần chạy tr: file (đọc bản mới nhất) hoặc kịch bản tạm đã gửi.
+func (s *Server) scriptOf(tr session.Trace) (model.Script, error) {
+	if tr.Path != "" {
+		sc, _, err := s.back.ReadScript(tr.Path)
+		return sc, err
+	}
+	if sc, ok := s.temp.get(tr.RunID); ok {
+		return sc, nil
+	}
+	return model.Script{}, errors.New("kịch bản tạm của lần chạy này không còn (app đã mở lại / quá nhiều lần chạy) – gửi lại script")
 }
 
 func (s *Server) resumeRun(ctx context.Context, _ *mcp.CallToolRequest, in resumeIn) (*mcp.CallToolResult, any, error) {
@@ -101,23 +131,35 @@ func (s *Server) resumeRun(ctx context.Context, _ *mcp.CallToolRequest, in resum
 	if from == "" {
 		return fail(errors.New("lần chạy trước không có node lỗi – cho biết from (node chạy tiếp)"))
 	}
-	return s.start(ctx, prev.Path, prev.Inputs, session.Options{From: from, StopAt: in.StopAt, Nodes: in.Only, SeedRun: in.RunID, ShotEach: each}, in.WaitS)
-}
-
-// start đổi ref → id theo kịch bản hiện tại, chạy (Backend hỏi quyền), chờ tối đa waitS rồi trả vết chạy.
-func (s *Server) start(ctx context.Context, path string, inputs map[string]any, opt session.Options, waitS *int) (*mcp.CallToolResult, any, error) {
-	sc, _, err := s.back.ReadScript(path)
+	var sc model.Script
+	switch {
+	case in.Script != nil && prev.Path != "":
+		return fail(errors.New("lần chạy trước là kịch bản đã lưu – sửa bằng update_script, không gửi script"))
+	case in.Script != nil:
+		sc, err = parseScript(in.Script)
+	default:
+		sc, err = s.scriptOf(prev)
+	}
 	if err != nil {
 		return fail(err)
 	}
-	opt.Path, opt.Source = path, session.SourceAI
+	return s.start(ctx, sc, prev.Path, prev.Inputs, session.Options{From: from, StopAt: in.StopAt, Nodes: in.Only, SeedRun: in.RunID, ShotEach: each}, in.WaitS)
+}
+
+// start đổi ref → id theo kịch bản sc, chạy (Backend hỏi quyền), chờ tối đa waitS rồi trả vết chạy. path "" = kịch bản
+// tạm: không ghi lịch sử, giữ sc theo runId cho wait_run / resume_run.
+func (s *Server) start(ctx context.Context, sc model.Script, path string, inputs map[string]any, opt session.Options, waitS *int) (*mcp.CallToolResult, any, error) {
+	opt.Path, opt.Source, opt.NoHistory = path, session.SourceAI, path == ""
 	opt.From, opt.StopAt = nodeID(sc, opt.From), nodeID(sc, opt.StopAt)
 	for i, n := range opt.Nodes {
 		opt.Nodes[i] = nodeID(sc, n)
 	}
-	id, err := s.back.Run(path, inputs, opt)
+	id, err := s.back.Run(sc, path, inputs, opt)
 	if err != nil {
 		return fail(err)
+	}
+	if path == "" {
+		s.temp.put(id, sc)
 	}
 	return s.report(ctx, id, sc, waitS, nil)
 }
@@ -127,7 +169,7 @@ func (s *Server) waitRun(ctx context.Context, _ *mcp.CallToolRequest, in runIDIn
 	if err != nil {
 		return fail(err)
 	}
-	sc, _, _ := s.back.ReadScript(tr.Path) // chỉ để lấy loại node – đọc lỗi thì bỏ
+	sc, _ := s.scriptOf(tr) // chỉ để lấy loại node – đọc lỗi thì bỏ
 	return s.report(ctx, in.RunID, sc, in.WaitS, in.Shots)
 }
 

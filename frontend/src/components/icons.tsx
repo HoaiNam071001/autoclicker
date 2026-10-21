@@ -123,6 +123,7 @@ export const STEP_ICON = {
   webRead: 'M3 5h18v14H3zM3 9h18M7 12.5h10M7 15.5h6', // cửa sổ trình duyệt + dòng chữ
   elementRead: 'M4 4h10v6H4zM6 7h6M4 14h16M4 18h11', // khung phần tử + dòng chữ đọc ra
   webScroll: 'M3 5h18v14H3zM3 9h18M12 11v6M9.5 14.5l2.5 2.5 2.5-2.5', // cửa sổ trình duyệt + mũi tên cuộn
+  webKey: 'M3 5h18v14H3zM3 9h18M7 12h10v5H7zM9 14.5h1M12 14.5h1M15 14.5h0', // cửa sổ trình duyệt + bàn phím
   open: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18',
   window: 'M4 5h16v14H4zM4 9h16',
   app: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM16.5 13v7M13 16.5h7', // lưới app + dấu cộng

@@ -2,6 +2,7 @@ package mcpsrv
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/png"
 
@@ -120,35 +121,46 @@ func trimMap(m map[string]any) map[string]any {
 }
 
 // shotImages – ảnh gửi kèm + rộng từng ảnh đã gửi theo tên. want (AI xin theo tên) → đúng các ảnh đó (≤ maxWant);
-// không thì ảnh lúc node lỗi (≤ maxShots) + ảnh sau node mới nhất (≤ maxEachSent, shots: each), mới nhất trước.
+// không thì ảnh lúc node lỗi (≤ maxShots) + ảnh sau node mới nhất (≤ maxEachSent, shots: each). Gửi theo thứ tự chạy, mỗi
+// ảnh có dòng chú thích trước (thứ tự node, ref, thành công / lỗi, tên ảnh) – AI không phải đoán ảnh nào của node nào.
 func shotImages(tr session.Trace, want []string) ([]mcp.Content, map[string]int) {
-	var out []mcp.Content
-	widths := map[string]int{}
-	add := func(name string) {
-		if img := tr.Shots[name]; img != nil && widths[name] == 0 {
-			if c, w := pngContent(img); c != nil {
-				out, widths[name] = append(out, c), w
+	pick := map[string]bool{}
+	if len(want) > 0 {
+		for _, name := range want[:min(len(want), maxWant)] {
+			pick[name] = true
+		}
+	} else {
+		fails, each := 0, 0
+		for i := len(tr.Results) - 1; i >= 0; i-- {
+			r := tr.Results[i]
+			switch {
+			case r.Shot == "":
+			case r.Status == model.StatusFail && fails < maxShots:
+				fails++
+				pick[r.Shot] = true
+			case r.Status != model.StatusFail && each < maxEachSent:
+				each++
+				pick[r.Shot] = true
 			}
 		}
 	}
-	if len(want) > 0 {
-		for _, name := range want[:min(len(want), maxWant)] {
-			add(name)
+	var out []mcp.Content
+	widths := map[string]int{}
+	for i, r := range tr.Results {
+		img := tr.Shots[r.Shot]
+		if r.Shot == "" || !pick[r.Shot] || img == nil || widths[r.Shot] != 0 {
+			continue
 		}
-		return out, widths
-	}
-	fails, each := 0, 0
-	for i := len(tr.Results) - 1; i >= 0; i-- {
-		r := tr.Results[i]
-		switch {
-		case r.Shot == "":
-		case r.Status == model.StatusFail && fails < maxShots:
-			fails++
-			add(r.Shot)
-		case r.Status != model.StatusFail && each < maxEachSent:
-			each++
-			add(r.Shot)
+		c, w := pngContent(img)
+		if c == nil {
+			continue
 		}
+		what := "sau node (thành công)"
+		if r.Status == model.StatusFail {
+			what = "lúc node lỗi"
+		}
+		caption := fmt.Sprintf("Ảnh %s – node #%d %s %s", r.Shot, i+1, r.Ref, what)
+		out, widths[r.Shot] = append(out, &mcp.TextContent{Text: caption}, c), w
 	}
 	return out, widths
 }

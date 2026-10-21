@@ -63,7 +63,7 @@ func (a *App) aiAllowed(ask AIAsk) error {
 	}
 	g := &a.ai
 	g.mu.Lock()
-	if g.allowed[ask.Path] {
+	if ask.Path != "" && g.allowed[ask.Path] { // kịch bản tạm (path "") nội dung đổi mỗi lần – luôn hỏi
 		g.mu.Unlock()
 		return nil
 	}
@@ -84,6 +84,9 @@ func (a *App) aiAllowed(ask AIAsk) error {
 	case ans := <-ch:
 		switch ans {
 		case aiAllowScript:
+			if ask.Path == "" {
+				return nil
+			}
 			g.mu.Lock()
 			g.allowed[ask.Path] = true
 			g.mu.Unlock()
@@ -125,11 +128,7 @@ func (a *App) stopAIRun(m store.MCPSettings) {
 }
 
 // Run – mcpsrv.Backend: đọc file, hỏi quyền, chạy với trần thời gian của AI.
-func (b mcpBackend) Run(path string, values map[string]any, opt session.Options) (string, error) {
-	sc, err := store.ReadScriptFile(path)
-	if err != nil {
-		return "", err
-	}
+func (b mcpBackend) Run(sc model.Script, path string, values map[string]any, opt session.Options) (string, error) {
 	refs := map[string]string{}
 	for _, s := range sc.Steps {
 		refs[s.ID] = s.Ref

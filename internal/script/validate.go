@@ -9,6 +9,7 @@ import (
 	"ghosthand/internal/launch"
 	"ghosthand/internal/model"
 	"ghosthand/internal/vision"
+	"ghosthand/internal/web"
 )
 
 // ValidateScript kiểm tra kịch bản (đã áp input) trước khi chạy để không dừng giữa chừng vì dữ liệu sai.
@@ -143,6 +144,10 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if len(s.Keys) == 0 {
 				return stepErr(i, s, "keys", "chưa chọn phím")
 			}
+		case model.StepWebKey:
+			if err := checkWebKey(i, s); err != nil {
+				return err
+			}
 		case model.StepIf, model.StepSwitch, model.StepSwitchScreen, model.StepCounter, model.StepEnd, model.StepSetVar:
 			if err := validateControl(i, s, inside); err != nil {
 				return err
@@ -215,6 +220,24 @@ func checkImageStep(i int, s model.Step) error {
 	}
 	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
 		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
+	}
+	return nil
+}
+
+// checkWebKey – node webKey: có phím, mọi phím / phím kèm bấm được qua CDP.
+func checkWebKey(i int, s model.Step) error {
+	if len(s.Keys) == 0 {
+		return stepErr(i, s, "keys", "chưa chọn phím")
+	}
+	for _, k := range s.Keys {
+		if err := web.CheckKey(k, false); err != nil {
+			return stepErr(i, s, "keys", "%v", err)
+		}
+	}
+	for _, m := range s.Modifiers {
+		if err := web.CheckKey(m, true); err != nil {
+			return stepErr(i, s, "modifiers", "%v", err)
+		}
 	}
 	return nil
 }

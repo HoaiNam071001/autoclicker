@@ -30,15 +30,16 @@ export default function AIRunDialog() {
             <div id="ai-run-title" className="text-base font-semibold">AI muốn chạy “{ask.script}”</div>
             <div id="ai-run-desc" className="flex flex-col gap-1 text-[13px]">
               <span>Chạy {aiRunScope(ask)} – chuột và bàn phím sẽ do kịch bản điều khiển.</span>
-              <span className="truncate font-mono text-xs text-muted" title={ask.path}>{ask.path}</span>
+              {ask.path ? <span className="truncate font-mono text-xs text-muted" title={ask.path}>{ask.path}</span>
+                : <span className="text-xs text-muted">Kịch bản tạm AI gửi kèm (chưa lưu, {ask.steps} node) – lần sau vẫn hỏi lại.</span>}
             </div>
             <span className="text-xs text-muted">Dừng bất cứ lúc nào: F8 hoặc đưa chuột chạm góc màn hình.</span>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 border-t border-line bg-chrome px-[18px] py-3">
           <button onClick={() => answerAI('deny')} className="h-9 rounded-control border border-line bg-surface px-3.5 hover:bg-hover">Từ chối <span className="font-mono text-[11px] text-muted">Esc</span></button>
-          <button onClick={() => answerAI('script')} className="ml-auto h-9 rounded-control border border-line bg-surface px-3.5 hover:bg-hover">Cho phép đến khi đóng app</button>
-          <button autoFocus onClick={() => answerAI('once')} className="btn-primary h-9 rounded-control px-4 font-semibold text-on-accent">Cho phép lần này</button>
+          {ask.path && <button onClick={() => answerAI('script')} className="ml-auto h-9 rounded-control border border-line bg-surface px-3.5 hover:bg-hover">Cho phép đến khi đóng app</button>}
+          <button autoFocus onClick={() => answerAI('once')} className={`btn-primary h-9 ${ask.path ? '' : 'ml-auto'} rounded-control px-4 font-semibold text-on-accent`}>Cho phép lần này</button>
         </div>
       </div>
     </div>

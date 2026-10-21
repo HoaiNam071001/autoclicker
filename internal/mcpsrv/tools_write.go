@@ -34,7 +34,7 @@ type updateIn struct {
 	Human       *string             `json:"human,omitempty" jsonschema:"off | low | medium | high"`
 	Start       string              `json:"start,omitempty" jsonschema:"id / ref node chạy đầu"`
 	Inputs      []model.ScriptInput `json:"inputs,omitempty" jsonschema:"thay cả danh sách input"`
-	Steps       []map[string]any    `json:"steps,omitempty" jsonschema:"node có id / ref đã có → chỉ đè các trường gửi lên; chưa có → thêm node mới (cần type)"`
+	Steps       []map[string]any    `json:"steps,omitempty" jsonschema:"node có id / ref đã có → chỉ đè các trường gửi lên; chưa có → thêm node mới (cần type). Gửi type khác loại cũ = đổi loại: node dựng lại theo loại mới, giữ name / pos / enabled / delayAfter / retry và trường cũ loại mới cũng dùng (points, selectors…); cạnh theo cổng loại mới không có bị bỏ (droppedEdges)"`
 	RemoveSteps []string            `json:"removeSteps,omitempty" jsonschema:"id / ref node cần xoá (xoá luôn cạnh nối)"`
 	Edges       []edgeIn            `json:"edges,omitempty" jsonschema:"thêm cạnh {from, port, to} theo id / ref; cổng đã có cạnh thì thay"`
 	RemoveEdges []string            `json:"removeEdges,omitempty" jsonschema:"id cạnh cần xoá"`
@@ -181,7 +181,7 @@ func (s *Server) update(_ context.Context, _ *mcp.CallToolRequest, in updateIn) 
 		}
 		p.Steps = append(p.Steps, raw)
 	}
-	next, err := script.ApplyPatch(sc, p)
+	next, dropped, err := script.ApplyPatch(sc, p)
 	if err == nil {
 		next, err = checked(next)
 	}
@@ -202,6 +202,9 @@ func (s *Server) update(_ context.Context, _ *mcp.CallToolRequest, in updateIn) 
 		return fail(err)
 	}
 	res["revision"] = newRev
+	if len(dropped) > 0 { // node đổi loại không còn cổng cũ – AI nối lại nếu cần
+		res["droppedEdges"] = dropped
+	}
 	if err := s.runnable(next); err != nil {
 		res["problems"] = errorBody(err)
 	}

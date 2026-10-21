@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"image"
 	"os"
 	"path/filepath"
 	"slices"
@@ -32,6 +33,7 @@ type fakeBackend struct {
 	page          web.PageCheck     // probe_page trả (44)
 	outline       web.Outline       // read_web_outline trả (46)
 	tabs          []web.Tab
+	lastOpt       session.Options // Run gần nhất (46 B1)
 	outlineTab    string
 	outlineDialog bool
 	probed        string
@@ -46,6 +48,10 @@ func (f *fakeBackend) CheckPage(_ context.Context, u string) (web.PageCheck, err
 func (f *fakeBackend) ReadOutline(_ context.Context, tab string, dialog bool) (web.Outline, []web.Tab, error) {
 	f.outlineTab, f.outlineDialog = tab, dialog
 	return f.outline, f.tabs, nil
+}
+func (f *fakeBackend) TabShot(_ context.Context, tab string) (web.TabShot, error) {
+	f.outlineTab = tab
+	return web.TabShot{Image: image.NewRGBA(image.Rect(0, 0, 2400, 1200)), Tab: "AB12", URL: f.outline.URL, CSSWidth: 1200}, nil
 }
 func (f *fakeBackend) SetNodePref(p string) error {
 	if p != store.NodePrefVision && p != store.NodePrefWeb {

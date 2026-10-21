@@ -22,7 +22,7 @@ const BY_TYPE: Record<StepType, NodeCategory> = {
   clipboard: 'data', http: 'data', file: 'data', system: 'data', setVar: 'data',
   open: 'app', window: 'app', app: 'app', elementRead: 'app',
   if: 'flow', switch: 'flow', switchScreen: 'flow', counter: 'flow', end: 'flow',
-  webWait: 'web', webClick: 'web', webType: 'web', webRead: 'web', webScroll: 'web',
+  webWait: 'web', webClick: 'web', webType: 'web', webRead: 'web', webScroll: 'web', webKey: 'web',
 };
 
 // Mở trang bằng Chrome của app thuộc nhóm Web (cùng chỗ trong bảng thêm node), mở thường thuộc Ứng dụng.

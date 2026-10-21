@@ -3,6 +3,7 @@ package mcpsrv
 import (
 	"context"
 	"image"
+	"os"
 	"strings"
 	"testing"
 
@@ -29,11 +30,8 @@ func fakeSession() (*session.Manager, *devicetest.FakeInput) {
 	}), in
 }
 
-func (f *fakeBackend) Run(path string, values map[string]any, opt session.Options) (string, error) {
-	sc, _, err := f.ReadScript(path)
-	if err != nil {
-		return "", err
-	}
+func (f *fakeBackend) Run(sc model.Script, _ string, values map[string]any, opt session.Options) (string, error) {
+	f.lastOpt = opt
 	return f.sess.Start(sc, values, opt)
 }
 func (f *fakeBackend) Wait(ctx context.Context, id string) error {
@@ -129,5 +127,41 @@ func TestDescribeScreen(t *testing.T) {
 	}
 	if out, isErr := call(t, cs, "describe_screen", map[string]any{"window": "không có"}); !isErr {
 		t.Errorf("cửa sổ không có mà không lỗi: %v", out)
+	}
+}
+
+// Kịch bản tạm (46 B1): run_script nhận script, không tạo file, không ghi lịch sử; resume_run nhận bản đã sửa.
+func TestRunTempScript(t *testing.T) {
+	cs, back := connect(t)
+	temp := func(text string) map[string]any {
+		return map[string]any{"name": "Tạm", "steps": []any{
+			map[string]any{"type": "wait", "delayAfter": 1},
+			map[string]any{"type": "type", "text": text},
+			map[string]any{"type": "wait", "delayAfter": 1},
+		}}
+	}
+	out, isErr := call(t, cs, "run_script", map[string]any{"script": temp("{{n3.status}}")})
+	if isErr || out["state"] != "fail" || out["failedStep"] != "s2" {
+		t.Fatalf("run: %v", out)
+	}
+	if !back.lastOpt.NoHistory || back.lastOpt.Path != "" {
+		t.Errorf("kịch bản tạm phải không ghi lịch sử: %+v", back.lastOpt)
+	}
+	if entries, _ := os.ReadDir(back.dir); len(entries) != 0 {
+		t.Errorf("không được tạo file: %v", entries)
+	}
+	runID := out["runId"]
+	if out, isErr := call(t, cs, "wait_run", map[string]any{"runId": runID}); isErr || out["state"] != "fail" {
+		t.Errorf("wait_run: %v", out)
+	}
+	if out, isErr := call(t, cs, "run_script", map[string]any{"script": temp("x"), "path": "a.json"}); !isErr {
+		t.Errorf("gửi cả path lẫn script phải lỗi: %v", out)
+	}
+	out, isErr = call(t, cs, "resume_run", map[string]any{"runId": runID, "script": temp("{{n1.status}}")})
+	if isErr || out["state"] != "success" || len(out["nodes"].([]any)) != 2 {
+		t.Fatalf("resume với bản sửa: %v", out)
+	}
+	if !strings.Contains(strings.ReplaceAll(strings.Join(back.in.Lines(), ""), "type ", ""), "success") {
+		t.Errorf("biến n1 phải lấy từ lần chạy trước: %q", back.in.Lines())
 	}
 }

@@ -91,7 +91,9 @@ func (m *Manager) exec(ctx context.Context, r *run, canDanger bool) {
 	m.mu.Lock()
 	r.carry, r.shots, r.status.Reached, r.status.TimedOut = &carry, eng.Shots(), eng.Reached(), eng.TimedOut()
 	m.mu.Unlock()
-	if e := m.deps.SaveRun(rec, r.opt.Path, eng.Shots()); e != nil {
+	if r.opt.NoHistory {
+		// kịch bản tạm của AI: vết chạy vẫn giữ trong bộ nhớ (Trace), không ghi thư mục lịch sử
+	} else if e := m.deps.SaveRun(rec, r.opt.Path, eng.Shots()); e != nil {
 		m.emit("log:error", "lưu lịch sử chạy: "+e.Error()) // lịch sử chỉ là phụ – vẫn báo xong
 	}
 	m.emit("engine:done", rec.RunSummary)

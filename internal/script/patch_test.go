@@ -68,7 +68,7 @@ func TestApplyPatch(t *testing.T) {
 		"edges":[{"from":"n2","port":"success","to":"s4"}]}`), &p); err != nil {
 		t.Fatal(err)
 	}
-	got, err := ApplyPatch(sc, p)
+	got, _, err := ApplyPatch(sc, p)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,13 +100,44 @@ func TestApplyPatch(t *testing.T) {
 
 func TestApplyPatchErrors(t *testing.T) {
 	sc := compactScript(t, `{"steps":[{"type":"wait"}]}`)
-	if _, err := ApplyPatch(sc, Patch{RemoveSteps: []string{"n9"}}); err == nil {
+	if _, _, err := ApplyPatch(sc, Patch{RemoveSteps: []string{"n9"}}); err == nil {
 		t.Error("xoá node không có phải báo lỗi")
 	}
-	if _, err := ApplyPatch(sc, Patch{RemoveEdges: []string{"e9"}}); err == nil {
+	if _, _, err := ApplyPatch(sc, Patch{RemoveEdges: []string{"e9"}}); err == nil {
 		t.Error("xoá cạnh không có phải báo lỗi")
 	}
-	if _, err := ApplyPatch(sc, Patch{Steps: []json.RawMessage{json.RawMessage(`{"type":"bay"}`)}}); err == nil {
+	if _, _, err := ApplyPatch(sc, Patch{Steps: []json.RawMessage{json.RawMessage(`{"type":"bay"}`)}}); err == nil {
 		t.Error("loại node lạ phải báo lỗi")
+	}
+}
+
+// Đổi loại node (46 B2): dựng lại theo loại mới, giữ trường chung + trường loại mới cũng dùng, bỏ cạnh theo cổng không còn.
+func TestApplyPatchRetype(t *testing.T) {
+	sc := compactScript(t, `{"steps":[
+		{"type":"click","name":"Bấm Lưu","points":[{"x":40,"y":50}],"clicks":3,"delayAfter":700},
+		{"type":"if","cond":{"kind":"value","left":"a","op":"eq","right":"a"}},
+		{"type":"wait"},{"type":"wait"}],
+		"edges":[{"from":"n1","port":"success","to":"n2"},{"from":"n2","port":"true","to":"n3"},{"from":"n2","port":"false","to":"n4"}]}`)
+	var p Patch
+	if err := json.Unmarshal([]byte(`{"steps":[{"ref":"n1","type":"double"},{"ref":"n2","type":"wait","delayAfter":100}]}`), &p); err != nil {
+		t.Fatal(err)
+	}
+	got, dropped, err := ApplyPatch(sc, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, err = Checked(got); err != nil {
+		t.Fatal(err)
+	}
+	d := got.Steps[0]
+	if d.Type != model.StepDouble || d.ID != "s1" || d.Ref != "n1" || d.Name != "Bấm Lưu" || d.DelayAfter != 700 ||
+		len(d.Points) != 1 || d.Points[0].X != 40 || d.Clicks == 3 {
+		t.Errorf("click → double: %+v", d)
+	}
+	if w := got.Steps[1]; w.Type != model.StepWait || w.Cond != nil || w.DelayAfter != 100 {
+		t.Errorf("if → wait phải bỏ điều kiện: %+v", w)
+	}
+	if len(dropped) != 2 || len(got.Edges) != 1 {
+		t.Errorf("cạnh true / false của if phải bị bỏ: dropped %+v, còn %+v", dropped, got.Edges)
 	}
 }

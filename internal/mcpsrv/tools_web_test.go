@@ -74,3 +74,20 @@ func TestReadWebOutline(t *testing.T) {
 		t.Errorf("tab file:// phải bị từ chối: %v", out)
 	}
 }
+
+// screenshot webTab (46 B4): chụp một tab qua trình duyệt, scale theo CSS px; "active" = tab đang hiện; file:// bị từ chối.
+func TestScreenshotWebTab(t *testing.T) {
+	cs, back := connect(t)
+	back.outline.URL = "https://erp.vn/employee"
+	out, isErr := call(t, cs, "screenshot", map[string]any{"webTab": "active"})
+	if isErr || back.outlineTab != "" || out["tab"] != "AB12" {
+		t.Fatalf("screenshot webTab: %v (tab %q)", out, back.outlineTab)
+	}
+	if w, _ := out["imageWidth"].(float64); w <= 0 || out["scale"].(float64) != 1200/w {
+		t.Errorf("scale theo CSS px: %v", out)
+	}
+	back.outline.URL = "file:///C:/a.html"
+	if out, isErr := call(t, cs, "screenshot", map[string]any{"webTab": "a.html"}); !isErr {
+		t.Errorf("tab file:// phải bị từ chối: %v", out)
+	}
+}

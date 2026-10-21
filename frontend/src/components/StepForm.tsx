@@ -16,6 +16,7 @@ import { timingSummary } from '../flow/summary';
 import { isMouse, JitterField, MouseFields } from './stepform/MouseFields';
 import { ScrollFields } from './stepform/ScrollFields';
 import { KeyFields } from './stepform/KeyFields';
+import { WebKeyFields } from './stepform/WebKeyFields';
 import { OpenFields, TypeFields } from './stepform/TextFields';
 import { CapturePermission, ClickImageFields, ImageSearchFields, isImageStep, WaitPixelFields } from './stepform/ImageFields';
 import { WebFields } from './stepform/WebFields';
@@ -39,7 +40,7 @@ import { nodeInfo } from '../flow/nodeInfo';
 
 // Loại node hành động đổi qua lại được trong ô loại node ở đầu (node điều khiển có trường riêng, không đổi loại)
 const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'waitUntil', 'path', 'webWait', 'webClick',
-  'webType', 'webRead', 'webScroll', 'elementRead'];
+  'webType', 'webRead', 'webScroll', 'webKey', 'elementRead'];
 const REF_RE = /^[A-Za-z][A-Za-z0-9_]{0,31}$/; // khớp validRef (flow.go)
 
 export default function StepForm({ step: s }: { step: Step }) {
@@ -147,6 +148,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'open' && <OpenFields step={s} />}
       {s.type === 'type' && <TypeFields step={s} />}
       {s.type === 'key' && <KeyFields step={s} />}
+      {s.type === 'webKey' && <WebKeyFields step={s} />}
       {isMouse(s) && <JitterField step={s} />}
       {usesHuman(s) && <HumanNodeField value={s.human} scriptLevel={script.human} onChange={(human) => updateStep(s.id, { human })} />}
     </>

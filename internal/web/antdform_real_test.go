@@ -214,3 +214,16 @@ func TestRealAntdScopeLabelOccurrence(t *testing.T) {
 		t.Errorf("occurrence 3 (chỉ có 2 ô) phải không thấy: %+v, %v", f, err)
 	}
 }
+
+// 46 B4: chụp một tab qua CDP – ảnh khung nhìn, bề rộng CSS để đổi px ảnh → toạ độ trang.
+func TestRealTabScreenshot(t *testing.T) {
+	c, ctx, _ := antdChrome(t)
+	sh, err := c.Screenshot(ctx, "antd-form")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("ảnh %v, css %d, tab %s", sh.Image.Bounds().Size(), sh.CSSWidth, sh.Tab)
+	if sh.Image.Bounds().Dx() < 100 || sh.CSSWidth < 100 || sh.Tab == "" || !strings.Contains(sh.URL, "antd-form") {
+		t.Errorf("chụp tab: %+v", sh)
+	}
+}

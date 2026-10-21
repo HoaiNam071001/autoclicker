@@ -2,17 +2,16 @@
 // Trạng thái Chrome của app, Chọn phần tử trên trang, Thử tìm – D3 (WebTools); trường riêng từng loại – WebActionFields.
 import { useEffect } from 'react';
 import NumInput from '../NumInput';
-import VarTextInput from '../inputs/VarTextInput';
-import { updateStep, useScript } from '../../store';
-import { addInput } from '../../scriptInputs';
+import { updateStep } from '../../store';
 import { Step } from '../../types';
 import { browserStatusText, parseSelector, selectorLines, WEB_BASIC_NOTE, webFindText } from '../../flow/web';
 import { cancelPick, openAppBrowser, pickElement, refreshBrowser, testWebFind, useWebState } from '../../webSteps';
 import { inWails, openOverlay } from '../../windowMode';
 import { WebTools } from './WebTools';
 import { WebScopeField } from './WebScopeField';
+import { WebTabField } from './WebTabField';
 import { SelectorsField, WebClickFields, webHintText, WebModeField, WebReadFields, WebScrollFields, WebTypeFields, WebWaitFields } from './WebActionFields';
-import { Field, fmtSec, hint, NumField, useNodeVars } from './shared';
+import { Field, fmtSec, hint, NumField } from './shared';
 
 // Nhãn ô cách tìm theo loại / cách cuộn.
 const selectorsLabel = (s: Step) =>
@@ -22,8 +21,6 @@ const selectorsLabel = (s: Step) =>
     : 'Cách tìm phần tử';
 
 export function WebFields({ step: s }: { step: Step }) {
-  const script = useScript();
-  const nodeVars = useNodeVars(s.id);
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   const lines = selectorLines(s.selectors);
   const web = useWebState();
@@ -42,10 +39,7 @@ export function WebFields({ step: s }: { step: Step }) {
       <SelectorsField step={s} label={selectorsLabel(s)} value={s.selectors} onChange={(selectors) => set({ selectors })}
         placeholder={'text=Xem lịch sử\naria=Lịch sử\ncss=#history'} emptyText="Chưa nhập cách tìm – chạy sẽ báo lỗi"
         help={'text= chữ trên trang (chứa, không phân biệt hoa thường; text="Gửi" = đúng cả chuỗi), aria= nhãn aria-label, role=button[name="Gửi"] vai trò + tên, label=Ngày sinh ô nhập của nhãn, css=, xpath=. Ưu tiên chữ / aria / role – tránh class tự sinh kiểu x1n2onr6. ' + WEB_BASIC_NOTE} />
-      <Field label="Tab" wide group help="Tuỳ chọn: URL hoặc tiêu đề tab chứa chữ này (hoặc id tab AI đọc được – đổi khi Chrome mở lại). Trang phải mở bằng node Mở với “Chrome của app”.">
-        <VarTextInput value={s.tab ?? ''} onChange={(tab) => set({ tab: tab || undefined })} inputs={script.inputs ?? []} nodeVars={nodeVars}
-          onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} rows={1} compact placeholder="trống = tab đang hiện" />
-      </Field>
+      <WebTabField step={s} />
       <WebScopeField step={s} />
       {s.type === 'webClick' && <WebClickFields step={s} />}
       {s.type === 'webType' && <WebTypeFields step={s} />}

@@ -27,6 +27,8 @@ type Browser interface {
 	BgClick(ctx context.Context, x, y int, button string, count int) error // count = lần bấm thứ mấy (2 = double-click)
 	BgWheel(ctx context.Context, x, y int, dir string) error               // lăn một nấc theo dir (up | down | left | right)
 	BgType(ctx context.Context, text string, clear, enter bool) error      // vào ô đang focus: xoá chữ cũ, chèn text, Enter
+	// Keys – node webKey (46 B3): bấm phím vào tab (id / URL / tiêu đề chứa; "" = tab node web đang dùng) qua CDP, trả URL tab.
+	Keys(ctx context.Context, tab string, keys, mods []string, sequence bool) (string, error)
 	// PageOutline – cây rút gọn của tab (outline.go): node web không thấy phần tử thì gửi đoạn gần giống cho AI (31b).
 	PageOutline(ctx context.Context, tab string) (Outline, error)
 	Close()

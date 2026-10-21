@@ -6,6 +6,8 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+
 	"ghosthand/internal/model"
 	"ghosthand/internal/session"
 )
@@ -32,6 +34,12 @@ func TestShotImages(t *testing.T) {
 	_, w := shotImages(tr, nil)
 	if got := sent(w); !slices.Equal(got, []string{"1.png", "each-3-n3.png", "each-4-n4.png", "each-5-n5.png"}) {
 		t.Errorf("mặc định gửi %v", got)
+	}
+	// theo thứ tự chạy, chú thích trước mỗi ảnh
+	c, _ := shotImages(tr, nil)
+	if len(c) != 8 || c[0].(*mcp.TextContent).Text != "Ảnh each-3-n3.png – node #3 n3 sau node (thành công)" ||
+		c[6].(*mcp.TextContent).Text != "Ảnh 1.png – node #6 n6 lúc node lỗi" {
+		t.Errorf("thứ tự / chú thích ảnh: %d phần, đầu %v", len(c), c[0])
 	}
 	_, w = shotImages(tr, []string{"each-2-n2.png", "each-1-n1.png", "khong-co.png"})
 	if got := sent(w); !slices.Equal(got, []string{"each-2-n2.png"}) {

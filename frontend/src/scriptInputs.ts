@@ -72,6 +72,7 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
       : { ...s, selectors: s.selectors?.map(f), elementApp: s.elementApp && f(s.elementApp) };
     case 'webWait': case 'webClick': case 'webRead': return { ...s, selectors: s.selectors?.map(f), tab: s.tab && f(s.tab) };
     case 'webType': return { ...s, selectors: s.selectors?.map(f), tab: s.tab && f(s.tab), text: f(s.text) };
+    case 'webKey': return { ...s, tab: s.tab && f(s.tab) };
     case 'webScroll': return { ...s, selectors: s.selectors?.map(f), tab: s.tab && f(s.tab),
       scrollIn: s.scrollMode === 'until' ? s.scrollIn?.map(f) : s.scrollIn };
     case 'if': return s.cond ? { ...s, cond: cond(s.cond) } : s;
