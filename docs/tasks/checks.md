@@ -5,30 +5,30 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 41 – nơi lưu + xoá lịch sử · [phase3/41-noi-luu-lich-su.md](phase3/41-noi-luu-lich-su.md)
 
-- [ ] Cài đặt (bánh răng) → tab **Lưu trữ**: 3 ô hiện *Mặc định: …/Documents/Auto Clicker* và *…/Pictures/Auto Clicker*; *Chọn…* đổi thư mục → ô chữ đậm, có *Về mặc định*; *Mở* mở đúng thư mục trong Finder / Explorer. Tab API / AI (MCP) vẫn như cũ. Xem theme sáng + tối
-- [ ] Kịch bản mới → Lưu: hộp thoại mở sẵn thư mục *Kịch bản* đã chọn; *Mở kịch bản* cũng mở ở đó. Kịch bản đã có file → Lưu ghi tại chỗ cũ
-- [ ] AI (Claude) tạo kịch bản mới → file vào thư mục *Kịch bản AI tạo* (để trống thì theo *Kịch bản*)
-- [ ] Node Chụp màn hình để trống *Thư mục lưu* → ảnh vào thư mục ảnh trong Cài đặt (mặc định giờ là `Pictures/Auto Clicker`); node đã đặt thư mục riêng thì giữ
-- [ ] Chọn thư mục rồi xoá / đổi tên thư mục đó trong Finder → Lưu kịch bản mới báo lỗi *không thấy thư mục … Về mặc định*, không lưu lặng lẽ chỗ khác; node Chụp màn hình báo lỗi tương tự
-- [ ] Windows có OneDrive chuyển Documents / Pictures → mặc định trỏ vào thư mục trong OneDrive
-- [ ] Lịch sử chạy → *Xem tất cả*: *Xoá lần này* xoá lần đang chọn (chọn sang lần cũ hơn kế đó); *Xoá hết…* hỏi lại rồi xoá cả, thanh bên hết lịch sử; đang xem lần đó trên bảng Nhật ký thì bảng đóng
-- [ ] Thư viện → Mở gần đây: rê chuột hiện ✕ bỏ một mục; *Xoá danh sách* bỏ hết – file kịch bản vẫn còn trên đĩa
+- [x] Cài đặt (bánh răng) → tab **Lưu trữ**: 3 ô hiện *Mặc định: …/Documents/Auto Clicker* và *…/Pictures/Auto Clicker*; *Chọn…* đổi thư mục → ô chữ đậm, có *Về mặc định*; *Mở* mở đúng thư mục trong Finder / Explorer. Tab API / AI (MCP) vẫn như cũ. Xem theme sáng + tối
+- [x] Kịch bản mới → Lưu: hộp thoại mở sẵn thư mục *Kịch bản* đã chọn; *Mở kịch bản* cũng mở ở đó. Kịch bản đã có file → Lưu ghi tại chỗ cũ
+- [x] AI (Claude) tạo kịch bản mới → file vào thư mục *Kịch bản AI tạo* (để trống thì theo *Kịch bản*)
+- [x] Node Chụp màn hình để trống *Thư mục lưu* → ảnh vào thư mục ảnh trong Cài đặt (mặc định giờ là `Pictures/Auto Clicker`); node đã đặt thư mục riêng thì giữ
+- [x] Chọn thư mục rồi xoá / đổi tên thư mục đó trong Finder → Lưu kịch bản mới báo lỗi *không thấy thư mục … Về mặc định*, không lưu lặng lẽ chỗ khác; node Chụp màn hình báo lỗi tương tự
+- [x] Windows có OneDrive chuyển Documents / Pictures → mặc định trỏ vào thư mục trong OneDrive
+- [x] Lịch sử chạy → *Xem tất cả*: *Xoá lần này* xoá lần đang chọn (chọn sang lần cũ hơn kế đó); *Xoá hết…* hỏi lại rồi xoá cả, thanh bên hết lịch sử; đang xem lần đó trên bảng Nhật ký thì bảng đóng
+- [x] Thư viện → Mở gần đây: rê chuột hiện ✕ bỏ một mục; *Xoá danh sách* bỏ hết – file kịch bản vẫn còn trên đĩa
 
 ## 40 – đọc chữ tiếng Việt bằng Tesseract (Windows) · [phase3/40-nhan-dang.md](phase3/40-nhan-dang.md)
 
-- [ ] Mẫu thử *Click theo chữ tiếng Việt có dấu* (Windows, 100 % và 125 %) → Bấm đúng “Bản” = 5, Bấm nhầm = 0
-- [ ] App thật / web tiếng Việt: Chờ chữ / Click theo chữ có dấu (vd “Đăng nhập”, “Lưu thay đổi”) – tìm đúng, khung click trúng chữ; chữ trắng trên nút màu cũng thấy
-- [ ] Node Chờ / Click theo chữ mới: công tắc *Bỏ qua dấu* bật sẵn – tìm “he thong” thấy “hệ thống”; tắt đi thì “hê thông” không khớp “hệ thống”. Kịch bản cũ mở lên vẫn chạy (node trước đây không bật bỏ dấu giờ cũng bỏ dấu)
-- [ ] Exe tải từ GitHub Actions chạy trên máy Windows sạch (chưa cài Tesseract): đọc chữ có dấu được ngay, thư mục `%LOCALAPPDATA%\autoclicker\tesseract-…` tự tạo
-- [ ] Node Chờ chữ vùng cả màn: không thấy giật chuột / UI chậm rõ khi chờ lâu (mỗi lần đọc cả màn ~0,8 s)
-- [ ] AI `describe_screen` trên Windows trả chữ có dấu đúng
+- [x] Mẫu thử *Click theo chữ tiếng Việt có dấu* (Windows, 100 % và 125 %) → Bấm đúng “Bản” = 5, Bấm nhầm = 0
+- [x] App thật / web tiếng Việt: Chờ chữ / Click theo chữ có dấu (vd “Đăng nhập”, “Lưu thay đổi”) – tìm đúng, khung click trúng chữ; chữ trắng trên nút màu cũng thấy
+- [x] Node Chờ / Click theo chữ mới: công tắc *Bỏ qua dấu* bật sẵn – tìm “he thong” thấy “hệ thống”; tắt đi thì “hê thông” không khớp “hệ thống”. Kịch bản cũ mở lên vẫn chạy (node trước đây không bật bỏ dấu giờ cũng bỏ dấu)
+- [x] Exe tải từ GitHub Actions chạy trên máy Windows sạch (chưa cài Tesseract): đọc chữ có dấu được ngay, thư mục `%LOCALAPPDATA%\autoclicker\tesseract-…` tự tạo
+- [x] Node Chờ chữ vùng cả màn: không thấy giật chuột / UI chậm rõ khi chờ lâu (mỗi lần đọc cả màn ~0,8 s)
+- [x] AI `describe_screen` trên Windows trả chữ có dấu đúng
 
 ## 40 – tìm ảnh: so viền, mặt nạ, kiểm tra màu · [phase3/40-nhan-dang.md](phase3/40-nhan-dang.md)
 
-- [ ] Mẫu thử *Tìm ảnh nâng cao: so viền, màu, mặt nạ* (macOS Retina, zoom 100 %) → chạy qua: Icon theme tối = 2, Nút xanh = 2, Huy hiệu = 2, các ô Nhầm / Bấm trượt = 0. Đổi node 2 về *So theo: Độ sáng* → hết giờ không thấy; tắt *Kiểm tra màu* ở node 4 → có lúc bấm nhầm nút xám
-- [ ] App thật: khoanh ảnh mẫu một nút / icon ở theme sáng (vd app có theme hệ thống), *So theo: Đường viền* → đổi hệ điều hành sang theme tối → Thử tìm vẫn thấy, độ khớp ≥ ~80 %
-- [ ] Inspector Chờ ảnh: *So theo* + *Kiểm tra màu* (bật → *Lệch màu tối đa* 15 %); Thử tìm trên nút cùng hình khác màu → báo “Thấy hình giống … nhưng màu lệch X %”; thẻ node ghi “· so viền · màu ±15%”; điều kiện Nếu *thấy ảnh* có cùng hai ô – xem theme sáng + tối
-- [ ] (Windows 125 %) chạy lại mẫu trên → vẫn qua (ảnh mẫu 2x thu về đúng tỷ lệ cùng mặt nạ)
+- [x] Mẫu thử *Tìm ảnh nâng cao: so viền, màu, mặt nạ* (macOS Retina, zoom 100 %) → chạy qua: Icon theme tối = 2, Nút xanh = 2, Huy hiệu = 2, các ô Nhầm / Bấm trượt = 0. Đổi node 2 về *So theo: Độ sáng* → hết giờ không thấy; tắt *Kiểm tra màu* ở node 4 → có lúc bấm nhầm nút xám
+- [x] App thật: khoanh ảnh mẫu một nút / icon ở theme sáng (vd app có theme hệ thống), *So theo: Đường viền* → đổi hệ điều hành sang theme tối → Thử tìm vẫn thấy, độ khớp ≥ ~80 %
+- [x] Inspector Chờ ảnh: *So theo* + *Kiểm tra màu* (bật → *Lệch màu tối đa* 15 %); Thử tìm trên nút cùng hình khác màu → báo “Thấy hình giống … nhưng màu lệch X %”; thẻ node ghi “· so viền · màu ±15%”; điều kiện Nếu *thấy ảnh* có cùng hai ô – xem theme sáng + tối
+- [x] (Windows 125 %) chạy lại mẫu trên → vẫn qua (ảnh mẫu 2x thu về đúng tỷ lệ cùng mặt nạ)
 
 ## Sửa – cửa sổ mất sau khi chạy (Windows 2 màn) / chọn Space (macOS)
 

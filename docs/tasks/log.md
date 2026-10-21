@@ -201,3 +201,4 @@
 - 2026-10-21 40 O1–O3: Tesseract vie qua DLL + syscall (ocr_tess_windows / ocr_tessbundle_windows / ocr_tesstsv), vision.PrepOCR (cửa sổ trượt ±12 px – lưới ô thô hỏng), fetch-tesseract.sh + CI, THIRD_PARTY.md, mẫu chu-tieng-viet, detail text approx
 - 2026-10-21 40: textNoAccent → textAccent (mặc định bỏ qua dấu, công tắc "Bỏ qua dấu" bật sẵn), textKey xử lý dấu tách rời NFD (bỏ hoặc ghép vào chữ trước), bỏ textNoAccent khỏi mẫu
 - 2026-10-21 Kế hoạch (người dùng yêu cầu): bước 44 – nút + MCP probe_page thử trang trên Chrome của app (tự dò captcha), ưu tiên node web / ảnh·chữ cho AI (mặc định ảnh·chữ, AI đổi tự do qua set_node_preference + báo nhẹ); làm trước 42
+- **2026-10-21** – Người dùng kiểm tra tay xong bước 40 (OCR Tesseract tiếng Việt, tìm ảnh so viền / mặt nạ / màu) và 41 (nơi lưu + xoá lịch sử): đạt hết, tick checks.md. Chỉ đổi tài liệu.
