@@ -25,7 +25,7 @@ AUTOCLICKER_REAL=1 go test ./internal/device/ -run Real   # test thiết bị th
 
 - **Toạ độ = pixel thật**: app khai báo per-monitor DPI aware (`build/windows/wails.exe.manifest`) – chuột đọc / đặt qua Win32 (`internal/device/cursor_windows.go`), không qua `robotgo.Location` / `Move` (robotgo nhân / chia thêm tỷ lệ DPI – xem bước 17). Code mới đụng toạ độ phải theo `device.Location` / `device.Displays`.
 - File riêng hệ điều hành theo hậu tố: `*_darwin.go` (macOS), `*_windows.go`, `*_other.go` (`//go:build !darwin` / `!windows` – báo *chưa hỗ trợ*). Phần Windows mới → thêm `*_windows.go`, sửa build tag của `*_other.go` cho khỏi trùng.
-- OCR Windows (`device/ocr_windows.go`) không có gói tiếng Việt – dòng đọc được mang `Approx`, tìm chữ tự so không dấu + chịu lệch nhẹ (`vision/fuzzy.go`). Gọi WinRT / COM mới → dùng lại `device/winrt_windows.go`.
+- Đọc chữ: mặc định **Tesseract + `vie`** kèm trong exe (bước 40) – chạy `bash scripts/fetch-tesseract.sh` một lần sau khi clone (cần 7-Zip; tạo `internal/device/tess/tess.zip`, không commit), thiếu thì app tự dùng OCR Windows. OCR Windows (`device/ocr_windows.go`) không có gói tiếng Việt – dòng đọc được mang `Approx`, tìm chữ tự so không dấu + chịu lệch nhẹ (`vision/fuzzy.go`). Gọi WinRT / COM mới → dùng lại `device/winrt_windows.go`.
 - Phần tử màn hình Windows (`device/element_windows.go`) qua UI Automation, không cần quyền như macOS; mọi lời gọi COM / WinRT chạy trên một luồng (`onCOM` trong `com_windows.go`) – code COM mới dùng lại.
 - Đang chưa có trên Windows: Cửa sổ / Ứng dụng (26 W0 – dùng lại `winlist_windows.go`).
 - Test viết theo đường dẫn / hành vi macOS có thể đỏ trên Windows (như `TestGuardPath` đỏ trên Linux): sửa test cho đúng theo hệ điều hành (`runtime.GOOS`), không bỏ test.

@@ -14,6 +14,14 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 - [ ] Lịch sử chạy → *Xem tất cả*: *Xoá lần này* xoá lần đang chọn (chọn sang lần cũ hơn kế đó); *Xoá hết…* hỏi lại rồi xoá cả, thanh bên hết lịch sử; đang xem lần đó trên bảng Nhật ký thì bảng đóng
 - [ ] Thư viện → Mở gần đây: rê chuột hiện ✕ bỏ một mục; *Xoá danh sách* bỏ hết – file kịch bản vẫn còn trên đĩa
 
+## 40 – đọc chữ tiếng Việt bằng Tesseract (Windows) · [phase3/40-nhan-dang.md](phase3/40-nhan-dang.md)
+
+- [ ] Mẫu thử *Click theo chữ tiếng Việt có dấu* (Windows, 100 % và 125 %) → Bấm đúng “Bản” = 5, Bấm nhầm = 0
+- [ ] App thật / web tiếng Việt: Chờ chữ / Click theo chữ có dấu (vd “Đăng nhập”, “Lưu thay đổi”) – tìm đúng, khung click trúng chữ; chữ trắng trên nút màu cũng thấy
+- [ ] Exe tải từ GitHub Actions chạy trên máy Windows sạch (chưa cài Tesseract): đọc chữ có dấu được ngay, thư mục `%LOCALAPPDATA%\autoclicker\tesseract-…` tự tạo
+- [ ] Node Chờ chữ vùng cả màn: không thấy giật chuột / UI chậm rõ khi chờ lâu (mỗi lần đọc cả màn ~0,8 s)
+- [ ] AI `describe_screen` trên Windows trả chữ có dấu đúng
+
 ## 40 – tìm ảnh: so viền, mặt nạ, kiểm tra màu · [phase3/40-nhan-dang.md](phase3/40-nhan-dang.md)
 
 - [ ] Mẫu thử *Tìm ảnh nâng cao: so viền, màu, mặt nạ* (macOS Retina, zoom 100 %) → chạy qua: Icon theme tối = 2, Nút xanh = 2, Huy hiệu = 2, các ô Nhầm / Bấm trượt = 0. Đổi node 2 về *So theo: Độ sáng* → hết giờ không thấy; tắt *Kiểm tra màu* ở node 4 → có lúc bấm nhầm nút xám

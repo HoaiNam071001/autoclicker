@@ -76,13 +76,16 @@ func imageMiss(m FindResult, s model.Step) map[string]any {
 	return d
 }
 
-// textMiss – read: dòng đọc được (toạ độ màn hình, locateText); closest: dòng giống chữ cần tìm nhất (≥ nearScore).
+// textMiss – read: dòng đọc được (toạ độ màn hình, locateText); closest: dòng giống chữ cần tìm nhất (≥ nearScore);
+// approx: có dòng từ bộ đọc không biết dấu.
 func textMiss(want string, read []vision.TextLine, area model.Rect) map[string]any {
 	lines := make([]map[string]any, 0, len(read))
 	var closest map[string]any
 	best := nearScore - 1
+	approx := false
 	for _, l := range read {
 		lines = append(lines, map[string]any{"text": l.Text, "box": l.Box})
+		approx = approx || l.Approx
 		if sc := vision.Similarity(l.Text, want); sc > best {
 			best, closest = sc, map[string]any{"text": l.Text, "box": l.Box, "score": sc}
 		}
@@ -90,6 +93,9 @@ func textMiss(want string, read []vision.TextLine, area model.Rect) map[string]a
 	d := map[string]any{"kind": "text", "want": want, "read": lines, "area": area}
 	if closest != nil {
 		d["closest"] = closest
+	}
+	if approx {
+		d["approx"] = true // bộ đọc dự phòng không biết dấu tiếng Việt (OCR Windows) – dấu trong read có thể sai, đã so không dấu
 	}
 	return d
 }

@@ -1,0 +1,61 @@
+{
+ "meta": {
+  "name": "Click theo chữ tiếng Việt có dấu",
+  "description": "Sáu nút Bàn / Bán / Bạn / Bản / Bận / Bẩn đổi chỗ sau mỗi lần bấm, nửa nền sáng nửa nền tối. Tìm đúng nút “Bản” (so cả dấu) rồi click, 5 lần. Đúng: Bấm đúng “Bản” = 5, Bấm nhầm = 0. Trên Windows cần bộ đọc Tesseract (kèm trong exe) – OCR Windows bỏ dấu sẽ bấm nhầm.",
+  "app": "Chờ / tìm",
+  "level": 2,
+  "page": "vi-text.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/vi-text.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "clickImage",
+    "name": "Bấm nút “Bản”",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "Bản",
+    "textExact": true,
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 600
+   },
+   {
+    "type": "counter",
+    "max": 4
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã bấm đúng nút “Bản” 5 lần"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "next",
+    "to": "s2"
+   },
+   {
+    "from": "s3",
+    "port": "done",
+    "to": "s4"
+   }
+  ]
+ }
+}

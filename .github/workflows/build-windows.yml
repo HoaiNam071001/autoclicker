@@ -23,8 +23,10 @@ jobs:
       - name: Cài MinGW-w64 + Wails CLI
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64
+          sudo apt-get install -y gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 p7zip-full
           go install github.com/wailsapp/wails/v2/cmd/wails@v$(go list -m -f '{{.Version}}' github.com/wailsapp/wails/v2 | sed 's/^v//')
+      - name: Bộ Tesseract kèm exe (OCR tiếng Việt – bước 40)
+        run: bash scripts/fetch-tesseract.sh
       - name: Build exe
         # wails tắt cgo khi build chéo → bật lại; binding (frontend/wailsjs) đã commit nên bỏ bước sinh binding
         env:

@@ -9,6 +9,7 @@ import (
 	"autoclicker/internal/device/devicetest"
 	"autoclicker/internal/element"
 	"autoclicker/internal/model"
+	"autoclicker/internal/vision"
 	"autoclicker/internal/web"
 )
 
@@ -91,4 +92,15 @@ func TestElementReadMissDetail(t *testing.T) {
 		s.Selectors, s.TimeoutMs = []string{"text=Mua ngey"}, 5
 	}))
 	wantAll(t, "đọc phần tử", detailJSON(t, err), `"kind":"element"`, `"name":"Mua ngay"`)
+}
+
+// Dòng từ bộ đọc không biết dấu (OCR Windows dự phòng) → approx để AI không sửa findText theo dấu đọc sai.
+func TestTextMissApprox(t *testing.T) {
+	exact := []vision.TextLine{{Text: "Bản nháp"}}
+	if _, ok := textMiss("Bản", exact, model.Rect{})["approx"]; ok {
+		t.Error("Tesseract / Vision: không có approx")
+	}
+	if textMiss("Bản", []vision.TextLine{{Text: "Bän nhåp", Approx: true}}, model.Rect{})["approx"] != true {
+		t.Error("OCR Windows: thiếu approx")
+	}
 }

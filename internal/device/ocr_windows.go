@@ -3,8 +3,10 @@ package device
 import (
 	"errors"
 	"image"
+	"log"
 	"math"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf16"
 	"unsafe"
@@ -13,9 +15,10 @@ import (
 	"autoclicker/internal/vision"
 )
 
-// Đọc chữ trên Windows bằng Windows.Media.Ocr (có sẵn từ Windows 10, không cài thêm). Gói nhận chữ theo ngôn ngữ của
-// Windows – không có tiếng Việt: chữ có dấu đọc sai dấu → dòng mang Approx (vision/fuzzy.go). Chạy trên luồng COM
-// (onCOM); engine + factory dựng một lần, chỉ dùng trên luồng đó.
+// Đọc chữ trên Windows: mặc định Tesseract + gói vie (ocr_tess_windows.go); nạp không được thì dùng Windows.Media.Ocr
+// (có sẵn từ Windows 10, không cài thêm). Gói nhận chữ của Windows theo ngôn ngữ hệ thống – không có tiếng Việt: chữ có
+// dấu đọc sai dấu → dòng mang Approx (vision/fuzzy.go). Chạy trên luồng COM (onCOM); engine + factory dựng một lần,
+// chỉ dùng trên luồng đó.
 
 var (
 	iidOcrEngineStatics      = parseGUID("5bffa85a-3384-3540-9940-699120d428a8")
@@ -25,7 +28,20 @@ var (
 	ocrEngine, ocrBmpFactory *comObj // chỉ đụng trên luồng COM
 )
 
-func readText(src image.Image) (lines []vision.TextLine, err error) {
+var tessFailLog sync.Once
+
+func readText(src image.Image) ([]vision.TextLine, error) {
+	lines, err := tessRead(src)
+	if err == nil {
+		return lines, nil
+	}
+	tessFailLog.Do(func() {
+		log.Printf("OCR: không dùng được Tesseract, đọc bằng OCR Windows (sai dấu tiếng Việt): %v", err)
+	})
+	return readTextWinRT(src)
+}
+
+func readTextWinRT(src image.Image) (lines []vision.TextLine, err error) {
 	b := src.Bounds()
 	if b.Dx() == 0 || b.Dy() == 0 {
 		return nil, nil

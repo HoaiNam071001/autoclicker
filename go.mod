@@ -11,6 +11,7 @@ require (
 	github.com/robotn/gohook v0.50.0
 	github.com/wailsapp/wails/v2 v2.16.0
 	github.com/xuri/excelize/v2 v2.9.1
+	golang.org/x/sys v0.48.0
 	golang.org/x/text v0.42.0
 )
 
@@ -73,7 +74,6 @@ require (
 	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
-	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 )
 

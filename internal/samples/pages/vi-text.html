@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; }
+  #field { flex: 1; display: grid; grid-template-columns: 1fr 1fr; margin: 0 20px 12px; min-height: 300px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); }
+  .half { position: relative; padding: 16px; }
+  .half.light { background: #ffffff; }
+  .half.dark { background: #1e293b; }
+  .half .btn { position: absolute; font-size: 15px; font-weight: 600; padding: 8px 18px; }
+  .half.dark .btn { background: #334155; }
+  #hint { padding: 0 20px 8px; color: var(--muted); }
+</style></head>
+<body>
+<div class="stats"></div>
+<div id="hint">Sáu nút chỉ khác nhau ở dấu – bộ đọc không biết tiếng Việt (bỏ dấu) thấy cả sáu là “Ban”. Kịch bản phải bấm đúng nút <b>Bản</b>.</div>
+<div id="field"><div class="half light" id="light"></div><div class="half dark" id="dark"></div></div>
+<div class="log"></div>
+<script src="sandbox.js"></script>
+<script>
+  // Nút đổi chỗ (và đổi nửa sáng / tối) sau mỗi lần bấm – kịch bản phải đọc lại chữ mỗi lần.
+  sb.header('Chữ tiếng Việt có dấu');
+  const setOk = sb.stat('Bấm đúng “Bản”'), setWrong = sb.stat('Bấm nhầm');
+  const words = ['Bàn', 'Bán', 'Bạn', 'Bản', 'Bận', 'Bẩn'];
+  const halves = [document.getElementById('light'), document.getElementById('dark')];
+  const n = { ok: 0, wrong: 0 };
+  const place = () => {
+    halves.forEach((h) => (h.innerHTML = ''));
+    const order = words.slice().sort(() => Math.random() - 0.5);
+    order.forEach((w, i) => {
+      const half = halves[i % 2], slot = Math.floor(i / 2);
+      const b = document.createElement('button');
+      b.className = 'btn';
+      b.textContent = w;
+      half.appendChild(b);
+      // 3 hàng mỗi nửa, lệch ngang ngẫu nhiên
+      b.style.top = Math.round(20 + slot * (half.clientHeight - 40) / 3 + sb.rand(0, 20)) + 'px';
+      b.style.left = Math.round(sb.rand(20, half.clientWidth - b.offsetWidth - 20)) + 'px';
+      b.addEventListener('click', () => {
+        if (w === 'Bản') { setOk(++n.ok); sb.log('bấm đúng “Bản”'); }
+        else { setWrong(++n.wrong); sb.log('bấm nhầm “' + w + '”'); }
+        place();
+      });
+    });
+  };
+  place();
+</script>
+</body></html>
