@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<title>Xác minh bạn là người</title>
+<style>
+  main { max-width: 520px; margin: 40px auto; padding: 0 20px; text-align: center; }
+  .g-recaptcha { display: inline-block; margin-top: 18px; }
+  iframe { width: 304px; height: 78px; border: 1px solid var(--line); border-radius: 6px; }
+</style></head>
+<body>
+<main>
+  <h1>Xác minh bạn là người</h1>
+  <p style="color:var(--muted)">Trang giả lập captcha (offline) để thử nút / tool Thử trang (bước 44): phải báo <b>Có captcha</b>.</p>
+  <!-- src giả có chữ recaptcha – app dò theo src iframe + khối .g-recaptcha đang hiện -->
+  <div class="g-recaptcha"><iframe title="reCAPTCHA" src="about:blank#recaptcha"></iframe></div>
+</main>
+<script src="sandbox.js"></script>
+<script>sb.header('Captcha giả');</script>
+</body></html>

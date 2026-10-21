@@ -26,6 +26,10 @@ export function CaptureTemplate(arg1) {
   return window['go']['main']['App']['CaptureTemplate'](arg1);
 }
 
+export function CheckPage(arg1) {
+  return window['go']['main']['App']['CheckPage'](arg1);
+}
+
 export function ClaudeDesktopConfigPath() {
   return window['go']['main']['App']['ClaudeDesktopConfigPath']();
 }

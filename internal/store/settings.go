@@ -35,6 +35,38 @@ type MCPSettings struct {
 	MaxMinutes int                 `json:"maxMinutes,omitempty"` // trần thời gian mỗi lượt AI chạy; 0 = AIMaxMinutes
 	OffTools   []string            `json:"offTools,omitempty"`   // tool tắt mặc định cho mọi AI (31b2)
 	Clients    map[string][]string `json:"clients,omitempty"`    // tên loại AI → danh sách tool tắt riêng (thay hẳn mặc định)
+	NodePref   string              `json:"nodePref,omitempty"`   // ưu tiên node cho AI (44): "" / vision | web
+}
+
+// Ưu tiên node cho AI (MCPSettings.NodePref, bước 44): vision = node ảnh / chữ (mặc định); web = thử trang trên Chrome
+// của app trước, không captcha thì dùng node web.
+const (
+	NodePrefVision = "vision"
+	NodePrefWeb    = "web"
+)
+
+// NodePreference – ưu tiên đã chuẩn hoá ("" / lạ → vision).
+func (m MCPSettings) NodePreference() string {
+	if m.NodePref == NodePrefWeb {
+		return NodePrefWeb
+	}
+	return NodePrefVision
+}
+
+// SetNodePref đổi riêng ưu tiên node (AI gọi qua MCP – không đè phần cài đặt MCP khác).
+func SetNodePref(p string) error {
+	if p != NodePrefVision && p != NodePrefWeb {
+		return fmt.Errorf("ưu tiên node không hợp lệ: %q (vision | web)", p)
+	}
+	settingsMu.Lock()
+	defer settingsMu.Unlock()
+	dir, err := ConfigDir()
+	if err != nil {
+		return err
+	}
+	s := loadSettings(dir)
+	s.MCP.NodePref = p
+	return saveSettings(dir, s)
 }
 
 // Mức chạy của AI (MCPSettings.Run).

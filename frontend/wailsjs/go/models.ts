@@ -1721,6 +1721,7 @@ export namespace store {
 	    maxMinutes?: number;
 	    offTools?: string[];
 	    clients?: Record<string, Array<string>>;
+	    nodePref?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new MCPSettings(source);
@@ -1733,6 +1734,7 @@ export namespace store {
 	        this.maxMinutes = source["maxMinutes"];
 	        this.offTools = source["offTools"];
 	        this.clients = source["clients"];
+	        this.nodePref = source["nodePref"];
 	    }
 	}
 	export class StorageSettings {
@@ -1808,6 +1810,106 @@ export namespace store {
 
 export namespace web {
 	
+	export class OutlineItem {
+	    role: string;
+	    name: string;
+	    sel: string;
+	    rect: model.Rect;
+	    inView: boolean;
+	    depth: number;
+	    level?: number;
+	    value?: string;
+	    secret?: boolean;
+	    checked?: string;
+	    expanded?: string;
+	    selected?: boolean;
+	    disabled?: boolean;
+	    focused?: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new OutlineItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.role = source["role"];
+	        this.name = source["name"];
+	        this.sel = source["sel"];
+	        this.rect = this.convertValues(source["rect"], model.Rect);
+	        this.inView = source["inView"];
+	        this.depth = source["depth"];
+	        this.level = source["level"];
+	        this.value = source["value"];
+	        this.secret = source["secret"];
+	        this.checked = source["checked"];
+	        this.expanded = source["expanded"];
+	        this.selected = source["selected"];
+	        this.disabled = source["disabled"];
+	        this.focused = source["focused"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class PageCheck {
+	    verdict: string;
+	    useWeb: boolean;
+	    signs: string[];
+	    url: string;
+	    title: string;
+	    loaded: boolean;
+	    elements: number;
+	    outline: OutlineItem[];
+	
+	    static createFrom(source: any = {}) {
+	        return new PageCheck(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.verdict = source["verdict"];
+	        this.useWeb = source["useWeb"];
+	        this.signs = source["signs"];
+	        this.url = source["url"];
+	        this.title = source["title"];
+	        this.loaded = source["loaded"];
+	        this.elements = source["elements"];
+	        this.outline = this.convertValues(source["outline"], OutlineItem);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class Picked {
 	    selectors: string[];
 	    text: string;

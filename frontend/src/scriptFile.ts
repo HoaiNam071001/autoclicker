@@ -6,7 +6,8 @@ import {
   AIScripts, ClearDraft, ConfirmQuit, ForgetRecent, LoadDraft, NewScript, OpenSample, OpenScript, OpenScriptPath, RecentScripts, SaveDraft, SaveScript, SaveScriptAs, SetEditorState,
 } from '../wailsjs/go/main/App';
 import { model, store } from '../wailsjs/go/models';
-import { getEditor, markSaved, reloadScript, replaceScript, subscribe } from './store';
+import { getEditor, markSaved, reloadScript, replaceScript, setNotice, subscribe } from './store';
+import { nodePrefLabel } from './aiLevel';
 import { inWails, setWindowMode } from './windowMode';
 import { Script } from './types';
 
@@ -195,4 +196,6 @@ if (inWails) {
     if (location.hash) setWindowMode('main');
     openRecent(path);
   });
+  // AI đổi ưu tiên node (set_node_preference – bước 44): báo nhẹ, không hỏi
+  EventsOn('mcp:nodePref', (p: string) => setNotice(`AI đổi ưu tiên node sang “${nodePrefLabel(p)}”`));
 }

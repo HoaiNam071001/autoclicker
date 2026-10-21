@@ -19,11 +19,12 @@ const ClientHeader = "X-Autoclicker-Client"
 
 // Nhóm tool – nhãn trong Cài đặt.
 const (
-	KindRead   = "read"   // chỉ đọc / kiểm tra
-	KindWrite  = "write"  // sửa kịch bản
-	KindRun    = "run"    // chạy trên máy thật (chuột / phím)
-	KindScreen = "screen" // nhìn màn hình
-	KindApp    = "app"    // mở trong app
+	KindRead     = "read"     // chỉ đọc / kiểm tra
+	KindWrite    = "write"    // sửa kịch bản
+	KindRun      = "run"      // chạy trên máy thật (chuột / phím)
+	KindScreen   = "screen"   // nhìn màn hình
+	KindApp      = "app"      // mở trong app
+	KindSettings = "settings" // đổi cài đặt của app (ưu tiên node – 44)
 )
 
 // ToolInfo – một tool trong bảng Cài đặt.

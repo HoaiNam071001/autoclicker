@@ -21,6 +21,8 @@ export function CancelPick():Promise<void>;
 
 export function CaptureTemplate(arg1:model.Rect):Promise<main.TemplateShot>;
 
+export function CheckPage(arg1:string):Promise<web.PageCheck>;
+
 export function ClaudeDesktopConfigPath():Promise<string>;
 
 export function ClearDraft():Promise<void>;

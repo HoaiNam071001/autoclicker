@@ -3,6 +3,7 @@ package mcpsrv
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
@@ -15,6 +16,7 @@ import (
 	"autoclicker/internal/model"
 	"autoclicker/internal/session"
 	"autoclicker/internal/store"
+	"autoclicker/internal/web"
 )
 
 // fakeBackend – file thật trong thư mục tạm, revision trong bộ nhớ.
@@ -27,9 +29,23 @@ type fakeBackend struct {
 	sess     *session.Manager // phiên chạy thật, thiết bị giả (runBackend trong run_test.go)
 	in       *devicetest.FakeInput
 	settings store.MCPSettings // tool tắt (31b2)
+	page     web.PageCheck     // probe_page trả (44)
+	probed   string
 }
 
-func (f *fakeBackend) Enabled() bool                { return true }
+func (f *fakeBackend) Enabled() bool          { return true }
+func (f *fakeBackend) MCP() store.MCPSettings { return f.settings }
+func (f *fakeBackend) CheckPage(_ context.Context, u string) (web.PageCheck, error) {
+	f.probed = u
+	return f.page, nil
+}
+func (f *fakeBackend) SetNodePref(p string) error {
+	if p != store.NodePrefVision && p != store.NodePrefWeb {
+		return errors.New("ưu tiên node không hợp lệ")
+	}
+	f.settings.NodePref = p
+	return nil
+}
 func (f *fakeBackend) ToolAllowed(c, t string) bool { return f.settings.ToolAllowed(c, t) }
 func (f *fakeBackend) Recent() []string             { return f.recent }
 func (f *fakeBackend) Editor() Editor               { return f.editor }

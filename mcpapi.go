@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"os"
 
 	"autoclicker/internal/device"
@@ -8,6 +10,7 @@ import (
 	"autoclicker/internal/model"
 	"autoclicker/internal/session"
 	"autoclicker/internal/store"
+	"autoclicker/internal/web"
 )
 
 // MCP cho AI (bước 31, internal/mcpsrv): route /mcp trên API local (cả kênh CLI – `autoclicker --mcp` chuyển tiếp
@@ -136,4 +139,23 @@ func (a *App) MCPSeenClients() []string {
 		return []string{}
 	}
 	return a.mcp.Clients()
+}
+
+func (b mcpBackend) MCP() store.MCPSettings { return store.CurrentSettings().MCP }
+
+// CheckPage – probe_page: mở trình duyệt là đụng máy → mức Chỉ soạn từ chối; Hỏi / Tự chạy không hỏi (chỉ mở trang).
+func (b mcpBackend) CheckPage(ctx context.Context, url string) (web.PageCheck, error) {
+	if store.CurrentSettings().MCP.RunMode() == store.AIRunEdit {
+		return web.PageCheck{}, errors.New("Cài đặt của app chỉ cho AI soạn kịch bản – không mở trình duyệt thử trang được; hỏi người dùng")
+	}
+	return b.a.checkPage(ctx, url)
+}
+
+// SetNodePref – AI đổi ưu tiên node: lưu ngay, báo người dùng (thông báo nhỏ + Cài đặt cập nhật nếu đang mở).
+func (b mcpBackend) SetNodePref(p string) error {
+	if err := store.SetNodePref(p); err != nil {
+		return err
+	}
+	b.a.emit("mcp:nodePref", p)
+	return nil
 }

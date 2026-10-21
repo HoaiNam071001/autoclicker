@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  body { display: flex; flex-direction: column; height: 100vh; margin: 0; }
+  canvas { flex: 1; display: block; margin: 0 20px 12px; border-radius: 16px; background: #0f172a; min-height: 0; }
+</style></head>
+<body>
+<canvas id="game"></canvas>
+<script src="sandbox.js"></script>
+<script>
+  // Game vẽ cả bằng canvas (như game web thật): nút CHƠI không có trong HTML – Thử trang phải báo "Nội dung vẽ trong
+  // canvas", node web không thấy nút, node tìm chữ / ảnh thì bấm được. Bấm trúng → điểm +1, nút nhảy chỗ.
+  sb.header('Game canvas');
+  const cv = document.getElementById('game'), g = cv.getContext('2d');
+  let btn = { x: 80, y: 80, w: 200, h: 70 }, score = 0;
+  function draw() {
+    cv.width = cv.clientWidth; cv.height = cv.clientHeight;
+    g.fillStyle = '#0f172a'; g.fillRect(0, 0, cv.width, cv.height);
+    g.fillStyle = '#facc15'; g.beginPath(); g.roundRect(btn.x, btn.y, btn.w, btn.h, 35); g.fill();
+    g.fillStyle = '#111827'; g.font = '900 30px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('CHƠI', btn.x + btn.w / 2, btn.y + btn.h / 2);
+    g.fillStyle = '#e2e8f0'; g.font = '800 26px sans-serif'; g.textAlign = 'left';
+    g.fillText('ĐIỂM ' + score, 24, cv.height - 30);
+  }
+  cv.addEventListener('click', e => {
+    const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    if (x < btn.x || x > btn.x + btn.w || y < btn.y || y > btn.y + btn.h) return;
+    score++;
+    btn.x = 20 + Math.random() * Math.max(0, cv.width - btn.w - 40);
+    btn.y = 20 + Math.random() * Math.max(0, cv.height - btn.h - 90);
+    draw();
+  });
+  addEventListener('resize', draw);
+  draw();
+</script>
+</body></html>

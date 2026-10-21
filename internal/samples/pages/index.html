@@ -42,6 +42,8 @@
     ['element.html', 'Phần tử màn hình', 'Giá đổi liên tục, nút chỉ có icon, ô nhập, khung cuộn, iframe, nút dưới cuối trang', 'đọc / chờ / click phần tử (Accessibility)'],
     ['human.html', 'Vệt chuột & nhịp gõ', 'Vẽ đường chuột đi, đếm điểm / độ cong mỗi lần di, thời gian giữ nút, nhịp gõ', 'thao tác giống người · click theo chữ · gõ chữ'],
     ['table.html', 'Bảng dữ liệu', 'Ô nhập như bảng tính, Tab / Enter di chuyển', 'click lệch · gõ chữ · tab'],
+    ['captcha.html', 'Captcha giả', 'Khung reCAPTCHA giả – nút Thử trang phải báo Có captcha', 'thử trang (Chrome của app)'],
+    ['canvas-game.html', 'Game canvas', 'Nút CHƠI vẽ trong canvas, bấm trúng +1 điểm – node web không thấy, tìm chữ thì thấy', 'thử trang · click theo chữ'],
   ];
   document.getElementById('list').innerHTML = pages.map(([href, name, desc, tag]) =>
     `<a href="${href}"><div class="card"><h2>${name}</h2><p>${desc}</p><span class="tag">${tag}</span></div></a>`).join('');

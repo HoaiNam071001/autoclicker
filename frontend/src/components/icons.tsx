@@ -144,3 +144,7 @@ export const StepIcon = ({ type, className = 'h-4 w-4' }: P & { type: StepIconNa
 export const Pin = ({ className = 'h-3.5 w-3.5' }: P) => (
   <svg viewBox="0 0 24 24" className={className} {...base} strokeLinecap="round" strokeLinejoin="round"><path d="M9 4h6l-1 5 3 3v2H7v-2l3-3zM12 14v6" /></svg>
 );
+// Thử trang trên Chrome của app (quả địa cầu)
+export const Globe = ({ className = 'h-3.5 w-3.5' }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base}><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></svg>
+);

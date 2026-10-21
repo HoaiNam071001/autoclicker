@@ -101,7 +101,7 @@ func (s *Server) stepTypes(_ context.Context, _ *mcp.CallToolRequest, in typesIn
 		}
 		return fail(&model.ScriptError{Field: "type", Msg: "không có loại node " + in.Type + " – gọi get_step_types không tham số để xem danh sách"})
 	}
-	return ok(guideDoc())
+	return ok(guideDoc(s.back.MCP().NodePreference()))
 }
 
 func (s *Server) screenInfo(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {

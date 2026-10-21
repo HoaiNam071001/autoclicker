@@ -15,7 +15,9 @@ import (
 
 	"autoclicker/internal/model"
 	"autoclicker/internal/session"
+	"autoclicker/internal/store"
 	"autoclicker/internal/vision"
+	"autoclicker/internal/web"
 )
 
 // Editor – kịch bản đang mở trên app.
@@ -55,6 +57,12 @@ type Backend interface {
 	Capture(r model.Rect) (image.Image, error)
 	ReadText(img image.Image) ([]vision.TextLine, error)
 	Windows() ([]model.WindowInfo, error) // theo thứ tự chồng – trên cùng trước
+
+	// Thử trang + ưu tiên node (44): MCP – cài đặt MCP hiện tại; CheckPage theo mức AI (Chỉ soạn → từ chối);
+	// SetNodePref lưu + báo người dùng.
+	MCP() store.MCPSettings
+	CheckPage(ctx context.Context, url string) (web.PageCheck, error)
+	SetNodePref(p string) error
 }
 
 // Server – MCP server + nhật ký lệnh AI đã gọi.
@@ -70,6 +78,7 @@ Tạo kịch bản: đọc get_step_types (hoặc resource autoclicker://guide) 
 Sửa: read_script (lấy revision) → update_script theo id / ref node. Thiếu thông tin (app nào, giá trị nào là input) thì hỏi lại người dùng trước.
 Thử – sửa: run_script (cả / stopAt / only) → node lỗi có error.detail + ảnh → update_script → resume_run (chạy tiếp từ node lỗi, giữ biến).
 Xem màn hình: describe_screen (chữ + cửa sổ, rẻ) trước, screenshot khi cần nhìn. Người dùng muốn xem / tự chạy: open_in_app.
+Trang web: get_preferences – nodePref web thì probe_page(url) trước, verdict ok mới dùng node web; mặc định (vision) dùng node ảnh / chữ.
 App có thể chỉ cho soạn hoặc hỏi người dùng trước khi chạy (Cài đặt) – bị từ chối thì báo người dùng, không thử lại liên tục.`
 
 func New(back Backend) *Server {
@@ -81,6 +90,7 @@ func New(back Backend) *Server {
 	s.addWriteTools()
 	s.addRunTools()
 	s.addScreenTools()
+	s.addWebTools()
 	s.addDocs()
 	return s
 }

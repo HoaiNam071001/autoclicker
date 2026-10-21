@@ -6,6 +6,7 @@ import { usePopover } from './usePopover';
 import { Logo, Monitor, Moon, Sun } from './icons';
 import { setTheme, Theme, useTheme } from '../theme';
 import AppSettings from './AppSettings';
+import PageCheckButton from './pagecheck/PageCheckButton';
 
 const winBase = 'grid h-9 w-11 place-items-center text-ink';
 const winBtn = `${winBase} hover:bg-hover`;
@@ -20,6 +21,7 @@ export default function TitleBar() {
       <Logo className="h-[15px] w-[15px] flex-none" />
       <span className="text-xs text-muted">Auto Clicker</span>
       <ThemeSwitch />
+      {inWails && <PageCheckButton />}
       {inWails && <AppSettings />}
       {inWails && (
         <div className="flex">

@@ -124,3 +124,24 @@ func (a *App) CancelPick() {
 		a.pickCancel = nil
 	}
 }
+
+// checkTimeout – thử trang: bật trình duyệt (≤ 20 s) + chờ tải (≤ 15 s) + dò.
+const checkTimeout = 45 * time.Second
+
+// CheckPage – nút Thử trang (bước 44): mở url trên Chrome của app, dò captcha / chặn bot / canvas. Xong thì app lên
+// lại trước Chrome để thấy kết quả.
+func (a *App) CheckPage(url string) (web.PageCheck, error) {
+	pc, err := a.checkPage(context.Background(), url)
+	a.showWindow()
+	return pc, err
+}
+
+func (a *App) checkPage(ctx context.Context, url string) (web.PageCheck, error) {
+	b, err := a.browser()
+	if err != nil {
+		return web.PageCheck{}, err
+	}
+	ctx, cancel := context.WithTimeout(ctx, checkTimeout)
+	defer cancel()
+	return b.CheckPage(ctx, url)
+}

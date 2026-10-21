@@ -3,6 +3,15 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 44 – thử trang + ưu tiên node cho AI · [phase3/44-thu-trang-uu-tien-node.md](phase3/44-thu-trang-uu-tien-node.md)
+
+- [ ] Nút quả địa cầu trên thanh tiêu đề → hộp *Thử trang*: gõ `vi.wikipedia.org` → Thử → Chrome của app mở trang, app lên lại trước, báo ✓ *Dùng được node web* + số phần tử. Xem theme sáng + tối
+- [ ] Sân thử *Captcha giả* (`captcha.html`) → ⚠ *Có captcha*; *Game canvas* (`canvas-game.html`) → ⚠ *Nội dung vẽ trong canvas* (mở Sân thử, chép URL `file:///…` của trang trên thanh địa chỉ dán vào ô)
+- [ ] Trang thật có Cloudflare / reCAPTCHA (vd trang game hay bị chặn) → báo *Có captcha* kèm dấu hiệu; trang không mở được (sai tên miền) → báo lỗi rõ, không treo
+- [ ] Cài đặt → AI (MCP): *AI ưu tiên node* mặc định *Ảnh / chữ*; đổi sang *Trình duyệt app* → đóng mở lại vẫn giữ
+- [ ] Trên Claude Code: “ưu tiên dùng node trình duyệt” → AI gọi `set_node_preference` → app hiện “AI đổi ưu tiên node sang “Trình duyệt app”” (Cài đặt đang mở thì cập nhật ngay); “tạo kịch bản bấm nút … trên trang X” → AI gọi `probe_page` trước, trang ok thì dùng node web (node Mở có *Chrome của app*), captcha thì dùng tìm chữ / ảnh và nói lý do
+- [ ] Mức AI *Chỉ soạn* → `probe_page` bị từ chối (không mở Chrome); đổi mức trên chip thanh mini lúc AI đã đổi ưu tiên → ưu tiên node không bị trả về cũ
+
 ## 41 – nơi lưu + xoá lịch sử · [phase3/41-noi-luu-lich-su.md](phase3/41-noi-luu-lich-su.md)
 
 - [x] Cài đặt (bánh răng) → tab **Lưu trữ**: 3 ô hiện *Mặc định: …/Documents/Auto Clicker* và *…/Pictures/Auto Clicker*; *Chọn…* đổi thư mục → ô chữ đậm, có *Về mặc định*; *Mở* mở đúng thư mục trong Finder / Explorer. Tab API / AI (MCP) vẫn như cũ. Xem theme sáng + tối

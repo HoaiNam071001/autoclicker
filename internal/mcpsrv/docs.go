@@ -38,10 +38,14 @@ type guide struct {
 	Tips       string              `json:"tips"`
 	StepTypes  []model.StepTypeDoc `json:"stepTypes"`
 	CommonOuts []string            `json:"commonOutputs"`
+	NodePref   string              `json:"nodePref"`     // ưu tiên node hiện tại (44)
+	NodeTips   string              `json:"nodePrefTips"` // cách chọn node web / ảnh·chữ theo nodePref
 }
 
-func guideDoc() guide {
-	return guide{FlowGuideDoc: model.Guide(), Tips: tips, StepTypes: model.StepTypeDocs(), CommonOuts: model.CommonOutputs}
+// guideDoc – pref: ưu tiên node hiện tại (store.MCPSettings.NodePreference).
+func guideDoc(pref string) guide {
+	return guide{FlowGuideDoc: model.Guide(), Tips: tips, StepTypes: model.StepTypeDocs(), CommonOuts: model.CommonOutputs,
+		NodePref: pref, NodeTips: nodePrefTips[pref]}
 }
 
 // exampleIDs – mẫu thử (bước 33) làm ví dụ: chạy được trên máy thật, không phụ thuộc sân thử / ảnh mẫu.
@@ -107,7 +111,7 @@ func (s *Server) addDocs() {
 			})
 	}
 	res("autoclicker://guide", "guide", "Hướng dẫn viết kịch bản: flow, biến, từng loại node, mẹo viết bền", "application/json",
-		func() (any, error) { return guideDoc(), nil })
+		func() (any, error) { return guideDoc(s.back.MCP().NodePreference()), nil })
 	res("autoclicker://schema", "schema", "JSON Schema của file kịch bản", "application/schema+json",
 		func() (any, error) { return ScriptSchema() })
 	res("autoclicker://examples", "examples", "Kịch bản mẫu dạng gọn (chạy được với create_script)", "application/json", examples)
