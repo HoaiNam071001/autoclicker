@@ -17,6 +17,8 @@ func TestValidateControl(t *testing.T) {
 		"tối đa phải ≥ 1":        modeltest.Node("a", "n1", model.StepCounter, func(s *model.Step) { s.Max = 0 }),
 		"tên biến":               modeltest.Node("a", "n1", model.StepSetVar, func(s *model.Step) { s.VarName = "1x" }),
 		"cộng cần một số":        modeltest.Node("a", "n1", model.StepSetVar, func(s *model.Step) { s.VarOp, s.Value = model.VarAdd, "abc" }),
+		"chưa nhập biểu thức":    modeltest.Node("a", "n1", model.StepCalc, nil),
+		"thiếu dấu )":            modeltest.Node("a", "n1", model.StepCalc, func(s *model.Step) { s.Value = "round({{n1.output.x}}" }),
 		"không có cổng":          modeltest.Node("a", "n1", model.StepCounter, nil),
 	}
 	for want, s := range bad {

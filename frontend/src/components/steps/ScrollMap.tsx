@@ -1,7 +1,8 @@
 // Hình minh hoạ bước Cuộn (inspector): khung vùng / màn hình theo đúng tỷ lệ, điểm đặt chuột (hoặc hình con trỏ ở giữa
 // nếu cuộn tại chỗ chuột), và phần trang mới hiện ra nối tiếp theo hướng cuộn – chia thành từng màn ("màn 2, 3…"),
 // cuộn quá MAX_SCREENS màn thì vẽ gãy. Quãng cuộn là ước tính: SCROLL_NOTCH_PX một nấc (thực tế tuỳ app).
-import { Point, Rect, SCROLL_ARROW, SCROLL_NOTCH_PX, ScrollDirection, scrollDelta } from '../../types';
+import { Point, Rect, ScrollDirection } from '../../types';
+import { SCROLL_ARROW, SCROLL_NOTCH_PX, scrollDelta } from '../../scroll';
 
 const MAX_W = 268;
 const MAX_H = 210;

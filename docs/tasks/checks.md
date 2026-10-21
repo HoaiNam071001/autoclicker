@@ -3,7 +3,10 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 42 – Dữ liệu & luồng (G1, G2, G3) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+## 42 – Dữ liệu & luồng (G1, G2, G3, G4a) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+
+- [ ] (G4a) Mẫu thử *Tính toán – giá kèm thuế* chạy thành công: ô gõ chữ hiện “120000 → 129600 (true); 45000 → 48600 (false); 9900 → 10692 (false); ”
+- [ ] (G4a) Thêm node *Tính toán* (nhóm Dữ liệu): gõ `2 * (3 + 1)` → inspector hiện *Kết quả: 8*; gõ `1 +` → báo lỗi đỏ + thẻ node cảnh báo *Biểu thức sai*; chèn biến → *Kết quả biết khi chạy*; bảng cú pháp đọc được ở cả theme sáng + tối
 
 - [ ] (G3) Mẫu thử *Tìm tất cả – bấm mọi nút MUA* (trang Shop) chạy thành công: thanh giỏ hiện “GIỎ: 6 MÓN”, mỗi món ×1; thanh mini ghi *lượt … / 6*
 - [ ] (G3) Thêm node *Tìm tất cả* (nhóm Chờ): đổi Tìm bằng ảnh mẫu / chữ / phần tử, ô *Số chỗ* (ít nhất / nhiều nhất), *Chỗ thứ* không hiện; bấm Thử tìm → overlay vẽ mọi khung kèm số thứ tự, inspector ghi số chỗ; xem cả theme sáng + tối

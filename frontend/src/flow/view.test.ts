@@ -85,6 +85,16 @@ describe('node điều khiển', () => {
     expect(v({ listFrom: 'file' }).warn).toBe('Chưa chọn file CSV / Excel');
     expect(outputsOf(makeStep({ id: 'f', type: 'forEach' })).map((o) => o.key).slice(0, 3)).toEqual(['item', 'index', 'count']);
   });
+
+  it('Tính toán: cổng Tiếp, chi tiết là biểu thức, cảnh báo trống / sai cú pháp', () => {
+    const v = (value: string) => nodeViews({ steps: [makeStep({ id: 'c', ref: 'n1', type: 'calc', value })], start: 'c', edges: [] })[0];
+    expect(v('{{n2.output.count}} * 2').ports.map((p) => p.label)).toEqual(['Tiếp']);
+    expect(v('{{n2.output.count}} * 2').detail).toBe('{{n2.output.count}} * 2');
+    expect(v('{{n2.output.count}} * 2').warn).toBeUndefined();
+    expect(v('').warn).toBe('Chưa nhập biểu thức');
+    expect(v('1 +').warn).toBe('Biểu thức sai');
+    expect(outputsOf(makeStep({ id: 'c', type: 'calc' }))[0].key).toBe('value');
+  });
 });
 
 describe('outputsOf (F5c)', () => {

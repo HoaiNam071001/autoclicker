@@ -48,6 +48,7 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'http', label: 'HTTP / API', info: NODE_INFO.http, keywords: 'http api rest get post put delete webhook json goi server request', run: () => addStep('http') },
       { icon: 'file', label: 'Tệp / thư mục', info: NODE_INFO.file, keywords: 'file tep thu muc folder ghi luu csv excel xlsx xoa thung rac don dep', run: () => addStep('file') },
       { icon: 'system', label: 'Âm lượng', info: NODE_INFO.system, keywords: 'he thong am luong volume loa tat tieng mute sound', run: () => addStep('system') },
+      { icon: 'calc', label: 'Tính toán', info: NODE_INFO.calc, keywords: 'tinh toan bieu thuc cong tru nhan chia lam tron so sanh calc math round', run: () => addControl('calc') },
       { icon: 'setVar', label: 'Đặt biến', info: NODE_INFO.setVar, keywords: 'set var bien gan', run: () => addControl('setVar') },
     ],
   },

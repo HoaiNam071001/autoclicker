@@ -49,6 +49,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   forEach: { desc: 'Chạy đoạn phía sau một lần cho mỗi phần tử của danh sách (dòng chữ, mảng JSON, file CSV / Excel), hết thì ra cổng Hết danh sách.', use: 'Làm cùng một việc cho từng khách hàng / đơn hàng / dòng dữ liệu.' },
   counter: { desc: 'Đếm số lần đi qua: còn lượt thì ra cổng Còn lượt, đủ số lần thì ra Hết lượt.', use: 'Lặp một đoạn N lần, giới hạn số lần thử lại.' },
   end: { desc: 'Kết thúc vòng chạy, ghi thành công hoặc thất bại kèm lời nhắn.', use: 'Cuối một nhánh: báo “Đã đặt hàng”, hoặc dừng với lỗi “Hết hàng”.' },
+  calc: { desc: 'Tính một biểu thức từ số đọc được: cộng trừ nhân chia, làm tròn, so sánh, và / hoặc.', use: 'Tính tổng tiền, so giá với ngưỡng rồi rẽ nhánh bằng Nếu, đổi đơn vị.' },
   setVar: { desc: 'Đặt hoặc cộng một biến để node sau đọc bằng {{vars.tên}}.', use: 'Đếm số đơn đã xử lý, ghi lại kết quả giữa các nhánh.' },
 };
 

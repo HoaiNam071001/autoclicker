@@ -50,17 +50,18 @@ const (
 	StepForEach      = "forEach"      // lặp qua danh sách (ListFrom): mỗi lần đi vào lấy một phần tử → item, hết → done (engine/foreach.go, bước 42 G2)
 	StepEnd          = "end"          // kết thúc vòng: EndStatus success (chạy vòng sau) / fail (dừng kịch bản, báo Message)
 	StepSetVar       = "setVar"       // đặt biến {{vars.VarName}} = Value (VarOp set) hoặc cộng thêm Value (add)
+	StepCalc         = "calc"         // tính biểu thức Value (số, so sánh, and / or, round…) → output value (script/calc.go, bước 42 G4a)
 )
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
 	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepWebWait, StepWebClick,
-	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar}
+	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
 func IsControl(t string) bool {
 	switch t {
-	case StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar:
+	case StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc:
 		return true
 	}
 	return false
@@ -203,7 +204,7 @@ type Step struct {
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>
-	Value     string `json:"value,omitempty"`     // switch: giá trị cần xét; setVar: giá trị gán / cộng; forEach: danh sách; nhận {{biến}}
+	Value     string `json:"value,omitempty"`     // switch: giá trị cần xét; setVar: giá trị gán / cộng; forEach: danh sách; calc: biểu thức; nhận {{biến}}
 	Max       int    `json:"max,omitempty"`       // counter: số lần đi cổng next tối đa
 	ListFrom  string `json:"listFrom,omitempty"`  // forEach: ListFroms – "" = chữ / biến Value | file = CSV / xlsx FilePath (+ Sheet)
 	EndStatus string `json:"endStatus,omitempty"` // end: success | fail

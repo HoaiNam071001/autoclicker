@@ -227,6 +227,10 @@ func validateControl(i int, s model.Step, inside func(model.Point) bool) error {
 		if s.EndStatus != model.EndSuccess && s.EndStatus != model.EndFail {
 			return stepErr(i, s, "endStatus", "chọn kết thúc thành công hay thất bại")
 		}
+	case model.StepCalc:
+		if err := CheckCalc(s.Value); err != nil {
+			return stepErr(i, s, "value", "biểu thức: %v", err)
+		}
 	case model.StepSetVar:
 		if !varNameRe.MatchString(s.VarName) {
 			return stepErr(i, s, "varName", "tên biến %q không hợp lệ – chữ cái / _ đầu, sau đó chữ / số / _", s.VarName)

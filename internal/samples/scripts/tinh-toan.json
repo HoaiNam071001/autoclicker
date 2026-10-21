@@ -1,0 +1,103 @@
+{
+ "meta": {
+  "name": "Tính toán – giá kèm thuế",
+  "description": "Lặp qua 3 giá (mỗi dòng một phần tử), node Tính toán thứ nhất tính giá kèm thuế 8 % (round), node thứ hai so với ngưỡng 50 000 (true / false), rồi gõ kết quả vào ô. Đúng: ô hiện “120000 → 129600 (true); 45000 → 48600 (false); 9900 → 10692 (false); ”. Bấm vào node Tính toán, sửa biểu thức – inspector báo lỗi cú pháp ngay, biểu thức không có biến thì hiện kết quả.",
+  "app": "Điều khiển",
+  "level": 1,
+  "page": "type.html",
+  "real": false,
+  "prep": "Trình duyệt mở to gần toàn màn hình (điểm click neo theo giữa màn hình)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/type.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "O GO CHU",
+    "searchArea": "screen",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "click",
+    "points": [
+     {
+      "x": 0,
+      "y": 0,
+      "ax": "center",
+      "ay": "center"
+     }
+    ],
+    "delayAfter": 300
+   },
+   {
+    "type": "forEach",
+    "value": "120000\n45000\n9900"
+   },
+   {
+    "type": "calc",
+    "value": "round({{n4.output.item}} * 1.08)"
+   },
+   {
+    "type": "calc",
+    "value": "{{n5.output.value}} > 50000"
+   },
+   {
+    "type": "type",
+    "text": "{{n4.output.item}} → {{n5.output.value}} ({{n6.output.value}}); ",
+    "delayAfter": 300
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã tính {{n4.output.count}} giá"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "item",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   },
+   {
+    "from": "s6",
+    "port": "success",
+    "to": "s7"
+   },
+   {
+    "from": "s7",
+    "port": "success",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "done",
+    "to": "s8"
+   }
+  ]
+ }
+}

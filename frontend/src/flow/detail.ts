@@ -14,7 +14,8 @@ import { fmtWaitUntil } from './waitUntil';
 import { fmtPath } from './shape';
 import { fmtWebStep, isWebStep } from './web';
 import { fmtElement, fmtElementRead } from './element';
-import { fmtMs, numVarOf, SCROLL_ARROW, SCROLL_NOTCH_PX, type Step, type StepPoint } from '../types';
+import { fmtMs, numVarOf, type Step, type StepPoint } from '../types';
+import { SCROLL_ARROW, SCROLL_NOTCH_PX } from '../scroll';
 
 const fmtSigned = (v: number) => (v > 0 ? `+${v}` : `${v}`);
 const fmtPair = (p: StepPoint) => (usesVar(p) ? `${p.xVar}, ${p.yVar}` : `${fmtAxis(p.x, p.ax)}, ${fmtAxis(p.y, p.ay)}`);

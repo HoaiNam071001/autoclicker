@@ -1,6 +1,7 @@
 // Hình học vẽ trên overlay (toạ độ cửa sổ): marker, đường neo, mũi tên cuộn, nét node Vẽ đường, chỗ đặt nút khoanh ảnh.
 import { fmtAxis } from '../anchor';
-import { Point, Rect, SCROLL_ARROW, scrollDelta, Step, StepPoint } from '../types';
+import { Point, Rect, Step, StepPoint } from '../types';
+import { SCROLL_ARROW, scrollDelta } from '../scroll';
 import { pathVertices } from '../flow/shape';
 
 export const MIN_REGION = 10; // px – kéo nhỏ hơn coi như click nhầm

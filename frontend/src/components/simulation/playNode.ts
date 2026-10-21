@@ -14,7 +14,8 @@ import { fmtApp } from '../../flow/app';
 import { fmtWaitUntil } from '../../flow/waitUntil';
 import { pathVertices } from '../../flow/shape';
 import { fmtKey } from '../../keys';
-import { Point, Rect, scrollDelta, Step, stepLabel } from '../../types';
+import { Point, Rect, Step, stepLabel } from '../../types';
+import { scrollDelta } from '../../scroll';
 import type { SimState } from '../Simulation';
 
 const TYPE_CHAR_MS = 40;

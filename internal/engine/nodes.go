@@ -114,6 +114,16 @@ func (e *Engine) runControl(ctx context.Context, s model.Step, logf func(level, 
 		logf("info", "%s", s.Message)
 		return "", map[string]any{"message": s.Message}, nil // lời nhắn hiện ở thanh trạng thái / nhật ký (F5)
 
+	case model.StepCalc:
+		v, err := script.EvalCalc(s.Value)
+		if err != nil {
+			return "", nil, &invalidErr{fmt.Sprintf("tính “%s”: %v", s.Value, err)}
+		}
+		if f, ok := v.(float64); ok {
+			v = numValue(f)
+		}
+		return model.PortSuccess, map[string]any{"value": v}, nil
+
 	case model.StepSetVar:
 		var v any = s.Value
 		if s.VarOp == model.VarAdd {

@@ -17,7 +17,8 @@ type VarField struct {
 	JSON bool // thân JSON của node HTTP: giá trị biến thoát theo chuỗi JSON (đặt biến trong "…")
 	// Num: ô số – toạ độ (Point.XVar / YVar, F5b) hoặc trường số (NumVars, F5c): biến phải ra số (output của node),
 	// cả ô là số + / − (EvalCoord)
-	Num bool
+	Num  bool
+	Calc bool // biểu thức node Tính toán: giá trị không phải số thành chuỗi "…" (CalcQuote)
 }
 
 // VarFields – các ô chữ nhận biến của s (input {{key}} ở resolveInputs, biến node ở resolveNodeVars, kiểm tra ở
@@ -143,6 +144,8 @@ func VarFields(s *model.Step) []VarField {
 		add("message", &s.Message, false)
 	case model.StepSetVar:
 		add("value", &s.Value, false)
+	case model.StepCalc:
+		out = append(out, VarField{Name: "value", Ptr: &s.Value, Calc: true})
 	case model.StepForEach:
 		if s.ListFrom == model.ListFile {
 			add("filePath", &s.FilePath, false)
@@ -159,6 +162,8 @@ func EscapeValue(f VarField, v string) string {
 	switch {
 	case f.URL:
 		return launch.EscapeURLValue(v)
+	case f.Calc:
+		return CalcQuote(v)
 	case f.JSON:
 		b, _ := json.Marshal(v)
 		return string(b[1 : len(b)-1])

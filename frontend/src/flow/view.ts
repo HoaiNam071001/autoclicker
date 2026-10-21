@@ -8,6 +8,7 @@ import { nodeCategory } from './category';
 import { firstSelector } from './element';
 import { reachable } from './edit';
 import { CASE_PREFIX, flowOrder, PORT_FAIL, PORT_SUCCESS, PortShape, portsOf } from './model';
+import { checkCalc } from './calc';
 
 // Nhãn + màu cổng ra. Cổng case:<key> lấy nhãn từ case của node.
 const PORTS: Record<string, Omit<PortView, 'id'>> = {
@@ -29,7 +30,7 @@ export function portView(id: string, s?: Pick<Step, 'type' | 'cases'>): PortView
     const c = s?.cases?.find((x) => x.key === key);
     return { id, label: c?.label || key, kind: 'neutral' };
   }
-  if (id === PORT_SUCCESS && s?.type === 'setVar') return { id, label: 'Tiếp', kind: 'ok' };
+  if (id === PORT_SUCCESS && (s?.type === 'setVar' || s?.type === 'calc')) return { id, label: 'Tiếp', kind: 'ok' };
   if (id === 'done' && s?.type === 'forEach') return { id, label: 'Hết danh sách', kind: 'neutral' };
   return { id, ...(PORTS[id] ?? { label: id, kind: 'neutral' }) };
 }
@@ -81,6 +82,7 @@ function warningOf(s: Step, reachable: boolean, refs: Map<string, string>): stri
       if (m) return `Case ${c.label || c.key}: ${m.toLowerCase()}`;
     }
   }
+  if (s.type === 'calc' && checkCalc(s.value ?? '')) return s.value?.trim() ? 'Biểu thức sai' : 'Chưa nhập biểu thức';
   if (s.type === 'forEach' && listSource(s) === '—') return s.listFrom === 'file' ? 'Chưa chọn file CSV / Excel' : 'Danh sách trống';
   return undefined;
 }
@@ -136,6 +138,7 @@ function controlDetail(s: Step): string {
     case 'forEach': return listSource(s);
     case 'end': return s.endStatus === 'fail' ? `thất bại${s.message ? ` · ${s.message}` : ''}` : `thành công${s.message ? ` · ${s.message}` : ''}`;
     case 'setVar': return `vars.${s.varName || '?'} ${s.varOp === 'add' ? '+=' : '='} ${s.value ?? ''}`;
+    case 'calc': return s.value || '—';
     default: return '';
   }
 }
@@ -208,6 +211,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'forEach': return [{ key: 'item', desc: s.listFrom === 'file' ? 'dòng đang xét – item.<cột>' : 'phần tử đang xét (object: item.<khoá>)' },
       { key: 'index', desc: 'thứ tự phần tử (từ 1)' }, { key: 'count', desc: 'số phần tử' }];
     case 'setVar': return [{ key: 'name', desc: 'tên biến' }, { key: 'value', desc: 'giá trị sau khi đặt' }];
+    case 'calc': return [{ key: 'value', desc: 'kết quả – số hoặc true / false' }];
     default: return [];
   }
 }

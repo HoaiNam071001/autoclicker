@@ -6,7 +6,8 @@ import ScrollMap from '../steps/ScrollMap';
 import { boundsOf, endpoints, isAbsolute, setAnchor, setScrollAt, toScreen, updateStep, useScript } from '../../store';
 import { pinnedInput, setPinnedValue } from '../../scriptInputs';
 import { insideBounds } from '../../anchor';
-import { SCROLL_NOTCH_PX, ScrollDirection, Step } from '../../types';
+import { ScrollDirection, Step } from '../../types';
+import { SCROLL_NOTCH_PX } from '../../scroll';
 import { DIRECTION_OPTIONS, errText, Field, NumField, PickButton, SetPoint } from './shared';
 import PointSource from './PointSource';
 

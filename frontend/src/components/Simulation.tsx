@@ -5,7 +5,8 @@ import { endpoints } from '../store';
 import { BranchChoices, hopText, newWalk, previewHop, routeText, stopText, type Hop } from '../flow/preview';
 import { effectiveHuman } from '../flow/human';
 import { curveAt, HUMAN_PROFILES, humanLegs } from '../overlay/humanPath';
-import { Point, Rect, scrollDelta, ScrollDirection, Step, stepLabel, Script } from '../types';
+import { Point, Rect, ScrollDirection, Step, stepLabel, Script } from '../types';
+import { scrollDelta } from '../scroll';
 import { playNode, type Player } from './simulation/playNode';
 
 const TRAVEL_MS = 300; // thời gian con trỏ giả bay tới điểm khi tắt giống người (engine thật dịch chuyển tức thì)

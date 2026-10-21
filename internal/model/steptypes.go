@@ -197,6 +197,9 @@ var stepTypeDocs = []StepTypeDoc{
 	{StepSetVar, "Đặt biến", "Đặt biến {{vars.varName}} dùng ở node sau trong vòng: varOp set = gán value (nhận {{biến}}, vd {{n2.output.text}}); add = cộng value (số) vào giá trị hiện có (chưa có = 0). Biến đặt lại mỗi vòng.",
 		[]string{"varName", "varOp", "value"}, []string{"enabled"},
 		`{"id":"s1","ref":"n1","type":"setVar","varName":"so_lan","varOp":"add","value":"1","enabled":true}`, []string{"name", "value"}, nil},
+	{StepCalc, "Tính toán", "Tính biểu thức value → output value (số hoặc true / false; chuỗi nếu biểu thức chỉ là chuỗi). Cú pháp: số 12 / 1.5 (dấu chấm thập phân), chuỗi \"…\", true / false; + - * / % (chỉ số); == != (mọi kiểu); < <= > >= (số, không nối a < b < c); and / && , or / || , not / !; round(x[, số chữ số]) floor ceil abs min max; ngoặc (). Biến {{…}} chèn vào: số giữ nguyên, chữ khác tự thành chuỗi \"…\" (không cần tự đặt nháy) – số kiểu 1.234.000 đ là chữ, lấy số trước bằng elementRead readNumber (Lấy số). Kết quả làm tròn 10 chữ số thập phân. Sai cú pháp → lỗi kiểm tra trường value; lúc chạy chia 0 / sai kiểu → invalid_input, dừng kịch bản. Cổng success duy nhất; rẽ nhánh theo kết quả bằng if (cond value {{n2.output.value}} eq true).",
+		[]string{"value"}, []string{"enabled"},
+		`{"id":"s1","ref":"n2","type":"calc","value":"{{n1.output.value}} * 2 + 1 > 100 and {{n1.output.value}} < 5000","enabled":true}`, []string{"value"}, nil},
 }
 
 type FlowGuideDoc struct {

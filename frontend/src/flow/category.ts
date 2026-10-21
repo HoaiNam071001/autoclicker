@@ -19,7 +19,7 @@ const BY_TYPE: Record<StepType, NodeCategory> = {
   click: 'mouse', double: 'mouse', hold: 'mouse', drag: 'mouse', scroll: 'mouse', path: 'mouse', clickImage: 'mouse',
   type: 'kb', key: 'kb',
   wait: 'wait', waitImage: 'wait', waitPixel: 'wait', waitScreen: 'wait', findAll: 'wait', waitUntil: 'wait', screenshot: 'wait',
-  clipboard: 'data', http: 'data', file: 'data', system: 'data', setVar: 'data',
+  clipboard: 'data', http: 'data', file: 'data', system: 'data', setVar: 'data', calc: 'data',
   open: 'app', window: 'app', app: 'app', elementRead: 'app',
   if: 'flow', switch: 'flow', switchScreen: 'flow', counter: 'flow', forEach: 'flow', end: 'flow',
   webWait: 'web', webClick: 'web', webType: 'web', webRead: 'web', webScroll: 'web', webKey: 'web',

@@ -17,6 +17,7 @@ const DEFAULTS: Record<ControlType, () => Partial<Step>> = {
   forEach: () => ({ value: '' }),
   end: () => ({ endStatus: 'success', message: '' }),
   setVar: () => ({ varName: 'ten', varOp: 'set', value: '' }),
+  calc: () => ({ value: '' }),
 };
 
 export function addControl(type: ControlType) {

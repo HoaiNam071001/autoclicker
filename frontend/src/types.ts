@@ -46,9 +46,9 @@ void edgeMatchesGo, resultMatchesGo;
 export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'findAll' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'waitUntil' | 'path'
   | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
-export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'forEach' | 'end' | 'setVar';
+export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'forEach' | 'end' | 'setVar' | 'calc';
 export type StepType = ActionType | ControlType;
-export const CONTROL_TYPES: ControlType[] = ['if', 'switch', 'switchScreen', 'counter', 'forEach', 'end', 'setVar'];
+export const CONTROL_TYPES: ControlType[] = ['if', 'switch', 'switchScreen', 'counter', 'forEach', 'end', 'setVar', 'calc'];
 export const isControl = (t: StepType): t is ControlType => (CONTROL_TYPES as StepType[]).includes(t);
 
 // Điều kiện của node Nếu / case của Switch theo màn hình – khớp Cond trong model.go (internal/engine/cond.go).
@@ -163,7 +163,7 @@ export interface Step extends AdvancedFields {
   // node điều khiển (bước 20 F3)
   cond?: Cond; // if
   cases?: Case[]; // switch / switchScreen
-  value?: string; // switch: giá trị cần xét; setVar: giá trị gán / cộng; forEach: danh sách
+  value?: string; // switch: giá trị cần xét; setVar: giá trị gán / cộng; forEach: danh sách; calc: biểu thức
   max?: number; // counter: số lần đi cổng next tối đa
   listFrom?: '' | 'file'; // forEach: '' = chữ / biến (mảng JSON hoặc mỗi dòng một phần tử) | file = CSV / xlsx filePath
   endStatus?: 'success' | 'fail'; // end
@@ -283,16 +283,7 @@ export const STEP_LABEL: Record<StepType, string> = {
   forEach: 'Lặp qua danh sách',
   end: 'Kết thúc',
   setVar: 'Đặt biến',
-};
-
-export const SCROLL_ARROW: Record<ScrollDirection, string> = { up: '↑', down: '↓', left: '←', right: '→' };
-// Quãng ước tính một nấc cuộn (khớp scrollNotchPx – input.go): macOS gửi đúng 100 px, Windows một nấc con lăn
-// (Chrome / Edge ≈ 100 px, app khác có thể khác).
-export const SCROLL_NOTCH_PX = 100;
-// Trang dịch đi bao nhiêu (px, theo hướng cuộn): xuống = +y, phải = +x.
-export const scrollDelta = (s: Pick<Step, 'direction' | 'amount'>): Point => {
-  const d = (s.amount ?? 0) * SCROLL_NOTCH_PX;
-  return { down: { x: 0, y: d }, up: { x: 0, y: -d }, right: { x: d, y: 0 }, left: { x: -d, y: 0 } }[s.direction ?? 'down'];
+  calc: 'Tính toán',
 };
 
 export const fmtMs = (ms: number) => (ms >= 1000 ? `${ms / 1000} s` : `${ms} ms`);

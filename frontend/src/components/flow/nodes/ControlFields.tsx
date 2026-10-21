@@ -1,5 +1,5 @@
 // Inspector node điều khiển của flow (bước 20 F3): Nếu, Switch theo giá trị, Switch theo màn hình, Đếm, Kết thúc,
-// Đặt biến. Chỉ hiển thị: nhận node + set(patch) – app thật nối store (stepform/ControlSection), màn mẫu nối state cục bộ.
+// Đặt biến, Tính toán. Chỉ hiển thị: nhận node + set(patch) – app thật nối store (stepform/ControlSection), màn mẫu nối state cục bộ.
 import Select from '../../Select';
 import NumInput, { fieldBox } from '../../NumInput';
 import Segmented from '../../Segmented';
@@ -8,6 +8,7 @@ import { Trash } from '../../icons';
 import VarTextInput from '../../inputs/VarTextInput';
 import CondEditor, { CondCtx } from './CondEditor';
 import ForEachFields from './ForEachFields';
+import CalcFields from './CalcFields';
 import { newCase } from '../../../flow/cond';
 import type { Case, CaseOp, Step } from '../../../types';
 
@@ -26,6 +27,7 @@ export default function ControlFields({ ctx }: { ctx: CondCtx }) {
     case 'forEach': return <ForEachFields ctx={ctx} />;
     case 'end': return <EndFields ctx={ctx} />;
     case 'setVar': return <SetVarFields ctx={ctx} />;
+    case 'calc': return <CalcFields ctx={ctx} />;
     default: return null;
   }
 }

@@ -95,6 +95,7 @@ func NewStep(stepType string) (Step, error) {
 		s.EndStatus = EndSuccess
 	case StepSetVar:
 		s.VarName, s.VarOp = "ten", VarSet
+	case StepCalc: // biểu thức người dùng tự điền – trống thì kiểm tra báo thiếu
 	default:
 		return Step{}, fmt.Errorf("loại bước không hợp lệ: %q", stepType)
 	}

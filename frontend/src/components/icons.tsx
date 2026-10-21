@@ -137,6 +137,7 @@ export const STEP_ICON = {
   counter: 'M9 4L7 20M17 4l-2 16M4 9h16M3 15h16',
   forEach: 'M4 6h11M4 12h7M4 18h7M17 10v8m0 0l-3-3m3 3l3-3',
   end: 'M5 21V4M5 4h12l-2.5 4L17 12H5',
+  calc: 'M6 3h12a1 1 0 011 1v16a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1zM8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01', // máy tính bỏ túi
   setVar: 'M8 4c-2 0-3 1-3 3v2.5C5 11 4 12 3 12c1 0 2 1 2 2.5V17c0 2 1 3 3 3M16 4c2 0 3 1 3 3v2.5c0 1.5 1 2.5 2 2.5-1 0-2 1-2 2.5V17c0 2-1 3-3 3',
 } as const;
 export type StepIconName = keyof typeof STEP_ICON;

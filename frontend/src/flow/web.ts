@@ -1,4 +1,5 @@
-import { fmtMs, SCROLL_ARROW, type Step, type StepType } from '../types';
+import { fmtMs, type Step, type StepType } from '../types';
+import { SCROLL_ARROW } from '../scroll';
 
 // Node web (bước 25d) – tìm phần tử bằng HTML qua Chrome của app.
 export const WEB_TYPES = ['webWait', 'webClick', 'webType', 'webRead', 'webScroll'] as const;

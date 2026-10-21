@@ -1,4 +1,5 @@
-import { Point, SCROLL_ARROW } from '../../types';
+import { Point } from '../../types';
+import { SCROLL_ARROW } from '../../scroll';
 import { fmtScreens } from '../steps/ScrollMap';
 import { MockPage, unitText, usePageKind } from '../MockPage';
 import type { SimState } from '../Simulation';
