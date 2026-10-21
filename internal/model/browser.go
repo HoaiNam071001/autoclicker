@@ -38,7 +38,8 @@ type TabInfo struct {
 	Index   int    `json:"index"`  // thứ tự trong cửa sổ, từ 1
 	Title   string `json:"title"`
 	URL     string `json:"url"`
-	Active  bool   `json:"active"` // tab đang hiện của cửa sổ đó
+	Active  bool   `json:"active"`  // tab đang hiện của cửa sổ đó
+	Loading bool   `json:"loading"` // trang đang tải
 }
 
 // MatchTabs – chỉ số các tab có tiêu đề hoặc URL khớp want theo mode (NameMatches); want "" → mọi tab.

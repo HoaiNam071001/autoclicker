@@ -120,9 +120,9 @@ func VarFields(s *model.Step) []VarField {
 		add("winTitle", &s.WinTitle, false)
 	case model.StepApp:
 		add("appName", &s.AppName, false)
-	case model.StepBrowserTab:
+	case model.StepBrowserTab, model.StepBrowserGo:
 		add("tab", &s.Tab, false)
-		if s.TabOp == model.TabNew {
+		if s.TabOp == model.TabNew || s.Type == model.StepBrowserGo {
 			add("url", &s.URL, launch.TargetKind(s.URL) == launch.TargetURL)
 		}
 	case model.StepScreenshot:

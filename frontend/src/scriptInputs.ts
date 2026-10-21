@@ -63,6 +63,7 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
         body: s.bodyType === 'json' || s.bodyType === 'text' ? f(s.body ?? '') : s.body };
     }
     case 'app': return { ...s, appName: s.appName && f(s.appName) };
+    case 'browserGo': return { ...s, tab: s.tab && f(s.tab), url: s.url && f(s.url) };
     case 'browserTab': return { ...s, tab: s.tab && f(s.tab), ...(s.tabOp === 'new' ? { url: s.url && f(s.url) } : {}) };
     case 'window': return { ...s, winApp: s.winApp && f(s.winApp), winTitle: s.winTitle && f(s.winTitle) };
     case 'clipboard': return s.clipOp === 'write' ? { ...s, text: f(s.text) } : s.clipOp === 'image' ? { ...s, filePath: f(s.filePath ?? '') } : s;

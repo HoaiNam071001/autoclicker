@@ -18,7 +18,7 @@ export type MatchMode = '' | 'edge';
 // Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
 export type Retry = { count?: number; delayMs?: number };
 // Node hay "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại (thử lại)
-export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'browserTab', 'waitUntil', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'webKey', 'elementRead', 'open'];
+export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'browserTab', 'browserGo', 'waitUntil', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'webKey', 'elementRead', 'open'];
 
 // ---- Flow (bước 20, flow.go) ----
 // Cạnh: node from đi ra cổng port thì chạy node to. Mỗi cổng tối đa một cạnh. Khớp Edge trong model.go.
@@ -44,7 +44,7 @@ const edgeMatchesGo: Same<keyof Edge, keyof Fields<model.Edge>> = true;
 const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = true;
 void edgeMatchesGo, resultMatchesGo;
 
-export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'findAll' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'browserTab' | 'waitUntil' | 'path'
+export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'findAll' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'browserTab' | 'browserGo' | 'waitUntil' | 'path'
   | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'forEach' | 'end' | 'setVar' | 'calc' | TextType;
@@ -269,6 +269,7 @@ export const STEP_LABEL: Record<StepType, string> = {
   window: 'Cửa sổ',
   app: 'Ứng dụng',
   browserTab: 'Tab trình duyệt',
+  browserGo: 'Đi tới URL',
   waitUntil: 'Chờ đến giờ',
   path: 'Vẽ đường',
   webWait: 'Chờ phần tử web',

@@ -17,6 +17,7 @@ type rawBrowser struct {
 	IDs     [][]int64  `json:"ids"`
 	Titles  [][]string `json:"titles"`
 	URLs    [][]string `json:"urls"`
+	Loading [][]bool   `json:"loading"`
 }
 
 // parseTabs đổi kết quả list ra danh sách tab phẳng: trình duyệt đang ở trước lên đầu (còn lại giữ thứ tự).
@@ -46,6 +47,7 @@ func parseTabs(out string) ([]model.TabInfo, error) {
 					t.Title, t.URL = b.Titles[i][j], b.URLs[i][j]
 				}
 				t.Active = i < len(b.Active) && b.Active[i] == j+1
+				t.Loading = i < len(b.Loading) && j < len(b.Loading[i]) && b.Loading[i][j]
 				tabs = append(tabs, t)
 			}
 		}

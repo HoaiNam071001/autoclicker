@@ -21,7 +21,7 @@ const BY_TYPE: Record<StepType, NodeCategory> = {
   wait: 'wait', waitImage: 'wait', waitPixel: 'wait', waitScreen: 'wait', findAll: 'wait', waitUntil: 'wait', screenshot: 'wait',
   clipboard: 'data', http: 'data', file: 'data', system: 'data', setVar: 'data', calc: 'data',
   textMatch: 'data', textSplit: 'data', textClean: 'data', textNumber: 'data',
-  open: 'app', window: 'app', app: 'app', browserTab: 'app', elementRead: 'app',
+  open: 'app', window: 'app', app: 'app', browserTab: 'app', browserGo: 'app', elementRead: 'app',
   if: 'flow', switch: 'flow', switchScreen: 'flow', counter: 'flow', forEach: 'flow', end: 'flow',
   webWait: 'web', webClick: 'web', webType: 'web', webRead: 'web', webScroll: 'web', webKey: 'web',
 };

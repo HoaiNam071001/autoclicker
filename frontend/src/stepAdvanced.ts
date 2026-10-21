@@ -31,7 +31,7 @@ export interface AdvancedFields {
   filePath?: string; // clipOp image: file PNG; nhận {{biến}}
   // HTTP (bước 35 N3, internal/engine/http.go) – mọi ô chữ nhận {{biến}}
   method?: HttpMethod; // bỏ trống = GET
-  url?: string; // biến chèn nguyên văn – giá trị cần mã hoá đặt trong query; browserTab new: URL tab mới
+  url?: string; // biến chèn nguyên văn – giá trị cần mã hoá đặt trong query; browserTab new: URL tab mới; browserGo: URL cần tới
   query?: KV[];
   headers?: KV[];
   bodyType?: BodyType; // bỏ trống = không body
@@ -67,7 +67,7 @@ export interface AdvancedFields {
   appName?: string; // tên app / tên exe / bundle id; nhận {{biến}}
   appMatch?: WinMatch; // như winMatch
   appForce?: boolean; // thoát: quá giờ chưa thoát thì buộc thoát
-  // tab trình duyệt (bước 43 B1, internal/engine/browsertab.go) – tab: tiêu đề / URL tab cần làm; url: tab mới; timeoutMs: chờ tab
+  // tab trình duyệt (bước 43 B1, internal/engine/browsertab.go; browserGo dùng chung cách chọn tab) – tab: tiêu đề / URL tab cần làm; url: tab mới; timeoutMs: chờ tab
   tabOp?: TabOp; // bỏ trống = đọc tab
   browser?: BrowserName; // bỏ trống = trình duyệt đang ở trước
   tabMatch?: WinMatch; // như winMatch – so tab với tiêu đề và URL

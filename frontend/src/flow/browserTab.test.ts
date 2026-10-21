@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { browserTabOutputs, browserTabWarning, fmtBrowserTab } from './browserTab';
+import { browserTabOutputs, browserTabWarning, fmtBrowserGo, fmtBrowserTab } from './browserTab';
 
 const refOf = (id: string) => (id === 'o' ? 'n1' : id);
 const refs = new Map([['o', 'n1']]);
@@ -25,5 +25,14 @@ describe('node Tab trình duyệt', () => {
     expect(browserTabOutputs({ tabOp: 'list' }).map((o) => o.key)).toEqual(['items', 'count']);
     expect(browserTabOutputs({ tabOp: 'closeOthers' }).map((o) => o.key)).toContain('closed');
     expect(browserTabOutputs({}).map((o) => o.key)).toContain('url');
+  });
+});
+
+describe('node Đi tới URL', () => {
+  it('chi tiết, cảnh báo, output', () => {
+    expect(fmtBrowserGo({ type: 'browserGo', url: 'example.com' }, refOf)).toBe('example.com · tab đang hiện');
+    expect(fmtBrowserGo({ type: 'browserGo', url: 'a.vn', tabFrom: 'o', browser: 'edge' }, refOf)).toBe('a.vn · tab của n1 · Edge');
+    expect(browserTabWarning({ type: 'browserGo', url: ' ' }, refs)).toBe('Chưa nhập URL');
+    expect(browserTabOutputs({ type: 'browserGo' }).map((o) => o.key)).toContain('ms');
   });
 });

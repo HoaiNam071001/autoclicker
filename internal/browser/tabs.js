@@ -19,7 +19,7 @@ function list(names) {
     const a = app(b);
     out.push({
       browser: b, front: a.frontmost(), windows: a.windows.id().map(Number), active: a.windows.activeTabIndex(),
-      ids: a.windows.tabs.id().map((w) => w.map(Number)), titles: a.windows.tabs.title(), urls: a.windows.tabs.url(),
+      ids: a.windows.tabs.id().map((w) => w.map(Number)), titles: a.windows.tabs.title(), urls: a.windows.tabs.url(), loading: a.windows.tabs.loading(),
     });
   }
   return out;
@@ -44,7 +44,7 @@ function newTab(b, url) {
 }
 
 function run(argv) {
-  const [cmd, b, w, t] = argv;
+  const [cmd, b, w, t, url] = argv;
   switch (cmd) {
     case 'list':
       return JSON.stringify(list(b ? [b] : Object.keys(IDS)));
@@ -60,6 +60,7 @@ function run(argv) {
       a.activate();
       return '';
     }
+    case 'go': tab(b, w, t).url = url; return '';
     case 'close': tab(b, w, t).close(); return '';
     case 'reload': tab(b, w, t).reload(); return '';
     case 'back': tab(b, w, t).goBack(); return '';

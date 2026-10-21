@@ -10,7 +10,7 @@ import { fmtFile } from './file';
 import { fmtSystem } from './system';
 import { fmtWindow } from './window';
 import { fmtApp } from './app';
-import { fmtBrowserTab } from './browserTab';
+import { fmtBrowserGo, fmtBrowserTab } from './browserTab';
 import { fmtWaitUntil } from './waitUntil';
 import { fmtPath } from './shape';
 import { fmtWebStep, isWebStep } from './web';
@@ -41,6 +41,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'window' ? fmtWindow(s)
     : s.type === 'app' ? fmtApp(s)
     : s.type === 'browserTab' ? fmtBrowserTab(s, refOf)
+    : s.type === 'browserGo' ? fmtBrowserGo(s, refOf)
     : s.type === 'waitUntil' ? fmtWaitUntil(s)
     : s.type === 'path' ? fmtPath(s)
     : s.type === 'elementRead' ? fmtElementRead(s)

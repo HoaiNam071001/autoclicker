@@ -9,7 +9,7 @@ import (
 	"ghosthand/internal/model"
 )
 
-// Kiểm tra node Tab trình duyệt (bước 43 B1): miền giá trị (checkTab, lúc mở file) và dữ liệu đủ để chạy (validateTab).
+// Kiểm tra node Tab trình duyệt (bước 43 B1) + Đi tới URL (B2, chung cách chọn tab): miền giá trị (checkTab, lúc mở file) và dữ liệu đủ để chạy (validateTab).
 
 func checkTab(s model.Step) error {
 	if !slices.Contains(model.TabOps, s.TabOp) {
@@ -32,7 +32,11 @@ func validateTab(i int, s model.Step) error {
 		return stepErr(i, s, "tab", "chưa nhập tiêu đề / URL tab cần chờ")
 	case s.TabOp == model.TabWaitClose && tab == "" && s.TabFrom == "":
 		return stepErr(i, s, "tab", "chưa nhập tiêu đề / URL tab cần chờ đóng (hoặc chọn node Mở)")
-	case s.TabOp == model.TabNew:
+	case s.Type == model.StepBrowserGo && s.TabOp != model.TabRead:
+		return stepErr(i, s, "tabOp", "node Đi tới URL không có thao tác tab")
+	case s.Type == model.StepBrowserGo && strings.TrimSpace(s.URL) == "":
+		return stepErr(i, s, "url", "chưa nhập URL cần tới")
+	case s.TabOp == model.TabNew || s.Type == model.StepBrowserGo:
 		u := strings.TrimSpace(s.URL)
 		if u != "" && !strings.Contains(u, "{{") && launch.BrowserURL(u) == "" {
 			return stepErr(i, s, "url", "%q không phải URL / đường dẫn file mở được bằng trình duyệt", u)
@@ -52,7 +56,7 @@ func validateTab(i int, s model.Step) error {
 // TabFromOps – thao tác làm được với tab của node Mở (TabFrom); đọc / liệt kê / mở tab mới thì không.
 var TabFromOps = []string{model.TabRead, model.TabSwitch, model.TabClose, model.TabCloseOthers, model.TabReload, model.TabBack, model.TabForward, model.TabWaitClose}
 
-// validateTabFrom – TabFrom trỏ node Mở còn trong kịch bản (idx: id → chỉ số node).
+// validateTabFrom – TabFrom trỏ node Mở còn trong kịch bản (idx: id → chỉ số node); Đi tới URL dùng được với mọi tab.
 func validateTabFrom(sc model.Script, idx map[string]int, i int, s model.Step) error {
 	if s.TabFrom == "" {
 		return nil
@@ -63,7 +67,7 @@ func validateTabFrom(sc model.Script, idx map[string]int, i int, s model.Step) e
 		return stepErr(i, s, "tabFrom", "node Mở không còn trong kịch bản – chọn lại")
 	case sc.Steps[j].Type != model.StepOpen || sc.Steps[j].WebBrowser:
 		return stepErr(i, s, "tabFrom", "node %s không phải node Mở bằng trình duyệt thường", sc.Steps[j].Ref)
-	case !slices.Contains(TabFromOps, s.TabOp):
+	case s.Type == model.StepBrowserTab && !slices.Contains(TabFromOps, s.TabOp):
 		return stepErr(i, s, "tabFrom", "thao tác này không dùng tab của node Mở – bỏ chọn node Mở")
 	}
 	return nil

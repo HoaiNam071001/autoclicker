@@ -29,6 +29,7 @@ import { FileFields } from './stepform/FileFields';
 import { SystemFields } from './stepform/SystemFields';
 import { AppFields } from './stepform/AppFields';
 import { BrowserTabFields } from './stepform/BrowserTabFields';
+import { BrowserGoFields } from './stepform/BrowserGoFields';
 import { WindowFields } from './stepform/WindowFields';
 import { WaitUntilFields } from './stepform/WaitUntilFields';
 import { PathFields } from './stepform/PathFields';
@@ -42,7 +43,7 @@ import { usesHuman } from '../flow/human';
 import { nodeInfo } from '../flow/nodeInfo';
 
 // Loại node hành động đổi qua lại được trong ô loại node ở đầu (node điều khiển có trường riêng, không đổi loại)
-const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'browserTab', 'waitUntil', 'path', 'webWait', 'webClick',
+const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'browserTab', 'browserGo', 'waitUntil', 'path', 'webWait', 'webClick',
   'webType', 'webRead', 'webScroll', 'webKey', 'elementRead'];
 const REF_RE = /^[A-Za-z][A-Za-z0-9_]{0,31}$/; // khớp validRef (flow.go)
 
@@ -148,6 +149,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'window' && <WindowFields step={s} />}
       {s.type === 'app' && <AppFields step={s} />}
       {s.type === 'browserTab' && <BrowserTabFields step={s} />}
+      {s.type === 'browserGo' && <BrowserGoFields step={s} />}
       {s.type === 'waitUntil' && <WaitUntilFields step={s} />}
       {isWebStep(s.type) && <WebFields step={s} />}
       {s.type === 'elementRead' && <ElementReadFields step={s} />}

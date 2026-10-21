@@ -28,6 +28,7 @@ const (
 	StepWindow     = "window"     // WinOp: focus / chờ mở · đóng / đặt khung / thu nhỏ… cửa sổ khớp WinApp + WinTitle (engine/window.go)
 	StepApp        = "app"        // AppOp: kiểm tra đang chạy (cổng yes / no) / chờ chạy · thoát / thoát app khớp AppName (engine/app.go)
 	StepBrowserTab = "browserTab" // TabOp: đọc / liệt kê / chuyển / mở / đóng / tải lại tab của trình duyệt thường họ Chromium (engine/browsertab.go, bước 43 B1)
+	StepBrowserGo  = "browserGo"  // đặt URL cho tab (như browserTab chọn tab) rồi chờ tải xong (engine/browsergo.go, bước 43 B2)
 	StepFile       = "file"       // FileOp: ghi file / thêm dòng csv · xlsx / tạo thư mục / xoá vào Thùng rác / dọn Thùng rác (engine/file.go)
 
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
@@ -60,7 +61,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepBrowserTab, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepBrowserTab, StepBrowserGo, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc,
 	StepTextMatch, StepTextSplit, StepTextClean, StepTextNumber}
 

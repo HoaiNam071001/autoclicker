@@ -18,7 +18,10 @@ type Fake struct {
 	Calls  []string
 	Err    error         // trả cho mọi thao tác (≠ nil)
 	OnList func(f *Fake) // gọi trước mỗi lần Tabs – đổi tab giữa chừng (tab mở / đóng khi đang chờ)
-	nextID int64
+	// LoadPolls – số lần đọc Tabs tab vừa Go còn đang tải (0 = tải xong ngay)
+	LoadPolls int
+	loadLeft  int
+	nextID    int64
 }
 
 var _ browser.Backend = (*Fake)(nil)
@@ -31,6 +34,13 @@ func (f *Fake) Tabs(_ context.Context, b string) ([]model.TabInfo, error) {
 	defer f.mu.Unlock()
 	if f.Err != nil {
 		return nil, f.Err
+	}
+	if f.loadLeft > 0 {
+		if f.loadLeft--; f.loadLeft == 0 {
+			for i := range f.List {
+				f.List[i].Loading = false
+			}
+		}
 	}
 	return slices.DeleteFunc(slices.Clone(f.List), func(t model.TabInfo) bool { return b != "" && t.Browser != b }), nil
 }
@@ -72,6 +82,14 @@ func (f *Fake) NewTab(_ context.Context, b, url string) (model.TabInfo, error) {
 
 func (f *Fake) Close(_ context.Context, t model.TabInfo) error {
 	return f.do("close", t, func(i int) { f.List = slices.Delete(f.List, i, i+1) })
+}
+
+// Go đổi URL tab; trang "tải" qua LoadPolls lần đọc Tabs (Loading = true) rồi xong.
+func (f *Fake) Go(_ context.Context, t model.TabInfo, url string) error {
+	return f.do("go "+url, t, func(i int) {
+		f.List[i].URL, f.List[i].Title, f.List[i].Loading = url, url, f.LoadPolls > 0
+		f.loadLeft = f.LoadPolls
+	})
 }
 
 func (f *Fake) Nav(_ context.Context, t model.TabInfo, op string) error {

@@ -1,4 +1,4 @@
-// Node Tab trình duyệt (bước 43 B1) – nhãn thao tác / trình duyệt, dòng chi tiết thẻ, cảnh báo thiếu, output. Chạy ở
+// Node Tab trình duyệt (bước 43 B1) + Đi tới URL (B2, internal/engine/browsergo.go) – nhãn thao tác / trình duyệt, dòng chi tiết thẻ, cảnh báo thiếu, output. Chạy ở
 // internal/engine/browsertab.go (kiểm tra: internal/script/tabcheck.go).
 import type { Step } from '../types';
 import type { OutputField } from './view';
@@ -22,7 +22,7 @@ export const TAB_FROM_OPS: TabOp[] = ['', 'switch', 'close', 'closeOthers', 'rel
 // Thao tác cần chọn tab (mở tab mới / liệt kê thì không).
 export const tabTargeted = (op: TabOp) => op !== 'new' && op !== 'list';
 
-type TabStep = Pick<Step, 'tabOp' | 'tab' | 'tabFrom' | 'url' | 'browser'>;
+type TabStep = Pick<Step, 'tabOp' | 'tab' | 'tabFrom' | 'url' | 'browser'> & { type?: Step['type'] };
 
 // Tab node làm: "tab của n1" / “Gmail” / "tab đang hiện".
 function tabTarget(s: TabStep, refOf: (id: string) => string): string {
@@ -39,9 +39,14 @@ export function fmtBrowserTab(s: TabStep, refOf: (id: string) => string): string
   return `${label} · ${what}${browser}`;
 }
 
+// Dòng chi tiết node Đi tới URL: "example.com · tab của n1".
+export const fmtBrowserGo = (s: TabStep, refOf: (id: string) => string): string =>
+  `${s.url?.trim() || 'chưa nhập URL'} · ${tabTarget(s, refOf)}${s.browser ? ` · ${BROWSERS.find((b) => b.id === s.browser)?.label ?? s.browser}` : ''}`;
+
 // Cảnh báo khi soạn (khớp validateTab / validateTabFrom); refs: id các node còn trong kịch bản.
 export function browserTabWarning(s: TabStep, refs: Map<string, string>): string | undefined {
   const op = s.tabOp ?? '';
+  if (s.type === 'browserGo' && !s.url?.trim()) return 'Chưa nhập URL';
   if (s.tabFrom && TAB_FROM_OPS.includes(op) && !refs.has(s.tabFrom)) return 'Node Mở đã chọn không còn – chọn lại';
   if (op === 'waitOpen' && !s.tab?.trim()) return 'Chưa nhập tiêu đề / URL tab cần chờ';
   if (op === 'waitClose' && !s.tab?.trim() && !s.tabFrom) return 'Chưa nhập tab cần chờ đóng';
@@ -52,7 +57,8 @@ const TAB_INFO: OutputField[] = [{ key: 'url', desc: 'URL tab' }, { key: 'title'
   { key: 'index', desc: 'thứ tự tab trong cửa sổ (từ 1)' }, { key: 'tabId', desc: 'mã tab' }, { key: 'window', desc: 'mã cửa sổ' }];
 
 // Output theo thao tác (khớp tabOutput / items – internal/engine/browsertab.go).
-export function browserTabOutputs(s: Pick<Step, 'tabOp'>): OutputField[] {
+export function browserTabOutputs(s: Pick<Step, 'tabOp'> & { type?: Step['type'] }): OutputField[] {
+  if (s.type === 'browserGo') return [...TAB_INFO, { key: 'ms', desc: 'thời gian tới khi tải xong (ms)' }];
   switch (s.tabOp ?? '') {
     case 'list': return [{ key: 'items', desc: 'danh sách tab [{title, url, browser, window, active, tabId}] – nối vào Lặp qua danh sách' }, { key: 'count', desc: 'số tab' }];
     case 'waitClose': return [];

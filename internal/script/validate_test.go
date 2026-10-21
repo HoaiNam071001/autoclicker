@@ -233,3 +233,22 @@ func TestValidateBrowserTab(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateBrowserGo(t *testing.T) {
+	open := modeltest.Node("o", "n1", model.StepOpen, func(s *model.Step) { s.Target = "a.vn" })
+	sc := func(f func(s *model.Step)) model.Script {
+		return model.Script{Loops: 1, Steps: []model.Step{open, modeltest.Node("g", "n2", model.StepBrowserGo, f)}}
+	}
+	cases := map[string]model.Script{
+		"":                      sc(func(s *model.Step) { s.URL, s.TabFrom = "b.vn/{{n1.output.tabTitle}}", "o" }),
+		"chưa nhập URL":         sc(func(s *model.Step) { s.URL = " " }),
+		"không phải URL":        sc(func(s *model.Step) { s.URL = "Notepad" }),
+		"không có thao tác tab": sc(func(s *model.Step) { s.URL, s.TabOp = "b.vn", model.TabClose }),
+	}
+	for want, c := range cases {
+		err := script.ValidateScript(scripttest.Linear(c), model.Rect{})
+		if want == "" && err != nil || want != "" && (err == nil || !strings.Contains(err.Error(), want)) {
+			t.Errorf("muốn %q, có %v", want, err)
+		}
+	}
+}

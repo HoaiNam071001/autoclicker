@@ -98,7 +98,7 @@ type Step struct {
 	FilePath string `json:"filePath,omitempty"` // clipboard image: file PNG / file: file hoặc thư mục (~ / tương đối = từ thư mục người dùng); nhận {{biến}}
 	// HTTP (bước 35 N3, http.go) – mọi ô chữ nhận {{biến}}; header / tham số tên bí mật (IsSecretKey) che trong nhật ký
 	Method   string `json:"method,omitempty"`   // HTTPMethods ("" = GET)
-	URL      string `json:"url,omitempty"`      // http(s)://… – biến chèn nguyên văn (giá trị cần mã hoá thì đặt trong Query); browserTab new: URL tab mới
+	URL      string `json:"url,omitempty"`      // http(s)://… – biến chèn nguyên văn (giá trị cần mã hoá thì đặt trong Query); browserTab new: URL tab mới; browserGo: URL cần tới
 	Query    []KV   `json:"query,omitempty"`    // tham số thêm vào URL (tự mã hoá)
 	Headers  []KV   `json:"headers,omitempty"`  // header gửi kèm
 	BodyType string `json:"bodyType,omitempty"` // BodyTypes: "" = không body | json | form | text
@@ -136,7 +136,7 @@ type Step struct {
 	AppName  string `json:"appName,omitempty"`  // tên app / bundle id / tên exe; nhận {{biến}}
 	AppMatch string `json:"appMatch,omitempty"` // NameMatches như WinMatch
 	AppForce bool   `json:"appForce,omitempty"` // quit: quá TimeoutMs chưa thoát thì buộc thoát
-	// Tab trình duyệt (bước 43 B1, engine/browsertab.go) – Tab: tiêu đề / URL của tab cần làm; URL: tab mới; TimeoutMs: chờ tab
+	// Tab trình duyệt (bước 43 B1, engine/browsertab.go; browserGo dùng chung cách chọn tab) – Tab: tiêu đề / URL của tab cần làm; URL: tab mới; TimeoutMs: chờ tab
 	TabOp    string `json:"tabOp,omitempty"`    // TabOps: "" = đọc | list | switch | new | close | closeOthers | reload | back | forward | waitOpen | waitClose
 	Browser  string `json:"browser,omitempty"`  // Browsers: "" = trình duyệt họ Chromium đang ở trước | chrome | edge | brave | coccoc
 	TabMatch string `json:"tabMatch,omitempty"` // NameMatches như WinMatch – so Tab với tiêu đề và URL

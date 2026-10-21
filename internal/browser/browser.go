@@ -19,6 +19,7 @@ type Backend interface {
 	NewTab(ctx context.Context, b, url string) (model.TabInfo, error) // tab mới ở cửa sổ trên cùng (url "" = trang trống)
 	Close(ctx context.Context, t model.TabInfo) error                 // đóng tab
 	Nav(ctx context.Context, t model.TabInfo, op string) error        // model.TabReload / TabBack / TabForward
+	Go(ctx context.Context, t model.TabInfo, url string) error        // đổi URL của tab (không cần tab ở trước)
 }
 
 var (

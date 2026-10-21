@@ -83,4 +83,9 @@ func (System) Nav(ctx context.Context, t model.TabInfo, op string) error {
 	return err
 }
 
+func (System) Go(ctx context.Context, t model.TabInfo, url string) error {
+	_, err := osa(ctx, "go", t.Browser, id(t.Window), id(t.ID), url)
+	return err
+}
+
 func id(n int64) string { return strconv.FormatInt(n, 10) }

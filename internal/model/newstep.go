@@ -63,6 +63,8 @@ func NewStep(stepType string) (Step, error) {
 		s.TimeoutMs, s.DelayAfter = 10000, 300
 	case StepBrowserTab:
 		s.TimeoutMs, s.DelayAfter = 5000, 300
+	case StepBrowserGo:
+		s.URL, s.TimeoutMs, s.DelayAfter = "https://", 15000, 300
 	case StepWaitUntil:
 		s.At, s.DelayAfter = "12:00:00", 0
 	case StepPath:
