@@ -18,6 +18,7 @@ description: Thêm một loại node mới vào flow (vd focus cửa sổ, web D
 - [ ] `internal/model/flow.go` `PortsOf` nếu cổng khác `success` / `fail`.
 - [ ] `internal/script/varfields.go` `VarFields`: ô chữ nhận `{{biến}}`.
 - [ ] `internal/model/steptypes.go`: mô tả, output, ví dụ JSON (test kiểm đủ loại).
+- [ ] `internal/model/steptypes_use.go`: nhóm + "dùng khi / đừng dùng → node nào" (AI đọc ở `get_step_types compact=true`; test bắt đủ loại).
 - [ ] Test: `nodes_test.go` / `flowrun_test.go` / file test riêng – chạy đúng, cổng đúng, output đúng, lỗi đúng mã, dừng được giữa chừng.
 - [ ] **Kịch bản mẫu** (bước 33, bắt buộc – `TestEveryStepTypeHasSample` đỏ nếu thiếu): ≥ 1 mẫu trong `internal/samples/scripts/<id>.json` (JSON gọn `{meta, script}`, node chỉ ghi trường cần) chạy trên trang sân thử `internal/samples/pages/` – cần trang mới thì thêm trang (tự hiện kết quả, chữ to cho OCR, không chép chữ đích vào nhật ký trang) + dòng trong `pages/index.html`. Chạy thật: `GHOSTHAND_REAL=1 GHOSTHAND_SAMPLES=<id> go test ./internal/samples/ -run TestRealSamples -v`.
 

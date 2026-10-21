@@ -227,3 +227,4 @@
 - **2026-10-21** – 43 B4: node Đọc chữ trang (pageText) – mọi chữ cửa sổ app / trong một khung qua cây AX·UIA, thứ tự đọc, không đọc trùng chữ nút, pageAll gồm phần ngoài khung nhìn; mẫu phan-tu-doc-chu-trang. go vet + go test, npm run build + test, check-docs đạt.
 - **2026-10-21** – Kế hoạch (người dùng yêu cầu): bước 47 – hoạt hoạ minh hoạ động cho từng loại node trong bảng Thêm node (vẽ bằng code, khung chi tiết, tất cả node).
 - **2026-10-21** – 47: hoạt hoạ minh hoạ SVG cho 51 loại node trong bảng Thêm node (palette/illus), Đổi loại node ở inspector mở modal bảng node thay dropdown, màn #demo-illus. build + test qua.
+- 2026-10-21: MCP get_step_types thêm compact=true (25 KB thay 68 KB) + steptypes_use.go gợi ý chọn node
