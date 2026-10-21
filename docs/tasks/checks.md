@@ -3,7 +3,11 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 42 – Dữ liệu & luồng (G1, G2) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+## 42 – Dữ liệu & luồng (G1, G2, G3) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+
+- [ ] (G3) Mẫu thử *Tìm tất cả – bấm mọi nút MUA* (trang Shop) chạy thành công: thanh giỏ hiện “GIỎ: 6 MÓN”, mỗi món ×1; thanh mini ghi *lượt … / 6*
+- [ ] (G3) Thêm node *Tìm tất cả* (nhóm Chờ): đổi Tìm bằng ảnh mẫu / chữ / phần tử, ô *Số chỗ* (ít nhất / nhiều nhất), *Chỗ thứ* không hiện; bấm Thử tìm → overlay vẽ mọi khung kèm số thứ tự, inspector ghi số chỗ; xem cả theme sáng + tối
+- [ ] (G3) Tìm ảnh mẫu lặp lại (icon giống nhau) trên màn Retina + Windows 125 %: đủ chỗ, không trùng khung; phần tử (Chrome thường / app) chỉ lấy chỗ đang hiện
 
 - [ ] (G2) Mẫu thử *Lặp qua danh sách* chạy thành công: ô gõ chữ hiện “1. Táo; 2. Cam; 3. Xoài; ”, lời nhắn *Đã gõ 3 phần tử*; thanh mini ghi *lượt n4 1 / 3…* trong lúc lặp
 - [ ] (G2) Thêm node *Lặp qua danh sách* (nhóm Luồng): thẻ có cổng *Mỗi phần tử* / *Hết danh sách*; đổi sang *File CSV / Excel*, chọn file CSV tiếng Việt có BOM (lưu từ Excel, dấu ; ) → *Đọc thử* hiện đúng số dòng + cột → `n?.output.item.<khoá>`; file .xlsx nhiều sheet; xem cả theme sáng + tối
