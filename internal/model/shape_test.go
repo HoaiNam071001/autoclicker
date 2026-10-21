@@ -39,3 +39,19 @@ func TestShapePoints(t *testing.T) {
 		}
 	}
 }
+
+// Mỗi loại node phải có nhóm + gợi ý chọn (AI đọc qua get_step_types), và không còn dòng thừa.
+func TestEveryTypeHasUse(t *testing.T) {
+	seen := map[string]bool{}
+	for _, d := range StepTypeDocs() {
+		seen[d.Type] = true
+		if u := UseOf(d.Type); u.Group == "" || u.Use == "" {
+			t.Errorf("loại %s thiếu gợi ý chọn trong steptypes_use.go", d.Type)
+		}
+	}
+	for k := range stepTypeUses {
+		if !seen[k] {
+			t.Errorf("steptypes_use.go có loại không tồn tại: %s", k)
+		}
+	}
+}

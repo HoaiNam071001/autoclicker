@@ -17,7 +17,8 @@ type pathIn struct {
 }
 
 type typesIn struct {
-	Type string `json:"type,omitempty" jsonschema:"chỉ lấy một loại node (vd waitImage); trống = mọi loại kèm hướng dẫn flow"`
+	Type    string `json:"type,omitempty" jsonschema:"chỉ lấy một loại node (vd waitImage); trống = mọi loại kèm hướng dẫn flow"`
+	Compact bool   `json:"compact,omitempty" jsonschema:"true = hướng dẫn flow + danh sách gọn (type, label, desc, cổng ra) để nắm bao quát; sau đó gọi lại với type để xem trường / ví dụ / output"`
 }
 
 // ScriptEntry – một kịch bản trong list_scripts.
@@ -37,7 +38,8 @@ func (s *Server) addReadTools() {
 	addTool(s, KindRead, &mcp.Tool{Name: "read_script", Description: "Đọc một kịch bản: {path, revision, script}. " +
 		"Giữ revision để gửi kèm update_script."}, s.readScript)
 	addTool(s, KindRead, &mcp.Tool{Name: "get_step_types", Description: "Hướng dẫn viết kịch bản: cấu trúc flow, biến {{…}}, trường chung, " +
-		"từng loại node app hỗ trợ (mô tả, trường, ví dụ JSON, output, cổng ra) và mẹo viết kịch bản bền. Đọc trước khi tạo / sửa."}, s.stepTypes)
+		"từng loại node app hỗ trợ (mô tả, trường, ví dụ JSON, output, cổng ra) và mẹo viết kịch bản bền. Đọc trước khi tạo / sửa. " +
+		"Đầy đủ rất dài: compact=true để xem danh sách gọn mọi node trước, rồi type=<tên> lấy chi tiết loại cần dùng."}, s.stepTypes)
 	addTool(s, KindRead, &mcp.Tool{Name: "get_screen_info", Description: "Các màn hình: khung theo toạ độ chuột (x, y, w, h), tỷ lệ DPI / Retina, màn chính. " +
 		"Toạ độ trong kịch bản dùng cùng hệ này."}, s.screenInfo)
 }
@@ -96,12 +98,16 @@ func (s *Server) stepTypes(_ context.Context, _ *mcp.CallToolRequest, in typesIn
 	if in.Type != "" {
 		for _, d := range model.StepTypeDocs() {
 			if d.Type == in.Type {
-				return ok(d)
+				return ok(withUse(d))
 			}
 		}
 		return fail(&model.ScriptError{Field: "type", Msg: "không có loại node " + in.Type + " – gọi get_step_types không tham số để xem danh sách"})
 	}
-	return ok(guideDoc(s.back.MCP().NodePreference()))
+	g := guideDoc(s.back.MCP().NodePreference())
+	if in.Compact {
+		return ok(toCompact(g))
+	}
+	return ok(g)
 }
 
 func (s *Server) screenInfo(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {

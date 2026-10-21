@@ -226,6 +226,10 @@ func TestListAndDocs(t *testing.T) {
 	if len(out["stepTypes"].([]any)) != len(model.StepTypeDocs()) || out["tips"] == "" {
 		t.Errorf("get_step_types thiếu: %v", out["tips"])
 	}
+	out, _ = call(t, cs, "get_step_types", map[string]any{"compact": true})
+	if cl := out["stepTypes"].([]any); len(cl) != len(model.StepTypeDocs()) || cl[0].(map[string]any)["example"] != nil || cl[0].(map[string]any)["use"] == "" {
+		t.Errorf("compact: %v", cl[0])
+	}
 	if _, isErr := call(t, cs, "get_step_types", map[string]any{"type": "bay"}); !isErr {
 		t.Error("loại lạ phải lỗi")
 	}

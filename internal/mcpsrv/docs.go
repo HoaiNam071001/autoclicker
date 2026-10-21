@@ -40,17 +40,61 @@ Thử – sửa (chạy thật trên máy người dùng):
 // guide – nội dung get_step_types / ghosthand://guide.
 type guide struct {
 	model.FlowGuideDoc
-	Tips       string              `json:"tips"`
-	StepTypes  []model.StepTypeDoc `json:"stepTypes"`
-	CommonOuts []string            `json:"commonOutputs"`
-	NodePref   string              `json:"nodePref"`     // ưu tiên node hiện tại (44)
-	NodeTips   string              `json:"nodePrefTips"` // cách chọn node web / ảnh·chữ theo nodePref
+	Tips       string    `json:"tips"`
+	StepTypes  []typeDoc `json:"stepTypes"`
+	CommonOuts []string  `json:"commonOutputs"`
+	NodePref   string    `json:"nodePref"`     // ưu tiên node hiện tại (44)
+	NodeTips   string    `json:"nodePrefTips"` // cách chọn node web / ảnh·chữ theo nodePref
 }
 
 // guideDoc – pref: ưu tiên node hiện tại (store.MCPSettings.NodePreference).
 func guideDoc(pref string) guide {
-	return guide{FlowGuideDoc: model.Guide(), Tips: tips, StepTypes: model.StepTypeDocs(), CommonOuts: model.CommonOutputs,
+	return guide{FlowGuideDoc: model.Guide(), Tips: tips, StepTypes: stepTypeDocs(), CommonOuts: model.CommonOutputs,
 		NodePref: pref, NodeTips: nodePrefTips[pref]}
+}
+
+// typeDoc – StepTypeDoc kèm gợi ý chọn node (nhóm + khi nào dùng).
+type typeDoc struct {
+	model.StepTypeDoc
+	model.TypeUse
+}
+
+func withUse(d model.StepTypeDoc) typeDoc { return typeDoc{d, model.UseOf(d.Type)} }
+
+// compactGuide – như guide nhưng mỗi loại node chỉ còn nhóm / tên / khi nào dùng / cổng; chi tiết lấy bằng get_step_types type=….
+type compactGuide struct {
+	model.FlowGuideDoc
+	Tips      string        `json:"tips"`
+	Pick      string        `json:"pick"`
+	StepTypes []compactType `json:"stepTypes"`
+	NodePref  string        `json:"nodePref"`
+	NodeTips  string        `json:"nodePrefTips"`
+	Note      string        `json:"note"`
+}
+
+type compactType struct {
+	Type  string   `json:"type"`
+	Label string   `json:"label"`
+	Group string   `json:"group"`
+	Use   string   `json:"use"`
+	Ports []string `json:"ports"`
+}
+
+func toCompact(g guide) compactGuide {
+	c := compactGuide{FlowGuideDoc: g.FlowGuideDoc, Tips: g.Tips, Pick: model.Pick, NodePref: g.NodePref, NodeTips: g.NodeTips,
+		Note: "Bản gọn: trường, mô tả, ví dụ JSON, output của từng loại → get_step_types type=<tên>."}
+	for _, d := range g.StepTypes {
+		c.StepTypes = append(c.StepTypes, compactType{d.Type, d.Label, d.Group, d.Use, d.Ports})
+	}
+	return c
+}
+
+func stepTypeDocs() []typeDoc {
+	var out []typeDoc
+	for _, d := range model.StepTypeDocs() {
+		out = append(out, withUse(d))
+	}
+	return out
 }
 
 // exampleIDs – mẫu thử (bước 33) làm ví dụ: chạy được trên máy thật, không phụ thuộc sân thử / ảnh mẫu.

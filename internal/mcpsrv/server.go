@@ -80,7 +80,7 @@ type Server struct {
 }
 
 const instructions = `Ghosthand – app tự động click / gõ theo kịch bản dạng flow (node + cạnh, như n8n).
-Tạo kịch bản: đọc get_step_types (hoặc resource ghosthand://guide) → viết kịch bản → validate_script → create_script.
+Tạo kịch bản: đọc get_step_types compact=true (danh sách gọn mọi node + khi nào dùng; chi tiết một loại: type=…; hoặc resource ghosthand://guide) → viết kịch bản → validate_script → create_script.
 Sửa: read_script (lấy revision) → update_script theo id / ref node. Thiếu thông tin (app nào, giá trị nào là input) thì hỏi lại người dùng trước.
 Thử – sửa: run_script (cả / stopAt / only; script = kịch bản tạm, không tạo file) → node lỗi có error.detail + ảnh → update_script (kịch bản tạm: gửi script sửa vào resume_run) → resume_run (chạy tiếp từ node lỗi, giữ biến).
 Xem màn hình: describe_screen (chữ + cửa sổ, rẻ) trước, screenshot khi cần nhìn. Người dùng muốn xem / tự chạy: open_in_app.
