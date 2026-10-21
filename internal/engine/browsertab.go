@@ -199,7 +199,9 @@ func (e *Engine) rereadTab(ctx context.Context, t model.TabInfo) model.TabInfo {
 // opensTab – có node Tab trình duyệt / Đi tới URL nào làm với tab node Mở id mở không (openStep chỉ đọc tab khi cần – tránh hỏi
 // quyền Automation khi không dùng).
 func (e *Engine) opensTab(id string) bool {
-	return slices.ContainsFunc(e.sc.Steps, func(s model.Step) bool { return (s.Type == model.StepBrowserTab || s.Type == model.StepBrowserGo || s.Type == model.StepBrowserNorm) && s.TabFrom == id })
+	return slices.ContainsFunc(e.sc.Steps, func(s model.Step) bool {
+		return (s.Type == model.StepBrowserTab || s.Type == model.StepBrowserGo || s.Type == model.StepBrowserNorm) && s.TabFrom == id
+	})
 }
 
 // putOpenedTab ghi tab đang hiện của trình duyệt ở trước (tab node Mở vừa mở) vào output của node Mở; không đọc được
