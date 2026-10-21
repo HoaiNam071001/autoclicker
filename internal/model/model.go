@@ -17,6 +17,7 @@ const (
 	StepWaitImage  = "waitImage"  // chờ tới khi thấy ảnh mẫu Template trên màn hình (imagestep.go)
 	StepClickImage = "clickImage" // click vào chỗ thấy ảnh: output của node ImageFrom (ImageSource node) hoặc tự tìm
 	StepWaitPixel  = "waitPixel"  // chờ tới khi điểm Points[0] có màu Color (± Tolerance)
+	StepWaitScreen = "waitScreen" // chờ vùng ShotArea đứng yên / thay đổi theo WaitMode (engine/waitscreen.go, bước 42 G1)
 
 	// Node nâng cao (bước 35)
 	StepScreenshot = "screenshot" // chụp vùng ShotArea, lưu PNG vào SaveDir / FileName, tuỳ chọn chép vào clipboard (engine/shot.go)
@@ -51,7 +52,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
@@ -141,13 +142,17 @@ type Step struct {
 	Human       string `json:"human,omitempty"`       // mức giống người của node: "" = theo kịch bản | off | low | medium | high
 	// Ô số lấy từ biến (F5c): mỗi trường số trong NumVarFieldsOf một dòng – giá trị lúc chạy thay cho trường đó.
 	NumVars []NumVar `json:"numVars,omitempty"`
-	// Chụp màn hình (bước 35 N1)
+	// Chụp màn hình (bước 35 N1); Chờ màn hình dùng chung ShotArea / Display / ShotRect / ImageFrom
 	ShotArea    string `json:"shotArea,omitempty"`    // ShotAreas: "" = vùng của kịch bản | screen | rect | node (ImageFrom)
 	Display     int    `json:"display,omitempty"`     // shotArea screen: 0 = màn chứa vùng kịch bản (không vùng: màn chính), n = màn thứ n
 	ShotRect    *Rect  `json:"shotRect,omitempty"`    // shotArea rect: vùng chụp, toạ độ màn hình
 	SaveDir     string `json:"saveDir,omitempty"`     // thư mục lưu ("" = thư mục ảnh trong Cài đặt, mặc định Pictures/Ghosthand; ~ = thư mục người dùng); nhận {{biến}}
 	FileName    string `json:"fileName,omitempty"`    // tên file ("" = ghosthand-<ngày>-<giờ>; tự thêm .png, trùng thì thêm số); nhận {{biến}}
 	ToClipboard bool   `json:"toClipboard,omitempty"` // chép ảnh vào clipboard
+	// Chờ màn hình (bước 42 G1, engine/waitscreen.go) – TimeoutMs / IntervalMs như chờ ảnh
+	WaitMode string `json:"waitMode,omitempty"` // WaitModes: "" = đứng yên | change = thay đổi so với lúc bắt đầu
+	StableMs int    `json:"stableMs,omitempty"` // waitMode đứng yên: đứng yên liên tục bao lâu (ms)
+	DiffPct  int    `json:"diffPct,omitempty"`  // ngưỡng % điểm ảnh đổi (ảnh xám thu nhỏ): đứng yên = ≤ ngưỡng, thay đổi = > ngưỡng
 	// Clipboard (bước 35 N2)
 	ClipOp   string `json:"clipOp,omitempty"`   // ClipOps: "" = đọc chữ | write = ghi Text | image = ghi ảnh từ FilePath
 	FilePath string `json:"filePath,omitempty"` // clipboard image: file PNG / file: file hoặc thư mục (~ / tương đối = từ thư mục người dùng); nhận {{biến}}

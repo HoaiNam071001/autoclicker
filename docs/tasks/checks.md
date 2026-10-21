@@ -3,6 +3,12 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 42 – Dữ liệu & luồng (G1) · [phase3/42-du-lieu-luong.md](phase3/42-du-lieu-luong.md)
+
+- [ ] (G1) Mẫu thử *Chờ màn hình đứng yên* (trang Tải chậm) chạy thành công: node Chờ màn hình đi tiếp ngay khi khung xương ngừng nhấp nháy, sau LÀM MỚI chờ được tới khi trang phản hồi; ô *Bấm lúc đang tải* = 0 (chạy thật tự động 2026-10-21 hỏng ở bước click theo chữ – trang mở không nằm trên cùng, OCR đọc chữ cửa sổ khác; mẫu cũ `cho-chu` hỏng y hệt → do môi trường)
+- [ ] (G1) Thêm node *Chờ màn hình* từ bảng thêm node (nhóm Chờ): inspector có Chờ tới khi (Đứng yên / Thay đổi), Vùng theo dõi (Vùng cố định → Khoanh trên màn hình… ghi đúng vùng), Đứng yên, Ngưỡng đổi; thanh mini ghi *đang chờ màn hình*; xem cả theme sáng + tối
+- [ ] (G1) Trang thật tải chậm (YouTube, Shopee): Chờ màn hình đứng yên thay Chờ 3 s – không đi sớm khi còn spinner (spinner nhỏ: thu hẹp vùng hoặc ngưỡng 0)
+
 ## 46 – MCP web tinh chỉnh (A0–A3, A2) · [phase3/46-mcp-web-tinh-chinh.md](phase3/46-mcp-web-tinh-chinh.md)
 
 - [ ] (B1) Nhờ Claude “thử bấm nút X trên trang đang mở” → AI dùng run_script với script tạm: hộp hỏi ghi *Kịch bản tạm*, không có nút *Cho phép đến khi đóng app*; không có file kịch bản mới, không thêm lịch sử chạy

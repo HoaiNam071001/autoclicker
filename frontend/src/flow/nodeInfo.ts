@@ -25,6 +25,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   clickElement: { desc: 'Tìm phần tử theo chữ / nhãn / vai trò qua Accessibility rồi bấm bằng chuột thật.', use: 'Bấm nút chỉ có icon, nút ở Chrome thường đã đăng nhập.' },
   clickText: { desc: 'Tìm một dòng chữ trên màn hình rồi bấm vào đó.', use: 'Bấm nút / liên kết theo tên hiện trên màn, vd “Đăng nhập”, “Xem thêm”.' },
   waitPixel: { desc: 'Chờ tới khi một điểm trên màn hình có đúng màu cho trước.', use: 'Đèn trạng thái đổi màu, thanh tiến độ đầy, nút chuyển từ xám sang xanh.' },
+  waitScreen: { desc: 'Chờ tới khi một vùng màn hình đứng yên (trang tải xong, hiệu ứng dừng) hoặc đổi khác so với lúc bắt đầu.', use: 'Thay Chờ cố định sau khi mở trang / bấm nút: xong là đi tiếp, không chờ thừa.' },
   screenshot: { desc: 'Chụp vùng kịch bản, cả màn, vùng cố định hoặc đúng chỗ node trước thấy, lưu PNG; chép vào clipboard được.', use: 'Lưu bằng chứng sau khi đặt hàng / chuyển tiền, chụp kết quả để gửi đi.' },
   clipboard: { desc: 'Đọc chữ đang có trong clipboard vào biến, ghi chữ (nhận {{biến}}) hoặc ghi ảnh PNG từ file.', use: 'Copy / paste: ghép với Phím tắt Cmd/Ctrl+C, Cmd/Ctrl+V; chép ảnh vừa chụp để dán vào chat.' },
   http: { desc: 'Gọi API (GET / POST / PUT / PATCH / DELETE) kèm tham số, header, thân JSON / form; đọc kết quả JSON vào biến.', use: 'Lấy dữ liệu từ server, gửi đơn / tin nhắn qua API, báo kết quả chạy về Telegram / webhook.' },

@@ -34,6 +34,7 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'waitImage', label: 'Chờ ảnh', info: NODE_INFO.waitImage, keywords: 'wait image anh mau xuat hien khoanh', run: () => addImageStep('waitImage') },
       { icon: 'waitImage', label: 'Chờ chữ', info: NODE_INFO.waitText, keywords: 'wait text chu ocr doc xuat hien', run: () => addTextStep('waitImage') },
       { icon: 'waitImage', label: 'Chờ phần tử', info: NODE_INFO.waitElement, keywords: 'phan tu accessibility chrome thuong app aria role xuat hien', run: () => addElementStep('waitImage') },
+      { icon: 'waitScreen', label: 'Chờ màn hình', info: NODE_INFO.waitScreen, keywords: 'cho man hinh dung yen thay doi tai xong load spinner loading on dinh doi', run: () => addStep('waitScreen') },
       { icon: 'waitUntil', label: 'Chờ đến giờ', info: NODE_INFO.waitUntil, keywords: 'cho den gio hen gio dong ho time schedule san sale flash ntp', run: () => addStep('waitUntil') },
       { icon: 'waitPixel', label: 'Chờ màu pixel', info: NODE_INFO.waitPixel, keywords: 'pixel mau color diem', run: () => addImageStep('waitPixel') },
       { icon: 'screenshot', label: 'Chụp màn hình', info: NODE_INFO.screenshot, keywords: 'screenshot chup anh man hinh luu png clipboard bang chung', run: () => addStep('screenshot') },

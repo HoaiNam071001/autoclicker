@@ -1,4 +1,4 @@
-// Node Chụp màn hình (bước 35 N1): vùng chụp, thư mục / tên file (nhận {{biến}}), chép vào clipboard.
+// Node Chụp màn hình (bước 35 N1): vùng chụp (ShotAreaField – dùng chung với Chờ màn hình), thư mục / tên file (nhận {{biến}}), chép vào clipboard.
 import Select from '../Select';
 import { useEffect, useState } from 'react';
 import { Displays } from '../../../wailsjs/go/main/App';
@@ -20,21 +20,10 @@ export function ShotFields({ step: s }: { step: Step }) {
   const script = useScript();
   const nodeVars = useNodeVars(s.id);
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
-  const area = s.shotArea ?? '';
   const varProps = { inputs: script.inputs ?? [], nodeVars, rows: 1, compact: true, onCreateInput: (key: string) => addInput({ key, label: key, type: 'text' }) };
   return (
     <>
-      <Field label="Chụp" wide group>
-        <Select value={area as string} className={selectBox} aria-label="Vùng chụp"
-          onChange={(v) => set({ shotArea: (v || undefined) as ShotArea | undefined })}
-          options={SHOT_AREAS.map((a) => ({ value: a.id as string, label: a.label }))} />
-        {area === '' && <span className={hint}>{script.region
-          ? `Vùng của kịch bản: ${script.region.w} × ${script.region.h} tại ${script.region.x}, ${script.region.y}`
-          : 'Kịch bản chưa đặt vùng – chụp cả màn chính'}</span>}
-        {area === 'screen' && <DisplayPicker value={s.display ?? 0} onChange={(display) => set({ display: display || undefined })} />}
-        {area === 'rect' && <RectPicker step={s} onChange={(shotRect) => set({ shotRect })} />}
-        {area === 'node' && <NodePicker step={s} onChange={(imageFrom) => set({ imageFrom })} />}
-      </Field>
+      <ShotAreaField step={s} label="Chụp" />
       <Field label="Thư mục lưu" wide group help="Trống = thư mục ảnh trong Cài đặt → Lưu trữ (mặc định Pictures/Ghosthand) · chưa có thì tự tạo">
         <VarTextInput {...varProps} value={s.saveDir ?? ''} onChange={(v) => set({ saveDir: v || undefined })} placeholder="Thư mục ảnh trong Cài đặt" />
       </Field>
@@ -43,6 +32,26 @@ export function ShotFields({ step: s }: { step: Step }) {
       </Field>
       <SwitchField label="Vào clipboard" help="Dán (Cmd/Ctrl+V) thẳng vào chat, email, Paint…" on={!!s.toClipboard} onChange={(on) => set({ toClipboard: on || undefined })} />
     </>
+  );
+}
+
+// Vùng chụp (dùng chung với Chờ màn hình): vùng kịch bản / cả màn / vùng cố định / chỗ node trước thấy.
+export function ShotAreaField({ step: s, label }: { step: Step; label: string }) {
+  const script = useScript();
+  const set = (patch: Partial<Step>) => updateStep(s.id, patch);
+  const area = s.shotArea ?? '';
+  return (
+    <Field label={label} wide group>
+      <Select value={area as string} className={selectBox} aria-label="Vùng chụp"
+        onChange={(v) => set({ shotArea: (v || undefined) as ShotArea | undefined })}
+        options={SHOT_AREAS.map((a) => ({ value: a.id as string, label: a.label }))} />
+      {area === '' && <span className={hint}>{script.region
+        ? `Vùng của kịch bản: ${script.region.w} × ${script.region.h} tại ${script.region.x}, ${script.region.y}`
+        : 'Kịch bản chưa đặt vùng – cả màn chính'}</span>}
+      {area === 'screen' && <DisplayPicker value={s.display ?? 0} onChange={(display) => set({ display: display || undefined })} />}
+      {area === 'rect' && <RectPicker step={s} onChange={(shotRect) => set({ shotRect })} />}
+      {area === 'node' && <NodePicker step={s} onChange={(imageFrom) => set({ imageFrom })} />}
+    </Field>
   );
 }
 

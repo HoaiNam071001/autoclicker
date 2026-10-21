@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  main { padding: 24px 40px; display: flex; flex-direction: column; gap: 20px; }
+  .bar { display: flex; align-items: center; gap: 20px; }
+  #status { font-size: 36px; font-weight: 800; }
+  .rows { display: flex; flex-direction: column; gap: 14px; }
+  .row { height: 56px; border-radius: 10px; display: flex; align-items: center; padding: 0 20px; font-size: 24px; font-weight: 700; background: var(--surface); border: 1px solid var(--line); }
+  /* khung xương lúc tải: dải sáng chạy ngang cả hàng – phủ rộng như trang thật (trang chỉ có spinner nhỏ thì thu hẹp vùng chờ) */
+  .row.skel { border: 0; color: transparent; background: linear-gradient(90deg, #d1d5db 25%, #f3f4f6 50%, #d1d5db 75%) 0 0 / 300% 100%; animation: shimmer 1s linear infinite; }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -50% 0; } }
+  .spin { width: 64px; height: 64px; border: 8px solid #d1d5db; border-top-color: var(--accent); border-radius: 50%; animation: rot .8s linear infinite; }
+  @keyframes rot { to { transform: rotate(360deg); } }
+</style></head>
+<body>
+<main>
+  <div class="bar"><button class="btn" id="reload">LÀM MỚI</button><div class="spin" id="spin"></div><div id="status"></div></div>
+  <div class="rows" id="rows"></div>
+  <div class="stats"></div>
+  <div class="log"></div>
+</main>
+<script src="sandbox.js"></script>
+<script>
+  // Mở trang: tải 2–5 s (khung xương nhấp nháy + spinner) rồi hiện ĐÃ TẢI XONG + 6 đơn. LÀM MỚI: im lặng 0,8–1,5 s
+  // (chờ máy chủ) rồi tải lại. ?ms=… cố định thời gian tải. Đo được: bấm sớm (lúc đang tải) bị đếm riêng.
+  sb.header('Tải chậm');
+  const q = new URLSearchParams(location.search);
+  const rows = document.getElementById('rows'), status = document.getElementById('status'), spin = document.getElementById('spin');
+  const setLoads = sb.stat('Lần tải xong', 0), setEarly = sb.stat('Bấm lúc đang tải', 0);
+  let loads = 0, early = 0, busy = false;
+  function load() {
+    busy = true;
+    const ms = Number(q.get('ms')) || Math.round(sb.rand(2000, 5000));
+    status.textContent = '';
+    spin.style.visibility = 'visible';
+    rows.innerHTML = '<div class="row skel">.</div>'.repeat(6);
+    setTimeout(() => {
+      busy = false;
+      loads++; setLoads(loads);
+      spin.style.visibility = 'hidden';
+      status.textContent = `ĐÃ TẢI XONG ${loads}`;
+      rows.innerHTML = Array.from({ length: 6 }, (_, i) => `<div class="row">Đơn ${loads * 100 + i + 1}</div>`).join('');
+      sb.log(`tải xong sau ${(ms / 1000).toFixed(1)} s`);
+    }, ms);
+  }
+  document.getElementById('reload').onclick = () => {
+    if (busy) { early++; setEarly(early); sb.log('bấm lúc đang tải'); return; }
+    busy = true;
+    sb.log('đã bấm làm mới – chờ máy chủ');
+    setTimeout(load, Math.round(sb.rand(800, 1500)));
+  };
+  load();
+</script>
+</body></html>

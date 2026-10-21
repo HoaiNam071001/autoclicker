@@ -1,6 +1,7 @@
 // Trường riêng của các node nâng cao (bước 35) – Step kế thừa (types.ts), khớp struct Step trong internal/model/model.go
 // (tsc kiểm qua stepMatchesGo). Tách khỏi types.ts cho file không phình theo số loại node.
 import type { ShotArea } from './flow/shot';
+import type { WaitMode } from './flow/waitScreen';
 import type { ClipOp } from './flow/clipboard';
 import type { BodyType, HttpMethod } from './flow/http';
 import type { FileOp } from './flow/file';
@@ -19,6 +20,10 @@ export interface AdvancedFields {
   saveDir?: string; // trống = thư mục ảnh trong Cài đặt (Pictures/Ghosthand); nhận {{biến}}
   fileName?: string; // trống = ghosthand-<ngày>-<giờ>; nhận {{biến}}
   toClipboard?: boolean;
+  // chờ màn hình (bước 42 G1, internal/engine/waitscreen.go) – vùng theo shotArea / display / shotRect / imageFrom
+  waitMode?: WaitMode; // bỏ trống = đứng yên | change = thay đổi so với lúc bắt đầu
+  stableMs?: number; // đứng yên: đứng yên liên tục bao lâu (ms)
+  diffPct?: number; // ngưỡng % điểm ảnh đổi: đứng yên = ≤ ngưỡng, thay đổi = > ngưỡng
   // clipboard (bước 35 N2, internal/engine/clip.go)
   clipOp?: ClipOp; // bỏ trống = đọc chữ
   filePath?: string; // clipOp image: file PNG; nhận {{biến}}

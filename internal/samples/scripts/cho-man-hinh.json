@@ -1,0 +1,61 @@
+{
+ "meta": {
+  "name": "Chờ màn hình đứng yên",
+  "description": "Trang Tải chậm tải 2–5 s ngẫu nhiên: Chờ màn hình (đứng yên 1 s) thay cho Chờ 5 s, bấm LÀM MỚI, Chờ màn hình (thay đổi) tới khi trang phản hồi rồi chờ đứng yên lần nữa. Đúng: thấy ĐÃ TẢI XONG 2, ô Bấm lúc đang tải = 0.",
+  "app": "Chờ / tìm",
+  "level": 1,
+  "page": "loading.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/loading.html",
+    "delayAfter": 1500
+   },
+   {
+    "type": "waitScreen",
+    "stableMs": 1000,
+    "diffPct": 1,
+    "timeoutMs": 15000,
+    "intervalMs": 200
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "LAM MOI",
+    "searchArea": "screen",
+    "timeoutMs": 3000,
+    "delayAfter": 0
+   },
+   {
+    "type": "waitScreen",
+    "waitMode": "change",
+    "diffPct": 1,
+    "timeoutMs": 5000,
+    "intervalMs": 100
+   },
+   {
+    "type": "waitScreen",
+    "stableMs": 1000,
+    "diffPct": 1,
+    "timeoutMs": 15000,
+    "intervalMs": 200
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "DA TAI XONG 2",
+    "searchArea": "screen",
+    "timeoutMs": 1000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Tải lại xong, không bấm lúc đang tải"
+   }
+  ]
+ }
+}

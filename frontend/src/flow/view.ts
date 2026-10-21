@@ -158,6 +158,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'waitImage': return FOUND;
     case 'clickImage': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...(s.imageSource === 'search' ? FOUND : [])];
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
+    case 'waitScreen': return [{ key: 'ms', desc: 'thời gian đã chờ (ms)' }, { key: 'diff', desc: '% điểm ảnh đổi ở lần so cuối' }];
     case 'path': return [{ key: 'x', desc: 'X chỗ nhả chuột' }, { key: 'y', desc: 'Y chỗ nhả chuột' }, { key: 'points', desc: 'số đỉnh đã đi qua' }];
     case 'waitUntil': return [{ key: 'firedAt', desc: 'giờ chạy tiếp (có ms)' }, { key: 'target', desc: 'giờ hẹn' }, { key: 'lateMs', desc: 'trễ so với giờ hẹn (ms)' }, { key: 'ntpOffsetMs', desc: 'giờ chuẩn − giờ máy (ms)' }];
     case 'window': return s.winOp === 'waitClose' ? [] : [{ key: 'title', desc: 'tiêu đề cửa sổ' }, { key: 'app', desc: 'tên app' },

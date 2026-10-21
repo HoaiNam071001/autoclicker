@@ -3,6 +3,7 @@
 import { boundsOf, refOf, type Ends } from '../../store';
 import { fmtSelectors } from '../../flow/web';
 import { fmtShot } from '../../flow/shot';
+import { fmtWaitScreen } from '../../flow/waitScreen';
 import { fmtClip } from '../../flow/clipboard';
 import { fmtHTTP } from '../../flow/http';
 import { fmtFile } from '../../flow/file';
@@ -47,6 +48,7 @@ function bubbleOf(s: Step): string | null {
     case 'file': return `📄 ${fmtFile(s)}`;
     case 'http': return `🌐 ${fmtHTTP(s)} – kết quả biết khi chạy thật`;
     case 'clipboard': return `📋 Clipboard: ${fmtClip(s)}`;
+    case 'waitScreen': return `⏳ Chờ màn hình ${fmtWaitScreen(s, refOf)} – xem trước không chờ thật`;
     case 'screenshot': return `📷 Chụp ${fmtShot(s, refOf)}`;
   }
   return null;

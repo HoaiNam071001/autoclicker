@@ -1,4 +1,4 @@
-// Node Chụp màn hình (bước 35 N1) – nhãn vùng chụp, dòng chi tiết thẻ, node nào có khung chỗ thấy để chụp theo.
+// Node Chụp màn hình (bước 35 N1; vùng dùng chung với Chờ màn hình 42 G1) – nhãn vùng chụp, dòng chi tiết thẻ, node nào có khung chỗ thấy để chụp theo.
 // Chạy ở internal/engine/shot.go; HasFoundBox (internal/script/flowcheck.go) cùng công thức hasFoundBox.
 import type { Step } from '../types';
 import { windowHasBox } from './window';
@@ -22,12 +22,17 @@ export function hasFoundBox(s: Pick<Step, 'type' | 'imageSource' | 'webGone' | '
   return false;
 }
 
-// Dòng chi tiết thẻ: vùng · tên file · clipboard. refOf: id node → mã (n2).
-export function fmtShot(s: Step, refOf: (id: string) => string): string {
-  const area = s.shotArea === 'screen' ? (s.display ? `màn ${s.display}` : 'cả màn')
+// Nhãn vùng chụp (dùng chung với Chờ màn hình). refOf: id node → mã (n2).
+export function shotAreaLabel(s: Step, refOf: (id: string) => string): string {
+  return s.shotArea === 'screen' ? (s.display ? `màn ${s.display}` : 'cả màn')
     : s.shotArea === 'rect' ? (s.shotRect ? `vùng ${s.shotRect.w} × ${s.shotRect.h} tại ${s.shotRect.x}, ${s.shotRect.y}` : 'chưa chọn vùng')
     : s.shotArea === 'node' ? `chỗ ${s.imageFrom ? refOf(s.imageFrom) : '(chưa chọn node)'} thấy`
     : 'vùng kịch bản';
+}
+
+// Dòng chi tiết thẻ: vùng · tên file · clipboard.
+export function fmtShot(s: Step, refOf: (id: string) => string): string {
+  const area = shotAreaLabel(s, refOf);
   const name = s.fileName?.trim() ? `${s.fileName.trim().replace(/\.png$/i, '')}.png` : 'tên theo giờ';
   return `${area} → ${name}${s.toClipboard ? ' · chép clipboard' : ''}`;
 }

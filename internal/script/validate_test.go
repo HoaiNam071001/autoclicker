@@ -175,3 +175,22 @@ func TestValidateCoordSpaceAbsolute(t *testing.T) {
 		t.Errorf("absolute = %v", p)
 	}
 }
+
+func TestValidateWaitScreen(t *testing.T) {
+	ws := func(f func(*model.Step)) model.Script {
+		return model.Script{Loops: 1, Steps: []model.Step{modeltest.Step(model.StepWaitScreen, f)}}
+	}
+	if err := script.ValidateScript(scripttest.Linear(ws(nil)), model.Rect{}); err != nil {
+		t.Errorf("mặc định phải hợp lệ: %v", err)
+	}
+	cases := map[string]func(*model.Step){
+		"chưa chọn vùng chụp":           func(s *model.Step) { s.ShotArea = model.ShotRect },
+		"phải > 0":                      func(s *model.Step) { s.IntervalMs = 0 },
+		"chưa chọn node lấy khung chụp": func(s *model.Step) { s.ShotArea = model.ShotNode },
+	}
+	for want, f := range cases {
+		if err := script.ValidateScript(scripttest.Linear(ws(f)), model.Rect{}); err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("muốn lỗi chứa %q, nhận %v", want, err)
+		}
+	}
+}

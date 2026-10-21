@@ -2,6 +2,7 @@
 import { fmtAxis, fmtPoint, usesVar } from '../anchor';
 import { fmtKey } from '../keys';
 import { fmtShot } from './shot';
+import { fmtWaitScreen } from './waitScreen';
 import { fmtClip } from './clipboard';
 import { fmtHTTP } from './http';
 import { fmtFile } from './file';
@@ -29,6 +30,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'open' ? `${s.target || '—'}${s.webBrowser ? ' · Chrome của app' : s.app ? ` · ${s.app}` : ''}`
     : isWebStep(s.type) ? fmtWebStep(s)
     : s.type === 'screenshot' ? fmtShot(s, refOf)
+    : s.type === 'waitScreen' ? fmtWaitScreen(s, refOf)
     : s.type === 'clipboard' ? fmtClip(s)
     : s.type === 'http' ? fmtHTTP(s)
     : s.type === 'file' ? fmtFile(s)

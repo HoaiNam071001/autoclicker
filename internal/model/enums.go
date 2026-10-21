@@ -26,6 +26,14 @@ const (
 
 var ShotAreas = []string{ShotRegion, ShotScreen, ShotRect, ShotNode}
 
+// Chờ màn hình (Step.WaitMode, bước 42 G1) – vùng theo ShotArea như Chụp màn hình.
+const (
+	WaitStable = ""       // hai lần chụp liền nhau lệch ≤ DiffPct liên tục StableMs (trang tải xong, hiệu ứng dừng)
+	WaitChange = "change" // khác ảnh lúc bắt đầu node > DiffPct (đã có phản hồi sau click)
+)
+
+var WaitModes = []string{WaitStable, WaitChange}
+
 // Mức thao tác giống người (Script.Human, Step.Human – bước 34, internal/humanize). Kịch bản "" = tắt; node "" = theo
 // kịch bản. Kịch bản mới (NewScript) bật sẵn mức vừa.
 const (

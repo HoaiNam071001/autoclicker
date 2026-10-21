@@ -130,12 +130,9 @@ func checkStep(s *model.Step) error {
 		}
 	case model.StepDrag:
 		need = 2
-	case model.StepScreenshot:
-		if !slices.Contains(model.ShotAreas, s.ShotArea) {
-			return fmt.Errorf("vùng chụp không hợp lệ: %q (trống = vùng của kịch bản | screen | rect | node)", s.ShotArea)
-		}
-		if s.Display < 0 {
-			return errors.New("số thứ tự màn hình không được âm")
+	case model.StepScreenshot, model.StepWaitScreen:
+		if err := checkShot(s); err != nil {
+			return err
 		}
 	case model.StepHTTP:
 		if s.Method != "" && !slices.Contains(model.HTTPMethods, s.Method) {

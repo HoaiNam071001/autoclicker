@@ -1150,6 +1150,9 @@ export namespace model {
 	    saveDir?: string;
 	    fileName?: string;
 	    toClipboard?: boolean;
+	    waitMode?: string;
+	    stableMs?: number;
+	    diffPct?: number;
 	    clipOp?: string;
 	    filePath?: string;
 	    method?: string;
@@ -1273,6 +1276,9 @@ export namespace model {
 	        this.saveDir = source["saveDir"];
 	        this.fileName = source["fileName"];
 	        this.toClipboard = source["toClipboard"];
+	        this.waitMode = source["waitMode"];
+	        this.stableMs = source["stableMs"];
+	        this.diffPct = source["diffPct"];
 	        this.clipOp = source["clipOp"];
 	        this.filePath = source["filePath"];
 	        this.method = source["method"];

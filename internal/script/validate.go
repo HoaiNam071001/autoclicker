@@ -104,10 +104,9 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if s.ClipOp == model.ClipImage && strings.TrimSpace(s.FilePath) == "" {
 				return stepErr(i, s, "filePath", "chưa nhập file ảnh cần chép")
 			}
-		case model.StepScreenshot:
-			// vùng theo node: nguồn đã kiểm tra ở validateFlow
-			if r := s.ShotRect; s.ShotArea == model.ShotRect && (r == nil || r.W <= 0 || r.H <= 0) {
-				return stepErr(i, s, "shotRect", "chưa chọn vùng chụp")
+		case model.StepScreenshot, model.StepWaitScreen:
+			if err := validateShot(i, s); err != nil {
+				return err
 			}
 		case model.StepWaitImage, model.StepClickImage:
 			// click theo chỗ node khác thấy: nguồn đã kiểm tra ở validateFlow

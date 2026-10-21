@@ -48,7 +48,7 @@ export function insertNode(step: Step, notice: (ref: string) => string) {
 
 // Thêm node không cần chọn điểm (chờ, gõ chữ, phím tắt, cuộn tại chuột, mở, chờ ảnh…) – mặc định ở flow/defaults (giống NewStep).
 // patch: sửa thêm sau mặc định (vd node Mở bằng Chrome của app).
-export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'waitUntil' | 'path' | 'elementRead' | 'webKey' | WebType>, patch: Partial<Step> = {}) {
+export function addStep(type: Extract<StepType, 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'waitUntil' | 'path' | 'elementRead' | 'webKey' | WebType>, patch: Partial<Step> = {}) {
   // phần phụ thuộc kịch bản ghép thêm vào bảng mặc định chung (flow/defaults)
   const dynamic: Partial<Step> = type === 'clickImage' ? { imageFrom: nearestFinder() }
     : type === 'waitPixel' ? { points: [centerPoint(script().region)] }
@@ -176,6 +176,8 @@ export function changeStepType(id: string, type: StepType) {
     imageSource: type === 'clickImage' ? s.imageSource ?? 'node' : s.imageSource,
     color: type === 'waitPixel' ? s.color ?? '#000000' : s.color,
     tolerance: type === 'waitPixel' ? s.tolerance ?? 10 : s.tolerance,
+    stableMs: type === 'waitScreen' ? s.stableMs ?? 1000 : s.stableMs,
+    diffPct: type === 'waitScreen' ? s.diffPct ?? 1 : s.diffPct,
   };
   const steps = sc.steps.map((x) => (x.id === id ? next : x));
   updateScript({ steps, edges: pruneEdges(steps, sc.edges) });
