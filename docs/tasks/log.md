@@ -200,3 +200,4 @@
 - 2026-10-21 40 O0: spike OCR – PaddleOCR chính thức không có chữ tiếng Việt có thanh (bỏ); Tesseract vie fast + phóng ×2 + chuẩn hoá nền đúng 15/15 (OCR Windows 0/15) → đổi sang Tesseract qua DLL + syscall (người dùng chọn)
 - 2026-10-21 40 O1–O3: Tesseract vie qua DLL + syscall (ocr_tess_windows / ocr_tessbundle_windows / ocr_tesstsv), vision.PrepOCR (cửa sổ trượt ±12 px – lưới ô thô hỏng), fetch-tesseract.sh + CI, THIRD_PARTY.md, mẫu chu-tieng-viet, detail text approx
 - 2026-10-21 40: textNoAccent → textAccent (mặc định bỏ qua dấu, công tắc "Bỏ qua dấu" bật sẵn), textKey xử lý dấu tách rời NFD (bỏ hoặc ghép vào chữ trước), bỏ textNoAccent khỏi mẫu
+- 2026-10-21 Kế hoạch (người dùng yêu cầu): bước 44 – nút + MCP probe_page thử trang trên Chrome của app (tự dò captcha), ưu tiên node web / ảnh·chữ cho AI (mặc định ảnh·chữ, AI đổi tự do qua set_node_preference + báo nhẹ); làm trước 42
