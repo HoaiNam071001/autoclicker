@@ -1,0 +1,85 @@
+{
+ "meta": {
+  "name": "Tìm tất cả – bấm mọi nút MUA",
+  "description": "Node Tìm tất cả đọc chữ cả màn, lấy mọi nút có chữ MUA (cần đủ 6, theo thứ tự đọc), Lặp qua danh sách đi qua từng chỗ thấy và click vào tâm (toạ độ từ biến item.x / item.y). Đúng: thanh giỏ hiện “GIỎ: 6 MÓN”, mỗi món ×1. Bấm Thử tìm ở node Tìm tất cả để xem khung + số thứ tự trên màn hình.",
+  "app": "Shop",
+  "level": 2,
+  "page": "shop.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/shop.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "findAll",
+    "findBy": "text",
+    "findText": "MUA",
+    "searchArea": "screen",
+    "minCount": 6,
+    "timeoutMs": 10000
+   },
+   {
+    "type": "forEach",
+    "value": "{{n2.output.items}}"
+   },
+   {
+    "type": "click",
+    "points": [
+     {
+      "xVar": "{{n3.output.item.x}}",
+      "yVar": "{{n3.output.item.y}}"
+     }
+    ],
+    "delayAfter": 400
+   },
+   {
+    "type": "waitImage",
+    "findBy": "text",
+    "findText": "GIỎ: 6 MÓN",
+    "searchArea": "screen",
+    "timeoutMs": 5000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã bấm {{n3.output.count}} nút MUA"
+   }
+  ],
+  "edges": [
+   {
+    "from": "s1",
+    "port": "success",
+    "to": "s2"
+   },
+   {
+    "from": "s2",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "item",
+    "to": "s4"
+   },
+   {
+    "from": "s4",
+    "port": "success",
+    "to": "s3"
+   },
+   {
+    "from": "s3",
+    "port": "done",
+    "to": "s5"
+   },
+   {
+    "from": "s5",
+    "port": "success",
+    "to": "s6"
+   }
+  ]
+ }
+}

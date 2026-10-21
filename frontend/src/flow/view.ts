@@ -172,6 +172,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'clickImage': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...(s.imageSource === 'search' ? FOUND : [])];
     case 'waitPixel': return [{ key: 'color', desc: 'màu đọc được' }];
     case 'waitScreen': return [{ key: 'ms', desc: 'thời gian đã chờ (ms)' }, { key: 'diff', desc: '% điểm ảnh đổi ở lần so cuối' }];
+    case 'findAll': return [{ key: 'count', desc: 'số chỗ thấy' }, { key: 'items', desc: 'danh sách chỗ thấy [{x, y, w, h, score, text}] – nối vào Lặp qua danh sách' }];
     case 'path': return [{ key: 'x', desc: 'X chỗ nhả chuột' }, { key: 'y', desc: 'Y chỗ nhả chuột' }, { key: 'points', desc: 'số đỉnh đã đi qua' }];
     case 'waitUntil': return [{ key: 'firedAt', desc: 'giờ chạy tiếp (có ms)' }, { key: 'target', desc: 'giờ hẹn' }, { key: 'lateMs', desc: 'trễ so với giờ hẹn (ms)' }, { key: 'ntpOffsetMs', desc: 'giờ chuẩn − giờ máy (ms)' }];
     case 'window': return s.winOp === 'waitClose' ? [] : [{ key: 'title', desc: 'tiêu đề cửa sổ' }, { key: 'app', desc: 'tên app' },
@@ -229,12 +230,19 @@ export function nodeVarOptions(sc: Pick<Script, 'steps' | 'start' | 'edges'>, se
 }
 
 // Node có output x, y (chỗ thấy / chỗ chuột dừng) theo thứ tự flow, trừ self – nút chọn nhanh toạ độ từ biến (F5b).
-export function coordSources(sc: Pick<Script, 'steps' | 'start' | 'edges'>, self: string): { ref: string; label: string }[] {
+// base: biến trước .x / .y – Lặp qua danh sách đang lặp items của Tìm tất cả (42 G3) cho phần tử đang lặp: n3.output.item.
+export type CoordSource = { ref: string; label: string; base: string };
+export function coordSources(sc: Pick<Script, 'steps' | 'start' | 'edges'>, self: string): CoordSource[] {
   const byId = new Map(sc.steps.map((s) => [s.id, s]));
+  const byRef = new Map(sc.steps.map((s) => [s.ref, s]));
   return flowOrder(sc).flatMap((id) => {
     const s = byId.get(id);
     if (!s || id === self || !s.ref) return [];
+    if (s.type === 'forEach') {
+      const src = /\{\{\s*(\w+)\.output\.items\s*\}\}/.exec(s.value ?? '')?.[1];
+      return src && byRef.get(src)?.type === 'findAll' ? [{ ref: s.ref, label: `${s.ref} · ${nodeTitle(s)} – chỗ đang lặp`, base: `${s.ref}.output.item` }] : [];
+    }
     const keys = outputsOf(s).map((o) => o.key);
-    return keys.includes('x') && keys.includes('y') ? [{ ref: s.ref, label: `${s.ref} · ${nodeTitle(s)}` }] : [];
+    return keys.includes('x') && keys.includes('y') ? [{ ref: s.ref, label: `${s.ref} · ${nodeTitle(s)}`, base: `${s.ref}.output` }] : [];
   });
 }

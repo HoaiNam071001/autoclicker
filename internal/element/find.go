@@ -55,6 +55,16 @@ func Find(nodes []Node, q Query) Result {
 	return Result{Selector: -1}
 }
 
+// FindAll – mọi phần tử khớp selector đầu tiên có kết quả (thứ tự đọc, bỏ Occurrence); selector -1 = không cái nào khớp.
+func FindAll(nodes []Node, q Query) (hits []Hit, selector int) {
+	for i, s := range q.Selectors {
+		if hits := match(nodes, s, q); len(hits) > 0 {
+			return hits, i
+		}
+	}
+	return nil, -1
+}
+
 // match – mọi phần tử khớp một selector, theo thứ tự đọc, đã lọc vùng. text=: bỏ phần tử có con cháu cũng khớp
 // (nút chứa khối chữ “Gửi” → lấy khối chữ, khung sát chữ hơn).
 func match(nodes []Node, s model.Selector, q Query) []Hit {

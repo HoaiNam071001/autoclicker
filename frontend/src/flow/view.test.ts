@@ -44,7 +44,17 @@ describe('coordSources', () => {
       makeStep({ id: 't', ref: 'n2', type: 'type', text: 'x' }),
     ];
     const got = coordSources({ steps, start: 'a', edges: chain(['a', 't', 'c']) }, 'c');
-    expect(got).toEqual([{ ref: 'n1', label: 'n1 · Chờ chữ' }]);
+    expect(got).toEqual([{ ref: 'n1', label: 'n1 · Chờ chữ', base: 'n1.output' }]);
+  });
+  it('Lặp qua danh sách đang lặp items của Tìm tất cả → chỗ đang lặp (item.x / item.y)', () => {
+    const steps = [
+      makeStep({ id: 'a', ref: 'n1', type: 'findAll', findBy: 'text', findText: 'Thêm' }),
+      makeStep({ id: 'f', ref: 'n2', type: 'forEach', value: '{{n1.output.items}}' }),
+      makeStep({ id: 'g', ref: 'n3', type: 'forEach', value: 'a\nb' }),
+      makeStep({ id: 'c', ref: 'n4', type: 'click', points: [{ x: 1, y: 1 }] }),
+    ];
+    const got = coordSources({ steps, start: 'a', edges: chain(['a', 'f', 'g', 'c']) }, 'c');
+    expect(got.map((s) => s.base)).toEqual(['n2.output.item']);
   });
 });
 

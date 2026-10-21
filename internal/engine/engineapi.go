@@ -88,11 +88,17 @@ type FindResult struct {
 	Read  []string   `json:"read,omitempty"` // tìm theo chữ mà không thấy: các dòng đọc được trong vùng
 	// % lệch màu chỗ giống nhất so với ảnh mẫu – chỉ khi node bật kiểm tra màu (ColorTol); khớp đủ mà Found false = lệch màu
 	ColorDiff int `json:"colorDiff,omitempty"`
+	// Tìm tất cả (42 G3): số chỗ thấy + khung từng chỗ theo thứ tự đọc (X / Y / W / H = chỗ đầu); Found = số chỗ đạt min / max
+	Count int          `json:"count,omitempty"`
+	All   []model.Rect `json:"all,omitempty"`
 }
 
 // FindOnce tìm ảnh mẫu / chữ / phần tử (Đọc phần tử: phần tử / nhãn) của node s trên màn hình lúc này (một lần, không chờ) – nút "Thử tìm".
 // {{biến}} trong s phải thay sẵn (script.WithInputDefaults).
 func (e *Engine) FindOnce(s model.Step) (FindResult, error) {
+	if s.Type == model.StepFindAll {
+		return e.findAllOnce(s)
+	}
 	if s.FindBy == model.FindByElement || s.Type == model.StepElementRead && s.FindBy == "" { // Đọc phần tử: "" = cây phần tử
 		return e.findElementOnce(s)
 	}

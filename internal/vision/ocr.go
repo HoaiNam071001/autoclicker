@@ -150,15 +150,17 @@ func lineMatches(l TextLine, q TextQuery) [][2]int {
 // ReadingOrder xếp dòng trên → dưới; các dòng cùng hàng (tâm dọc nằm trong nhau) thì trái → phải.
 func readingOrder(lines []TextLine) []TextLine {
 	out := append([]TextLine(nil), lines...)
-	sort.SliceStable(out, func(i, j int) bool {
-		a, b := out[i].Box, out[j].Box
-		ca, cb := a.Y+a.H/2, b.Y+b.H/2
-		if cb >= a.Y && cb <= a.Y+a.H || ca >= b.Y && ca <= b.Y+b.H {
-			return a.X < b.X
-		}
-		return ca < cb
-	})
+	sort.SliceStable(out, func(i, j int) bool { return ReadingLess(out[i].Box, out[j].Box) })
 	return out
+}
+
+// ReadingLess – a đứng trước b theo thứ tự đọc: cùng hàng (tâm dọc nằm trong nhau) thì trái → phải, không thì trên → dưới.
+func ReadingLess(a, b model.Rect) bool {
+	ca, cb := a.Y+a.H/2, b.Y+b.H/2
+	if cb >= a.Y && cb <= a.Y+a.H || ca >= b.Y && ca <= b.Y+b.H {
+		return a.X < b.X
+	}
+	return ca < cb
 }
 
 // subBox: khung của rune [a, b) trong dòng – hợp các từ chạm khoảng đó; không có từ thì chia theo tỷ lệ số ký tự.

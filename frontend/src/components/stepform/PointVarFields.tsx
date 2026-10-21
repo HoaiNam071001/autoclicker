@@ -3,6 +3,7 @@ import Select from '../Select';
 import VarTextInput from '../inputs/VarTextInput';
 import type { ScriptInput } from '../inputs/model';
 import { StepPoint } from '../../types';
+import type { CoordSource } from '../../flow/view';
 import { hint, selectBox } from './shared';
 
 type Props = {
@@ -11,7 +12,7 @@ type Props = {
   relative?: boolean; // B "lệch so với A": ô là độ lệch, không phải toạ độ
   inputs: Pick<ScriptInput, 'key' | 'label'>[];
   nodeVars: { key: string; label: string }[];
-  sources: { ref: string; label: string }[]; // node phía trước có output x, y (flow/view.ts coordSources)
+  sources: CoordSource[]; // node phía trước có output x, y (flow/view.ts coordSources)
   onCreateInput?: (key: string) => void;
 };
 
@@ -28,9 +29,9 @@ export default function PointVarFields({ point: p, onChange, relative = false, i
         </div>
       ))}
       {!relative && (sources.length ? (
-        <Select value="" onChange={(ref) => onChange({ xVar: `{{${ref}.output.x}}`, yVar: `{{${ref}.output.y}}` })}
+        <Select value="" onChange={(base) => onChange({ xVar: `{{${base}.x}}`, yVar: `{{${base}.y}}` })}
           className={selectBox} aria-label="Điền chỗ thấy của node" placeholder="Điền chỗ thấy / chỗ chuột dừng của node…"
-          options={sources.map((s) => ({ value: s.ref, label: s.label }))} />
+          options={sources.map((s) => ({ value: s.base, label: s.label }))} />
       ) : (
         <span className={hint}>Chưa có node nào phía trước trả toạ độ (Chờ ảnh / chữ, Click, phần tử web…).</span>
       ))}

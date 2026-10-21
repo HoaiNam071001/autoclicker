@@ -18,6 +18,7 @@ const (
 	StepClickImage = "clickImage" // click vào chỗ thấy ảnh: output của node ImageFrom (ImageSource node) hoặc tự tìm
 	StepWaitPixel  = "waitPixel"  // chờ tới khi điểm Points[0] có màu Color (± Tolerance)
 	StepWaitScreen = "waitScreen" // chờ vùng ShotArea đứng yên / thay đổi theo WaitMode (engine/waitscreen.go, bước 42 G1)
+	StepFindAll    = "findAll"    // như waitImage nhưng trả mọi chỗ khớp (items), số chỗ trong MinCount..MaxCount (engine/findall.go, bước 42 G3)
 
 	// Node nâng cao (bước 35)
 	StepScreenshot = "screenshot" // chụp vùng ShotArea, lưu PNG vào SaveDir / FileName, tuỳ chọn chép vào clipboard (engine/shot.go)
@@ -53,7 +54,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.
@@ -132,6 +133,8 @@ type Step struct {
 	FindText      string  `json:"findText,omitempty"`   // FindBy text: chữ cần tìm; nhận {{biến}}
 	TextExact     bool    `json:"textExact,omitempty"`  // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
 	TextAccent    bool    `json:"textAccent,omitempty"` // FindBy text: so đúng dấu (mặc định bỏ qua dấu – OCR hay đọc lệch dấu)
+	MinCount      int     `json:"minCount,omitempty"`   // findAll: cần thấy ít nhất chừng này chỗ (0 = 1) – chưa đủ thì chờ tiếp
+	MaxCount      int     `json:"maxCount,omitempty"`   // findAll: thấy nhiều hơn chừng này chỗ → chờ tiếp / cổng fail (0 = không giới hạn)
 	Occurrence    int     `json:"occurrence,omitempty"` // FindBy text / phần tử / node web: chỗ thứ mấy (trên → dưới, trái → phải; web: thứ tự trong trang trong số phần tử đang hiện); 0 = chỗ đầu (web: chỗ bấm được đầu tiên)
 	// Đọc phần tử (bước 37 E4): FindBy "" = tìm bằng cây phần tử (Selectors) | text = tìm nhãn bằng OCR (FindText…)
 	ReadNear    string `json:"readNear,omitempty"`    // "" = đọc chính phần tử | right / below = OCR chữ bên phải / bên dưới nhãn

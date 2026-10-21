@@ -17,7 +17,7 @@ export type MatchMode = '' | 'edge';
 // Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
 export type Retry = { count?: number; delayMs?: number };
 // Node hay "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại (thử lại)
-export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'waitUntil', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'webKey', 'elementRead', 'open'];
+export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'waitUntil', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'webKey', 'elementRead', 'open'];
 
 // ---- Flow (bước 20, flow.go) ----
 // Cạnh: node from đi ra cổng port thì chạy node to. Mỗi cổng tối đa một cạnh. Khớp Edge trong model.go.
@@ -43,7 +43,7 @@ const edgeMatchesGo: Same<keyof Edge, keyof Fields<model.Edge>> = true;
 const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = true;
 void edgeMatchesGo, resultMatchesGo;
 
-export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'waitUntil' | 'path'
+export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'findAll' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'waitUntil' | 'path'
   | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'forEach' | 'end' | 'setVar';
@@ -146,6 +146,8 @@ export interface Step extends AdvancedFields {
   findText?: string; // chữ cần tìm, nhận {{biến}}
   textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
   textAccent?: boolean; // so đúng dấu (mặc định bỏ qua dấu)
+  minCount?: number; // findAll: cần thấy ít nhất chừng này chỗ (0 / trống = 1)
+  maxCount?: number; // findAll: thấy nhiều hơn → chờ tiếp / Thất bại (0 / trống = không giới hạn)
   occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu (node web: chỗ bấm được đầu tiên)
   // Đọc phần tử (bước 37 E4, engine/elementread.go): findBy text = tìm nhãn bằng OCR
   readNear?: 'right' | 'below'; // OCR chữ bên phải / bên dưới nhãn; bỏ trống = đọc chính phần tử
@@ -257,6 +259,7 @@ export const STEP_LABEL: Record<StepType, string> = {
   clickImage: 'Click theo ảnh',
   waitPixel: 'Chờ màu pixel',
   waitScreen: 'Chờ màn hình',
+  findAll: 'Tìm tất cả',
   screenshot: 'Chụp màn hình',
   clipboard: 'Clipboard',
   http: 'HTTP',

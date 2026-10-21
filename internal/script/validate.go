@@ -115,6 +115,10 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 					return err
 				}
 			}
+		case model.StepFindAll:
+			if err := checkFindAll(i, s); err != nil {
+				return err
+			}
 		case model.StepWebWait, model.StepWebClick, model.StepWebType, model.StepWebRead, model.StepWebScroll:
 			if err := checkWebStep(i, s); err != nil {
 				return err
@@ -180,47 +184,6 @@ func outsideHint(s model.Step, b model.Rect) string {
 		return " (toạ độ tuyệt đối trên màn hình, gốc 0,0)"
 	}
 	return fmt.Sprintf(" (toạ độ đã cộng gốc vùng %d,%d; muốn dùng toạ độ màn hình như ảnh screenshot thì đặt coordSpace \"absolute\")", b.X, b.Y)
-}
-
-// checkFindWait – chỗ thứ mấy + thời gian chờ của node tự tìm chữ / phần tử.
-func checkFindWait(i int, s model.Step) error {
-	if s.Occurrence < 0 {
-		return stepErr(i, s, "occurrence", "chỗ thứ mấy phải ≥ 1")
-	}
-	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
-		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
-	}
-	return nil
-}
-
-// checkImageStep: bước chờ ảnh / click theo ảnh tự tìm có ảnh mẫu đọc được (hoặc chữ / cách tìm phần tử) và thông số hợp lệ.
-func checkImageStep(i int, s model.Step) error {
-	switch s.FindBy {
-	case model.FindByElement:
-		return checkElementFind(i, s)
-	case model.FindByText:
-		if strings.TrimSpace(s.FindText) == "" {
-			return stepErr(i, s, "findText", "chưa nhập chữ cần tìm")
-		}
-		return checkFindWait(i, s)
-	}
-	if s.Template == "" {
-		return stepErr(i, s, "template", "chưa có ảnh mẫu – bấm “Khoanh ảnh mẫu”")
-	}
-	img, err := vision.DecodePNG(s.Template)
-	if err != nil {
-		return stepErr(i, s, "template", "%v", err)
-	}
-	if b := img.Bounds(); b.Dx() < 4 || b.Dy() < 4 {
-		return stepErr(i, s, "template", "ảnh mẫu quá nhỏ (%d × %d px)", b.Dx(), b.Dy())
-	}
-	if s.Threshold < 1 || s.Threshold > 100 {
-		return stepErr(i, s, "threshold", "độ khớp tối thiểu phải trong 1–100%%")
-	}
-	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
-		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
-	}
-	return nil
 }
 
 // checkWebKey – node webKey: có phím, mọi phím / phím kèm bấm được qua CDP.

@@ -61,7 +61,7 @@ func peaks(w, h, tw, th, n int, score func(x, y int) float64) []cand {
 
 // findPeaks trả các chỗ giống mẫu t nhất trong s (cùng tỷ lệ px), điểm giảm dần; mask rỗng = không mặt nạ.
 // Mẫu lớn hơn ảnh → một chỗ Score 0.
-func findPeaks(s, t, mask Gray) []Match {
+func findPeaks(s, t, mask Gray, n int) []Match {
 	if t.w > s.w || t.h > s.h || t.empty() {
 		return []Match{{}}
 	}
@@ -71,7 +71,7 @@ func findPeaks(s, t, mask Gray) []Match {
 	f = min(f, max(1, min(t.w, t.h)/coarseMinTpl))
 	if f == 1 { // ảnh nhỏ: quét cả ảnh ở độ phân giải gốc
 		var out []Match
-		for _, c := range peaks(s.w-t.w+1, s.h-t.h+1, t.w, t.h, candidates, sc.at) {
+		for _, c := range peaks(s.w-t.w+1, s.h-t.h+1, t.w, t.h, n, sc.at) {
 			out = append(out, Match{X: c.x, Y: c.y, W: t.w, H: t.h, Score: math.Max(c.score, 0)})
 		}
 		return out
@@ -86,7 +86,7 @@ func findPeaks(s, t, mask Gray) []Match {
 	}
 	// tìm mịn ở độ phân giải gốc quanh từng ứng viên thô
 	var out []Match
-	for _, c := range peaks(cs.w-ct.w+1, cs.h-ct.h+1, ct.w, ct.h, candidates, csc.at) {
+	for _, c := range peaks(cs.w-ct.w+1, cs.h-ct.h+1, ct.w, ct.h, n, csc.at) {
 		best := Match{W: t.w, H: t.h, Score: -1}
 		for y := max(c.y*f-f, 0); y <= min(c.y*f+f, s.h-t.h); y++ {
 			for x := max(c.x*f-f, 0); x <= min(c.x*f+f, s.w-t.w); x++ {
@@ -124,6 +124,27 @@ func ImageScale(img image.Image, r model.Rect) float64 {
 // Trả chỗ tốt nhất (có kiểm tra màu: chỗ đúng màu tốt nhất đạt MinScore, không có thì chỗ tốt nhất kèm ColorDiff – để
 // báo "giống hình nhưng lệch màu") theo px ảnh chụp và tỷ lệ px / toạ độ của ảnh chụp.
 func MatchScaled(img image.Image, area model.Rect, tpl Template, opt MatchOptions, tplScale, dpi float64) (Match, float64) {
+	ms, sc := scaledPeaks(img, area, tpl, opt, tplScale, dpi, candidates)
+	if opt.ColorTol <= 0 {
+		return ms[0], sc
+	}
+	for i := range ms {
+		ms[i].ColorDiff = tpl.colorDiff(img, ms[i].rect())
+		if ms[i].Score < opt.MinScore {
+			break
+		}
+		if ms[i].ColorOK(opt) {
+			return ms[i], sc
+		}
+	}
+	return ms[0], sc
+}
+
+func (m Match) rect() image.Rectangle { return image.Rect(m.X, m.Y, m.X+m.W, m.Y+m.H) }
+
+// scaledPeaks – n chỗ giống mẫu nhất (điểm giảm dần, chưa kiểm tra màu) theo px ảnh chụp, sau khi đưa mẫu và ảnh về
+// cùng tỷ lệ như MatchScaled tả; kèm tỷ lệ px / toạ độ của ảnh chụp.
+func scaledPeaks(img image.Image, area model.Rect, tpl Template, opt MatchOptions, tplScale, dpi float64, n int) ([]Match, float64) {
 	sc := ImageScale(img, area)
 	g, t, mask := ToGray(img), tpl.Gray, tpl.mask
 	eff := sc * max(dpi, 0.01)
@@ -143,7 +164,7 @@ func MatchScaled(img image.Image, area model.Rect, tpl Template, opt MatchOption
 		et := t.edges().crop(1) // mẫu quá nhỏ thì crop không cắt
 		g, t, mask, pad = g.edges(), et, mask.erode().crop(1), (t.w-et.w)/2
 	}
-	ms := findPeaks(g, t, mask)
+	ms := findPeaks(g, t, mask, n)
 	for i := range ms {
 		m := &ms[i]
 		m.X, m.Y, m.W, m.H = m.X-pad, m.Y-pad, m.W+2*pad, m.H+2*pad
@@ -152,17 +173,5 @@ func MatchScaled(img image.Image, area model.Rect, tpl Template, opt MatchOption
 			m.W, m.H = int(math.Round(float64(m.W)*k)), int(math.Round(float64(m.H)*k))
 		}
 	}
-	if opt.ColorTol <= 0 {
-		return ms[0], sc
-	}
-	for i := range ms {
-		ms[i].ColorDiff = tpl.colorDiff(img, image.Rect(ms[i].X, ms[i].Y, ms[i].X+ms[i].W, ms[i].Y+ms[i].H))
-		if ms[i].Score < opt.MinScore {
-			break
-		}
-		if ms[i].ColorOK(opt) {
-			return ms[i], sc
-		}
-	}
-	return ms[0], sc
+	return ms, sc
 }

@@ -19,6 +19,7 @@ import { KeyFields } from './stepform/KeyFields';
 import { WebKeyFields } from './stepform/WebKeyFields';
 import { OpenFields, TypeFields } from './stepform/TextFields';
 import { CapturePermission, ClickImageFields, ImageSearchFields, isImageStep, WaitPixelFields } from './stepform/ImageFields';
+import { FindAllFields } from './stepform/FindAllFields';
 import { WebFields } from './stepform/WebFields';
 import { ShotFields } from './stepform/ShotFields';
 import { WaitScreenFields } from './stepform/WaitScreenFields';
@@ -40,7 +41,7 @@ import { usesHuman } from '../flow/human';
 import { nodeInfo } from '../flow/nodeInfo';
 
 // Loại node hành động đổi qua lại được trong ô loại node ở đầu (node điều khiển có trường riêng, không đổi loại)
-const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'waitUntil', 'path', 'webWait', 'webClick',
+const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'waitUntil', 'path', 'webWait', 'webClick',
   'webType', 'webRead', 'webScroll', 'webKey', 'elementRead'];
 const REF_RE = /^[A-Za-z][A-Za-z0-9_]{0,31}$/; // khớp validRef (flow.go)
 
@@ -134,6 +135,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'scroll' && <ScrollFields step={s} setPoint={setPoint} />}
       {(isImageStep(s) || s.type === 'screenshot' || s.type === 'waitScreen') && s.findBy !== 'element' && <CapturePermission />}
       {s.type === 'waitImage' && <ImageSearchFields step={s} />}
+      {s.type === 'findAll' && <FindAllFields step={s} />}
       {s.type === 'clickImage' && <ClickImageFields step={s} />}
       {s.type === 'waitPixel' && <WaitPixelFields step={s} setPoint={setPoint} />}
       {s.type === 'screenshot' && <ShotFields step={s} />}

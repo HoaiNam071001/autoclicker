@@ -168,7 +168,7 @@ func checkStep(s *model.Step) error {
 		if !slices.Contains(model.ClipOps, s.ClipOp) {
 			return fmt.Errorf("phép clipboard không hợp lệ: %q (trống = đọc | write | image)", s.ClipOp)
 		}
-	case model.StepWait, model.StepText, model.StepKey, model.StepOpen, model.StepScroll, model.StepWaitImage, model.StepClickImage,
+	case model.StepWait, model.StepText, model.StepKey, model.StepOpen, model.StepScroll, model.StepWaitImage, model.StepClickImage, model.StepFindAll,
 		model.StepWebWait, model.StepWebClick, model.StepWebType, model.StepWebRead, model.StepWebScroll, model.StepWebKey, model.StepElementRead:
 		if err := checkWebFields(s); err != nil {
 			return err
@@ -200,6 +200,9 @@ func checkStep(s *model.Step) error {
 	}
 	if s.SearchArea != "" && s.SearchArea != "screen" {
 		return fmt.Errorf("vùng tìm không hợp lệ: %q", s.SearchArea)
+	}
+	if s.MinCount < 0 || s.MaxCount < 0 {
+		return errors.New("số chỗ tối thiểu / tối đa không được âm")
 	}
 	if s.Threshold < 0 || s.Threshold > 100 || s.Tolerance < 0 || s.Tolerance > 255 || s.TemplateScale < 0 {
 		return errors.New("độ khớp / sai số màu / tỷ lệ ảnh mẫu ngoài khoảng cho phép")

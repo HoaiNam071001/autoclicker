@@ -1,4 +1,5 @@
 // Khung vẽ trên overlay (chỉ hiển thị): vùng, khung "Thử tìm", khung khoanh ảnh mẫu.
+import type { ReactNode } from 'react';
 import { cornersOf, captureLayout } from '../../overlay/geometry';
 import { Point, Rect, Step } from '../../types';
 import { safeArea } from '../../windowMode';
@@ -21,21 +22,28 @@ export function RegionBox({ rect, size, dim }: { rect: Rect; size: Size | null; 
   );
 }
 
-// Khung "Thử tìm" (bước 25): chỗ giống ảnh mẫu nhất trên màn hình lúc thử. focus: chỉ hiện của node đang xem riêng.
+// Khung "Thử tìm" (bước 25): chỗ giống ảnh mẫu nhất trên màn hình lúc thử; Tìm tất cả (42 G3): mọi chỗ, kèm số thứ tự.
+// focus: chỉ hiện của node đang xem riêng.
 export function FindBoxes({ steps, finds, focus, toClient }: { steps: Step[]; finds: Finds; focus: string | null; toClient: (p: Point) => Point }) {
-  return steps.map((s) => {
+  return steps.flatMap((s) => {
     const f = finds[s.id];
-    if (!f || (focus && s.id !== focus)) return null;
-    const a = toClient(f), b = toClient({ x: f.x + f.w, y: f.y + f.h });
-    return (
-      <div key={`find${s.id}`} className={`pointer-events-none absolute rounded-sm border-2 border-dashed ${f.found ? 'border-ok bg-ok/15' : 'border-warn bg-warn/10'}`}
-        style={{ left: a.x, top: a.y, width: b.x - a.x, height: b.y - a.y }}>
-        <span className={`absolute -top-6 left-0 rounded px-1.5 py-px font-mono text-[11px] whitespace-nowrap text-black ${f.found ? 'bg-ok' : 'bg-warn'}`}>
-          {s.ref}: {f.label ?? <>{f.found ? 'thấy' : 'giống nhất'} · khớp {f.score}%</>}
-        </span>
-      </div>
-    );
+    if (!f || (focus && s.id !== focus)) return [];
+    if (s.type === 'findAll') { // 0 chỗ: Go bỏ trường all – không vẽ gì
+      const all = f.all ?? [];
+      return all.map((r, i) => <FindBox key={`find${s.id}-${i}`} box={r} ok={f.found} toClient={toClient} label={i ? `${i + 1}` : `${s.ref}: 1 / ${all.length}`} />);
+    }
+    return [<FindBox key={`find${s.id}`} box={f} ok={f.found} toClient={toClient} label={<>{s.ref}: {f.label ?? <>{f.found ? 'thấy' : 'giống nhất'} · khớp {f.score}%</>}</>} />];
   });
+}
+
+function FindBox({ box: r, ok, label, toClient }: { box: Rect; ok: boolean; label: ReactNode; toClient: (p: Point) => Point }) {
+  const a = toClient(r), b = toClient({ x: r.x + r.w, y: r.y + r.h });
+  return (
+    <div className={`pointer-events-none absolute rounded-sm border-2 border-dashed ${ok ? 'border-ok bg-ok/15' : 'border-warn bg-warn/10'}`}
+      style={{ left: a.x, top: a.y, width: b.x - a.x, height: b.y - a.y }}>
+      <span className={`absolute -top-6 left-0 rounded px-1.5 py-px font-mono text-[11px] whitespace-nowrap text-black ${ok ? 'bg-ok' : 'bg-warn'}`}>{label}</span>
+    </div>
+  );
 }
 
 // Khoanh ảnh mẫu: tối ngoài khung, nhãn cỡ thật, 4 núm; confirmed (đã thả chuột) → nút Dùng ảnh này / Khoanh lại.

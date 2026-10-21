@@ -12,7 +12,7 @@ import (
 )
 
 // findTemplate – chỗ tốt nhất, không mặt nạ (test cũ của bước 25).
-func findTemplate(s, t Gray) Match { return findPeaks(s, t, Gray{})[0] }
+func findTemplate(s, t Gray) Match { return findPeaks(s, t, Gray{}, candidates)[0] }
 
 func tplOf(g Gray) Template { return Template{Gray: g} }
 

@@ -109,3 +109,13 @@ func TestCheckSelectorAndSettled(t *testing.T) {
 		t.Error("Settled sai ngưỡng 1 điểm")
 	}
 }
+
+func TestFindAll(t *testing.T) {
+	hits, i := FindAll(tree(), Query{Selectors: []model.Selector{sel(t, "aria=Không có"), sel(t, "role=button[name=Thêm vào giỏ]")}})
+	if i != 1 || len(hits) != 2 || hits[0].Index != 2 || hits[1].Index != 7 {
+		t.Fatalf("muốn 2 nút qua selector thứ 2, có %d chỗ, selector %d: %+v", len(hits), i, hits)
+	}
+	if hits, i := FindAll(tree(), Query{Selectors: []model.Selector{sel(t, "aria=Không có")}}); hits != nil || i != -1 {
+		t.Fatalf("không khớp: muốn nil, -1; có %v, %d", hits, i)
+	}
+}

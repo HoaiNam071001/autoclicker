@@ -19,6 +19,7 @@ const tips = `Viết kịch bản bền:
 - Thao tác trên app desktop: mở đầu chuẩn app (kiểm tra) → open → app waitStart → window setBounds (xem flow) để cửa sổ luôn đúng chỗ.
 - Giá trị người dùng muốn đổi mỗi lần chạy (từ khoá, tên bài, người nhận) → khai báo inputs [{key, label, type, default}] và dùng {{key}} trong ô chữ.
 - Làm cùng một việc cho từng dòng dữ liệu (danh sách khách, đơn hàng, file CSV / xlsx, mảng JSON từ http) → forEach: cổng item → thân vòng → cạnh quay lại forEach, cổng done đi tiếp; trong thân dùng {{nX.output.item}} / {{nX.output.item.<cột>}} – không chép node cho từng dòng.
+- Làm cùng một việc cho từng nút / dòng đang hiện trên màn (mọi nút "Thêm", mọi giá trong bảng) → findAll (cùng cách tìm như waitImage) → forEach value {{n1.output.items}} → click points [{"xVar":"{{n2.output.item.x}}","yVar":"{{n2.output.item.y}}"}] → cạnh quay lại forEach.
 - Chờ có thể hết giờ → nối cổng fail (thử lại bằng counter + cạnh quay lại, hoặc end fail kèm message rõ ràng) thay vì để kịch bản dừng không rõ lý do.
 - Toạ độ (click theo điểm) theo hệ của get_screen_info; chưa biết vị trí thì hỏi người dùng hoặc tìm theo chữ. Điểm đọc từ ảnh screenshot / describe_screen là toạ độ tuyệt đối trên màn hình: đặt coordSpace "absolute" cho node đó (mặc định "region" = cộng gốc vùng của kịch bản, sẽ lệch nếu kịch bản có region).
 - Không dùng loại node không có trong danh sách. Ảnh mẫu (template) chỉ chụp được bằng app – AI dùng tìm theo chữ (findBy "text").

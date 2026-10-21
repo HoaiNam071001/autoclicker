@@ -13,7 +13,7 @@ import { usesVar } from './anchor';
 
 // fromRun: chỗ giống nhất của lần chạy hết giờ không thấy (engine:failed), không phải từ nút Thử tìm.
 // label: chữ trên khung overlay thay cho "khớp N%" (node web).
-export type FindResult = { found: boolean; score: number; x: number; y: number; w: number; h: number; area: Rect; ms: number; read?: string[]; fromRun?: boolean; label?: string; colorDiff?: number }; // colorDiff: % lệch màu khi node kiểm tra màu
+export type FindResult = { found: boolean; score: number; x: number; y: number; w: number; h: number; area: Rect; ms: number; read?: string[]; fromRun?: boolean; label?: string; colorDiff?: number; count?: number; all?: Rect[] }; // colorDiff: % lệch màu khi node kiểm tra màu; count / all: Tìm tất cả – số chỗ + khung từng chỗ
 
 // Kết quả "Thử node" (internal/engine/nodetest.go) – node Nếu / Switch / Switch theo màn hình
 export type CondPart = { path: number[]; case?: string; kind: string; ok: boolean; known: boolean; detail: string; hit?: Rect };

@@ -3,6 +3,7 @@ import { fmtAxis, fmtPoint, usesVar } from '../anchor';
 import { fmtKey } from '../keys';
 import { fmtShot } from './shot';
 import { fmtWaitScreen } from './waitScreen';
+import { countRange } from './findAll';
 import { fmtClip } from './clipboard';
 import { fmtHTTP } from './http';
 import { fmtFile } from './file';
@@ -40,8 +41,8 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'waitUntil' ? fmtWaitUntil(s)
     : s.type === 'path' ? fmtPath(s)
     : s.type === 'elementRead' ? fmtElementRead(s)
-    : s.type === 'waitImage' || (s.type === 'clickImage' && s.imageSource === 'search')
-      ? `${s.type === 'clickImage' ? 'tự tìm · ' : ''}${s.findBy === 'element' ? fmtElement(s) : s.findBy === 'text'
+    : s.type === 'waitImage' || s.type === 'findAll' || (s.type === 'clickImage' && s.imageSource === 'search')
+      ? `${s.type === 'clickImage' ? 'tự tìm · ' : s.type === 'findAll' ? `${countRange(s)} chỗ · ` : ''}${s.findBy === 'element' ? fmtElement(s) : s.findBy === 'text'
         ? (s.findText?.trim() ? `chữ “${s.findText}”${(s.occurrence ?? 0) > 1 ? ` (chỗ thứ ${s.occurrence})` : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa nhập chữ cần tìm')
         : s.template ? `khớp ≥ ${s.threshold}%${matchTags(s)} · tối đa ${fmtMs(s.timeoutMs ?? 0)}` : 'chưa có ảnh mẫu'}`
     : s.type === 'clickImage' ? `chỗ ${s.imageFrom ? refOf(s.imageFrom) : '(chưa chọn node)'} thấy${s.dx || s.dy ? ` ${fmtSigned(s.dx ?? 0)},${fmtSigned(s.dy ?? 0)}` : ''}`

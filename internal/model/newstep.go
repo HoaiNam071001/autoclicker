@@ -46,6 +46,8 @@ func NewStep(stepType string) (Step, error) {
 		s.DelayAfter = 2000 // chờ trang / app mở
 	case StepWaitImage:
 		s.Threshold, s.TimeoutMs, s.IntervalMs, s.DelayAfter = 90, 10000, 250, 300
+	case StepFindAll:
+		s.Threshold, s.MinCount, s.TimeoutMs, s.IntervalMs, s.DelayAfter = 90, 1, 5000, 250, 0
 	case StepClickImage:
 		s.ImageSource, s.Threshold, s.TimeoutMs, s.IntervalMs = ImageFromNode, 90, 10000, 250
 	case StepWaitPixel:

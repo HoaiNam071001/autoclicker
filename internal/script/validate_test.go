@@ -194,3 +194,18 @@ func TestValidateWaitScreen(t *testing.T) {
 		}
 	}
 }
+
+// Tìm tất cả (42 G3): cùng kiểm tra như Chờ chữ + tối đa không nhỏ hơn tối thiểu.
+func TestValidateFindAll(t *testing.T) {
+	sc := func(text string, lo, hi int) model.Script {
+		return model.Script{Loops: 1, Steps: []model.Step{modeltest.Step(model.StepFindAll, func(s *model.Step) {
+			s.FindBy, s.FindText, s.MinCount, s.MaxCount = model.FindByText, text, lo, hi
+		})}}
+	}
+	for want, c := range map[string]model.Script{"": sc("Thêm", 2, 5), "chưa nhập chữ": sc("", 1, 0), "nhỏ hơn tối thiểu (3)": sc("Thêm", 3, 2)} {
+		err := script.ValidateScript(scripttest.Linear(c), model.Rect{})
+		if want == "" && err != nil || want != "" && (err == nil || !strings.Contains(err.Error(), want)) {
+			t.Errorf("muốn %q, có %v", want, err)
+		}
+	}
+}

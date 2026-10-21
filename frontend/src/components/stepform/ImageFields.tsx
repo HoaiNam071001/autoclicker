@@ -16,10 +16,11 @@ import { Step } from '../../types';
 import { ButtonField, errText, Field, fmtSec, hint, NumField, PickButton, selectBox, SetPoint, SwitchField, useNodeVars, varHint } from './shared';
 import { ElementSearchFields } from './ElementFields';
 import PointSource from './PointSource';
+import { FindAllResult } from './FindAllResult';
 import MatchFields from './MatchFields';
 import { usesVar } from '../../anchor';
 
-export const isImageStep = (s: Step) => s.type === 'waitImage' || s.type === 'clickImage' || s.type === 'waitPixel';
+export const isImageStep = (s: Step) => s.type === 'waitImage' || s.type === 'clickImage' || s.type === 'waitPixel' || s.type === 'findAll';
 
 export // macOS: chưa có quyền ghi màn hình thì chụp chỉ ra hình nền – báo ngay trong inspector.
 function CapturePermission() {
@@ -85,7 +86,7 @@ function ImageSearchFields({ step: s }: { step: Step }) {
             {busy === s.id ? 'Đang tìm…' : 'Thử tìm'}
           </button>
         </div>
-        {find && (
+        {find && s.type === 'findAll' ? <FindAllResult step={s} find={find} /> : find && (
           <span className={`flex flex-wrap items-center gap-x-2 text-xs ${find.found ? 'text-ok' : 'text-warn'}`}>
             {find.found
               ? <>Thấy tại X {find.x + Math.round(find.w / 2)} Y {find.y + Math.round(find.h / 2)} · khớp {find.score}%{s.colorTol ? ` · lệch màu ${find.colorDiff ?? 0}%` : ''} · {find.ms} ms</>
@@ -139,16 +140,16 @@ export function TextSearchFields({ step: s, label = 'Chữ cần tìm', placehol
     </Field>
     <SwitchField label="Cả dòng" help="Chỉ khớp ô / nút chỉ có đúng chữ này (tránh khớp trong câu dài)" on={!!s.textExact} onChange={(textExact) => set({ textExact: textExact || undefined })} />
     <SwitchField label="Bỏ qua dấu" help="Tắt nếu cần phân biệt dấu (vd “đá” với “đã”)" on={!s.textAccent} onChange={(v) => set({ textAccent: v ? undefined : true })} />
-    <Field label="Chỗ thứ" help="Chữ hiện nhiều lần → chỗ thứ mấy tính từ trên xuống, trái sang phải">
+    {s.type !== 'findAll' && <Field label="Chỗ thứ" help="Chữ hiện nhiều lần → chỗ thứ mấy tính từ trên xuống, trái sang phải">
       <NumInput value={Math.max(s.occurrence ?? 1, 1)} min={1} stepper onChange={(n) => set({ occurrence: n > 1 ? n : undefined })} />
-    </Field>
+    </Field>}
     <div className="col-span-2 flex flex-col gap-1.5 text-muted">
       <button onClick={() => testFind(s.id)} disabled={empty || busy === s.id}
         title="Đọc chữ trên màn hình hiện tại và tìm (app ẩn đi một chút)"
         className="h-8 rounded-control border border-line bg-surface text-ink enabled:hover:bg-hover disabled:opacity-50">
         {busy === s.id ? 'Đang đọc chữ…' : 'Thử tìm'}
       </button>
-      {find && (
+      {find && s.type === 'findAll' ? <FindAllResult step={s} find={find} /> : find && (
         <span className={`flex flex-col gap-1 text-xs ${find.found ? 'text-ok' : 'text-warn'}`}>
           <span className="flex flex-wrap items-center gap-x-2">
             {find.found ? <>Thấy tại X {find.x + Math.round(find.w / 2)} Y {find.y + Math.round(find.h / 2)} · {find.ms} ms</>

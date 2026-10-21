@@ -114,3 +114,16 @@ func TestVarFieldsSkipUnusedDragA(t *testing.T) {
 		t.Errorf("%q", names)
 	}
 }
+
+// Ô toạ độ đọc sâu phần tử của Lặp qua danh sách (vòng Tìm tất cả → forEach → click, 42 G3).
+func TestValidateFlowCoordVarsForEachItem(t *testing.T) {
+	sc := model.Script{Start: "f", Steps: []model.Step{
+		modeltest.Node("f", "n1", model.StepForEach, func(s *model.Step) { s.Value = "a" }),
+		modeltest.Node("b", "n2", model.StepClick, func(s *model.Step) {
+			s.Points = []model.Point{{XVar: "{{n1.output.item.x}}", YVar: "{{n1.output.item.y}} + 5"}}
+		}),
+	}, Edges: []model.Edge{modeltest.Edge("f", model.PortItem, "b"), modeltest.Edge("b", model.PortSuccess, "f")}}
+	if err := validateFlow(sc); err != nil {
+		t.Fatal(err)
+	}
+}

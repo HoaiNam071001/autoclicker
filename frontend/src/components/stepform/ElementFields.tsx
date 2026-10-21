@@ -10,6 +10,7 @@ import { SelectorsField } from './WebActionFields';
 import { errText, Field, fmtSec, hint, NumField, SwitchField, useNodeVars } from './shared';
 import { pickElement, testFind, useImageState } from '../../imageSteps';
 import { inWails, openOverlay } from '../../windowMode';
+import { FindAllResult } from './FindAllResult';
 
 export function ElementQueryFields({ step: s }: { step: Step }) {
   const script = useScript();
@@ -28,9 +29,9 @@ export function ElementQueryFields({ step: s }: { step: Step }) {
           onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} rows={1} compact placeholder="trống = cửa sổ trên cùng" />
       </Field>
       <SwitchField label="Bỏ qua dấu" on={!s.textAccent} onChange={(v) => set({ textAccent: v ? undefined : true })} />
-      <Field label="Chỗ thứ" help="Nhiều phần tử khớp thì lấy cái thứ mấy (theo thứ tự đọc)">
+      {s.type !== 'findAll' && <Field label="Chỗ thứ" help="Nhiều phần tử khớp thì lấy cái thứ mấy (theo thứ tự đọc)">
         <NumInput value={Math.max(s.occurrence ?? 1, 1)} min={1} stepper onChange={(n) => set({ occurrence: n > 1 ? n : undefined })} />
-      </Field>
+      </Field>}
     </>
   );
 }
@@ -51,7 +52,7 @@ export function ElementSearchFields({ step: s }: { step: Step }) {
           <button onClick={() => testFind(s.id)} disabled={!inWails || busy === s.id || !s.selectors?.some((l) => l.trim().length > 5)} className={btn}
             title="Tìm trong cây phần tử của app lúc này (không di chuột)">{busy === s.id ? 'Đang tìm…' : 'Thử tìm'}</button>
         </div>
-        {find && (
+        {find && s.type === 'findAll' ? <FindAllResult step={s} find={find} /> : find && (
           <span className={`flex flex-col gap-1 text-xs ${find.found ? 'text-ok' : 'text-warn'}`}>
             <span className="flex flex-wrap items-center gap-x-2">
               {find.found ? <>Thấy tại X {find.x + Math.round(find.w / 2)} Y {find.y + Math.round(find.h / 2)}{find.ms ? ` · ${find.ms} ms` : ''}</>

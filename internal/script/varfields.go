@@ -39,7 +39,7 @@ func VarFields(s *model.Step) []VarField {
 	switch s.Type {
 	case model.StepText:
 		add("text", &s.Text, false)
-	case model.StepWaitImage, model.StepClickImage:
+	case model.StepWaitImage, model.StepClickImage, model.StepFindAll:
 		switch s.FindBy {
 		case model.FindByText:
 			add("findText", &s.FindText, false)

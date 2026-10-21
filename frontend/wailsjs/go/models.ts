@@ -111,6 +111,8 @@ export namespace engine {
 	    ms: number;
 	    read?: string[];
 	    colorDiff?: number;
+	    count?: number;
+	    all?: model.Rect[];
 	
 	    static createFrom(source: any = {}) {
 	        return new FindResult(source);
@@ -128,6 +130,8 @@ export namespace engine {
 	        this.ms = source["ms"];
 	        this.read = source["read"];
 	        this.colorDiff = source["colorDiff"];
+	        this.count = source["count"];
+	        this.all = this.convertValues(source["all"], model.Rect);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1183,6 +1187,8 @@ export namespace model {
 	    findText?: string;
 	    textExact?: boolean;
 	    textAccent?: boolean;
+	    minCount?: number;
+	    maxCount?: number;
 	    occurrence?: number;
 	    readNear?: string;
 	    readSpan?: number;
@@ -1310,6 +1316,8 @@ export namespace model {
 	        this.findText = source["findText"];
 	        this.textExact = source["textExact"];
 	        this.textAccent = source["textAccent"];
+	        this.minCount = source["minCount"];
+	        this.maxCount = source["maxCount"];
 	        this.occurrence = source["occurrence"];
 	        this.readNear = source["readNear"];
 	        this.readSpan = source["readSpan"];
