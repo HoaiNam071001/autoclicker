@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func sampleScript() model.Script {

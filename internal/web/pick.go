@@ -8,7 +8,7 @@ import (
 
 	"github.com/chromedp/chromedp"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // "Chọn phần tử trên trang" (D3): người dùng bấm vào phần tử trong Chrome của app → sinh selector cho node web.

@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/humanize"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/humanize"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
 )
 
 // humanEngine – engine chạy một node với mức giống người level của kịch bản, seed cố định.

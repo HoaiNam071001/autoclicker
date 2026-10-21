@@ -74,8 +74,8 @@ import (
 	"math"
 	"unsafe"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 func readText(src image.Image) ([]vision.TextLine, error) {

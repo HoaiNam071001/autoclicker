@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // NodeVarRe – biến đọc kết quả node: {{n2.output.x}}, {{n2.status}}, {{n2.error.message}}, {{vars.ten}}, {{last.output.text}}.

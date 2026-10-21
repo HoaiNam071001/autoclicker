@@ -5,11 +5,11 @@ import (
 	"reflect"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script"
-	"autoclicker/internal/script/scripttest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script"
+	"ghosthand/internal/script/scripttest"
 )
 
 // Biến trong URL được mã hoá, trong tên app / văn bản thì giữ nguyên.

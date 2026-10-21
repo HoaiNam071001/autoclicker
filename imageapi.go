@@ -6,11 +6,11 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/engine"
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/device"
+	"ghosthand/internal/engine"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/vision"
 )
 
 // Hàm cho giao diện (và MCP – bước 31) quanh ảnh mẫu / màu pixel (bước 25). Cửa sổ app (overlay phủ màn hình, hoặc

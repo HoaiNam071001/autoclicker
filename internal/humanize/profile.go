@@ -2,7 +2,7 @@
 // nhịp gõ / cuộn không đều. Hàm thuần – nhận nguồn ngẫu nhiên R để test bằng seed; engine lo thiết bị + chờ.
 package humanize
 
-import "autoclicker/internal/model"
+import "ghosthand/internal/model"
 
 // Mức (Script.Human, Step.Human – model.HumanLevels). "" ở kịch bản = tắt; ở node = theo kịch bản.
 const (

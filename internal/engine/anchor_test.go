@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script"
-	"autoclicker/internal/script/scripttest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script"
+	"ghosthand/internal/script/scripttest"
 )
 
 // Xong khi của bước 29: 4 điểm cách mỗi cạnh 300 px, đổi vùng 1000×700 → 1400×900 vẫn cách đúng 300 px.

@@ -17,7 +17,7 @@ import (
 	"time"
 	"unicode"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Lịch sử chạy (bước 20 F5): mỗi lần chạy lưu một file runs/<kịch bản>/<id>.json (model.RunRecord) + ảnh màn hình

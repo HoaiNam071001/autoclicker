@@ -3,7 +3,7 @@ package engine
 import (
 	"context"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Node Hệ thống (bước 35 N5): âm lượng loa – đặt mức / tăng / giảm (bật tiếng lại), tắt / bật tiếng.

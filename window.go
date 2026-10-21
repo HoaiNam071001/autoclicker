@@ -5,9 +5,9 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
-	"autoclicker/internal/winfloat"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
+	"ghosthand/internal/winfloat"
 )
 
 // Chế độ cửa sổ. Wails v2 chỉ có một cửa sổ nên overlay / mini bar là cách đổi kích thước,

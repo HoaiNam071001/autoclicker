@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/api"
-	"autoclicker/internal/mcpsrv"
-	"autoclicker/internal/model"
-	"autoclicker/internal/store"
+	"ghosthand/internal/api"
+	"ghosthand/internal/mcpsrv"
+	"ghosthand/internal/model"
+	"ghosthand/internal/store"
 )
 
 // emptyBackend – app không có kịch bản nào (tool chạy / xem màn hình không dùng trong test này – nhúng interface cho đủ kiểu).

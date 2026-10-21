@@ -12,7 +12,7 @@ import (
 // Cửa sổ / app đang chạy (bước 26) – kiểu thuần cho device.Windows / device.Apps, node Cửa sổ / Ứng dụng và tool MCP
 // list_windows / list_apps.
 
-// WindowInfo – một cửa sổ cấp cao đang mở (không tính cửa sổ của autoclicker).
+// WindowInfo – một cửa sổ cấp cao đang mở (không tính cửa sổ của ghosthand).
 type WindowInfo struct {
 	ID        uint64 `json:"id"`        // HWND (Windows) / CGWindowID (macOS) – chỉ dùng trong lần chạy, không lưu vào kịch bản
 	Title     string `json:"title"`     // tiêu đề

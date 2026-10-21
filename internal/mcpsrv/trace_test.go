@@ -6,8 +6,8 @@ import (
 	"slices"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
 )
 
 // Ảnh gửi kèm: mặc định ảnh lỗi + ảnh sau node mới nhất; AI xin theo tên thì đúng ảnh đó; ảnh đã bỏ không báo tên.

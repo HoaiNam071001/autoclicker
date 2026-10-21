@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"autoclicker/internal/element"
+	"ghosthand/internal/element"
 )
 
 // FakeInput ghi lại các lệnh dưới dạng chuỗi thay vì điều khiển chuột thật; Lines() trả lại để so.

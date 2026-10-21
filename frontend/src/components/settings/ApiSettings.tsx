@@ -4,7 +4,7 @@ import NumInput from '../NumInput';
 import { Switch } from '../Switch';
 import { CopyButton, SettingCode } from './parts';
 
-const CLI_HINT = 'autoclicker run kich-ban.json --preset "Tên bộ" --set M1=Lan';
+const CLI_HINT = 'ghosthand run kich-ban.json --preset "Tên bộ" --set M1=Lan';
 
 export default function ApiSettings({ api, onChange }: { api: store.APISettings; onChange: (patch: Partial<store.APISettings>) => void }) {
   return (

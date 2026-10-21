@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func inputScript() model.Script {

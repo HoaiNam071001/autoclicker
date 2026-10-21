@@ -1,4 +1,4 @@
-// Package api – API local của app (bước 22): HTTP chỉ nghe 127.0.0.1, Bearer token. CLI (`autoclicker run`), chương
+// Package api – API local của app (bước 22): HTTP chỉ nghe 127.0.0.1, Bearer token. CLI (`ghosthand run`), chương
 // trình khác và MCP (31 – gắn route /mcp qua Handle) đều gọi vào đây; việc thật làm ở Backend (App trong main).
 //
 //	GET  /health                 – app đang mở (không cần token)
@@ -22,9 +22,9 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
 )
 
 // RunRequest – thân POST /run.

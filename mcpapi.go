@@ -5,15 +5,15 @@ import (
 	"errors"
 	"os"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/mcpsrv"
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device"
+	"ghosthand/internal/mcpsrv"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
+	"ghosthand/internal/web"
 )
 
-// MCP cho AI (bước 31, internal/mcpsrv): route /mcp trên API local (cả kênh CLI – `autoclicker --mcp` chuyển tiếp
+// MCP cho AI (bước 31, internal/mcpsrv): route /mcp trên API local (cả kênh CLI – `ghosthand --mcp` chuyển tiếp
 // vào đó – lẫn cổng cho chương trình khác). Công tắc trong Cài đặt, bật mặc định.
 
 // startMCP – gọi trong startAPI, trước khi mở cổng.
@@ -56,7 +56,7 @@ func (a *App) MCPClients() ([]mcpsrv.ClientConfig, error) {
 // ClaudeDesktopConfigPath – file cấu hình của Claude Desktop (hiện trong câu hỏi trước khi ghi).
 func (a *App) ClaudeDesktopConfigPath() (string, error) { return mcpsrv.ClaudeDesktopConfig() }
 
-// AddToClaudeDesktop ghi mục autoclicker vào cấu hình Claude Desktop (frontend đã hỏi người dùng). Trả đường dẫn file.
+// AddToClaudeDesktop ghi mục ghosthand vào cấu hình Claude Desktop (frontend đã hỏi người dùng). Trả đường dẫn file.
 func (a *App) AddToClaudeDesktop() (string, error) {
 	exe, err := os.Executable()
 	if err != nil {

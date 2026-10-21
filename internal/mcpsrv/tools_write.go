@@ -10,9 +10,9 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/store"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/store"
 )
 
 type validateIn struct {

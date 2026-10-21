@@ -1,4 +1,4 @@
-// Sân thử Auto Clicker – hàm dùng chung: ô đếm, nhật ký, dựng header.
+// Sân thử Ghosthand – hàm dùng chung: ô đếm, nhật ký, dựng header.
 (function () {
   const sb = {};
   // header(title): thanh trên cùng có tên trang, link về danh sách, nút Làm lại.

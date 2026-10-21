@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/web"
 )
 
 type events struct {

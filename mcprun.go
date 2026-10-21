@@ -11,11 +11,11 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
+	"ghosthand/internal/vision"
 )
 
 // AI chạy kịch bản qua MCP (bước 31b): công tắc AI trong Cài đặt (store.MCPSettings) – chỉ soạn / hỏi trước khi chạy /

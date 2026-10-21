@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script"
+	"ghosthand/internal/vision"
 )
 
 var (

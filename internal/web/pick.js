@@ -31,7 +31,7 @@
   const box = document.createElement('div');
   box.style.cssText = 'position:fixed;z-index:2147483647;pointer-events:none;border:2px solid #f59e0b;background:rgba(245,158,11,.15);border-radius:3px;display:none';
   const bar = document.createElement('div');
-  bar.textContent = 'Auto Clicker: bấm vào phần tử cần chọn · Esc để huỷ';
+  bar.textContent = 'Ghosthand: bấm vào phần tử cần chọn · Esc để huỷ';
   bar.style.cssText = 'position:fixed;z-index:2147483647;top:8px;left:50%;transform:translateX(-50%);pointer-events:none;padding:6px 12px;border-radius:8px;background:#111827;color:#f9fafb;font:13px system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.3)';
   document.documentElement.append(box, bar);
 

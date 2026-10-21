@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Node Clipboard (bước 35 N2): đọc chữ / ghi chữ / ghi ảnh PNG từ file. Không đụng chuột / phím – copy / paste trọn gói

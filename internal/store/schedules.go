@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Hẹn giờ (bước 22): schedules.json – mỗi file kịch bản một hẹn giờ, khoá theo đường dẫn.

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"autoclicker/internal/element"
+	"ghosthand/internal/element"
 )
 
 // Phần tử màn hình (bước 37): đọc cây accessibility của app khác (macOS AX – element_darwin.go; Windows UI Automation –

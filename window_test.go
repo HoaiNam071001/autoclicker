@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func TestPickDisplay(t *testing.T) {

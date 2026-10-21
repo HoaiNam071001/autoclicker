@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 var (

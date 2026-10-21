@@ -9,7 +9,7 @@ import (
 
 func TestResolveDir(t *testing.T) {
 	tmp := t.TempDir()
-	def := filepath.Join(tmp, "Documents", "Auto Clicker")
+	def := filepath.Join(tmp, "Documents", "Ghosthand")
 	if got, err := resolveDir("", def); err != nil || got != def {
 		t.Fatalf("trống = %q %v, muốn mặc định %q", got, err, def)
 	}
@@ -46,12 +46,12 @@ func TestAIScriptsDirFallsBackToScripts(t *testing.T) {
 	}
 }
 
-func TestDefaultDirsNamedAutoClicker(t *testing.T) {
+func TestDefaultDirsNamedGhosthand(t *testing.T) {
 	d, err := DefaultDirs()
 	if err != nil {
 		t.Skip(err)
 	}
-	if filepath.Base(d.ScriptsDir) != "Auto Clicker" || filepath.Base(d.ShotsDir) != "Auto Clicker" {
-		t.Errorf("mặc định %+v phải là …/Auto Clicker", d)
+	if filepath.Base(d.ScriptsDir) != "Ghosthand" || filepath.Base(d.ShotsDir) != "Ghosthand" {
+		t.Errorf("mặc định %+v phải là …/Ghosthand", d)
 	}
 }

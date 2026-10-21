@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/web"
+	"ghosthand/internal/model"
+	"ghosthand/internal/web"
 )
 
 func TestWebTypeClicksChecksFocusThenTypes(t *testing.T) {

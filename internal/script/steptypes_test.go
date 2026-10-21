@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // Kịch bản flow mẫu cho AI đọc được và chạy qua kiểm tra đầy đủ (input lấy mặc định).

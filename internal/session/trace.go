@@ -5,9 +5,9 @@ import (
 	"image"
 	"slices"
 
-	"autoclicker/internal/engine"
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/engine"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 // Chạy một phần + vết chạy cho AI (bước 31b): AI chạy đến node / một cụm, đọc kết quả từng node + ảnh lúc lỗi,

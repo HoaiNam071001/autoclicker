@@ -3,7 +3,7 @@ package script
 import (
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func TestEvalCoord(t *testing.T) {

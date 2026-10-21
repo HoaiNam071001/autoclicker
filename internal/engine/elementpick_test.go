@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
 )
 
 func TestPickElement(t *testing.T) {

@@ -6,10 +6,10 @@ import (
 )
 
 // Đặt chuột ở góc / giữa từng màn rồi đọc lại phải đúng điểm đó – bắt lệch DPI (Windows 125 %: chuột và khung màn
-// phải cùng pixel thật). Chỉ chạy khi AUTOCLICKER_REAL=1 (chuột thật di chuyển).
+// phải cùng pixel thật). Chỉ chạy khi GHOSTHAND_REAL=1 (chuột thật di chuyển).
 func TestRealCursorRoundTrip(t *testing.T) {
-	if os.Getenv("AUTOCLICKER_REAL") != "1" {
-		t.Skip("đặt AUTOCLICKER_REAL=1 để chạy với chuột thật")
+	if os.Getenv("GHOSTHAND_REAL") != "1" {
+		t.Skip("đặt GHOSTHAND_REAL=1 để chạy với chuột thật")
 	}
 	ox, oy := Location()
 	defer moveCursor(ox, oy)

@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/device"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/vision"
 )
 
 // Test node điều khiển (bước 20 F3): Nếu, Switch, Switch theo màn hình, Đếm, Kết thúc, Đặt biến.

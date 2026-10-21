@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Patch – sửa một phần kịch bản (AI qua MCP update_script, bước 31): không gửi lại cả file. Node / cạnh trỏ theo id

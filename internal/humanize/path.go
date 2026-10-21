@@ -3,7 +3,7 @@ package humanize
 import (
 	"math"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Đường di chuột: Bezier bậc 3 với 2 điểm điều khiển lệch sang ngang (cong như cổ tay xoay), tốc độ theo đường

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
 )
 
 // Toạ độ nhận biến (F5b): click lệch 30 px bên phải chỗ thấy chữ "Gửi" – toạ độ màn hình, không cộng vùng.

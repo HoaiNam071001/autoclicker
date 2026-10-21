@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Compact – kịch bản dạng gọn (Mẫu thử – bước 33, AI qua MCP – 31): node chỉ ghi trường cần, còn lại lấy mặc định của

@@ -14,11 +14,11 @@ Từ 2026-10-19 người dùng có máy Windows: dev + test phần Windows (17, 
 
 ```bash
 wails dev                       # chạy app
-wails build                     # ra build/bin/autoclicker.exe
+wails build                     # ra build/bin/ghosthand.exe
 go vet ./... && go test ./...   # Go
 cd frontend && npm run build && npm test
 python3 scripts/check-docs.py
-AUTOCLICKER_REAL=1 go test ./internal/device/ -run Real   # test thiết bị thật (chuột, chụp, cây phần tử…)
+GHOSTHAND_REAL=1 go test ./internal/device/ -run Real   # test thiết bị thật (chuột, chụp, cây phần tử…)
 ```
 
 ## Lưu ý riêng Windows

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 // Chạy đến node (31b): chạy xong StopAt thì dừng, không lỗi, Reached báo đã tới.

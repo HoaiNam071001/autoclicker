@@ -7,8 +7,8 @@ import (
 	"time"
 	"unsafe"
 
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
 )
 
 // Phần tử màn hình trên Windows qua UI Automation (37 E5). Một lần gọi ElementFromHandleBuildCache lấy cả cây con

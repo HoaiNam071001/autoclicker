@@ -12,11 +12,11 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
+	"ghosthand/internal/web"
 )
 
 // fakeBackend – file thật trong thư mục tạm, revision trong bộ nhớ.
@@ -215,7 +215,7 @@ func TestListAndDocs(t *testing.T) {
 	if _, isErr := call(t, cs, "get_step_types", map[string]any{"type": "bay"}); !isErr {
 		t.Error("loại lạ phải lỗi")
 	}
-	for _, uri := range []string{"autoclicker://guide", "autoclicker://schema", "autoclicker://examples"} {
+	for _, uri := range []string{"ghosthand://guide", "ghosthand://schema", "ghosthand://examples"} {
 		res, err := cs.ReadResource(context.Background(), &mcp.ReadResourceParams{URI: uri})
 		if err != nil || !json.Valid([]byte(res.Contents[0].Text)) {
 			t.Errorf("%s: %v", uri, err)
@@ -227,7 +227,7 @@ func TestListAndDocs(t *testing.T) {
 	}
 }
 
-// Ví dụ trong autoclicker://examples phải tạo được bằng create_script.
+// Ví dụ trong ghosthand://examples phải tạo được bằng create_script.
 func TestExamplesCreate(t *testing.T) {
 	cs, _ := connect(t)
 	ex, err := examples()

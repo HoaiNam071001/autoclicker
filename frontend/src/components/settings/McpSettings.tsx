@@ -55,7 +55,7 @@ export default function McpSettings({ mcp, onChange }: { mcp: store.MCPSettings;
           <McpTools mcp={mcp} tools={tools} seen={seen} client={toolClient} onClient={setToolClient} onChange={onChange} />
           {confirm ? (
             <div className="flex flex-col gap-1.5 rounded-control bg-soft p-2 text-xs">
-              Ghi mục “autoclicker” vào <span className="font-mono break-all">{confirm}</span>? Cài đặt khác của Claude giữ nguyên.
+              Ghi mục “ghosthand” vào <span className="font-mono break-all">{confirm}</span>? Cài đặt khác của Claude giữ nguyên.
               <span className="flex gap-1.5">
                 <button onClick={add} className="btn-primary rounded-control px-3 py-1 text-on-accent">Ghi</button>
                 <button onClick={() => setConfirm('')} className="rounded-control border border-line px-3 py-1 hover:bg-hover">Huỷ</button>

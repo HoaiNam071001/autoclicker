@@ -1,6 +1,6 @@
 // Package mcpsrv – MCP server cho AI (bước 31): Claude / Cursor / Codex… tạo, đọc, sửa kịch bản trong app.
 // Route /mcp (Streamable HTTP, stateless, trả JSON) gắn vào API local (internal/api) – cùng 127.0.0.1 + token;
-// `autoclicker --mcp` (stdio) chuyển tiếp vào đây (internal/cli). Việc thật (file, app đang mở) ở Backend (main).
+// `ghosthand --mcp` (stdio) chuyển tiếp vào đây (internal/cli). Việc thật (file, app đang mở) ở Backend (main).
 // Thiết kế cho mọi AI: tham số phẳng, ít tool, chữ (JSON) trong kết quả, lỗi có cấu trúc để AI tự sửa.
 package mcpsrv
 
@@ -13,11 +13,11 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
-	"autoclicker/internal/vision"
-	"autoclicker/internal/web"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
+	"ghosthand/internal/vision"
+	"ghosthand/internal/web"
 )
 
 // Editor – kịch bản đang mở trên app.
@@ -73,8 +73,8 @@ type Server struct {
 	acc  access
 }
 
-const instructions = `Auto Clicker – app tự động click / gõ theo kịch bản dạng flow (node + cạnh, như n8n).
-Tạo kịch bản: đọc get_step_types (hoặc resource autoclicker://guide) → viết kịch bản → validate_script → create_script.
+const instructions = `Ghosthand – app tự động click / gõ theo kịch bản dạng flow (node + cạnh, như n8n).
+Tạo kịch bản: đọc get_step_types (hoặc resource ghosthand://guide) → viết kịch bản → validate_script → create_script.
 Sửa: read_script (lấy revision) → update_script theo id / ref node. Thiếu thông tin (app nào, giá trị nào là input) thì hỏi lại người dùng trước.
 Thử – sửa: run_script (cả / stopAt / only) → node lỗi có error.detail + ảnh → update_script → resume_run (chạy tiếp từ node lỗi, giữ biến).
 Xem màn hình: describe_screen (chữ + cửa sổ, rẻ) trước, screenshot khi cần nhìn. Người dùng muốn xem / tự chạy: open_in_app.
@@ -83,7 +83,7 @@ App có thể chỉ cho soạn hoặc hỏi người dùng trước khi chạy (
 
 func New(back Backend) *Server {
 	s := &Server{back: back, log: &CallLog{}}
-	s.mcp = mcp.NewServer(&mcp.Implementation{Name: "autoclicker", Title: "Auto Clicker", Version: "1.0"},
+	s.mcp = mcp.NewServer(&mcp.Implementation{Name: "ghosthand", Title: "Ghosthand", Version: "1.0"},
 		&mcp.ServerOptions{Instructions: instructions})
 	s.mcp.AddReceivingMiddleware(s.log.middleware, s.accessMiddleware)
 	s.addReadTools()
@@ -101,7 +101,7 @@ func (s *Server) Handler() http.Handler {
 		&mcp.StreamableHTTPOptions{Stateless: true, JSONResponse: true})
 	wrapped := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !s.back.Enabled() {
-			http.Error(w, "MCP đang tắt – bật trong Cài đặt của app Auto Clicker", http.StatusForbidden)
+			http.Error(w, "MCP đang tắt – bật trong Cài đặt của app Ghosthand", http.StatusForbidden)
 			return
 		}
 		h.ServeHTTP(w, r)

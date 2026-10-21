@@ -4,9 +4,9 @@ import (
 	hook "github.com/robotn/gohook"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
 )
 
 // startHotkeys nghe phím toàn cục (kể cả khi app không được focus). Gọi trong startup.

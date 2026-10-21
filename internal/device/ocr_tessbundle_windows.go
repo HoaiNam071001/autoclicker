@@ -30,7 +30,7 @@ func tessBundleDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	dir := filepath.Join(base, "autoclicker", "tesseract-"+hex.EncodeToString(sum[:6]))
+	dir := filepath.Join(base, "ghosthand", "tesseract-"+hex.EncodeToString(sum[:6]))
 	if _, err := os.Stat(filepath.Join(dir, ".ok")); err == nil {
 		return dir, nil
 	}

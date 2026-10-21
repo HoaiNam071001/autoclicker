@@ -180,8 +180,8 @@ import (
 	"time"
 	"unsafe"
 
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
 )
 
 // Giới hạn mỗi lần đọc cây: trang nặng (Tiki, YouTube) ~1–3 nghìn nút, 60–250 ms. Quá giới hạn thì dùng phần đã đọc.

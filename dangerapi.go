@@ -1,10 +1,10 @@
 package main
 
 import (
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
 )
 
 // Xác nhận thao tác nguy hiểm (script.DangerOps – xoá file, buộc thoát app, đóng cửa sổ): kịch bản có thao tác nguy hiểm

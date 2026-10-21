@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/web"
+	"ghosthand/internal/model"
+	"ghosthand/internal/web"
 )
 
 // Node web (bước 25d): tìm phần tử qua web.Browser (DOM), bấm bằng chuột thật như node click.

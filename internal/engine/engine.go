@@ -10,12 +10,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/humanize"
-	"autoclicker/internal/launch"
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device"
+	"ghosthand/internal/humanize"
+	"ghosthand/internal/launch"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
+	"ghosthand/internal/web"
 )
 
 // Progress – tiến độ gửi sang frontend (event "engine:progress").

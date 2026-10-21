@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // checkHTTPStep – node HTTP đủ dữ liệu để chạy (bước 35 N3). URL còn biến node {{n2…}} / body còn biến thì chỉ kiểm tra được lúc chạy.

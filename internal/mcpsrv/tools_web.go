@@ -7,7 +7,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"autoclicker/internal/store"
+	"ghosthand/internal/store"
 )
 
 // Thử trang + ưu tiên node (bước 44): probe_page mở trang trên Chrome của app, dò captcha / chặn bot / canvas → AI

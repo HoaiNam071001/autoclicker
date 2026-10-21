@@ -20,17 +20,17 @@ const pickPage = `<!doctype html><html><head><meta charset="utf-8"></head><body>
 </body></html>`
 
 // Chọn phần tử trên trang bằng Chrome thật (click giả lập bằng JS – không cần chuột): selector sinh ra phải tìm lại
-// đúng phần tử, ưu tiên chữ / aria / role, bỏ id tự sinh. Chỉ khi AUTOCLICKER_REAL=1.
+// đúng phần tử, ưu tiên chữ / aria / role, bỏ id tự sinh. Chỉ khi GHOSTHAND_REAL=1.
 func TestRealPick(t *testing.T) {
-	if os.Getenv("AUTOCLICKER_REAL") != "1" {
-		t.Skip("đặt AUTOCLICKER_REAL=1 để thử với Chrome thật")
+	if os.Getenv("GHOSTHAND_REAL") != "1" {
+		t.Skip("đặt GHOSTHAND_REAL=1 để thử với Chrome thật")
 	}
 	dir := t.TempDir()
 	page := filepath.Join(dir, "pick.html")
 	if err := os.WriteFile(page, []byte(pickPage), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	c := NewChrome(filepath.Join(os.TempDir(), "autoclicker-test-browser"), func(int, int) error { return nil })
+	c := NewChrome(filepath.Join(os.TempDir(), "ghosthand-test-browser"), func(int, int) error { return nil })
 	defer c.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()

@@ -1,4 +1,4 @@
-# Auto Clicker
+# Ghosthand
 
 Desktop app tự động click theo kịch bản (flow node + cạnh kiểu n8n: chuột, phím, chờ ảnh / chữ, rẽ nhánh, lặp N vòng). Wails v2 + Go + React/TS.
 

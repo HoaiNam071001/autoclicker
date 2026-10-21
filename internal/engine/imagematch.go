@@ -5,8 +5,8 @@ import (
 	"image"
 	"math"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // So ảnh mẫu của node (chờ / click theo ảnh, điều kiện thấy ảnh, Thử tìm): giải mã một lần, cách so + kiểm tra màu (bước 40).

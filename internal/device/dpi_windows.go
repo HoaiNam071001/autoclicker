@@ -4,7 +4,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 var (

@@ -9,7 +9,7 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 type pathIn struct {

@@ -14,8 +14,8 @@
 ```bash
 go install github.com/wailsapp/wails/v2/cmd/wails@latest
 wails doctor
-wails init -n autoclicker -t react-ts
-cd autoclicker
+wails init -n ghosthand -t react-ts
+cd ghosthand
 go get github.com/go-vgo/robotgo github.com/robotn/gohook
 wails dev
 ```

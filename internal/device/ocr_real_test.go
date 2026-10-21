@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-// Đọc chữ cả màn hình chính bằng OCR của hệ điều hành – chỉ khi AUTOCLICKER_REAL=1. Lần 2 đo tốc độ khi engine đã dựng.
+// Đọc chữ cả màn hình chính bằng OCR của hệ điều hành – chỉ khi GHOSTHAND_REAL=1. Lần 2 đo tốc độ khi engine đã dựng.
 func TestRealOCR(t *testing.T) {
-	if os.Getenv("AUTOCLICKER_REAL") != "1" {
-		t.Skip("đặt AUTOCLICKER_REAL=1 để đọc chữ trên màn hình thật")
+	if os.Getenv("GHOSTHAND_REAL") != "1" {
+		t.Skip("đặt GHOSTHAND_REAL=1 để đọc chữ trên màn hình thật")
 	}
 	img, err := RobotgoScreen{}.Capture(MainScreen())
 	if err != nil {

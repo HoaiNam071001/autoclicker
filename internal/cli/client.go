@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
 )
 
 // Client nói chuyện với app qua API local. Trường hàm thay được trong test.

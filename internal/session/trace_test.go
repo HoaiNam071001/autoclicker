@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Kịch bản 2 node Chờ s1 → s2.

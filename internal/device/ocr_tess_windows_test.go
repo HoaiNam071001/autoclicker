@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/vision"
+	"ghosthand/internal/vision"
 )
 
 // Trang thử 40 O0 (chụp bằng Chrome headless, DPI 100 % / 125 %): chữ 11–20 px thường / đậm + nút chữ trắng nền xanh,

@@ -3,7 +3,7 @@ package element
 import (
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func box(x, y, w, h int) model.Rect { return model.Rect{X: x, Y: y, W: w, H: h} }

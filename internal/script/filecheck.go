@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // checkFileStep – node Tệp / thư mục đủ dữ liệu để chạy (bước 35 N4). Ô còn biến thì phần còn lại kiểm tra lúc chạy.

@@ -5,8 +5,8 @@ package main
 import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
 )
 
 // windowPos – vị trí cửa sổ cùng hệ với runtime.WindowSetPosition. Wails Windows: GetPosition trả toạ độ tuyệt đối

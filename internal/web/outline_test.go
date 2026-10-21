@@ -3,7 +3,7 @@ package web
 import (
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func TestOutlineText(t *testing.T) {

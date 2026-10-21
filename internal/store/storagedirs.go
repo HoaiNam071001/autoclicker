@@ -8,9 +8,9 @@ import (
 )
 
 // Nơi lưu kịch bản / ảnh chụp (bước 41): người dùng chọn trong Cài đặt → Lưu trữ; trống = thư mục mặc định
-// Documents/Auto Clicker (kịch bản), Pictures/Auto Clicker (ảnh). Thư mục cấu hình (ConfigDir) không đổi.
+// Documents/Ghosthand (kịch bản), Pictures/Ghosthand (ảnh). Thư mục cấu hình (ConfigDir) không đổi.
 
-const userDirName = "Auto Clicker"
+const userDirName = "Ghosthand"
 
 // StorageSettings – thư mục đã chọn; "" = mặc định. AIScriptsDir trống = theo ScriptsDir.
 type StorageSettings struct {
@@ -25,7 +25,7 @@ type StorageDefaults struct {
 	ShotsDir   string `json:"shotsDir"`
 }
 
-// DefaultDirs – Documents / Pictures của máy (Windows qua SHGetKnownFolderPath) + "Auto Clicker".
+// DefaultDirs – Documents / Pictures của máy (Windows qua SHGetKnownFolderPath) + "Ghosthand".
 func DefaultDirs() (StorageDefaults, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {

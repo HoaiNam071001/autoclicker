@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-vgo/robotgo"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // Chụp màn hình / đọc màu pixel cho bước chờ ảnh, click theo ảnh, chờ pixel (bước 25). Tách interface để test engine

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // WebFindResult – kết quả "Thử tìm" của node web (D3; MCP 31 dùng chung): tìm một lần, không cuộn, không bấm.

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
+	"ghosthand/internal/web"
 )
 
 // API của engine cho app (RunScript, Thử node, Thử tìm) và sau này MCP – không cần biết trường nội bộ.
@@ -29,7 +29,7 @@ type Options struct {
 	AllowDanger bool                   // cho thao tác nguy hiểm (xoá file, buộc thoát app, đóng cửa sổ) – runner đặt khi người dùng đã xác nhận (script.DangerOps)
 	StopAt      string                 // chạy xong node này thì dừng (kết thúc bình thường – Reached) – AI chạy đến node (31b)
 	Seed        *Carry                 // kết quả node + biến của lần chạy trước, nạp vào đầu vòng 1 – chạy tiếp từ node lỗi
-	ShotsDir    string                 // thư mục ảnh trong Cài đặt cho node Chụp màn hình để trống saveDir ("" = Pictures/Auto Clicker)
+	ShotsDir    string                 // thư mục ảnh trong Cài đặt cho node Chụp màn hình để trống saveDir ("" = Pictures/Ghosthand)
 }
 
 // Carry – kết quả node (theo id) + biến {{vars.…}} của vòng cuối một lần chạy, để lần sau chạy tiếp mà biến node trước vẫn có.

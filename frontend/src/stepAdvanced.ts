@@ -16,8 +16,8 @@ export interface AdvancedFields {
   shotArea?: ShotArea; // bỏ trống = vùng của kịch bản
   display?: number; // shotArea screen: 0 = màn chứa vùng kịch bản, n = màn thứ n
   shotRect?: Rect; // shotArea rect: toạ độ màn hình
-  saveDir?: string; // trống = thư mục ảnh trong Cài đặt (Pictures/Auto Clicker); nhận {{biến}}
-  fileName?: string; // trống = autoclicker-<ngày>-<giờ>; nhận {{biến}}
+  saveDir?: string; // trống = thư mục ảnh trong Cài đặt (Pictures/Ghosthand); nhận {{biến}}
+  fileName?: string; // trống = ghosthand-<ngày>-<giờ>; nhận {{biến}}
   toClipboard?: boolean;
   // clipboard (bước 35 N2, internal/engine/clip.go)
   clipOp?: ClipOp; // bỏ trống = đọc chữ

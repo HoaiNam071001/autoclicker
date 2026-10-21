@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-vgo/robotgo"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
 )
 
 // checkLag – sau một click (trang đổi màu nền ngay trong handler), chụp liên tục tới khi ảnh chụp thấy màu mới:

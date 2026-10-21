@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 // Biến lúc chạy (bước 20): node đọc kết quả node đã chạy trước đó trong cùng vòng.

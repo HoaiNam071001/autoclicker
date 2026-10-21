@@ -3,8 +3,8 @@ package engine
 import (
 	"testing"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
 )
 
 func TestCaptureAreaDisplays(t *testing.T) {

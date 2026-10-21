@@ -5,7 +5,7 @@ package device
 import (
 	"errors"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Cầu nối tạm (bước 26 W0): macOS (CGWindowList + AX) làm trên máy Mac – xoá file này khi có window_darwin.go

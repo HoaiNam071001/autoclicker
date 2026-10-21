@@ -3,7 +3,7 @@ package script
 import (
 	"math"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Neo của một trục toạ độ (Point.Ax / Point.Ay) – mỗi trục neo riêng vào cạnh của vùng.

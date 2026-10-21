@@ -12,7 +12,7 @@ import (
 
 	"github.com/xuri/excelize/v2"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Node Tệp / thư mục (bước 35 N4): ghi file chữ, thêm dòng csv / xlsx, tạo thư mục, xoá file vào Thùng rác, dọn Thùng rác.

@@ -9,8 +9,8 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/store"
+	"ghosthand/internal/model"
+	"ghosthand/internal/store"
 )
 
 // ok – kết quả tool dạng chữ JSON (client không đọc structuredContent vẫn dùng được).

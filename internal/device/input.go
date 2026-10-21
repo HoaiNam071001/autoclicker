@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-vgo/robotgo"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Input – thao tác chuột / bàn phím mà engine dùng. Tách interface để test engine bằng input giả.

@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"autoclicker/internal/store"
+	"ghosthand/internal/store"
 )
 
 // ServerName – tên server trong cấu hình của client AI.
-const ServerName = "autoclicker"
+const ServerName = "ghosthand"
 
 // ClientConfig – đoạn cấu hình mẫu cho một client AI (Cài đặt → MCP).
 type ClientConfig struct {
@@ -52,7 +52,8 @@ func ClaudeDesktopConfig() (string, error) {
 	return filepath.Join(dir, "Claude", "claude_desktop_config.json"), err
 }
 
-// AddToClaudeDesktop thêm / sửa mục autoclicker trong mcpServers của file cấu hình, giữ nguyên phần còn lại.
+// AddToClaudeDesktop thêm / sửa mục ghosthand trong mcpServers của file cấu hình, giữ nguyên phần còn lại; bỏ mục tên cũ
+// "autoclicker" (bước 45 – exe đã đổi tên, để lại thì Claude Desktop báo lỗi server; xoá cùng store/migrate.go).
 func AddToClaudeDesktop(path, exe string) error {
 	cfg := map[string]any{}
 	b, err := os.ReadFile(path)
@@ -69,6 +70,7 @@ func AddToClaudeDesktop(path, exe string) error {
 	if servers == nil {
 		servers = map[string]any{}
 	}
+	delete(servers, "autoclicker")
 	servers[ServerName] = stdioEntry(exe)
 	cfg["mcpServers"] = servers
 	out, err := json.MarshalIndent(cfg, "", "  ")

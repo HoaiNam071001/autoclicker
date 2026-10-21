@@ -3,7 +3,7 @@ package device
 import (
 	"errors"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Cửa sổ + ứng dụng đang chạy (bước 26: node Cửa sổ / Ứng dụng, tool MCP list_windows / list_apps). Qua interface để

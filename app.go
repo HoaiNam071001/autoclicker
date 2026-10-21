@@ -4,14 +4,14 @@ import (
 	"context"
 	"sync"
 
-	"autoclicker/internal/api"
-	"autoclicker/internal/device"
-	"autoclicker/internal/mcpsrv"
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
-	"autoclicker/internal/web"
-	"autoclicker/internal/winfloat"
+	"ghosthand/internal/api"
+	"ghosthand/internal/device"
+	"ghosthand/internal/mcpsrv"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
+	"ghosthand/internal/web"
+	"ghosthand/internal/winfloat"
 )
 
 // App struct

@@ -448,7 +448,7 @@
       "key": "tu_khoa",
       "label": "Từ khoá tìm",
       "type": "text",
-      "default": "autoclicker"
+      "default": "ghosthand"
     }
   ]
 }

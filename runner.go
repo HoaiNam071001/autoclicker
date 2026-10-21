@@ -5,9 +5,9 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
 )
 
 // Chạy kịch bản từ app: mọi lần chạy (nút Chạy, API, CLI, hẹn giờ) đi qua a.sess (internal/session) – ở đây chỉ còn

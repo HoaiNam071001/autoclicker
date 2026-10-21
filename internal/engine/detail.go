@@ -4,10 +4,10 @@ import (
 	"errors"
 	"sort"
 
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
-	"autoclicker/internal/web"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
+	"ghosthand/internal/web"
 )
 
 // Chi tiết lỗi có cấu trúc (StepError.Detail – bước 31b): AI / người đọc để tự sửa node thay vì đoán từ câu chữ.

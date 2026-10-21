@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"strings"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/device"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // Node Đọc phần tử (bước 37 E2b + E4): đọc chính phần tử trong cây accessibility, hoặc – khi giá trị không có trong cây

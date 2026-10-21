@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 // Nút "Thử node" (bước 20 F3): xét node Nếu / Switch / Switch theo màn hình trên màn hình lúc này (một lần, không chờ),

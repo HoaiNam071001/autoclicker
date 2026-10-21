@@ -3,7 +3,7 @@ package engine
 import (
 	"context"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Bàn phím: node Phím tắt bấm tổ hợp (chord) hoặc lần lượt (sequence) – gõ chữ ở typing.go.

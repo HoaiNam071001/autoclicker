@@ -7,8 +7,8 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // Nhìn màn hình khi AI xin (bước 31b) – chữ trước ảnh: describe_screen (chữ OCR kèm khung + cửa sổ) rẻ token, toạ độ

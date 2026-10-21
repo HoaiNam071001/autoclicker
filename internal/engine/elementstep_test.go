@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script/scripttest"
+	"ghosthand/internal/device"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script/scripttest"
 )
 
 func elemBox(x, y, w, h int) model.Rect { return model.Rect{X: x, Y: y, W: w, H: h} }

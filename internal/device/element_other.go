@@ -5,7 +5,7 @@ package device
 import (
 	"errors"
 
-	"autoclicker/internal/element"
+	"ghosthand/internal/element"
 )
 
 // readElements: Windows (UI Automation) làm ở bước 37 E5 khi có máy Windows.

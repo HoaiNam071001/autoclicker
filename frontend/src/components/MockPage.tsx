@@ -18,7 +18,7 @@ export const PAGE_KINDS: { id: PageKind; label: string; hint: string; unit: numb
 ];
 
 // ---- kiểu trang đang chọn (nhớ trên máy, lỗi storage thì dùng mặc định) ----
-const KEY = 'autoclicker.previewPage';
+const KEY = 'ghosthand.previewPage';
 let kind: PageKind = (() => {
   try {
     const v = localStorage.getItem(KEY) as PageKind | null;

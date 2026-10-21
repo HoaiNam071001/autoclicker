@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
 )
 
 func untilStep(at time.Time, passed string) model.Step {
@@ -68,8 +68,8 @@ func TestWaitUntilPassed(t *testing.T) {
 }
 
 func TestRealNTP(t *testing.T) {
-	if os.Getenv("AUTOCLICKER_REAL") != "1" {
-		t.Skip("đặt AUTOCLICKER_REAL=1 để hỏi giờ chuẩn thật")
+	if os.Getenv("GHOSTHAND_REAL") != "1" {
+		t.Skip("đặt GHOSTHAND_REAL=1 để hỏi giờ chuẩn thật")
 	}
 	off, err := ntpOffset(t.Context())
 	if err != nil {

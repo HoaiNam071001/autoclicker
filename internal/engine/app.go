@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"slices"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Node Ứng dụng (bước 26): kiểm tra / chờ / thoát app khớp AppName (model.MatchApps – mọi tiến trình của app) qua
@@ -91,7 +91,7 @@ func (e *Engine) quitApp(ctx context.Context, s model.Step) (map[string]any, err
 	n := len(procs)
 	procs = slices.DeleteFunc(procs, func(a model.AppInfo) bool { return model.ProtectedApp(a.Name) || model.ProtectedApp(a.ID) })
 	if n > 0 && len(procs) == 0 {
-		return nil, &invalidErr{fmt.Sprintf("không thoát được %s (app hệ thống / autoclicker)", s.AppName)}
+		return nil, &invalidErr{fmt.Sprintf("không thoát được %s (app hệ thống / ghosthand)", s.AppName)}
 	}
 	out := appOutput(procs)
 	out["running"], out["windows"] = false, 0

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/script/scripttest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script/scripttest"
 )
 
 func TestUsePaste(t *testing.T) {

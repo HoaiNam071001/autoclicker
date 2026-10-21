@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/store"
+	"ghosthand/internal/store"
 )
 
 func TestParse(t *testing.T) {

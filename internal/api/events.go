@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"autoclicker/internal/session"
+	"ghosthand/internal/session"
 )
 
 const sseKeepAlive = 15 * time.Second

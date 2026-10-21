@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/web"
 )
 
 // Thử tìm: một lần, không cuộn / không đòi đứng yên, node chờ mất vẫn lấy khung; không đụng chuột.

@@ -9,10 +9,10 @@ import (
 )
 
 // Thử trang trên Chrome thật (bước 44): trang thường / captcha giả / game canvas ra đúng kết luận. Chỉ khi
-// AUTOCLICKER_REAL=1.
+// GHOSTHAND_REAL=1.
 func TestRealCheckPage(t *testing.T) {
-	if os.Getenv("AUTOCLICKER_REAL") != "1" {
-		t.Skip("đặt AUTOCLICKER_REAL=1 để thử với Chrome thật")
+	if os.Getenv("GHOSTHAND_REAL") != "1" {
+		t.Skip("đặt GHOSTHAND_REAL=1 để thử với Chrome thật")
 	}
 	pages := map[string]struct{ html, want string }{
 		"thuong.html": {`<!doctype html><meta charset="utf-8"><title>Cửa hàng</title><h1>Cửa hàng</h1><button>Mua</button><a href="#x">Giỏ hàng</a>`, PageOK},
@@ -22,7 +22,7 @@ func TestRealCheckPage(t *testing.T) {
 			<canvas></canvas>`, PageCanvas},
 	}
 	dir := t.TempDir()
-	c := NewChrome(filepath.Join(os.TempDir(), "autoclicker-test-browser"), func(int, int) error { return nil })
+	c := NewChrome(filepath.Join(os.TempDir(), "ghosthand-test-browser"), func(int, int) error { return nil })
 	defer c.Close()
 	for name, p := range pages {
 		path := filepath.Join(dir, name)

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 // Node điều khiển của flow (bước 20 F3): Nếu, Switch theo giá trị, Switch theo màn hình, Đếm, Kết thúc, Đặt biến.

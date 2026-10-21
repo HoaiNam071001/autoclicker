@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/vision"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/vision"
+	"ghosthand/internal/web"
 )
 
 // fakeSession – phiên chạy thật với chuột / phím giả, không lưu lịch sử, không Chrome.

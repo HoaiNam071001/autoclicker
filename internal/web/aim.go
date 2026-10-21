@@ -10,7 +10,7 @@ import (
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Trên tab thật, trước khi bấm (D0 / D2): đo toạ độ trang → màn hình, chờ khung phần tử đứng yên, thử hover điểm bấm.

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"slices"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 const (

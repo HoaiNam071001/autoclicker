@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // EncodeScript ghi kịch bản ra JSON với version hiện tại.

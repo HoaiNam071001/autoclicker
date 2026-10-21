@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"autoclicker/internal/humanize"
-	"autoclicker/internal/launch"
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/humanize"
+	"ghosthand/internal/launch"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 // Node hành động: click, kéo, gõ, phím, cuộn, mở, chờ ảnh / pixel (imagestep.go), web (webstep.go) – thao tác qua device.Input.

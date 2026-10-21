@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/vision"
 )
 
 // Engine cho chờ ảnh / click theo ảnh / chờ pixel (bước 25).

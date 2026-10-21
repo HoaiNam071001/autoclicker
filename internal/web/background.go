@@ -11,7 +11,7 @@ import (
 	"github.com/chromedp/cdproto/input"
 	"github.com/chromedp/chromedp"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Chạy nền (D4b): bấm / gõ / lăn qua CDP Input.* thay chuột / phím thật – không đưa tab lên trước, không đo toạ độ

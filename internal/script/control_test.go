@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
 )
 
 func TestValidateControl(t *testing.T) {

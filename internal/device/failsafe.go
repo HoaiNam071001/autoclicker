@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Dừng khẩn cấp (bước 9, 17): người dùng rê chuột vào một góc "cứng" của bất kỳ màn hình nào thì dừng.

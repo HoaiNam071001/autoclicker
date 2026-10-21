@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
-// Mở Notepad thật rồi đặt khung / thu nhỏ / focus / đóng – chỉ khi AUTOCLICKER_REAL=1 (cửa sổ thật nhảy trên màn).
+// Mở Notepad thật rồi đặt khung / thu nhỏ / focus / đóng – chỉ khi GHOSTHAND_REAL=1 (cửa sổ thật nhảy trên màn).
 // Notepad Windows 11 là app đóng gói: notepad.exe mở xong thoát, tiến trình thật khác pid – tìm theo cửa sổ.
 func TestRealWindowsNotepad(t *testing.T) {
-	if os.Getenv("AUTOCLICKER_REAL") != "1" {
-		t.Skip("đặt AUTOCLICKER_REAL=1 để điều khiển cửa sổ thật")
+	if os.Getenv("GHOSTHAND_REAL") != "1" {
+		t.Skip("đặt GHOSTHAND_REAL=1 để điều khiển cửa sổ thật")
 	}
 	ws, apps := SystemWindows{}, SystemApps{}
 	before := map[uint64]bool{}

@@ -11,7 +11,7 @@ it('fmtFile', () => {
 });
 
 it('folderOf', () => {
-  expect(folderOf('~/Documents/autoclicker/nhat-ky.txt')).toBe('~/Documents/autoclicker');
+  expect(folderOf('~/Documents/ghosthand/nhat-ky.txt')).toBe('~/Documents/ghosthand');
   expect(folderOf('C:\\Data\\don.xlsx')).toBe('C:\\Data');
   expect(folderOf('~/Downloads')).toBe('~/Downloads');
   expect(folderOf('{{thu_muc}}')).toBe('{{thu_muc}}');

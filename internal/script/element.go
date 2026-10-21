@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
 )
 
 // checkElementFind – node tìm phần tử (Chờ / Click theo phần tử, Đọc phần tử) đủ dữ liệu để chạy.

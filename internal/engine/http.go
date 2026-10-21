@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Node HTTP (bước 35 N3): gọi API, 2xx → success; mã khác → fail http_status (output vẫn có – nhánh Thất bại đọc
@@ -123,7 +123,7 @@ func httpRequest(ctx context.Context, s model.Step) (*http.Request, error) {
 	if err != nil {
 		return nil, &invalidErr{fmt.Sprintf("không tạo được request: %v", err)}
 	}
-	req.Header.Set("User-Agent", "AutoClicker")
+	req.Header.Set("User-Agent", "Ghosthand")
 	if ctype != "" {
 		req.Header.Set("Content-Type", ctype)
 	}

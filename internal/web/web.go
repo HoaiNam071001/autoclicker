@@ -6,7 +6,7 @@ package web
 import (
 	"context"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Browser – trình duyệt engine điều khiển. Một bản cho mỗi lần chạy; Close nhả kết nối (không đóng trình duyệt).

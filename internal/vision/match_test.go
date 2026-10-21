@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision/visiontest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision/visiontest"
 )
 
 // findTemplate – chỗ tốt nhất, không mặt nạ (test cũ của bước 25).

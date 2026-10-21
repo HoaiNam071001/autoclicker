@@ -8,11 +8,11 @@ import (
 	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/samples"
+	"ghosthand/internal/model"
+	"ghosthand/internal/samples"
 )
 
-// tips – cách viết kịch bản bền (resource autoclicker://guide, get_step_types).
+// tips – cách viết kịch bản bền (resource ghosthand://guide, get_step_types).
 const tips = `Viết kịch bản bền:
 - Ưu tiên mở thẳng URL / app (node open, URL có tham số tìm kiếm), phím tắt (key), tìm chữ trên màn hình (waitImage findBy "text" rồi clickImage imageSource "node") hơn toạ độ cứng – toạ độ hỏng khi cửa sổ dời / đổi cỡ.
 - Sau khi mở app / trang: chờ thứ cần thấy (waitImage theo chữ, app waitStart) thay vì chỉ delayAfter cố định; delayAfter vài giây chỉ là dự phòng.
@@ -32,7 +32,7 @@ Thử – sửa (chạy thật trên máy người dùng):
 - Toạ độ trên ảnh lúc lỗi → toạ độ chuột: shotArea.x + px × shotArea.w / shotWidth (y tương tự). Ưu tiên sửa sang tìm theo chữ hơn sửa toạ độ.
 - Bị từ chối quyền chạy / Cài đặt chỉ cho soạn: báo người dùng, không gọi lại liên tục.`
 
-// guide – nội dung get_step_types / autoclicker://guide.
+// guide – nội dung get_step_types / ghosthand://guide.
 type guide struct {
 	model.FlowGuideDoc
 	Tips       string              `json:"tips"`
@@ -67,8 +67,8 @@ func ScriptSchema() (*jsonschema.Schema, error) {
 		return nil, err
 	}
 	sc.Defs = map[string]*jsonschema.Schema{"cond": cond}
-	sc.Title = "Kịch bản Auto Clicker"
-	sc.Description = "Flow node + cạnh. Chi tiết từng loại node: get_step_types / autoclicker://guide."
+	sc.Title = "Kịch bản Ghosthand"
+	sc.Description = "Flow node + cạnh. Chi tiết từng loại node: get_step_types / ghosthand://guide."
 	sc.Properties["version"].Description = "định dạng file – app tự ghi"
 	step := sc.Properties["steps"].Items
 	types := []any{}
@@ -110,13 +110,13 @@ func (s *Server) addDocs() {
 				return &mcp.ReadResourceResult{Contents: []*mcp.ResourceContents{{URI: uri, MIMEType: mime, Text: string(b)}}}, nil
 			})
 	}
-	res("autoclicker://guide", "guide", "Hướng dẫn viết kịch bản: flow, biến, từng loại node, mẹo viết bền", "application/json",
+	res("ghosthand://guide", "guide", "Hướng dẫn viết kịch bản: flow, biến, từng loại node, mẹo viết bền", "application/json",
 		func() (any, error) { return guideDoc(s.back.MCP().NodePreference()), nil })
-	res("autoclicker://schema", "schema", "JSON Schema của file kịch bản", "application/schema+json",
+	res("ghosthand://schema", "schema", "JSON Schema của file kịch bản", "application/schema+json",
 		func() (any, error) { return ScriptSchema() })
-	res("autoclicker://examples", "examples", "Kịch bản mẫu dạng gọn (chạy được với create_script)", "application/json", examples)
+	res("ghosthand://examples", "examples", "Kịch bản mẫu dạng gọn (chạy được với create_script)", "application/json", examples)
 
-	s.mcp.AddPrompt(&mcp.Prompt{Name: "tao_kich_ban", Title: "Tạo kịch bản Auto Clicker",
+	s.mcp.AddPrompt(&mcp.Prompt{Name: "tao_kich_ban", Title: "Tạo kịch bản Ghosthand",
 		Description: "Hỏi đủ thông tin rồi tạo kịch bản tự động thao tác trên máy",
 		Arguments:   []*mcp.PromptArgument{{Name: "muc_tieu", Description: "muốn tự động làm gì, vd: mở bài Tinh Hà Say 2 trên YouTube"}}},
 		func(_ context.Context, req *mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
@@ -141,7 +141,7 @@ func promptText(goal string) string {
 	if goal == "" {
 		goal = "(chưa nói – hỏi người dùng)"
 	}
-	return `Tôi muốn tạo kịch bản Auto Clicker để: ` + goal + `
+	return `Tôi muốn tạo kịch bản Ghosthand để: ` + goal + `
 
 Trước khi tạo, hỏi lại tôi những gì còn thiếu (mỗi lần vài câu ngắn):
 1. Mục tiêu cụ thể: kết thúc thế nào thì coi là xong?

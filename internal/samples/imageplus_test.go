@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // Ảnh của trang image-plus.html (bước 40) ghép như trang vẽ ở Retina: so viền thấy icon theme tối (không nhầm hình

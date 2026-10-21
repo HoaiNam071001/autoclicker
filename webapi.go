@@ -7,12 +7,12 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/engine"
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/store"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device"
+	"ghosthand/internal/engine"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/store"
+	"ghosthand/internal/web"
 )
 
 // Hàm cho giao diện (và MCP – bước 31) quanh node web (bước 25d D3): trạng thái Chrome của app, Thử tìm, Chọn phần tử

@@ -4,3 +4,5 @@ frontend/dist
 .DS_Store
 *.log
 internal/device/tess/tess.zip
+/ghosthand
+/ghosthand

@@ -1,7 +1,7 @@
 {
  "meta": {
   "name": "Săn sale – chờ đúng giờ mở bán rồi bấm MUA",
-  "description": "Trang Flash sale mở bán đúng giờ bạn nhập (form Chạy hỏi). Kịch bản mở trang, tìm sẵn nút MUA NGAY (trước giờ), chờ đến giờ, click ngay vào chỗ đã thấy – không phải tìm lại sau giờ, chờ chữ THÀNH CÔNG rồi chụp đúng khung chữ làm bằng chứng. Đúng: trang ghi “đặt được sau giờ mở bán … ms” (vài chục ms), ảnh lưu trong Pictures/autoclicker. Giờ trống / đã qua: trang mở bán ngay.",
+  "description": "Trang Flash sale mở bán đúng giờ bạn nhập (form Chạy hỏi). Kịch bản mở trang, tìm sẵn nút MUA NGAY (trước giờ), chờ đến giờ, click ngay vào chỗ đã thấy – không phải tìm lại sau giờ, chờ chữ THÀNH CÔNG rồi chụp đúng khung chữ làm bằng chứng. Đúng: trang ghi “đặt được sau giờ mở bán … ms” (vài chục ms), ảnh lưu trong Pictures/ghosthand. Giờ trống / đã qua: trang mở bán ngay.",
   "app": "Shop",
   "level": 2,
   "page": "flash-sale.html",

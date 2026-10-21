@@ -3,9 +3,9 @@ package session
 import (
 	"errors"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/store"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/store"
 )
 
 // Thao tác nguy hiểm (script.DangerOps – xoá file, buộc thoát app, đóng cửa sổ): chặn ở đây nên hẹn giờ / CLI / API /

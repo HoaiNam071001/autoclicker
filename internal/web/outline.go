@@ -9,7 +9,7 @@ import (
 
 	"github.com/chromedp/chromedp"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // PageOutline (D4c, cho MCP 31): cây accessibility rút gọn của trang – AI đọc để biết trang có gì và viết selector

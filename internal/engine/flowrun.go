@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/web"
 )
 
 // Engine chạy flow (bước 20): từ node start, chạy node → StepResult → đi theo cạnh của cổng ra → node kế.

@@ -5,10 +5,10 @@ import (
 	"image"
 	"time"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
-	"autoclicker/internal/store"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
+	"ghosthand/internal/store"
+	"ghosthand/internal/web"
 )
 
 // Deps – thiết bị + lưu trữ một phiên dùng; trường nil = bản thật. Test thay bằng bản giả.

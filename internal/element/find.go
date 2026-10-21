@@ -3,8 +3,8 @@ package element
 import (
 	"fmt"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // Query – cách tìm phần tử. Selector đầu tiên có kết quả thì dùng (như node web 25d).

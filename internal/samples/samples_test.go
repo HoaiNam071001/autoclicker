@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 var testScreen = model.Rect{W: 1512, H: 982}
@@ -84,8 +84,8 @@ func TestWriteSandbox(t *testing.T) {
 
 func TestFileURL(t *testing.T) {
 	cases := map[string]string{
-		"/Users/a/Library/Application Support/autoclicker/sandbox": "file:///Users/a/Library/Application%20Support/autoclicker/sandbox",
-		`C:\Users\a\AppData\Roaming\autoclicker\sandbox`:           "file:///C:/Users/a/AppData/Roaming/autoclicker/sandbox",
+		"/Users/a/Library/Application Support/ghosthand/sandbox": "file:///Users/a/Library/Application%20Support/ghosthand/sandbox",
+		`C:\Users\a\AppData\Roaming\ghosthand\sandbox`:           "file:///C:/Users/a/AppData/Roaming/ghosthand/sandbox",
 	}
 	for in, want := range cases {
 		if filepath.Separator == '/' && strings.Contains(in, `\`) {

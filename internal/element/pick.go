@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // At – phần tử dưới điểm p (Chọn phần tử trên màn – 37 E3): phần tử có khung chứa p, nhỏ nhất (bằng nhau thì sâu hơn);

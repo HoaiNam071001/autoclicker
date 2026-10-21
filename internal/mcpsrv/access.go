@@ -15,7 +15,7 @@ import (
 // thì thêm ?client=<tên> vào URL. Không biết tên → dùng mặc định chung.
 
 // ClientHeader – header chứa tên loại AI (do proxy stdio gắn).
-const ClientHeader = "X-Autoclicker-Client"
+const ClientHeader = "X-Ghosthand-Client"
 
 // Nhóm tool – nhãn trong Cài đặt.
 const (
@@ -96,7 +96,7 @@ func (s *Server) accessMiddleware(next mcp.MethodHandler) mcp.MethodHandler {
 				s.noteClient(client)
 				if !s.back.ToolAllowed(client, p.Name) {
 					r, _, _ := ok(map[string]any{"code": "tool_disabled",
-						"error": "Tool " + p.Name + " đang bị tắt cho AI này trong Cài đặt của app Auto Clicker – hỏi người dùng nếu cần bật."})
+						"error": "Tool " + p.Name + " đang bị tắt cho AI này trong Cài đặt của app Ghosthand – hỏi người dùng nếu cần bật."})
 					r.IsError = true
 					return r, nil
 				}

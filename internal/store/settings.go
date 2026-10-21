@@ -10,7 +10,7 @@ import (
 	"slices"
 )
 
-// Cấu hình app (không thuộc kịch bản), lưu ở os.UserConfigDir()/autoclicker/settings.json.
+// Cấu hình app (không thuộc kịch bản), lưu ở os.UserConfigDir()/ghosthand/settings.json.
 // Bản nháp tự lưu (draft.json, storage.go ở root) nằm cùng thư mục.
 
 const (
@@ -155,7 +155,7 @@ func ConfigDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	dir := filepath.Join(base, "autoclicker")
+	dir := filepath.Join(base, "ghosthand")
 	return dir, os.MkdirAll(dir, 0o755)
 }
 

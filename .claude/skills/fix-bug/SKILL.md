@@ -19,7 +19,7 @@ description: Sửa lỗi người dùng báo (vd "bị lỗi", "không chạy", 
 ## 1. Hiểu đúng lỗi
 
 - Ghi lại: làm gì → mong gì → thấy gì; màn nào (main / overlay / minibar), hệ điều hành, 1 hay nhiều màn hình, theme. Thiếu thông tin quyết định hướng sửa → hỏi người dùng (một lần, gom câu hỏi) – còn lại tự tra.
-- Lỗi chạy kịch bản → xin / đọc file kịch bản (`.json`) và lịch sử chạy (`os.UserConfigDir()/autoclicker/runs/…`: `StepResult` có `error.code`, `logs`, ảnh lúc lỗi).
+- Lỗi chạy kịch bản → xin / đọc file kịch bản (`.json`) và lịch sử chạy (`os.UserConfigDir()/ghosthand/runs/…`: `StepResult` có `error.code`, `logs`, ảnh lúc lỗi).
 - Định vị bằng `docs/ARCHITECTURE.md` (§3 soạn, §4 chạy, §6 bảng chỗ sửa) rồi mới mở code.
 
 ## 2. Tìm nguyên nhân gốc, không vá triệu chứng

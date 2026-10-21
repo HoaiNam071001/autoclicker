@@ -4,10 +4,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"autoclicker/internal/launch"
-	"autoclicker/internal/model"
-	"autoclicker/internal/samples"
-	"autoclicker/internal/store"
+	"ghosthand/internal/launch"
+	"ghosthand/internal/model"
+	"ghosthand/internal/samples"
+	"ghosthand/internal/store"
 )
 
 // Kịch bản mẫu để test (bước 33): danh sách, mở bản sao, mở trang sân thử.

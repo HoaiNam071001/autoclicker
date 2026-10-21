@@ -2,7 +2,7 @@
 
 ## Bản Windows – đọc chữ tiếng Việt (bước 40)
 
-`autoclicker.exe` nhúng bộ Tesseract (`internal/device/tess/tess.zip`, tạo bởi `scripts/fetch-tesseract.sh`), giải nén vào thư mục cache khi đọc chữ lần đầu. DLL lấy từ bản build Windows của UB Mannheim (v5.4.0.20240606), chỉ strip ký hiệu gỡ lỗi, không sửa.
+`ghosthand.exe` nhúng bộ Tesseract (`internal/device/tess/tess.zip`, tạo bởi `scripts/fetch-tesseract.sh`), giải nén vào thư mục cache khi đọc chữ lần đầu. DLL lấy từ bản build Windows của UB Mannheim (v5.4.0.20240606), chỉ strip ký hiệu gỡ lỗi, không sửa.
 
 | Thành phần | Giấy phép | Nguồn |
 |---|---|---|

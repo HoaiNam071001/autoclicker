@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script"
-	"autoclicker/internal/script/scripttest"
-	"autoclicker/internal/vision"
-	"autoclicker/internal/vision/visiontest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script"
+	"ghosthand/internal/script/scripttest"
+	"ghosthand/internal/vision"
+	"ghosthand/internal/vision/visiontest"
 )
 
 func TestValidateScript(t *testing.T) {

@@ -3,7 +3,7 @@ package device
 import (
 	"image"
 
-	"autoclicker/internal/vision"
+	"ghosthand/internal/vision"
 )
 
 // Tìm theo chữ (bước Chờ ảnh / Click theo ảnh với FindBy = text): đọc chữ trên ảnh chụp bằng bộ nhận chữ của hệ điều hành

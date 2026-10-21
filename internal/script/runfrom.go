@@ -1,6 +1,6 @@
 package script
 
-import "autoclicker/internal/model"
+import "ghosthand/internal/model"
 
 // RunFrom – bản sao kịch bản để chạy từ node id (debug / AI): một vòng, bắt đầu ở id, các node trước không chạy
 // (biến của chúng trống). only: chỉ chạy riêng node đó – bỏ các cạnh ra của nó nên chạy xong là hết vòng

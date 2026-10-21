@@ -11,11 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/engine"
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/store"
+	"ghosthand/internal/device"
+	"ghosthand/internal/engine"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/store"
 )
 
 // Nguồn của lần chạy (Options.Source) – ghi vào lịch sử; khác SourceUser thì frontend tự thu thành thanh mini.

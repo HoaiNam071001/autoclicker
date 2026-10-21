@@ -7,8 +7,8 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/launch"
-	"autoclicker/internal/store"
+	"ghosthand/internal/launch"
+	"ghosthand/internal/store"
 )
 
 // Cài đặt → Lưu trữ (bước 41): thư mục kịch bản (tay / AI) và ảnh chụp; trống = mặc định (store.DefaultDirs).

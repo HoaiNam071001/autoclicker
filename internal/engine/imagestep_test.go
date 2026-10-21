@@ -9,12 +9,12 @@ import (
 	"sync"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script/scripttest"
-	"autoclicker/internal/vision"
-	"autoclicker/internal/vision/visiontest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script/scripttest"
+	"ghosthand/internal/vision"
+	"ghosthand/internal/vision/visiontest"
 )
 
 // fakeScreen trả lần lượt các khung hình (khung cuối lặp lại) và màu pixel; ghi lại vùng đã chụp.

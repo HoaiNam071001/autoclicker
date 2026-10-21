@@ -3,7 +3,7 @@ package mcpsrv
 import (
 	"testing"
 
-	"autoclicker/internal/web"
+	"ghosthand/internal/web"
 )
 
 func TestProbePage(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/store"
+	"ghosthand/internal/store"
 )
 
 func post(t *testing.T, h http.Handler, url, client, body string) string {

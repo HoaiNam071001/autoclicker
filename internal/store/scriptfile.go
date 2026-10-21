@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 // ReadScriptFile đọc file kịch bản (kiểm tra qua script.DecodeScript); file chưa có tên thì lấy theo tên file.

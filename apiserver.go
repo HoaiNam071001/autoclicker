@@ -9,10 +9,10 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/api"
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
+	"ghosthand/internal/api"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
 )
 
 // API local (bước 22, internal/api): kênh cho CLI luôn bật (cổng ngẫu nhiên, token mỗi lần mở – api.json), API cho

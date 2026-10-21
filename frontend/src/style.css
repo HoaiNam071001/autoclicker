@@ -2,7 +2,7 @@
 
 /* Token design v2 – chép từ design/theme.css (nguồn: design/DESIGN.md). Sửa token thì sửa cả hai nơi. */
 /*
- * Auto Clicker – design v2 (sáng / tối), Tailwind v4.
+ * Ghosthand – design v2 (sáng / tối), Tailwind v4.
  * Thay khối @theme cũ trong frontend/src/style.css bằng file này (giữ @import "tailwindcss" ở đầu).
  * Đổi theme: <html data-theme="light|dark">; không đặt thì theo hệ điều hành.
  * Đổi màu nhấn: chỉ sửa --c-accent, các màu pha (soft, gradient) tự tính bằng color-mix.

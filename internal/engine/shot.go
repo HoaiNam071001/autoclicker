@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 // Node Chụp màn hình (bước 35 N1): chụp vùng theo ShotArea, lưu PNG, tuỳ chọn chép vào clipboard. Không di chuột.
@@ -107,14 +107,14 @@ func userPath(p string) (string, error) {
 	return filepath.Join(home, p), nil
 }
 
-// shotPath – đường dẫn file sẽ ghi: dir trống = def (thư mục ảnh trong Cài đặt; trống nữa = Pictures/Auto Clicker), còn lại
-// theo userPath; name trống = autoclicker-<ngày>-<giờ>; ký tự không hợp lệ trong tên → "-"; trùng file có sẵn thì thêm " (2)"…
+// shotPath – đường dẫn file sẽ ghi: dir trống = def (thư mục ảnh trong Cài đặt; trống nữa = Pictures/Ghosthand), còn lại
+// theo userPath; name trống = ghosthand-<ngày>-<giờ>; ký tự không hợp lệ trong tên → "-"; trùng file có sẵn thì thêm " (2)"…
 func shotPath(dir, def, name string, now time.Time) (string, error) {
 	if strings.TrimSpace(dir) == "" {
 		dir = def
 	}
 	if dir == "" {
-		dir = filepath.Join("Pictures", "Auto Clicker")
+		dir = filepath.Join("Pictures", "Ghosthand")
 	}
 	dir, err := userPath(dir)
 	if err != nil {
@@ -122,7 +122,7 @@ func shotPath(dir, def, name string, now time.Time) (string, error) {
 	}
 	name = strings.TrimSpace(name)
 	if name == "" {
-		name = "autoclicker-" + now.Format("2006-01-02-150405")
+		name = "ghosthand-" + now.Format("2006-01-02-150405")
 	}
 	name = strings.Map(func(r rune) rune {
 		if strings.ContainsRune(`/\:*?"<>|`, r) || r < 32 {

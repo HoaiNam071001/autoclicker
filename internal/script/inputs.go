@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"slices"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Input của kịch bản (bước 21b): giá trị người soạn cho phép đổi khi bấm Chạy.

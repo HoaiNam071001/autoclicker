@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func line(text string, x, y, w, h int, words ...TextWord) TextLine {

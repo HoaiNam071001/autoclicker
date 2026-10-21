@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Node Cửa sổ (bước 26): tìm cửa sổ khớp WinApp + WinTitle (model.MatchWindow – trên cùng trước), chờ tới TimeoutMs

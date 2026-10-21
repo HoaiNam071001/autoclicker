@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"autoclicker/internal/vision"
+	"ghosthand/internal/vision"
 )
 
 // Đọc chữ trên Windows bằng Tesseract 5 + gói vie (bước 40 O1) – OCR Windows không có tiếng Việt. Gọi C API của

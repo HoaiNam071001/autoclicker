@@ -7,10 +7,10 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"autoclicker/internal/engine"
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/engine"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/vision"
 )
 
 // Vết chạy gọn cho AI: mỗi node đã chạy một dòng, node lỗi có đủ chi tiết; chữ trước, ảnh sau (client không xem

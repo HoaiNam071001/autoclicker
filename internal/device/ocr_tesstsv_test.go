@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // tess-page.tsv: Tesseract vie đọc trang thử 40 O0 (nửa sáng, ảnh 700×372 phóng ×2 qua vision.PrepOCR).

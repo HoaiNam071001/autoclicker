@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Cùng dữ liệu với frontend/src/overlay/humanPath.test.ts (testdata/human_path.json) – xem trước vẽ đúng đường chuột thật.

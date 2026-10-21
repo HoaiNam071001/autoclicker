@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func rng(seed uint64) *rand.Rand { return rand.New(rand.NewPCG(seed, seed)) }

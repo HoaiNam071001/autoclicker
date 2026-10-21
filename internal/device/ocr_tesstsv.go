@@ -5,8 +5,8 @@ import (
 	"strings"
 	"unicode/utf16"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // tessMinConf – bỏ từ độ tin cậy thấp hơn: rác từ góc bo của nút (“2À”, “—N”) đo ở 40 O1 có conf 18–66, chữ thật ≥ 88.

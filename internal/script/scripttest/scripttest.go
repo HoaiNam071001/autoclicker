@@ -4,9 +4,9 @@ package scripttest
 import (
 	"slices"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script"
 )
 
 // Helper test: dựng flow từ danh sách bước theo thứ tự mảng (success → node kế), đặt ref n1, n2…, click theo ảnh chưa

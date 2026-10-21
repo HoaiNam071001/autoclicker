@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Kiểm tra kịch bản lúc mở file: giá trị trong miền hợp lệ, bổ sung phần trống, sửa ref / cạnh hỏng.

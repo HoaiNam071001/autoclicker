@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 type hit struct {

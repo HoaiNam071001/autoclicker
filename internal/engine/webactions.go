@@ -7,8 +7,8 @@ import (
 	goruntime "runtime"
 	"strings"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/web"
+	"ghosthand/internal/model"
+	"ghosthand/internal/web"
 )
 
 // Node web D4: gõ vào ô, đọc phần tử, cuộn – tìm qua web.Browser như webClick, thao tác bằng chuột / phím thật.

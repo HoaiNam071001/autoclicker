@@ -4,8 +4,8 @@ import (
 	"context"
 	"math"
 
-	"autoclicker/internal/humanize"
-	"autoclicker/internal/model"
+	"ghosthand/internal/humanize"
+	"ghosthand/internal/model"
 )
 
 // Node Vẽ đường (bước 35 N7): giữ nút, kéo một nét liền qua các đỉnh trong DragMs – thời gian chia theo độ dài từng

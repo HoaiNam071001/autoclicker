@@ -8,9 +8,9 @@ import (
 func TestFindTextApprox(t *testing.T) {
 	approx := func(text string, y int) TextLine { l := line(text, 0, y, 200, 20); l.Approx = true; return l }
 	lines := []TextLine{
-		approx("BÄM vÄo Töl", 0),            // BẤM VÀO TÔI – dấu sai, lệch 1 ký tự
-		approx("Sän thir Auto Clicker", 30), // Sân thử Auto Clicker – “ử” thành “ir”
-		approx("Click tråi", 60),            // Click trái
+		approx("BÄM vÄo Töl", 0),         // BẤM VÀO TÔI – dấu sai, lệch 1 ký tự
+		approx("Sän thir Ghosthand", 30), // Sân thử Ghosthand – “ử” thành “ir”
+		approx("Click tråi", 60),         // Click trái
 		approx("Töl", 90),
 		line("BÄM vÄo Töl", 0, 120, 200, 20), // macOS (không Approx): so như cũ
 	}
@@ -19,7 +19,7 @@ func TestFindTextApprox(t *testing.T) {
 		want int
 	}{
 		{TextQuery{Text: "BẤM VÀO TÔI"}, 1},
-		{TextQuery{Text: "SAN THU AUTO CLICKER", NoAccent: true}, 1},
+		{TextQuery{Text: "SAN THU GHOSTHAND", NoAccent: true}, 1},
 		{TextQuery{Text: "Sân thử"}, 1},
 		{TextQuery{Text: "Click trái", Exact: true}, 1},
 		{TextQuery{Text: "Click phải"}, 0}, // lệch 2 ký tự trên 9 – quá ngưỡng

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Toạ độ từ biến (bước 20 F5b): ô xVar / yVar sau khi thay biến là số cộng trừ px, vd "512 + 20 - 3" (số thực được

@@ -3,7 +3,7 @@ package script
 import (
 	"fmt"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Lỗi kiểm tra có cấu trúc (model.ScriptError): node / trường / input nào sai – UI và AI chỉ đúng chỗ.

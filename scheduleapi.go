@@ -10,12 +10,12 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
-	"autoclicker/internal/notify"
-	"autoclicker/internal/schedule"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
+	"ghosthand/internal/notify"
+	"ghosthand/internal/schedule"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
 )
 
 // Hẹn giờ (bước 22): bộ hẹn giờ chạy nền trong app (internal/schedule), tới giờ chạy kịch bản qua session như mọi

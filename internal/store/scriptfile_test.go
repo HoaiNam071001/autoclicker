@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
 )
 
 func TestScriptFileRoundTrip(t *testing.T) {

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/launch"
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/launch"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // ValidateScript kiểm tra kịch bản (đã áp input) trước khi chạy để không dừng giữa chừng vì dữ liệu sai.

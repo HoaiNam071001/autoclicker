@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"slices"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Trường số lấy từ biến (bước 20 F5c, Step.NumVars): ô chữ biểu thức (thay biến như ô chữ khác – VarFields), lúc chạy

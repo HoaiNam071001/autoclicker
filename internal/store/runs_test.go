@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func TestSaveRunPrunesAndLists(t *testing.T) {

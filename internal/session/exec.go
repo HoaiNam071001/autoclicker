@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/engine"
-	"autoclicker/internal/model"
+	"ghosthand/internal/device"
+	"ghosthand/internal/engine"
+	"ghosthand/internal/model"
 )
 
 // Event của một phiên (Emitter). Tên engine:* giữ như trước bước 22 – frontend nghe sẵn.

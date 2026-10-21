@@ -3,8 +3,8 @@ package element
 import (
 	"sort"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // Near – phần tử gần giống cách tìm (StepError.Detail khi không thấy, bước 31b): AI / người xem để sửa selector.

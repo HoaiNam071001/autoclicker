@@ -73,7 +73,7 @@ import (
 	"image"
 	"unsafe"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // macOS: chụp màn hình cần quyền Screen Recording (System Settings → Privacy & Security → Screen Recording).

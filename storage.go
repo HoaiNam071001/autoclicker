@@ -10,16 +10,16 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/store"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/store"
 )
 
 // Lưu / mở kịch bản (bước 21): file .json, bản nháp tự lưu và danh sách mở gần đây trong configDir().
 
 const (
 	scriptExt  = ".json"
-	dialogName = "Kịch bản Auto Clicker"
+	dialogName = "Kịch bản Ghosthand"
 )
 
 // ScriptFile – kịch bản vừa mở và đường dẫn file của nó. Path "" = người dùng huỷ hộp thoại.

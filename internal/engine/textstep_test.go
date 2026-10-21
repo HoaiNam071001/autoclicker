@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script/scripttest"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script/scripttest"
+	"ghosthand/internal/vision"
 )
 
 func line(text string, x, y, w, h int) vision.TextLine {

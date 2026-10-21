@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script/scripttest"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script/scripttest"
+	"ghosthand/internal/web"
 )
 
 // fakeBrowser trả lần lượt các kết quả tìm / thử hover (cuối lặp lại; không có hover = luôn ổn), ghi lại query,

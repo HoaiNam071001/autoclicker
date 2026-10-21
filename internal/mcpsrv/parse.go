@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"slices"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 // parseScript – kịch bản AI gửi (object, hoặc chuỗi JSON với client chỉ gửi được chuỗi) → kịch bản đủ trường, đã kiểm

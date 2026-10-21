@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script/scripttest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script/scripttest"
 )
 
 func httpStep(f func(*model.Step)) model.Step { return modeltest.Step(model.StepHTTP, f) }

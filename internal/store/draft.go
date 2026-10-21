@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 const draftFile = "draft.json"

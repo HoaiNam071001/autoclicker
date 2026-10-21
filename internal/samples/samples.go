@@ -12,8 +12,8 @@ import (
 	"sort"
 	"strings"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 //go:embed scripts/*.json

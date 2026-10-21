@@ -35,11 +35,11 @@ export function ShotFields({ step: s }: { step: Step }) {
         {area === 'rect' && <RectPicker step={s} onChange={(shotRect) => set({ shotRect })} />}
         {area === 'node' && <NodePicker step={s} onChange={(imageFrom) => set({ imageFrom })} />}
       </Field>
-      <Field label="Thư mục lưu" wide group help="Trống = thư mục ảnh trong Cài đặt → Lưu trữ (mặc định Pictures/Auto Clicker) · chưa có thì tự tạo">
+      <Field label="Thư mục lưu" wide group help="Trống = thư mục ảnh trong Cài đặt → Lưu trữ (mặc định Pictures/Ghosthand) · chưa có thì tự tạo">
         <VarTextInput {...varProps} value={s.saveDir ?? ''} onChange={(v) => set({ saveDir: v || undefined })} placeholder="Thư mục ảnh trong Cài đặt" />
       </Field>
       <Field label="Tên file" wide group help="Tự thêm .png · trùng tên thì thêm (2), không ghi đè">
-        <VarTextInput {...varProps} value={s.fileName ?? ''} onChange={(v) => set({ fileName: v || undefined })} placeholder="autoclicker-<ngày>-<giờ>" />
+        <VarTextInput {...varProps} value={s.fileName ?? ''} onChange={(v) => set({ fileName: v || undefined })} placeholder="ghosthand-<ngày>-<giờ>" />
       </Field>
       <SwitchField label="Vào clipboard" help="Dán (Cmd/Ctrl+V) thẳng vào chat, email, Paint…" on={!!s.toClipboard} onChange={(on) => set({ toClipboard: on || undefined })} />
     </>

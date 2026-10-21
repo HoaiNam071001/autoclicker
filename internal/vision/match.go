@@ -6,7 +6,7 @@ import (
 	"math"
 	"sort"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Tìm ảnh mẫu trong ảnh chụp màn hình (bước 25, 40) – Go thuần, không cần OpenCV. Độ khớp NCC (scorer.go) trên ảnh

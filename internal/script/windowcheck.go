@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Kiểm tra node Cửa sổ + Ứng dụng (bước 26).
@@ -77,7 +77,7 @@ func checkApp(s model.Step) error {
 	return nil
 }
 
-// validateApp – có tên app; thoát app hệ thống / autoclicker bị chặn (lúc chạy chặn thêm theo tiến trình khớp).
+// validateApp – có tên app; thoát app hệ thống / ghosthand bị chặn (lúc chạy chặn thêm theo tiến trình khớp).
 func validateApp(i int, s model.Step) error {
 	name := strings.TrimSpace(s.AppName)
 	if name == "" {
@@ -89,7 +89,7 @@ func validateApp(i int, s model.Step) error {
 		}
 	}
 	if (s.AppOp == model.AppQuit || s.AppOp == model.AppForceQuit) && model.ProtectedApp(name) {
-		return stepErr(i, s, "appName", "không thoát được %s (app hệ thống / autoclicker)", name)
+		return stepErr(i, s, "appName", "không thoát được %s (app hệ thống / ghosthand)", name)
 	}
 	if s.TimeoutMs < 0 {
 		return stepErr(i, s, "timeoutMs", "thời gian chờ không được âm")

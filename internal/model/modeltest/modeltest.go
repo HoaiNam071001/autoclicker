@@ -1,7 +1,7 @@
 // Package modeltest – dựng node / cạnh / điều kiện ngắn gọn cho test (script, engine, root).
 package modeltest
 
-import "autoclicker/internal/model"
+import "ghosthand/internal/model"
 
 // Step – node mặc định của loại t (NewStep), không chờ sau khi xong; mod sửa thêm.
 func Step(t string, mod func(*model.Step)) model.Step {

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
 )
 
 func clipStep(f func(*model.Step)) model.Step { return modeltest.Step(model.StepClipboard, f) }

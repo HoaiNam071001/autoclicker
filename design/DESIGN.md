@@ -1,4 +1,4 @@
-# Auto Clicker – Design v3 (gọn) trên nền v2
+# Ghosthand – Design v3 (gọn) trên nền v2
 
 Canvas **v3 – gọn** (2026-10-19, đã dựng – bước [38](../docs/tasks/phase3/38-ui-v3.md)): https://claude.ai/artifact/Hr4MxJYqSwCgAFuuZFNVvD – mã nguồn artboard đã xoá khỏi repo khi xong 38, xem lại bằng `git show d5a6b52:design/canvas/<tên>.dc.html` (đủ 7 artboard) hoặc mở canvas.
 Canvas v2 (nền token, thành phần): https://claude.ai/artifact/5WdDyFZdB3WKxEXwkticnw
@@ -38,7 +38,7 @@ v3 giữ nguyên nguyên tắc v2 (một màu nhấn cho trạng thái, gradient
 
 ### Bố cục (màn soạn – `Main`)
 
-- **Thanh tiêu đề** cao 36 (v2: 40): logo accent, "Auto Clicker" 12 `muted`, bên phải nút sáng / tối (một nút bật tắt), nút cửa sổ 44×36.
+- **Thanh tiêu đề** cao 36 (v2: 40): logo accent, "Ghosthand" 12 `muted`, bên phải nút sáng / tối (một nút bật tắt), nút cửa sổ 44×36.
 - **Toolbar** chung nền `chrome` với thanh tiêu đề, padding 4×16×10, viền dưới `line`: tên kịch bản 18/600 (v2: 19), chip "Chưa lưu" (chấm `warn`, nền `soft`, cao 22), tab Soạn / Xem trước (gạch dưới 3 px). Phải: nút vòng lặp ("3 vòng" mono), **nút Chạy tách đôi** (xem dưới). Các nút debug / ghi macro rời toolbar → vào menu Chạy.
 - **Thư viện** rộng 224 (v2: 236), nền `side`: ô tìm + nút thu gọn thư viện; nhãn nhỏ "KỊCH BẢN 4"; mục cao 34 (mục mở: `bg-hover`, vạch trái accent, chấm `warn`; giờ hẹn mono bên phải); "Mở gần đây" / "Lịch sử chạy" dạng hàng thu gọn (▸ + số / chấm kết quả `ok` / `danger`); chân: "+ Mới" + 3 nút icon 34 (Mẫu thử, Mở, Lưu).
 - **Canvas flow** nền `canvas` + lưới `dot`. Góc trái trên: "Flow · 10 node"; phải: "Toàn màn hình", "+ Thêm node Ctrl+K". Góc trái dưới: nhóm + / − / vừa khung + nút "?" (tooltip phím tắt canvas, thay dòng gợi ý v2). Góc phải dưới: minimap 148×92, node đang chọn tô `accent`.

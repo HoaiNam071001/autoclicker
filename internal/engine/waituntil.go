@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
 )
 
 // Node Chờ đến giờ (bước 35 N6): chờ tới giờ At (giờ máy, hoặc giờ chuẩn NTP). Còn xa thì nghỉ từng đoạn ≤ 1 s

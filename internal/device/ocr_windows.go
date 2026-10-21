@@ -11,8 +11,8 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
 // Đọc chữ trên Windows: mặc định Tesseract + gói vie (ocr_tess_windows.go); nạp không được thì dùng Windows.Media.Ocr

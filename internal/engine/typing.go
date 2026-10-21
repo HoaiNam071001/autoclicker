@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"autoclicker/internal/humanize"
-	"autoclicker/internal/model"
+	"ghosthand/internal/humanize"
+	"ghosthand/internal/model"
 )
 
 // Gõ chữ (node Gõ chữ, Gõ vào ô web): gõ từng phím hoặc dán qua clipboard (Step.TypeMode). Bộ gõ tiếng Việt chạy nền

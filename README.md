@@ -1,4 +1,4 @@
-# Auto Clicker
+# Ghosthand (Bàn Tay Ảo)
 
 Desktop app tự động click theo kịch bản: chọn vùng / toàn màn hình, chọn điểm, nối theo thứ tự, cấu hình thời gian và số lần click, kéo thả giữa 2 điểm.
 

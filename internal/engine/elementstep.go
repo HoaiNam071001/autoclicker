@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
+	"ghosthand/internal/device"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
 )
 
 // Chờ / Click theo phần tử màn hình (bước 37, FindBy element) và điều kiện "thấy phần tử": đọc cây accessibility của

@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/text/unicode/norm"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // TextWord – một từ trong dòng: vị trí theo UTF-16 trong TextLine.Text (như Vision báo) và khung theo px ảnh.

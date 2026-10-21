@@ -10,12 +10,12 @@ import (
 
 func TestAddToClaudeDesktop(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "Claude", "claude_desktop_config.json")
-	if err := AddToClaudeDesktop(path, `C:\App\autoclicker.exe`); err != nil {
+	if err := AddToClaudeDesktop(path, `C:\App\ghosthand.exe`); err != nil {
 		t.Fatal(err)
 	}
 	// file đã có server khác + cài đặt khác → giữ nguyên
-	os.WriteFile(path, []byte(`{"theme":"dark","mcpServers":{"khac":{"command":"x"},"autoclicker":{"command":"cu"}}}`), 0o644)
-	if err := AddToClaudeDesktop(path, `C:\App\autoclicker.exe`); err != nil {
+	os.WriteFile(path, []byte(`{"theme":"dark","mcpServers":{"khac":{"command":"x"},"ghosthand":{"command":"cu"},"autoclicker":{"command":"cu"}}}`), 0o644)
+	if err := AddToClaudeDesktop(path, `C:\App\ghosthand.exe`); err != nil {
 		t.Fatal(err)
 	}
 	var cfg struct {
@@ -29,8 +29,8 @@ func TestAddToClaudeDesktop(t *testing.T) {
 	if err := json.Unmarshal(b, &cfg); err != nil {
 		t.Fatal(err)
 	}
-	s := cfg.McpServers["autoclicker"]
-	if cfg.Theme != "dark" || cfg.McpServers["khac"].Command != "x" || s.Command != `C:\App\autoclicker.exe` || len(s.Args) != 1 || s.Args[0] != "--mcp" {
+	s := cfg.McpServers["ghosthand"]
+	if cfg.Theme != "dark" || cfg.McpServers["khac"].Command != "x" || s.Command != `C:\App\ghosthand.exe` || len(s.Args) != 1 || s.Args[0] != "--mcp" || len(cfg.McpServers) != 2 {
 		t.Errorf("cấu hình: %s", b)
 	}
 	os.WriteFile(path, []byte(`{hỏng`), 0o644)
@@ -40,14 +40,14 @@ func TestAddToClaudeDesktop(t *testing.T) {
 }
 
 func TestClientConfigs(t *testing.T) {
-	cs := ClientConfigs(`C:\Program Files\AC\autoclicker.exe`, 0, "")
-	if len(cs) != 5 || !strings.Contains(cs[1].Text, `"C:\Program Files\AC\autoclicker.exe" --mcp`) {
+	cs := ClientConfigs(`C:\Program Files\AC\ghosthand.exe`, 0, "")
+	if len(cs) != 5 || !strings.Contains(cs[1].Text, `"C:\Program Files\AC\ghosthand.exe" --mcp`) {
 		t.Errorf("stdio: %+v", cs[1])
 	}
 	if !json.Valid([]byte(cs[0].Text)) {
 		t.Error("JSON Claude Desktop")
 	}
-	cs = ClientConfigs("/a/autoclicker", 47800, "tok")
+	cs = ClientConfigs("/a/ghosthand", 47800, "tok")
 	if last := cs[len(cs)-1]; !strings.Contains(last.Text, "http://127.0.0.1:47800/mcp") || !strings.Contains(last.Text, "Bearer tok") {
 		t.Errorf("http: %+v", last)
 	}

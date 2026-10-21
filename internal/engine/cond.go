@@ -9,10 +9,10 @@ import (
 	"slices"
 	"strings"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/device"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/vision"
 )
 
 // Điều kiện (bước 20 F3) của node Nếu và case của Switch theo màn hình: xét một lần trên màn hình lúc này, trả đúng / sai

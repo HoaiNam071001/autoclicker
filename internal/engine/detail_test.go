@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
+	"ghosthand/internal/web"
 )
 
 // detailJSON – detail của lỗi dạng JSON (như AI nhận qua wait_run).

@@ -3,6 +3,15 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 45 – đổi tên thành Ghosthand · [phase3/45-doi-ten-ghosthand.md](phase3/45-doi-ten-ghosthand.md)
+
+- [ ] `wails build` → ra `build/bin/ghosthand.exe`; mở lần đầu trên máy đã dùng bản cũ → Cài đặt (theme, thư mục Lưu trữ, API / AI), *Mở gần đây*, lịch sử chạy của kịch bản còn nguyên; `%APPDATA%\autoclicker` đã thành `%APPDATA%\ghosthand`
+- [ ] Kịch bản / ảnh cũ nằm trong `Documents\Ghosthand`, `Pictures\Ghosthand`; mở kịch bản từ *Mở gần đây* được, Lịch sử của nó còn các lần chạy cũ
+- [ ] Thanh tiêu đề, tiêu đề cửa sổ (thanh tác vụ), Cài đặt, hộp lưu ghi *Ghosthand*
+- [ ] Cài đặt → AI → *Thêm vào Claude Desktop* → file cấu hình Claude Desktop chỉ còn mục `ghosthand` (mục `autoclicker` đã bỏ); khởi động lại Claude Desktop → gọi tool được
+- [ ] `ghosthand run <file.json>` khi app đang mở → chạy được
+- [ ] Đọc chữ (OCR) lần đầu sau đổi tên vẫn chạy (giải nén lại Tesseract)
+
 ## 44 – thử trang + ưu tiên node cho AI · [phase3/44-thu-trang-uu-tien-node.md](phase3/44-thu-trang-uu-tien-node.md)
 
 - [ ] Nút quả địa cầu trên thanh tiêu đề → hộp *Thử trang*: gõ `vi.wikipedia.org` → Thử → Chrome của app mở trang, app lên lại trước, báo ✓ *Dùng được node web* + số phần tử. Xem theme sáng + tối
@@ -73,18 +82,18 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 31a – AI tạo / sửa kịch bản qua MCP · [phase3/31-mcp-ai.md](phase3/31-mcp-ai.md)
 
-- [ ] Bánh răng → *Cho AI điều khiển (MCP)* đang bật → *Thêm vào Claude Desktop…* → hỏi đường dẫn → Ghi → thoát hẳn + mở lại Claude Desktop: thấy server `autoclicker` (14 tool). Claude Desktop bản Microsoft Store có thể dùng file cấu hình khác – báo lại nếu không thấy
-- [ ] Trên Claude: "tạo kịch bản mở bài Tinh Hà Say 2 trên YouTube, tên bài là input" → file mới trong Documents/Auto Clicker, *Mở gần đây* có chip **AI**; AI gọi `open_in_app` → app hiện lên, mở kịch bản; Xem trước đúng thứ tự; bấm Chạy phát nhạc
+- [ ] Bánh răng → *Cho AI điều khiển (MCP)* đang bật → *Thêm vào Claude Desktop…* → hỏi đường dẫn → Ghi → thoát hẳn + mở lại Claude Desktop: thấy server `ghosthand` (14 tool). Claude Desktop bản Microsoft Store có thể dùng file cấu hình khác – báo lại nếu không thấy
+- [ ] Trên Claude: "tạo kịch bản mở bài Tinh Hà Say 2 trên YouTube, tên bài là input" → file mới trong Documents/Ghosthand, *Mở gần đây* có chip **AI**; AI gọi `open_in_app` → app hiện lên, mở kịch bản; Xem trước đúng thứ tự; bấm Chạy phát nhạc
 - [ ] "đổi thành bài khác / thêm bước…" → AI sửa đúng kịch bản (app nạp lại, Ctrl+Z lấy lại bản trước); đang sửa dở kịch bản đó (chưa lưu) → AI ghi ra bản sao `… (AI).json`, bản của bạn không đổi
 - [ ] Đang có thay đổi chưa lưu ở kịch bản khác → AI gọi mở thì app không đổi kịch bản, AI báo lại
-- [ ] Claude Code: chép lệnh `claude mcp add …` trong Cài đặt → `/mcp` thấy autoclicker; app chưa mở → tự mở khi Claude gọi
+- [ ] Claude Code: chép lệnh `claude mcp add …` trong Cài đặt → `/mcp` thấy ghosthand; app chưa mở → tự mở khi Claude gọi
 - [ ] Tắt công tắc MCP → AI gọi tool bị từ chối (báo bật trong Cài đặt); bật lại dùng được ngay. Cài đặt hiện 5 lệnh AI gần nhất (✓ / ✗)
 - [ ] Bật *API cho chương trình khác* → cấu hình *HTTP (client nối URL)* dùng được với client nối thẳng `http://127.0.0.1:<cổng>/mcp`
 
 ## 22 – Hẹn giờ / CLI / API local · [phase3/22-hen-gio-cli-api.md](phase3/22-hen-gio-cli-api.md)
 
 - [ ] Chạy tay như cũ (nút Chạy, F8 dừng, chạy từng node / chạy riêng node, xác nhận thao tác nguy hiểm, lịch sử chạy) – phần chạy đã chuyển sang `internal/session`
-- [ ] CLI (PowerShell, app đang mở): `build\bin\autoclicker.exe run <file.json>` → app thu thành thanh mini, terminal in từng node ✓ / ✗ + *Xong sau … s*, `$LASTEXITCODE` = 0; Ctrl+C trong terminal → kịch bản dừng; `--preset "Tên bộ"` / `--set M1=Lan` dùng đúng giá trị; preset sai tên → báo các tên có, mã 1
+- [ ] CLI (PowerShell, app đang mở): `build\bin\ghosthand.exe run <file.json>` → app thu thành thanh mini, terminal in từng node ✓ / ✗ + *Xong sau … s*, `$LASTEXITCODE` = 0; Ctrl+C trong terminal → kịch bản dừng; `--preset "Tên bộ"` / `--set M1=Lan` dùng đúng giá trị; preset sai tên → báo các tên có, mã 1
 - [ ] CLI khi app chưa mở: tự mở app rồi chạy; `run` không có file / cờ lạ → in cách dùng, mã 2; `help` in cách dùng
 - [ ] Bánh răng trên thanh tiêu đề → bật *API cho chương trình khác*: `curl -X POST http://127.0.0.1:47800/run -H "Authorization: Bearer <token>" -d "{\"path\":\"C:/…/a.json\"}"` chạy được; sai token → 401; tắt công tắc → không nối được; đổi cổng / tạo token mới có tác dụng ngay
 - [ ] Hẹn giờ: lưu kịch bản thành file → *N vòng* → Hẹn giờ chạy → Đặt giờ… (chưa lưu file thì nút mờ, có gợi ý); đặt giờ sau 1–2 phút, *Thu nhỏ cửa sổ* bật → app thu nhỏ, tới giờ tự hiện thanh mini và chạy, xong thu nhỏ lại; thư viện hiện chip giờ cạnh tên; *Một lần* chạy xong thì chip mất
@@ -108,7 +117,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 ## 26 W1–W3a – Node Cửa sổ (Windows) · [phase3/26-cua-so-ung-dung.md](phase3/26-cua-so-ung-dung.md)
 
 - [ ] Mẫu thử **Cửa sổ – đặt 1280 × 800 bên trái rồi chụp**: cửa sổ trình duyệt nhảy về góc trái 1280 × 800; thu nhỏ / kéo sang chỗ khác / phóng to rồi chạy lại vẫn ra như vậy; lời kết thúc ghi khung + cỡ ảnh khớp
-- [ ] Thêm node Cửa sổ (Ctrl+K → Cửa sổ): *Chọn từ cửa sổ đang mở…* liệt kê đúng cửa sổ (không có cửa sổ autoclicker), gõ lọc không dấu, chọn → điền App + Tiêu đề; *Lấy khung hiện tại* điền đúng X, Y, W, H
+- [ ] Thêm node Cửa sổ (Ctrl+K → Cửa sổ): *Chọn từ cửa sổ đang mở…* liệt kê đúng cửa sổ (không có cửa sổ ghosthand), gõ lọc không dấu, chọn → điền App + Tiêu đề; *Lấy khung hiện tại* điền đúng X, Y, W, H
 - [ ] Thao tác Đưa lên trước (cửa sổ đang thu nhỏ / bị che), Thu nhỏ, Phóng to, Đóng (Notepad có chữ chưa lưu → Notepad hỏi lưu, node không tự bấm), Chờ cửa sổ đóng; App / tiêu đề không khớp → hết giờ đi cổng Thất bại
 - [ ] Màn 125 % / 150 % và 2 màn hình: Đặt ở Trái / Đầy trên màn 2 – khung đúng vùng làm việc (không đè taskbar)
 
@@ -133,14 +142,14 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 ## 17 – DPI Windows · [phase1-mvp.md](phase1-mvp.md)
 
 - [ ] Windows 125 % (sửa 2026-10-19 – ảnh mẫu co giãn theo DPI màn): chụp lại ảnh mẫu đã chụp trên Windows trước bản này; chụp ảnh mẫu một nút ở 125 % → đổi scale sang 100 % (Settings → Display) → Thử tìm / chạy vẫn thấy; ảnh mẫu trong inspector hiện đúng cỡ nhìn trên màn. Có 2 màn khác scale: chụp ở màn này, tìm ở màn kia
-- [ ] Windows 150 % / 100 %: `AUTOCLICKER_REAL=1 go test ./internal/device/ -run Real -v` qua (chuột đọc lại đúng, DPI in ra đúng scale)
+- [ ] Windows 150 % / 100 %: `GHOSTHAND_REAL=1 go test ./internal/device/ -run Real -v` qua (chuột đọc lại đúng, DPI in ra đúng scale)
 
 ## 18a – Build exe · [phase1-mvp.md](phase1-mvp.md)
 
 - [ ] Windows cửa sổ trong suốt (sửa 2026-10-19): mở overlay → nhìn xuyên thấy màn hình thật (nền tối mờ); Xem trước với *Nền: Không* và *Nền: Trang web* đều thấy màn hình phía sau; màn chính vẫn nền đặc, kéo / đổi cỡ / phóng to cửa sổ như cũ; thanh mini trong suốt quanh viền
 
 - [ ] Windows scale 125 % (sửa 2026-10-19 – chuột qua Win32, pixel thật): tải exe mới nhất ở Actions, xoá điểm cũ rồi ghi lại điểm (F6 / chọn trên overlay) → chạy: click trúng đúng chỗ, cả khi cửa sổ đích là app khác (Chrome, Notepad, Explorer); khung vùng / marker trên overlay nằm đúng chỗ; chờ ảnh / Thử tìm thấy đúng; thử thêm 150 % và 2 màn khác scale nếu có. Kịch bản ghi trên bản cũ ở 125 % có thể lệch – ghi lại điểm
-- [ ] GitHub → tab **Actions** → *Build Windows* → lần chạy mới nhất xanh → tải artifact `autoclicker-windows-…` (zip), giải nén, mở `autoclicker.exe` trên Windows (SmartScreen: More info → Run anyway): app mở, tạo kịch bản click 2 điểm chạy đúng, Lưu / mở lại được. Ghi lại lỗi gặp (thiếu WebView2, click lệch khi scale 125 %…)
+- [ ] GitHub → tab **Actions** → *Build Windows* → lần chạy mới nhất xanh → tải artifact `ghosthand-windows-…` (zip), giải nén, mở `ghosthand.exe` trên Windows (SmartScreen: More info → Run anyway): app mở, tạo kịch bản click 2 điểm chạy đúng, Lưu / mở lại được. Ghi lại lỗi gặp (thiếu WebView2, click lệch khi scale 125 %…)
 
 ## 38 – UI v3 – gọn · [phase3/38-ui-v3.md](phase3/38-ui-v3.md)
 
@@ -165,10 +174,10 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 - [ ] N7 Vẽ đường: Mẫu thử → **Vẽ đường – sao, tròn, chữ nhật, đường gấp khúc** → Chạy: Bảng vẽ có 4 vệt đúng hình, *Số lần kéo* = 4. Overlay (👁): nét viền hiện trước đúng hình; đường gấp khúc có marker n·1, n·2… kéo được, nét đổi theo. Xem trước: con trỏ giả đi đúng nét, giữ chuột. Inspector: thêm / xoá điểm, Khép kín, đổi sang Sao giữ tâm ở giữa. Xem cả theme sáng + tối
 - [ ] N6 Chờ đến giờ: Mẫu thử → **Chờ đến giờ – bấm MUA NGAY đúng giờ** → Chạy, nhập giờ ~1 phút sau (vd 20:15:00.000): thanh mini *chờ đến giờ – còn …* đếm ngược, đúng giờ trang ghi *bấm lúc 20:15:00.0xx*; lời kết thúc ghi trễ vài chục ms. Bấm Dừng / tạm dừng giữa lúc chờ ăn ngay. Inspector: xem trước *Còn … / Đã qua …* đổi theo 3 lựa chọn; giờ sai dạng báo đỏ. Xem cả theme sáng + tối
 - [ ] N5 Âm lượng: Mẫu thử → **Hệ thống – giảm rồi tăng âm lượng** → Chạy: thanh âm lượng giảm rồi về mức cũ, lời kết thúc ghi 2 mức. Inspector: kéo thanh trượt = ô %; Tắt tiếng / Bật tiếng chạy được. Xem cả theme sáng + tối. Windows (khi có máy): đặt / tăng / giảm / tắt tiếng qua Core Audio
-- [ ] N4 Tệp / thư mục: Mẫu thử → **Tệp / thư mục – ghi nhật ký, thêm dòng Excel, dọn file tạm** → Chạy: hiện hộp *Kịch bản này sẽ xoá file* (Huỷ thì không chạy) → Cho phép → `~/Documents/autoclicker-mau-thu` có nhat-ky.txt, don-hang.csv (mở bằng Excel đúng tiếng Việt), don-hang.xlsx (sheet *Đơn hàng*); 2 file tam-*.txt nằm trong Thùng rác. Chạy lại: không hỏi nữa, csv / xlsx thêm dòng. Đổi mẫu tên → hỏi lại. Node *Dọn Thùng rác*: macOS hỏi quyền điều khiển Finder lần đầu. Đặt thư mục `/` hoặc `~` → node báo bị chặn. Xem cả theme sáng + tối. Windows (khi có máy): Recycle Bin, dọn Thùng rác
+- [ ] N4 Tệp / thư mục: Mẫu thử → **Tệp / thư mục – ghi nhật ký, thêm dòng Excel, dọn file tạm** → Chạy: hiện hộp *Kịch bản này sẽ xoá file* (Huỷ thì không chạy) → Cho phép → `~/Documents/ghosthand-mau-thu` có nhat-ky.txt, don-hang.csv (mở bằng Excel đúng tiếng Việt), don-hang.xlsx (sheet *Đơn hàng*); 2 file tam-*.txt nằm trong Thùng rác. Chạy lại: không hỏi nữa, csv / xlsx thêm dòng. Đổi mẫu tên → hỏi lại. Node *Dọn Thùng rác*: macOS hỏi quyền điều khiển Finder lần đầu. Đặt thư mục `/` hoặc `~` → node báo bị chặn. Xem cả theme sáng + tối. Windows (khi có máy): Recycle Bin, dọn Thùng rác
 - [ ] N3 HTTP: Mẫu thử → **HTTP – gọi API, đọc JSON trả về** → Chạy (cần mạng): lời kết thúc ghi HTTP 200, tên “Lan "Hà"”, từ khoá “cà phê & trà”. Inspector: Method + URL một hàng; đổi GET → POST mở sẵn thân JSON; thêm Header `Authorization` → hiện 🔒; JSON sai cú pháp → báo đỏ; Form hiện bảng trường. Đổi URL sang `https://httpbin.org/status/404` → node Thất bại, nhật ký ghi HTTP 404. Xem cả theme sáng + tối
 - [ ] N2 Clipboard: Mẫu thử → **Clipboard – ghi, dán, copy lại** → Chạy: ô hiện “Dán từ clipboard: Xin chào Lan!”, lời kết thúc ghi lại đúng chữ. Node Clipboard *Ghi ảnh* với `{{n?.output.path}}` của node Chụp màn hình → dán vào chat ra ảnh. Windows (khi có máy): đọc / ghi tiếng Việt, ghi ảnh
-- [ ] N1 Chụp màn hình: Mẫu thử → **Chụp màn hình – chụp chỗ thấy chữ + cả màn** → Chạy: 2 ảnh trong `~/Pictures/Auto Clicker` (thư mục ảnh trong Cài đặt), dán (Cmd+V) vào app chat ra ảnh chữ ĐÃ XONG. Inspector: đổi *Chụp* qua 4 kiểu; *Vùng cố định* → **Khoanh trên màn hình…** → overlay ghi *Dùng vùng này* → về inspector đã có X / Y / W / H; *Cả màn* liệt kê đúng các màn đang cắm. Xem cả theme sáng + tối. Windows (khi có máy): chép ảnh vào clipboard
+- [ ] N1 Chụp màn hình: Mẫu thử → **Chụp màn hình – chụp chỗ thấy chữ + cả màn** → Chạy: 2 ảnh trong `~/Pictures/Ghosthand` (thư mục ảnh trong Cài đặt), dán (Cmd+V) vào app chat ra ảnh chữ ĐÃ XONG. Inspector: đổi *Chụp* qua 4 kiểu; *Vùng cố định* → **Khoanh trên màn hình…** → overlay ghi *Dùng vùng này* → về inspector đã có X / Y / W / H; *Cả màn* liệt kê đúng các màn đang cắm. Xem cả theme sáng + tối. Windows (khi có máy): chép ảnh vào clipboard
 - [ ] N0 mô tả node: Ctrl/Cmd+K → rê chuột / phím mũi tên qua các mục, khung dưới đổi mô tả theo mục, bảng không giật; inspector có thẻ mô tả dưới tab Node, × ẩn → mở node khác vẫn ẩn, ⓘ hiện lại, tắt app mở lại vẫn nhớ – xem cả theme sáng + tối
 
 ## 25d – Ghi chú node web · [phase3/25d-web-dom.md](phase3/25d-web-dom.md)

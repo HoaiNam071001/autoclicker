@@ -1,6 +1,6 @@
 package device
 
-import "autoclicker/internal/device/devicetest"
+import "ghosthand/internal/device/devicetest"
 
 // Bản giả phải khớp interface – đổi interface mà quên bản giả thì không biên dịch được.
 var (

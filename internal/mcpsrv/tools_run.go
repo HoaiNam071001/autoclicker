@@ -8,9 +8,9 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/script"
-	"autoclicker/internal/session"
+	"ghosthand/internal/model"
+	"ghosthand/internal/script"
+	"ghosthand/internal/session"
 )
 
 // Vòng thử – sửa (bước 31b): AI chạy kịch bản đã lưu (cả / đến node / một cụm), đọc kết quả từng node + chi tiết lỗi +

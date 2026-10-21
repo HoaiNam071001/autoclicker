@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Cửa sổ / app trên Windows qua Win32 (bước 26 W0). Toạ độ px thật (app per-monitor DPI aware – dpi_windows.go), cùng
@@ -229,7 +229,7 @@ func (SystemApps) Quit(pid int) error {
 
 func (SystemApps) ForceQuit(pid int) error {
 	if pid == os.Getpid() {
-		return errors.New("không buộc thoát chính autoclicker")
+		return errors.New("không buộc thoát chính ghosthand")
 	}
 	h, _, e := procOpenProcess.Call(0x1 /* PROCESS_TERMINATE */, 0, uintptr(pid))
 	if h == 0 {

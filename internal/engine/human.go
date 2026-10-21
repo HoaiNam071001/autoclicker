@@ -3,8 +3,8 @@ package engine
 import (
 	"context"
 
-	"autoclicker/internal/humanize"
-	"autoclicker/internal/model"
+	"ghosthand/internal/humanize"
+	"ghosthand/internal/model"
 )
 
 // Thao tác giống người (bước 34): mức theo node (Step.Human, trống = theo Script.Human) đặt ở đầu mỗi node (setHuman);

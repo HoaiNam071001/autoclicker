@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
 )
 
 // ownOutput – output riêng của node (bỏ CommonOutputs startedAt / durationMs) để so bằng DeepEqual.

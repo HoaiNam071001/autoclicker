@@ -52,7 +52,7 @@ func TestMainApp(t *testing.T) {
 }
 
 func TestProtectedApp(t *testing.T) {
-	for _, n := range []string{"explorer.exe", `C:\Windows\explorer.exe`, "Finder", "svchost", "AutoClicker.exe", "Dock.app"} {
+	for _, n := range []string{"explorer.exe", `C:\Windows\explorer.exe`, "Finder", "svchost", "Ghosthand.exe", "Dock.app"} {
 		if !ProtectedApp(n) {
 			t.Errorf("%q phải bị chặn", n)
 		}

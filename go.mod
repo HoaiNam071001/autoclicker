@@ -1,4 +1,4 @@
-module autoclicker
+module ghosthand
 
 go 1.26.0
 

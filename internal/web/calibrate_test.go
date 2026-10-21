@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // fakePage – trang giả: client = (screen - off) / scale, nhận chuột khi nằm trong vùng trang.

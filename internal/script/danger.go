@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Thao tác nguy hiểm (bước 35 N4, mở rộng ở bước 26): xoá file vào / dọn Thùng rác, buộc thoát app, thoát app có buộc

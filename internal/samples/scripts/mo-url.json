@@ -17,7 +17,7 @@
    {
     "type": "waitImage",
     "findBy": "text",
-    "findText": "SAN THU AUTO CLICKER",
+    "findText": "SAN THU GHOSTHAND",
     "searchArea": "screen",
     "timeoutMs": 10000
    },

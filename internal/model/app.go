@@ -46,9 +46,9 @@ func MainApp(apps []AppInfo) (main AppInfo, windows int) {
 	return main, windows
 }
 
-// protectedApps – không cho thoát: chính autoclicker, vỏ hệ điều hành, tiến trình hệ thống.
+// protectedApps – không cho thoát: chính ghosthand, vỏ hệ điều hành, tiến trình hệ thống.
 var protectedApps = []string{
-	"autoclicker",
+	"ghosthand",
 	// macOS
 	"finder", "dock", "systemuiserver", "loginwindow", "windowserver", "kernel_task", "launchd", "controlcenter",
 	// Windows

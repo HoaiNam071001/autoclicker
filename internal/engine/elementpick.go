@@ -3,8 +3,8 @@ package engine
 import (
 	"errors"
 
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
 )
 
 // ElementPick – kết quả "Chọn phần tử trên màn" (37 E3): selector sinh cho phần tử dưới điểm đã bấm (dòng đầu ưu

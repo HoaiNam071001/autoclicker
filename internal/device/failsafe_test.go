@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
 )
 
 func TestHardCorners(t *testing.T) {

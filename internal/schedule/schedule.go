@@ -6,7 +6,7 @@ import (
 	"context"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 const Interval = 15 * time.Second

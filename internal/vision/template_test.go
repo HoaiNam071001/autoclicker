@@ -5,8 +5,8 @@ import (
 	"image/color"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision/visiontest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision/visiontest"
 )
 
 // Bước 40: so theo viền (đổi theme), mặt nạ (vùng hay đổi trong mẫu), kiểm tra màu (cùng hình khác màu).

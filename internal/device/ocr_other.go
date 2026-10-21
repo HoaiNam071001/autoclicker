@@ -6,7 +6,7 @@ import (
 	"errors"
 	"image"
 
-	"autoclicker/internal/vision"
+	"ghosthand/internal/vision"
 )
 
 // readText: Windows (Windows.Media.Ocr) làm khi có máy Windows (bước 17 / 18).

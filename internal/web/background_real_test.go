@@ -11,7 +11,7 @@ import (
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 const bgPage = `<!doctype html><html><head><meta charset="utf-8"></head><body style="height:3000px">
@@ -27,17 +27,17 @@ document.getElementById('f').addEventListener('submit', e => { e.preventDefault(
 </script></body></html>`
 
 // Chạy nền với Chrome thật đang thu nhỏ: gõ, bấm, double-click, lăn qua CDP – chuột thật không được động tới.
-// Chỉ khi AUTOCLICKER_REAL=1.
+// Chỉ khi GHOSTHAND_REAL=1.
 func TestRealBackground(t *testing.T) {
-	if os.Getenv("AUTOCLICKER_REAL") != "1" {
-		t.Skip("đặt AUTOCLICKER_REAL=1 để thử với Chrome thật")
+	if os.Getenv("GHOSTHAND_REAL") != "1" {
+		t.Skip("đặt GHOSTHAND_REAL=1 để thử với Chrome thật")
 	}
 	page := filepath.Join(t.TempDir(), "bg.html")
 	if err := os.WriteFile(page, []byte(bgPage), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	moved := 0
-	c := NewChrome(filepath.Join(os.TempDir(), "autoclicker-test-browser"), func(int, int) error { moved++; return nil })
+	c := NewChrome(filepath.Join(os.TempDir(), "ghosthand-test-browser"), func(int, int) error { moved++; return nil })
 	defer c.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()

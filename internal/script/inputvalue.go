@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Giá trị input: ép theo kiểu (số / ms / bool / chọn), chữ hiển thị, gán vào trường được ghim của node.

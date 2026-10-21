@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // FakeWindows – cửa sổ giả (bước 26): thao tác đổi Wins và ghi Log ("focus 2", "bounds 2 0,0 800x600"…).

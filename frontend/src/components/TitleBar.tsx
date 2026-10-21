@@ -19,7 +19,7 @@ export default function TitleBar() {
     <div className="drag flex h-9 flex-none items-center gap-2 bg-chrome pl-3.5" 
       onDoubleClick={(e) => inWails && !(e.target as HTMLElement).closest('button') && WindowToggleMaximise()}>
       <Logo className="h-[15px] w-[15px] flex-none" />
-      <span className="text-xs text-muted">Auto Clicker</span>
+      <span className="text-xs text-muted">Ghosthand</span>
       <ThemeSwitch />
       {inWails && <PageCheckButton />}
       {inWails && <AppSettings />}

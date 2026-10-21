@@ -6,7 +6,7 @@ import (
 	"math"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Đổi toạ độ trang (CSS px, client) → màn hình (robotgo) bằng cách đo (D0: sai số 0–2 px): đưa chuột tới 2 điểm

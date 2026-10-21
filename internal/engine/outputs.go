@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // actionOutput – output của node chuột / phím / chờ / mở sau khi chạy xong (khớp Outputs trong model/steptypes.go,

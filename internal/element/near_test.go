@@ -3,7 +3,7 @@ package element
 import (
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func TestNearMatches(t *testing.T) {

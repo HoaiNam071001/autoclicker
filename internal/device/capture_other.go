@@ -6,8 +6,8 @@ import (
 	"image"
 	goruntime "runtime"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/winexclude"
+	"ghosthand/internal/model"
+	"ghosthand/internal/winexclude"
 
 	"github.com/go-vgo/robotgo"
 )

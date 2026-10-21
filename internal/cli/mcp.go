@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"strings"
 
-	"autoclicker/internal/mcpsrv"
+	"ghosthand/internal/mcpsrv"
 )
 
-// `autoclicker --mcp` (bước 31): MCP qua stdio cho AI chỉ chạy được server dạng lệnh (Claude Desktop, Codex CLI…).
+// `ghosthand --mcp` (bước 31): MCP qua stdio cho AI chỉ chạy được server dạng lệnh (Claude Desktop, Codex CLI…).
 // Luôn chuyển tiếp sang /mcp của app đang mở (chưa mở thì mở) – quyền macOS tính theo tiến trình nên không tự chạy
 // engine trong tiến trình con của AI. /mcp stateless + trả JSON nên mỗi dòng JSON-RPC = một POST.
 
@@ -34,7 +34,7 @@ func (c *Client) MCP(in io.Reader, out, errOut io.Writer) int {
 		}
 		if !connected {
 			if err := c.connect(errOut); err != nil {
-				writeRPCError(out, line, "không nối được app Auto Clicker: "+err.Error())
+				writeRPCError(out, line, "không nối được app Ghosthand: "+err.Error())
 				continue
 			}
 			connected = true

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func TestDue(t *testing.T) {

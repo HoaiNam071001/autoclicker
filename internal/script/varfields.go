@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"slices"
 
-	"autoclicker/internal/launch"
-	"autoclicker/internal/model"
+	"ghosthand/internal/launch"
+	"ghosthand/internal/model"
 )
 
 // VarField – ô chữ nhận {{biến}} của node (kể cả trong điều kiện / case).

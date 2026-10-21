@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/web"
+	"ghosthand/internal/model"
+	"ghosthand/internal/web"
 )
 
 // Chạy nền (D4b): bấm / gõ / lăn qua trình duyệt, không đụng chuột / phím thật, không thử hover.

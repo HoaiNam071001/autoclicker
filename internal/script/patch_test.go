@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 func compactScript(t *testing.T, src string) model.Script {

@@ -6,7 +6,7 @@ package element
 import (
 	"strings"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Node – một phần tử trong cây, danh sách phẳng theo thứ tự duyệt cây (cha trước con – thứ tự đọc).

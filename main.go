@@ -11,16 +11,17 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 
-	"autoclicker/internal/cli"
-	"autoclicker/internal/winfloat"
+	"ghosthand/internal/cli"
+	"ghosthand/internal/store"
+	"ghosthand/internal/winfloat"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
-	// `autoclicker run …` (bước 22): gửi lệnh sang app đang mở rồi thoát – không mở giao diện
-	// `autoclicker --mcp` (bước 31): MCP qua stdio cho AI – chuyển tiếp sang app; stdin / stdout là pipe của AI, không gắn console
+	// `ghosthand run …` (bước 22): gửi lệnh sang app đang mở rồi thoát – không mở giao diện
+	// `ghosthand --mcp` (bước 31): MCP qua stdio cho AI – chuyển tiếp sang app; stdin / stdout là pipe của AI, không gắn console
 	if cli.IsMCP(os.Args[1:]) {
 		c := cli.NewClient(nil)
 		c.Launch = cli.LaunchBackground // app chưa mở thì mở nền – AI chạy mới hiện thanh mini
@@ -33,6 +34,7 @@ func main() {
 		os.Exit(cli.Main(args, cli.NewClient(sig), os.Stdout, os.Stderr))
 	}
 
+	store.MigrateOldName()   // bước 45: dữ liệu ở thư mục tên cũ Auto Clicker → Ghosthand (tạm, xem store/migrate.go)
 	winfloat.PrepareLaunch() // trước wails.Run – thanh mini / overlay nổi được trên app toàn màn hình (macOS)
 
 	// Create an instance of the app structure
@@ -41,7 +43,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "autoclicker",
+		Title:  "Ghosthand",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{

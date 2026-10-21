@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode/utf16"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Đọc chữ cạnh nhãn (bước 37 E4 – dự phòng khi giá trị không có trong cây phần tử: canvas, app tự vẽ): tìm nhãn

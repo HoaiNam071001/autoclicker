@@ -1,7 +1,7 @@
 {
  "meta": {
   "name": "Gõ chữ có biến",
-  "description": "Click vào ô rồi gõ lời chào có tên lấy từ input (hỏi khi bấm Chạy). Đúng: ô hiện “Xin chào <tên>! Hôm nay chạy thử Auto Clicker.”",
+  "description": "Click vào ô rồi gõ lời chào có tên lấy từ input (hỏi khi bấm Chạy). Đúng: ô hiện “Xin chào <tên>! Hôm nay chạy thử Ghosthand.”",
   "app": "Cơ bản",
   "level": 1,
   "page": "type.html",
@@ -36,7 +36,7 @@
    },
    {
     "type": "type",
-    "text": "Xin chào {{ten}}! Hôm nay chạy thử Auto Clicker."
+    "text": "Xin chào {{ten}}! Hôm nay chạy thử Ghosthand."
    }
   ],
   "inputs": [

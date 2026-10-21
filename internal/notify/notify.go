@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Message – nội dung thông báo. Fields thêm vào JSON của webhook (status, runId…).

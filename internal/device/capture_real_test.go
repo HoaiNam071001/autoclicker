@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/model"
+	"ghosthand/internal/vision"
 )
 
-// Chụp màn hình thật rồi tìm lại một mảnh vừa chụp – chỉ chạy khi AUTOCLICKER_REAL=1 (cần quyền ghi màn hình).
+// Chụp màn hình thật rồi tìm lại một mảnh vừa chụp – chỉ chạy khi GHOSTHAND_REAL=1 (cần quyền ghi màn hình).
 func TestRealCaptureAndFind(t *testing.T) {
-	if os.Getenv("AUTOCLICKER_REAL") != "1" {
-		t.Skip("đặt AUTOCLICKER_REAL=1 để chạy trên màn hình thật")
+	if os.Getenv("GHOSTHAND_REAL") != "1" {
+		t.Skip("đặt GHOSTHAND_REAL=1 để chạy trên màn hình thật")
 	}
 	t.Logf("quyền ghi màn hình: %v", ScreenCaptureAllowed())
 	scr, main := RobotgoScreen{}, MainScreen()

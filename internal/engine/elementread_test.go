@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/element"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script/scripttest"
-	"autoclicker/internal/vision"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/element"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script/scripttest"
+	"ghosthand/internal/vision"
 )
 
 // words – dòng OCR có từng từ (px ảnh): mỗi từ một khung.

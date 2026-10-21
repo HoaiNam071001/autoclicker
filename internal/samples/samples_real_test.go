@@ -8,23 +8,23 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/device"
-	"autoclicker/internal/engine"
-	"autoclicker/internal/model"
-	"autoclicker/internal/samples"
-	"autoclicker/internal/script"
-	"autoclicker/internal/web"
+	"ghosthand/internal/device"
+	"ghosthand/internal/engine"
+	"ghosthand/internal/model"
+	"ghosthand/internal/samples"
+	"ghosthand/internal/script"
+	"ghosthand/internal/web"
 )
 
 // testProfile – profile Chrome riêng cho test (không đụng profile của app); giữ giữa các lần chạy để không bật lại.
-func testProfile() string { return filepath.Join(os.TempDir(), "autoclicker-test-browser") }
+func testProfile() string { return filepath.Join(os.TempDir(), "ghosthand-test-browser") }
 
-// Chạy mẫu thật bằng engine (chuột thật, chụp + OCR thật, mở trình duyệt mặc định) – chỉ khi AUTOCLICKER_REAL=1.
-// AUTOCLICKER_SAMPLES=id1,id2 chọn mẫu (trống = tất cả mẫu sân thử; mẫu web thật chỉ chạy khi ghi tên). Cần quyền Accessibility + Screen Recording.
+// Chạy mẫu thật bằng engine (chuột thật, chụp + OCR thật, mở trình duyệt mặc định) – chỉ khi GHOSTHAND_REAL=1.
+// GHOSTHAND_SAMPLES=id1,id2 chọn mẫu (trống = tất cả mẫu sân thử; mẫu web thật chỉ chạy khi ghi tên). Cần quyền Accessibility + Screen Recording.
 // Mẫu kết thúc thất bại có chủ đích: ket-thuc-that-bai.
 func TestRealSamples(t *testing.T) {
-	if os.Getenv("AUTOCLICKER_REAL") != "1" {
-		t.Skip("đặt AUTOCLICKER_REAL=1 để chạy mẫu trên máy thật")
+	if os.Getenv("GHOSTHAND_REAL") != "1" {
+		t.Skip("đặt GHOSTHAND_REAL=1 để chạy mẫu trên máy thật")
 	}
 	dir := t.TempDir()
 	if err := samples.WriteSandbox(dir); err != nil {
@@ -35,7 +35,7 @@ func TestRealSamples(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := map[string]bool{}
-	for _, id := range strings.Split(os.Getenv("AUTOCLICKER_SAMPLES"), ",") {
+	for _, id := range strings.Split(os.Getenv("GHOSTHAND_SAMPLES"), ",") {
 		if id = strings.TrimSpace(id); id != "" {
 			want[id] = true
 		}
@@ -62,7 +62,7 @@ func runSample(t *testing.T, id, sandbox string) {
 	defer br.Close()
 	eng := engine.New(in, sc, engine.Options{
 		Screen: device.MainScreen(), Displays: device.Displays(), Browser: br,
-		AllowDanger: true, // chạy thật là người dùng chủ động (AUTOCLICKER_REAL) – mẫu chỉ xoá file / thoát app nó tự mở
+		AllowDanger: true, // chạy thật là người dùng chủ động (GHOSTHAND_REAL) – mẫu chỉ xoá file / thoát app nó tự mở
 		OnNode: func(r model.StepResult) {
 			last = r
 			msg := ""

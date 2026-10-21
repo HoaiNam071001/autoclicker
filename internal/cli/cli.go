@@ -1,4 +1,4 @@
-// Package cli – lệnh dòng lệnh của app (bước 22): `autoclicker run <file> …` gửi sang app đang mở qua API local
+// Package cli – lệnh dòng lệnh của app (bước 22): `ghosthand run <file> …` gửi sang app đang mở qua API local
 // (internal/api, thông tin cổng + token trong api.json); app chưa mở thì mở rồi chờ. Không tự chạy engine – quyền
 // macOS, lịch sử, F8 / thanh mini đều của app.
 package cli
@@ -22,7 +22,7 @@ const (
 )
 
 const usage = `Cách dùng:
-  autoclicker run <file.json> [--preset "Tên bộ"] [--set KEY=GIÁ_TRỊ]… [--countdown GIÂY] [--no-wait]
+  ghosthand run <file.json> [--preset "Tên bộ"] [--set KEY=GIÁ_TRỊ]… [--countdown GIÂY] [--no-wait]
 
   --preset     bộ giá trị input đã lưu trong form Chạy của app
   --set        giá trị một input (ghi đè preset), lặp lại được

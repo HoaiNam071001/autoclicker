@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/model"
-	"autoclicker/internal/session"
-	"autoclicker/internal/store"
+	"ghosthand/internal/model"
+	"ghosthand/internal/session"
+	"ghosthand/internal/store"
 )
 
 type fakeBackend struct {

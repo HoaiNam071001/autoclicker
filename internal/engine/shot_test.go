@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"autoclicker/internal/device/devicetest"
-	"autoclicker/internal/model"
-	"autoclicker/internal/model/modeltest"
-	"autoclicker/internal/script/scripttest"
+	"ghosthand/internal/device/devicetest"
+	"ghosthand/internal/model"
+	"ghosthand/internal/model/modeltest"
+	"ghosthand/internal/script/scripttest"
 )
 
 // runShot chạy kịch bản, trả output của node cuối + lỗi.
@@ -128,7 +128,7 @@ func TestShotPath(t *testing.T) {
 	now := time.Date(2026, 10, 18, 9, 5, 7, 0, time.Local)
 	set := filepath.Join(home, "Anh chup")
 	for _, c := range []struct{ dir, def, name, want string }{
-		{"", "", "", filepath.Join(home, "Pictures", "Auto Clicker", "autoclicker-2026-10-18-090507.png")},
+		{"", "", "", filepath.Join(home, "Pictures", "Ghosthand", "ghosthand-2026-10-18-090507.png")},
 		{" ", set, "x", filepath.Join(set, "x.png")},
 		{"~/Desktop", set, "a.png", filepath.Join(home, "Desktop", "a.png")},
 		{"Documents/x", "", "b:c", filepath.Join(home, "Documents", "x", "b-c.png")},

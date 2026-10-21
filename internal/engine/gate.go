@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"autoclicker/internal/model"
+	"ghosthand/internal/model"
 )
 
 // Tạm dừng / chạy tiếp / debug (breakpoint, chạy từng node) và chờ có thể huỷ – mọi chờ trong engine đi qua đây.
