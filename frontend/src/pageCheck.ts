@@ -1,5 +1,5 @@
 // Thử trang trên Chrome của app (bước 44) – chữ + tông màu theo kết luận web.PageCheck.verdict (khớp web.Page* trong Go).
-export type Verdict = 'ok' | 'captcha' | 'blocked' | 'canvas' | 'empty';
+export type Verdict = 'ok' | 'captcha' | 'blocked' | 'canvas' | 'empty' | 'loading';
 export type Tone = 'ok' | 'warn' | 'danger';
 
 const VERDICTS: Record<Verdict, { title: string; hint: string; tone: Tone }> = {
@@ -7,7 +7,8 @@ const VERDICTS: Record<Verdict, { title: string; hint: string; tone: Tone }> = {
   captcha: { title: 'Có captcha', hint: 'Trang kiểm tra “bạn là người” – nên dùng node ảnh / chữ trên trình duyệt thường', tone: 'warn' },
   blocked: { title: 'Trang chặn truy cập', hint: 'Trang không cho trình duyệt của app vào – dùng node ảnh / chữ trên trình duyệt thường', tone: 'danger' },
   canvas: { title: 'Nội dung vẽ trong canvas', hint: 'Game / trang vẽ bằng canvas – node web không thấy nút bên trong, dùng node ảnh / chữ', tone: 'warn' },
-  empty: { title: 'Không đọc được gì', hint: 'Trang trống hoặc chưa tải xong – thử lại, hoặc dùng node ảnh / chữ', tone: 'warn' },
+  empty: { title: 'Không đọc được gì', hint: 'Trang trống – Dò lại khi trang đã hiện, hoặc dùng node ảnh / chữ', tone: 'warn' },
+  loading: { title: 'Trang chưa tải xong', hint: 'Trang tải lâu – chờ trang hiện xong trên Chrome rồi bấm Dò lại (không tải lại trang)', tone: 'warn' },
 };
 
 /** Chữ + tông của kết luận; giá trị lạ coi như trống. */

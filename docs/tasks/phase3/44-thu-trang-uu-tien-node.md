@@ -15,6 +15,7 @@
     - `get_preferences` → `{nodePref, run}`; `set_node_preference(pref)` (nhóm mới *đổi cài đặt* – `KindSettings`, tắt được trong bảng tool 31b2)
     - `get_step_types` / `ghosthand://guide` thêm `nodePref` + `nodePrefTips` theo mức hiện tại (đọc lúc gửi); `instructions` của server thêm một dòng *Trang web: get_preferences → probe_page*
   - [x] T5. Sân thử: `captcha.html` (khung reCAPTCHA giả) + `canvas-game.html` (nút CHƠI vẽ trong canvas, bấm trúng +1 điểm) – có trong danh sách sân thử
+  - [x] T6. **Trang tải lâu** (người dùng báo 2026-10-21: trang load lâu thì thử không ổn): chờ trang **yên** thay vì đợi `readyState` complete (nhiều trang không bao giờ complete vì quảng cáo / tracking) – số phần tử không đổi đáng kể (≤ 2 %) trong 1,5 s, tối đa 30 s (`web/pageload.go`, `loadWatch` thuần có test); hết giờ mà chưa hiện gì → kết luận mới `loading` (*Trang chưa tải xong*) thay vì `empty`; **Dò lại** = `CheckPage("")` dò tab đang mở không tải lại (nút trong hộp + `probe_page` không url – AI gặp `loading` thì chờ rồi gọi lại, vẫn loading thì screenshot); `probe_page` dò lại trúng tab không phải http(s) → từ chối (AI không đọc được trang `file://`)
   - [ ] Màn mẫu `#demo` có hộp Thử trang (các kết luận với dữ liệu giả) – để xem UI trên trình duyệt không cần Go
   - Chuẩn bị cho MCP (31): phần chính đã nằm trong T4
     - [ ] `error.detail` của node web thêm kết quả thử trang gần nhất của trang đó (nếu có) – AI biết lỗi do captcha chứ không do selector

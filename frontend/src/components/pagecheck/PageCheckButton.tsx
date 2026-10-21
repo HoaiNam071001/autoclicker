@@ -22,20 +22,23 @@ export default function PageCheckButton() {
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
-  const check = () => {
-    const u = normalizeUrl(url);
-    if (!u) return;
+  // u rỗng = Dò lại tab đang mở (không tải lại) – cho trang tải lâu
+  const run = (u: string) => {
     setBusy(true);
     setError('');
     setResult(null);
     CheckPage(u).then(setResult).catch((e) => setError(errorText(e))).finally(() => setBusy(false));
+  };
+  const check = () => {
+    const u = normalizeUrl(url);
+    if (u) run(u);
   };
 
   return (
     <>
       <button onClick={() => setOpen(!open)} aria-label="Thử trang trên Chrome của app" title="Thử trang trên Chrome của app" aria-haspopup="dialog" aria-expanded={open}
         className="grid h-9 w-9 place-items-center text-muted hover:bg-hover hover:text-ink"><Globe /></button>
-      {open && <PageCheckDialog url={url} onUrl={setUrl} busy={busy} result={result} error={error} onCheck={check} onClose={() => setOpen(false)} />}
+      {open && <PageCheckDialog url={url} onUrl={setUrl} busy={busy} result={result} error={error} onCheck={check} onRecheck={() => run('')} onClose={() => setOpen(false)} />}
     </>
   );
 }

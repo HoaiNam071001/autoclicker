@@ -8,7 +8,7 @@ import (
 
 func TestProbePage(t *testing.T) {
 	cs, back := connect(t)
-	back.page = web.PageCheck{Verdict: web.PageCaptcha, Signs: []string{"khung captcha đang hiện"}}
+	back.page = web.PageCheck{Verdict: web.PageCaptcha, URL: "https://game-a.vn/play", Signs: []string{"khung captcha đang hiện"}}
 	out, isErr := call(t, cs, "probe_page", map[string]any{"url": "game-a.vn/play"})
 	if isErr || out["verdict"] != "captcha" || out["useWeb"] != false {
 		t.Fatalf("probe_page: %v", out)
@@ -16,11 +16,21 @@ func TestProbePage(t *testing.T) {
 	if back.probed != "https://game-a.vn/play" {
 		t.Errorf("url thiếu https:// – %q", back.probed)
 	}
-	for _, bad := range []string{" ", "file:///C:/Users/a/secret.txt", "chrome://settings"} {
-		back.probed = ""
-		if out, isErr := call(t, cs, "probe_page", map[string]any{"url": bad}); !isErr || back.probed != "" {
+	for _, bad := range []string{"file:///C:/Users/a/secret.txt", "chrome://settings"} {
+		back.probed = "chưa gọi"
+		if out, isErr := call(t, cs, "probe_page", map[string]any{"url": bad}); !isErr || back.probed != "chưa gọi" {
 			t.Errorf("url %q phải bị từ chối, không mở: %v", bad, out)
 		}
+	}
+	// không url = dò lại tab đang mở (trang tải lâu)
+	back.probed = "chưa gọi"
+	if out, isErr := call(t, cs, "probe_page", map[string]any{"url": " "}); isErr || back.probed != "" {
+		t.Errorf("dò lại phải gọi CheckPage với url rỗng: %v (probed %q)", out, back.probed)
+	}
+	// dò lại trúng tab file:// người dùng tự mở → không trả outline cho AI
+	back.page = web.PageCheck{Verdict: web.PageOK, URL: "file:///C:/Users/a/secret.html", Outline: []web.OutlineItem{{}}}
+	if out, isErr := call(t, cs, "probe_page", nil); !isErr {
+		t.Errorf("tab file:// phải bị từ chối: %v", out)
 	}
 }
 

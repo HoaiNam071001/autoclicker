@@ -6,6 +6,7 @@ describe('verdictInfo', () => {
     expect(verdictInfo('ok').tone).toBe('ok');
     expect(verdictInfo('captcha').title).toBe('Có captcha');
     expect(verdictInfo('blocked').tone).toBe('danger');
+    expect(verdictInfo('loading').title).toBe('Trang chưa tải xong');
   });
   it('giá trị lạ = trống', () => expect(verdictInfo('???')).toBe(verdictInfo('empty')));
 });

@@ -3,14 +3,14 @@ package web
 import (
 	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/chromedp/chromedp"
 )
 
-// Thử trang (bước 44): mở url trên Chrome của app, chờ tải xong, gom dấu hiệu (pagecheck.js) → kết luận trang dùng
+// Thử trang (bước 44): mở url trên Chrome của app, chờ trang yên (pageload.go), gom dấu hiệu (pagecheck.js) → kết luận trang dùng
 // được node web không hay phải dùng node ảnh / chữ (captcha, chặn bot, game vẽ canvas, trang trống). Chỉ đọc trang.
 
 //go:embed pagecheck.js
@@ -23,12 +23,11 @@ const (
 	PageBlocked = "blocked" // trang chặn truy cập (403, Access denied…)
 	PageCanvas  = "canvas"  // nội dung vẽ trong canvas (game) – node web không thấy nút bên trong
 	PageEmpty   = "empty"   // không có phần tử nào đọc được
+	PageLoading = "loading" // hết giờ chờ mà trang chưa hiện gì – chưa kết luận, dò lại sau (url rỗng)
 )
 
 const (
-	loadTimeout  = 15 * time.Second
-	settleDelay  = 1500 * time.Millisecond // sau khi tải xong: trang chạy JS, chuyển tiếp (Cloudflare tự chuyển sau vài giây)
-	maxCheckList = 40                      // số phần tử outline gửi kèm
+	maxCheckList = 40                   // số phần tử outline gửi kèm
 	shortPage    = 1500                    // chữ dài hơn → không dò câu kiểu captcha trong thân trang (tránh nhầm bài viết)
 )
 
@@ -62,20 +61,23 @@ type pageFrame struct {
 	Shown bool   `json:"shown"`
 }
 
-// CheckPage mở u ở tab mới (chưa mở trình duyệt thì bật lên) rồi dò trang.
+// CheckPage mở u ở tab mới (chưa mở trình duyệt thì bật lên) rồi dò trang. u rỗng = dò lại tab đang mở, không tải
+// lại – cho trang tải lâu: chờ trang hiện xong rồi dò lại.
 func (c *Chrome) CheckPage(ctx context.Context, u string) (PageCheck, error) {
-	if err := c.Open(ctx, u); err != nil {
-		return PageCheck{}, err
+	if u != "" {
+		if err := c.Open(ctx, u); err != nil {
+			return PageCheck{}, err
+		}
 	}
 	t, _, err := c.tabFor(ctx, "")
+	if errors.Is(err, ErrNoBrowser) && u == "" {
+		return PageCheck{}, &BrowserError{"chưa có trang nào mở trên Chrome của app – nhập URL để thử"}
+	}
 	if err != nil {
 		return PageCheck{}, err
 	}
-	loaded, err := waitLoaded(ctx, t.ctx)
+	loaded, err := waitSettled(ctx, t.ctx)
 	if err != nil {
-		return PageCheck{}, err
-	}
-	if err := sleepCtx(ctx, settleDelay); err != nil {
 		return PageCheck{}, err
 	}
 	s, err := run(ctx, t.ctx, "dò trang", chromedp.Evaluate[pageSigns](pageJS(pagecheckJS)))
@@ -91,26 +93,6 @@ func (c *Chrome) CheckPage(ctx context.Context, u string) (PageCheck, error) {
 	return pc, nil
 }
 
-// waitLoaded chờ document.readyState = complete (tối đa loadTimeout); hết giờ thì vẫn dò (false).
-func waitLoaded(ctx context.Context, tctx context.Context) (bool, error) {
-	end := time.Now().Add(loadTimeout)
-	for {
-		st, err := run(ctx, tctx, "chờ trang tải", chromedp.Evaluate[string]("document.readyState"))
-		if err != nil {
-			return false, err
-		}
-		if st == "complete" {
-			return true, nil
-		}
-		if time.Now().After(end) {
-			return false, nil
-		}
-		if err := sleepCtx(ctx, 300*time.Millisecond); err != nil {
-			return false, err
-		}
-	}
-}
-
 // Dấu hiệu theo src iframe / câu chữ (chữ thường).
 var (
 	captchaFrames = []string{"recaptcha", "hcaptcha.com", "challenges.cloudflare.com", "arkoselabs", "funcaptcha", "geetest", "captcha"}
@@ -121,12 +103,12 @@ var (
 		"error 1020", "truy cập bị từ chối", "bạn đã bị chặn"}
 )
 
-// classifyPage – kết luận từ dấu hiệu (hàm thuần). Thứ tự: captcha > chặn > canvas > trống > dùng được.
+// classifyPage – kết luận từ dấu hiệu (hàm thuần). Thứ tự: captcha > chặn > canvas > chưa tải / trống > dùng được.
 func classifyPage(s pageSigns, elements int, loaded bool) PageCheck {
 	pc := PageCheck{URL: s.URL, Title: s.Title, Loaded: loaded, Elements: elements, Signs: []string{}}
 	add := func(f string, a ...any) { pc.Signs = append(pc.Signs, fmt.Sprintf(f, a...)) }
 	if !loaded {
-		add("trang chưa tải xong sau %d giây", int(loadTimeout.Seconds()))
+		add("trang chưa tải xong / còn đổi sau %d giây", int(loadTimeout.Seconds()))
 	}
 	captcha, blocked := false, false
 	for _, f := range s.Frames {
@@ -169,6 +151,8 @@ func classifyPage(s pageSigns, elements int, loaded bool) PageCheck {
 		pc.Verdict = PageBlocked
 	case bigCanvas && elements < 15:
 		pc.Verdict = PageCanvas
+	case elements == 0 && len(strings.TrimSpace(s.Text)) < 20 && !loaded:
+		pc.Verdict = PageLoading
 	case elements == 0 && len(strings.TrimSpace(s.Text)) < 20:
 		pc.Verdict = PageEmpty
 		add("không có phần tử nào đọc được")

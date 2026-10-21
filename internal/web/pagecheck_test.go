@@ -23,7 +23,9 @@ func TestClassifyPage(t *testing.T) {
 		{"bị chặn", pageSigns{Title: "Access Denied", Text: "You don't have permission"}, 1, true, PageBlocked},
 		{"game canvas", pageSigns{Title: "Game A", Canvas: 0.85}, 3, true, PageCanvas},
 		{"canvas nhỏ trong trang lớn", pageSigns{Title: "Báo", Canvas: 0.6}, 80, true, PageOK},
-		{"trang trống", pageSigns{Text: "  "}, 0, false, PageEmpty},
+		{"trang trống", pageSigns{Text: "  "}, 0, true, PageEmpty},
+		{"tải lâu, chưa hiện gì", pageSigns{Text: "  "}, 0, false, PageLoading},
+		{"tải lâu nhưng đã có nội dung", pageSigns{Title: "Báo", Text: "Tin mới"}, 60, false, PageOK},
 		{"bài dài nhắc chữ captcha", pageSigns{Title: "Tin", Text: article}, 50, true, PageOK},
 	}
 	for _, c := range cases {

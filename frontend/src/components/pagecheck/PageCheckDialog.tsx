@@ -13,10 +13,11 @@ type Props = {
   result: web.PageCheck | null;
   error: string;
   onCheck: () => void;
+  onRecheck: () => void; // dò lại tab đang mở, không tải lại
   onClose: () => void;
 };
 
-export default function PageCheckDialog({ url, onUrl, busy, result, error, onCheck, onClose }: Props) {
+export default function PageCheckDialog({ url, onUrl, busy, result, error, onCheck, onRecheck, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-40 flex items-start justify-center bg-black/25 px-4 pt-[6vh]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label="Thử trang" className="flex max-h-[88vh] w-[440px] max-w-full flex-col gap-3 overflow-y-auto rounded-panel border border-line bg-surface p-[18px] text-[13px] text-ink shadow-[0_16px_48px_rgb(0_0_0/.22)]">
@@ -32,9 +33,13 @@ export default function PageCheckDialog({ url, onUrl, busy, result, error, onChe
             {busy ? 'Đang thử…' : 'Thử'}
           </button>
         </form>
-        {busy && <span className="text-xs text-muted">Đang mở trang và chờ tải xong (tối đa ~20 giây)…</span>}
+        {busy && <span className="text-xs text-muted">Đang chờ trang hiện xong rồi dò (tối đa ~30 giây)…</span>}
         {result && !busy && <PageCheckResult result={result} />}
         {error && <span className="text-danger-text">{error}</span>}
+        {(result || error) && !busy && (
+          <button onClick={onRecheck} title="Dò lại trang đang mở trên Chrome của app, không tải lại – cho trang tải lâu"
+            className="h-8 self-start rounded-control border border-line bg-surface px-3 hover:bg-hover">Dò lại</button>
+        )}
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 - [ ] Cài đặt → AI (MCP): *AI ưu tiên node* mặc định *Ảnh / chữ*; đổi sang *Trình duyệt app* → đóng mở lại vẫn giữ
 - [ ] Trên Claude Code: “ưu tiên dùng node trình duyệt” → AI gọi `set_node_preference` → app hiện “AI đổi ưu tiên node sang “Trình duyệt app”” (Cài đặt đang mở thì cập nhật ngay); “tạo kịch bản bấm nút … trên trang X” → AI gọi `probe_page` trước, trang ok thì dùng node web (node Mở có *Chrome của app*), captcha thì dùng tìm chữ / ảnh và nói lý do
 - [ ] Mức AI *Chỉ soạn* → `probe_page` bị từ chối (không mở Chrome); đổi mức trên chip thanh mini lúc AI đã đổi ưu tiên → ưu tiên node không bị trả về cũ
+- [ ] T6 trang tải lâu: thử một trang nặng (báo / thương mại điện tử nhiều quảng cáo) → có kết quả sau vài giây, không phải chờ hết giờ; trang quá chậm → ⚠ *Trang chưa tải xong* → chờ trang hiện trên Chrome rồi bấm **Dò lại** (trang không tải lại) → ra kết luận. Trên Claude Code: AI gặp `loading` tự gọi lại `probe_page` không url
 - [ ] Sửa lỗi: mở *Cài đặt* / *Thử trang* / menu theme / popup *N vòng* rồi double click hoặc kéo trong hộp (chữ, khoảng trống, nền mờ) → cửa sổ **không** phóng to / không bị kéo; double click khoảng trống trên thanh tiêu đề vẫn phóng to / thu về
 
 ## 41 – nơi lưu + xoá lịch sử · [phase3/41-noi-luu-lich-su.md](phase3/41-noi-luu-lich-su.md)
