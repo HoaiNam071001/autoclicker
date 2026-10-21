@@ -174,7 +174,7 @@ func TestWebTimeoutMessages(t *testing.T) {
 		want string
 	}{
 		{missing, "", "không thấy phần tử “text=Xem lịch sử”, “css=#history”"},
-		{web.Found{Selector: -1, NoTab: true}, "shop.vn", "không thấy tab nào có URL / tiêu đề chứa “shop.vn”"},
+		{web.Found{Selector: -1, NoTab: true}, "shop.vn", "không thấy tab nào có id hoặc URL / tiêu đề chứa “shop.vn”"},
 		{web.Found{Selector: 0, Covered: "div#popup “Đồng ý cookie”"}, "", "bị div#popup “Đồng ý cookie” che"},
 		{web.Found{Selector: -1, Hidden: 2}, "", "có 2 phần tử khớp"},
 		{web.Found{Selector: 1, Moving: true}, "", "“css=#history” nhưng nó vẫn đang di chuyển"},

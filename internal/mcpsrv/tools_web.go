@@ -19,6 +19,7 @@ var nodePrefTips = map[string]string{
 	store.NodePrefWeb: `Ưu tiên node web (Cài đặt / set_node_preference): việc trên trang web → probe_page(url) trước.
 - verdict ok: node open (webBrowser true – Chrome của app) + webWait / webClick / webType / webRead / webScroll, selector lấy từ outline (sel) – chính xác hơn tìm chữ / ảnh.
 - Trang đã mở và đang thao tác dở (hộp thoại, popup): read_web_outline(dialog: true) lấy selector thật của ô / nút trong hộp thoại, thay vì đoán rồi chạy thử.
+- Nhiều tab (cùng URL, popup): probe_page / read_web_outline trả tab (id) + tabs – đặt tab = id cho node web khi chạy thử để không nhầm tab; kịch bản lưu lại thì đổi tab sang chuỗi trong URL (id đổi khi Chrome của app mở lại).
 - Form trong hộp thoại: node web đặt webScope "dialog" (bỏ ô cùng tên ở trang phía sau); ô theo nhãn: label="Ngày sinh" (cả nhãn antd không gắn for); nhiều chỗ khớp: occurrence N. Ô tuỳ biến (chọn ngày, editor) báo "không nhận focus" dù đã vào đúng ô → webType skipFocusCheck true.
 - loading (trang tải lâu): chờ vài giây rồi probe_page không url (dò lại tab, không tải lại) – tối đa 2–3 lần, vẫn loading thì screenshot xem trang rồi quyết.
 - captcha / blocked / canvas / empty: dùng node ảnh / chữ (open bằng trình duyệt thường, waitImage / clickImage findBy "text") và nói người dùng lý do (signs).
@@ -43,7 +44,7 @@ type prefIn struct {
 func (s *Server) addWebTools() {
 	addTool(s, KindRun, &mcp.Tool{Name: "probe_page", Description: "Mở thử trang trên Chrome của app (profile riêng, không đăng nhập), chờ trang yên " +
 		"(≤ 30 s) rồi dò captcha / chặn bot / game vẽ canvas: verdict ok (dùng được node web) | captcha | blocked | canvas | empty | " +
-		"loading (trang tải lâu, chưa hiện gì), useWeb, signs (dấu hiệu), elements, outline (≤ 40 phần tử kèm selector sel dùng được cho node web). " +
+		"loading (trang tải lâu, chưa hiện gì), useWeb, signs (dấu hiệu), elements, outline (≤ 40 phần tử kèm selector sel dùng được cho node web), tab (id tab đã dò), tabs (tab đang mở kèm id). " +
 		"Gọi trước khi soạn node web cho một trang. Không truyền url = dò lại tab đang mở, không tải lại: verdict loading hoặc loaded false " +
 		"→ chờ vài giây rồi gọi lại không url (hoặc screenshot để xem trang)."}, s.probePage)
 	addTool(s, KindRead, &mcp.Tool{Name: "read_web_outline", Description: "Đọc cấu trúc trang của tab đang điều khiển trên Chrome của app (không bật trình duyệt, không đụng chuột / phím): " +
@@ -73,6 +74,7 @@ func (s *Server) probePage(ctx context.Context, _ *mcp.CallToolRequest, in probe
 	if !isWebURL(pc.URL) { // dò lại trúng tab file:// / chrome:// người dùng tự mở
 		return fail(errors.New("tab đang mở không phải trang http:// / https:// – gọi probe_page kèm url"))
 	}
+	pc.Tabs = webTabs(pc.Tabs)
 	return ok(pc)
 }
 

@@ -122,7 +122,7 @@ func webMissMsg(s model.Step, f webTry, lines []string, gone bool) string {
 	}
 	switch {
 	case f.NoTab:
-		return fmt.Sprintf("không thấy tab nào có URL / tiêu đề chứa “%s” %s", s.Tab, after)
+		return fmt.Sprintf("không thấy tab nào có id hoặc URL / tiêu đề chứa “%s” %s (id tab đổi khi Chrome của app mở lại – kịch bản lưu nên ghi chuỗi trong URL)", s.Tab, after)
 	case f.NoDialog:
 		return fmt.Sprintf("chỉ tìm trong hộp thoại (webScope dialog) nhưng trang không có hộp thoại nào đang mở %s", after)
 	case f.Selector < 0 && s.Occurrence > 1 && maxShown(f.Counts) > 0:

@@ -149,6 +149,17 @@ func TestRealCheckPageFollowsPopup(t *testing.T) {
 	if strings.Contains(pc.URL, "antd-form") {
 		t.Errorf("dò lại vẫn trả tab cũ (%s), không phải popup vừa mở", pc.URL)
 	}
+	// 46 A4: trả id tab đã dò + danh sách tab kèm id; ghim lại theo id ra đúng tab đó
+	seen := false
+	for _, x := range pc.Tabs {
+		seen = seen || x.ID == pc.Tab
+	}
+	if pc.Tab == "" || !seen {
+		t.Errorf("tab %q không có trong tabs %+v", pc.Tab, pc.Tabs)
+	}
+	if o, err := c.ReadOutline(ctx, pc.Tab, false); err != nil || o.Tab != pc.Tab {
+		t.Errorf("ghim theo id %q → %q, %v", pc.Tab, o.Tab, err)
+	}
 }
 
 // read_web_outline: dialog = chỉ ô trong hộp thoại (không lẫn ô lọc của lưới), tab ghim được theo id.

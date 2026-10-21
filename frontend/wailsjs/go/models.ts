@@ -292,6 +292,7 @@ export namespace engine {
 	    hidden: number;
 	    tab: string;
 	    noTab: boolean;
+	    noDialog: boolean;
 	    count: number;
 	    value: string;
 	    ms: number;
@@ -314,6 +315,7 @@ export namespace engine {
 	        this.hidden = source["hidden"];
 	        this.tab = source["tab"];
 	        this.noTab = source["noTab"];
+	        this.noDialog = source["noDialog"];
 	        this.count = source["count"];
 	        this.value = source["value"];
 	        this.ms = source["ms"];
@@ -1872,6 +1874,22 @@ export namespace web {
 		    return a;
 		}
 	}
+	export class Tab {
+	    id: string;
+	    title: string;
+	    url: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Tab(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.title = source["title"];
+	        this.url = source["url"];
+	    }
+	}
 	export class PageCheck {
 	    verdict: string;
 	    useWeb: boolean;
@@ -1881,6 +1899,8 @@ export namespace web {
 	    loaded: boolean;
 	    elements: number;
 	    outline: OutlineItem[];
+	    tab: string;
+	    tabs?: Tab[];
 	
 	    static createFrom(source: any = {}) {
 	        return new PageCheck(source);
@@ -1896,6 +1916,8 @@ export namespace web {
 	        this.loaded = source["loaded"];
 	        this.elements = source["elements"];
 	        this.outline = this.convertValues(source["outline"], OutlineItem);
+	        this.tab = source["tab"];
+	        this.tabs = this.convertValues(source["tabs"], Tab);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1930,22 +1952,6 @@ export namespace web {
 	        this.selectors = source["selectors"];
 	        this.text = source["text"];
 	        this.tab = source["tab"];
-	    }
-	}
-	export class Tab {
-	    id: string;
-	    title: string;
-	    url: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new Tab(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
-	        this.title = source["title"];
-	        this.url = source["url"];
 	    }
 	}
 	export class Status {

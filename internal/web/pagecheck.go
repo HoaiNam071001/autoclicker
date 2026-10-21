@@ -27,8 +27,8 @@ const (
 )
 
 const (
-	maxCheckList = 40                   // số phần tử outline gửi kèm
-	shortPage    = 1500                    // chữ dài hơn → không dò câu kiểu captcha trong thân trang (tránh nhầm bài viết)
+	maxCheckList = 40   // số phần tử outline gửi kèm
+	shortPage    = 1500 // chữ dài hơn → không dò câu kiểu captcha trong thân trang (tránh nhầm bài viết)
 )
 
 // PageCheck – kết quả thử trang.
@@ -38,9 +38,11 @@ type PageCheck struct {
 	Signs    []string      `json:"signs"`  // dấu hiệu thấy (chữ cho người dùng / AI)
 	URL      string        `json:"url"`    // URL sau chuyển tiếp
 	Title    string        `json:"title"`
-	Loaded   bool          `json:"loaded"`   // tải xong trước khi hết giờ chờ
-	Elements int           `json:"elements"` // số phần tử đọc được (PageOutline)
-	Outline  []OutlineItem `json:"outline"`  // ≤ maxCheckList phần tử đầu – AI viết selector luôn
+	Loaded   bool          `json:"loaded"`         // tải xong trước khi hết giờ chờ
+	Elements int           `json:"elements"`       // số phần tử đọc được (PageOutline)
+	Outline  []OutlineItem `json:"outline"`        // ≤ maxCheckList phần tử đầu – AI viết selector luôn
+	Tab      string        `json:"tab"`            // id tab đã dò – ghim tab cho node web / read_web_outline (46 A4)
+	Tabs     []Tab         `json:"tabs,omitempty"` // các tab đang mở kèm id
 }
 
 // pageSigns – dữ liệu pagecheck.js trả.
@@ -90,6 +92,7 @@ func (c *Chrome) CheckPage(ctx context.Context, u string) (PageCheck, error) {
 	}
 	pc := classifyPage(s, o.Total, loaded)
 	pc.Outline = o.Items[:min(len(o.Items), maxCheckList)]
+	pc.Tab, pc.Tabs = t.id, c.Status(ctx).Tabs
 	return pc, nil
 }
 

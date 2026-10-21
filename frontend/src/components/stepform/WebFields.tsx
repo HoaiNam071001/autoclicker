@@ -42,7 +42,7 @@ export function WebFields({ step: s }: { step: Step }) {
       <SelectorsField step={s} label={selectorsLabel(s)} value={s.selectors} onChange={(selectors) => set({ selectors })}
         placeholder={'text=Xem lịch sử\naria=Lịch sử\ncss=#history'} emptyText="Chưa nhập cách tìm – chạy sẽ báo lỗi"
         help={'text= chữ trên trang (chứa, không phân biệt hoa thường; text="Gửi" = đúng cả chuỗi), aria= nhãn aria-label, role=button[name="Gửi"] vai trò + tên, label=Ngày sinh ô nhập của nhãn, css=, xpath=. Ưu tiên chữ / aria / role – tránh class tự sinh kiểu x1n2onr6. ' + WEB_BASIC_NOTE} />
-      <Field label="Tab" wide group help="Tuỳ chọn: URL hoặc tiêu đề tab chứa chữ này. Trang phải mở bằng node Mở với “Chrome của app”.">
+      <Field label="Tab" wide group help="Tuỳ chọn: URL hoặc tiêu đề tab chứa chữ này (hoặc id tab AI đọc được – đổi khi Chrome mở lại). Trang phải mở bằng node Mở với “Chrome của app”.">
         <VarTextInput value={s.tab ?? ''} onChange={(tab) => set({ tab: tab || undefined })} inputs={script.inputs ?? []} nodeVars={nodeVars}
           onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} rows={1} compact placeholder="trống = tab đang hiện" />
       </Field>
