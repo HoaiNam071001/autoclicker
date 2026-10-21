@@ -34,9 +34,19 @@ type TextQuery struct {
 }
 
 // textKey chuẩn hoá chữ để so: bỏ khoảng trắng, chữ thường, (tuỳ chọn) bỏ dấu. idx[i] = vị trí rune gốc của key[i].
+// Dấu tách rời (NFD – chữ chép từ macOS, một số web / app): bỏ dấu thì bỏ luôn, so đúng dấu thì ghép vào chữ trước
+// để khớp chữ dựng sẵn (NFC). Không chuẩn hoá cả chuỗi trước vì idx phải trỏ đúng rune gốc (subBox).
 func textKey(s string, noAccent bool) (key []rune, idx []int) {
 	for i, r := range []rune(s) {
 		if unicode.IsSpace(r) {
+			continue
+		}
+		if unicode.Is(unicode.Mn, r) {
+			if !noAccent && len(key) > 0 {
+				if c := []rune(norm.NFC.String(string(key[len(key)-1]) + string(r))); len(c) == 1 {
+					key[len(key)-1] = c[0]
+				}
+			}
 			continue
 		}
 		r = unicode.ToLower(r)

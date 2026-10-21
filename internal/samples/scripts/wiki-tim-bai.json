@@ -19,7 +19,6 @@
     "type": "waitImage",
     "findBy": "text",
     "findText": "Wikipedia",
-    "textNoAccent": false,
     "searchArea": "screen",
     "timeoutMs": 10000
    },
@@ -28,7 +27,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "Tìm kiếm",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 400
@@ -49,7 +47,6 @@
     "type": "waitImage",
     "findBy": "text",
     "findText": "{{tu_khoa}}",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 10000
    },

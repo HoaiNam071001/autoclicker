@@ -199,3 +199,4 @@
 - **2026-10-20** – Bước 41 L1–L4 xong code: thư mục Documents / Pictures thật (Windows KnownFolder), Cài đặt tab Lưu trữ (kịch bản / kịch bản AI / ảnh chụp), xoá lần chạy / xoá hết lịch sử, xoá Mở gần đây. go vet + go test OK, npm run build + npm test (260) OK, check-docs 0 lỗi; chưa thử tay (checks.md mục 41).
 - 2026-10-21 40 O0: spike OCR – PaddleOCR chính thức không có chữ tiếng Việt có thanh (bỏ); Tesseract vie fast + phóng ×2 + chuẩn hoá nền đúng 15/15 (OCR Windows 0/15) → đổi sang Tesseract qua DLL + syscall (người dùng chọn)
 - 2026-10-21 40 O1–O3: Tesseract vie qua DLL + syscall (ocr_tess_windows / ocr_tessbundle_windows / ocr_tesstsv), vision.PrepOCR (cửa sổ trượt ±12 px – lưới ô thô hỏng), fetch-tesseract.sh + CI, THIRD_PARTY.md, mẫu chu-tieng-viet, detail text approx
+- 2026-10-21 40: textNoAccent → textAccent (mặc định bỏ qua dấu, công tắc "Bỏ qua dấu" bật sẵn), textKey xử lý dấu tách rời NFD (bỏ hoặc ghép vào chữ trước), bỏ textNoAccent khỏi mẫu

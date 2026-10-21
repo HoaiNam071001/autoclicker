@@ -33,7 +33,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "NHAP TIN NHAN O DAY",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 200
@@ -54,7 +53,6 @@
     "type": "waitImage",
     "findBy": "text",
     "findText": "DA NHAN TIN SO {{vars.i}}",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000
    },

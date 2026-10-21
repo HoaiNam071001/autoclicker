@@ -20,7 +20,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "HO TEN",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 200,

@@ -120,12 +120,12 @@ type Step struct {
 	ImageFrom     string  `json:"imageFrom,omitempty"`     // clickImage ImageSource node / screenshot ShotArea node: id node lấy chỗ thấy
 	Dx            int     `json:"dx,omitempty"`            // clickImage / webClick: lệch so với tâm ảnh / phần tử
 	Dy            int     `json:"dy,omitempty"`
-	FindBy        string  `json:"findBy,omitempty"`       // waitImage / clickImage tự tìm: "" = ảnh mẫu | text = chữ | element = phần tử (Selectors)
-	ElementApp    string  `json:"elementApp,omitempty"`   // FindBy element: tên app / bundle id ("" = app có cửa sổ trên cùng); nhận {{biến}}
-	FindText      string  `json:"findText,omitempty"`     // FindBy text: chữ cần tìm; nhận {{biến}}
-	TextExact     bool    `json:"textExact,omitempty"`    // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
-	TextNoAccent  bool    `json:"textNoAccent,omitempty"` // FindBy text: bỏ qua dấu
-	Occurrence    int     `json:"occurrence,omitempty"`   // FindBy text: chỗ thứ mấy (trên → dưới, trái → phải); 0 = chỗ đầu
+	FindBy        string  `json:"findBy,omitempty"`     // waitImage / clickImage tự tìm: "" = ảnh mẫu | text = chữ | element = phần tử (Selectors)
+	ElementApp    string  `json:"elementApp,omitempty"` // FindBy element: tên app / bundle id ("" = app có cửa sổ trên cùng); nhận {{biến}}
+	FindText      string  `json:"findText,omitempty"`   // FindBy text: chữ cần tìm; nhận {{biến}}
+	TextExact     bool    `json:"textExact,omitempty"`  // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
+	TextAccent    bool    `json:"textAccent,omitempty"` // FindBy text: so đúng dấu (mặc định bỏ qua dấu – OCR hay đọc lệch dấu)
+	Occurrence    int     `json:"occurrence,omitempty"` // FindBy text: chỗ thứ mấy (trên → dưới, trái → phải); 0 = chỗ đầu
 	// Đọc phần tử (bước 37 E4): FindBy "" = tìm bằng cây phần tử (Selectors) | text = tìm nhãn bằng OCR (FindText…)
 	ReadNear    string `json:"readNear,omitempty"`    // "" = đọc chính phần tử | right / below = OCR chữ bên phải / bên dưới nhãn
 	ReadSpan    int    `json:"readSpan,omitempty"`    // ReadNear: khoảng đọc tính từ mép nhãn (px); 0 = 300

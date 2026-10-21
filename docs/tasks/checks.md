@@ -18,6 +18,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 - [ ] Mẫu thử *Click theo chữ tiếng Việt có dấu* (Windows, 100 % và 125 %) → Bấm đúng “Bản” = 5, Bấm nhầm = 0
 - [ ] App thật / web tiếng Việt: Chờ chữ / Click theo chữ có dấu (vd “Đăng nhập”, “Lưu thay đổi”) – tìm đúng, khung click trúng chữ; chữ trắng trên nút màu cũng thấy
+- [ ] Node Chờ / Click theo chữ mới: công tắc *Bỏ qua dấu* bật sẵn – tìm “he thong” thấy “hệ thống”; tắt đi thì “hê thông” không khớp “hệ thống”. Kịch bản cũ mở lên vẫn chạy (node trước đây không bật bỏ dấu giờ cũng bỏ dấu)
 - [ ] Exe tải từ GitHub Actions chạy trên máy Windows sạch (chưa cài Tesseract): đọc chữ có dấu được ngay, thư mục `%LOCALAPPDATA%\autoclicker\tesseract-…` tự tạo
 - [ ] Node Chờ chữ vùng cả màn: không thấy giật chuột / UI chậm rõ khi chờ lâu (mỗi lần đọc cả màn ~0,8 s)
 - [ ] AI `describe_screen` trên Windows trả chữ có dấu đúng

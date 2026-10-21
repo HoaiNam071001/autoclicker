@@ -138,7 +138,7 @@ export function TextSearchFields({ step: s, label = 'Chữ cần tìm', placehol
       {empty && <span className={errText}>Chưa nhập chữ – chạy sẽ báo lỗi</span>}
     </Field>
     <SwitchField label="Cả dòng" help="Chỉ khớp ô / nút chỉ có đúng chữ này (tránh khớp trong câu dài)" on={!!s.textExact} onChange={(textExact) => set({ textExact: textExact || undefined })} />
-    <SwitchField label="Bỏ qua dấu" help="Khi máy đọc sai dấu tiếng Việt" on={!!s.textNoAccent} onChange={(textNoAccent) => set({ textNoAccent: textNoAccent || undefined })} />
+    <SwitchField label="Bỏ qua dấu" help="Tắt nếu cần phân biệt dấu (vd “đá” với “đã”)" on={!s.textAccent} onChange={(v) => set({ textAccent: v ? undefined : true })} />
     <Field label="Chỗ thứ" help="Chữ hiện nhiều lần → chỗ thứ mấy tính từ trên xuống, trái sang phải">
       <NumInput value={Math.max(s.occurrence ?? 1, 1)} min={1} stepper onChange={(n) => set({ occurrence: n > 1 ? n : undefined })} />
     </Field>

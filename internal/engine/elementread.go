@@ -126,7 +126,7 @@ func (e *Engine) readByText(s model.Step, area model.Rect) (readGot, error) {
 	if err != nil {
 		return readGot{}, err
 	}
-	hits := vision.FindText(lines, vision.TextQuery{Text: s.FindText, Exact: s.TextExact, NoAccent: s.TextNoAccent})
+	hits := vision.FindText(lines, vision.TextQuery{Text: s.FindText, Exact: s.TextExact, NoAccent: !s.TextAccent})
 	n := max(s.Occurrence, 1)
 	if len(hits) < n {
 		read := vision.ReadLines(lines, 40)
@@ -200,7 +200,7 @@ func (e *Engine) reader(s model.Step) (func() (readGot, error), string, error) {
 		}
 		return func() (readGot, error) { return e.readByText(s, area) }, "chữ cạnh nhãn “" + s.FindText + "”", nil
 	}
-	q, err := elementQuery(s.Selectors, s.TextNoAccent, s.Occurrence, e.elementArea(s))
+	q, err := elementQuery(s.Selectors, !s.TextAccent, s.Occurrence, e.elementArea(s))
 	if err != nil {
 		return nil, "", err
 	}

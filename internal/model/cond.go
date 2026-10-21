@@ -23,7 +23,7 @@ type Cond struct {
 	SearchArea    string   `json:"searchArea,omitempty"`
 	FindText      string   `json:"findText,omitempty"` // nhận {{biến}}
 	TextExact     bool     `json:"textExact,omitempty"`
-	TextNoAccent  bool     `json:"textNoAccent,omitempty"`
+	TextAccent    bool     `json:"textAccent,omitempty"` // so đúng dấu (mặc định bỏ qua dấu)
 	Occurrence    int      `json:"occurrence,omitempty"`
 	Selectors     []string `json:"selectors,omitempty"`  // element: cách tìm phần tử (text= / aria= / role=); nhận {{biến}}
 	ElementApp    string   `json:"elementApp,omitempty"` // element: tên app ("" = app có cửa sổ trên cùng); nhận {{biến}}
@@ -53,7 +53,7 @@ const (
 func (c Cond) Probe(key string) Step {
 	s := Step{
 		ID: key, Type: StepWaitImage, Template: c.Template, TemplateScale: c.TemplateScale, Threshold: c.Threshold,
-		MatchMode: c.MatchMode, ColorTol: c.ColorTol, SearchArea: c.SearchArea, FindText: c.FindText, TextExact: c.TextExact, TextNoAccent: c.TextNoAccent, Occurrence: c.Occurrence,
+		MatchMode: c.MatchMode, ColorTol: c.ColorTol, SearchArea: c.SearchArea, FindText: c.FindText, TextExact: c.TextExact, TextAccent: c.TextAccent, Occurrence: c.Occurrence,
 		Selectors: c.Selectors, ElementApp: c.ElementApp,
 	}
 	switch c.Kind {

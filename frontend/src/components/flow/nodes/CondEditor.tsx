@@ -112,7 +112,7 @@ export default function CondEditor({ ctx, at, screenOnly = false }: { ctx: CondC
             {!c.findText?.trim() && <span className={errText}>Chưa nhập chữ – chạy sẽ báo lỗi.</span>}
           </Row>
           <SwitchField label="Cả dòng" help="Chỉ khớp ô / nút chỉ có đúng chữ này" on={!!c.textExact} onChange={(v) => upd({ textExact: v || undefined })} />
-          <SwitchField label="Bỏ qua dấu" on={!!c.textNoAccent} onChange={(v) => upd({ textNoAccent: v || undefined })} />
+          <SwitchField label="Bỏ qua dấu" on={!c.textAccent} onChange={(v) => upd({ textAccent: v ? undefined : true })} />
           {area}
         </>
       )}

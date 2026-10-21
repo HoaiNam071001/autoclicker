@@ -59,6 +59,11 @@ func TestMatchText(t *testing.T) {
 		{"Đăng nhập", "dang nhap", true, true, true},
 		{"Đăng nhập ngay", "đăng nhập", true, false, false},
 		{"bất kỳ", "", false, false, false},
+		// dấu tách rời (NFD): "hệ thống" = e + dấu nặng + dấu mũ, o + dấu mũ + dấu sắc
+		{"Mở rộng node hệ thống", "he thong", false, true, true},
+		{"Mở rộng node hệ thống", "hệ thống", false, false, true},
+		{"hệ thống", "hệ thống", true, false, true},
+		{"hệ thống", "hê thông", false, false, false},
 	}
 	for _, c := range cases {
 		if got := MatchText(c.got, c.want, c.exact, c.noAccent); got != c.ok {

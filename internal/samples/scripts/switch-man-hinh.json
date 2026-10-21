@@ -24,7 +24,6 @@
       "cond": {
        "kind": "text",
        "findText": "QUANG CAO",
-       "textNoAccent": true,
        "searchArea": "screen"
       }
      },
@@ -34,7 +33,6 @@
       "cond": {
        "kind": "text",
        "findText": "DANG NHAP",
-       "textNoAccent": true,
        "searchArea": "screen"
       }
      },
@@ -44,7 +42,6 @@
       "cond": {
        "kind": "text",
        "findText": "TRANG CHU",
-       "textNoAccent": true,
        "searchArea": "screen"
       }
      }
@@ -55,7 +52,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "DONG QUANG CAO",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 600
@@ -65,7 +61,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "TIEP TUC",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 600

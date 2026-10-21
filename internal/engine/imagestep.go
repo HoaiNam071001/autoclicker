@@ -177,7 +177,7 @@ func locateText(scr device.Screen, ocr device.TextReader, area model.Rect, s mod
 	if err != nil {
 		return model.Rect{}, nil, false, err
 	}
-	hits := vision.FindText(lines, vision.TextQuery{Text: s.FindText, Exact: s.TextExact, NoAccent: s.TextNoAccent})
+	hits := vision.FindText(lines, vision.TextQuery{Text: s.FindText, Exact: s.TextExact, NoAccent: !s.TextAccent})
 	n := max(s.Occurrence, 1)
 	k := vision.ImageScale(img, area)
 	if len(hits) < n {

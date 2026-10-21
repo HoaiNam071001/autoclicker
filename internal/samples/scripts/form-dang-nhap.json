@@ -19,7 +19,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "TEN TAI KHOAN",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 200,
@@ -35,7 +34,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "MAT KHAU",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 200,
@@ -63,7 +61,6 @@
       "cond": {
        "kind": "text",
        "findText": "XIN CHAO",
-       "textNoAccent": true,
        "searchArea": "screen"
       }
      },
@@ -73,7 +70,6 @@
       "cond": {
        "kind": "text",
        "findText": "SAI THONG TIN",
-       "textNoAccent": true,
        "searchArea": "screen"
       }
      }

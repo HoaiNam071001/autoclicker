@@ -19,7 +19,6 @@
     "type": "waitImage",
     "findBy": "text",
     "findText": "BANG VE",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 10000
    },

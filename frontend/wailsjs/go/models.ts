@@ -578,7 +578,7 @@ export namespace model {
 	    searchArea?: string;
 	    findText?: string;
 	    textExact?: boolean;
-	    textNoAccent?: boolean;
+	    textAccent?: boolean;
 	    occurrence?: number;
 	    selectors?: string[];
 	    elementApp?: string;
@@ -606,7 +606,7 @@ export namespace model {
 	        this.searchArea = source["searchArea"];
 	        this.findText = source["findText"];
 	        this.textExact = source["textExact"];
-	        this.textNoAccent = source["textNoAccent"];
+	        this.textAccent = source["textAccent"];
 	        this.occurrence = source["occurrence"];
 	        this.selectors = source["selectors"];
 	        this.elementApp = source["elementApp"];
@@ -1129,7 +1129,7 @@ export namespace model {
 	    elementApp?: string;
 	    findText?: string;
 	    textExact?: boolean;
-	    textNoAccent?: boolean;
+	    textAccent?: boolean;
 	    occurrence?: number;
 	    readNear?: string;
 	    readSpan?: number;
@@ -1249,7 +1249,7 @@ export namespace model {
 	        this.elementApp = source["elementApp"];
 	        this.findText = source["findText"];
 	        this.textExact = source["textExact"];
-	        this.textNoAccent = source["textNoAccent"];
+	        this.textAccent = source["textAccent"];
 	        this.occurrence = source["occurrence"];
 	        this.readNear = source["readNear"];
 	        this.readSpan = source["readSpan"];

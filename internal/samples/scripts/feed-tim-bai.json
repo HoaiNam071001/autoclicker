@@ -19,7 +19,6 @@
     "type": "waitImage",
     "findBy": "text",
     "findText": "FEED MANG XA HOI",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 10000
    },
@@ -28,7 +27,6 @@
     "cond": {
      "kind": "text",
      "findText": "THA TIM BAI NAY",
-     "textNoAccent": true,
      "searchArea": "screen"
     }
    },
@@ -37,7 +35,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "THA TIM BAI NAY",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 600

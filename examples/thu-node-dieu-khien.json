@@ -200,8 +200,7 @@
           {
             "kind": "text",
             "findText": "{{tu_khoa}}",
-            "searchArea": "screen",
-            "textNoAccent": true
+            "searchArea": "screen"
           }
         ]
       }

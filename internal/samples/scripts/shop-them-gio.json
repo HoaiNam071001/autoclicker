@@ -26,7 +26,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "MUA {{mon}}",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 300
@@ -51,7 +50,6 @@
     "type": "waitImage",
     "findBy": "text",
     "findText": "GIO: {{so_luong}} MON",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 3000
    },

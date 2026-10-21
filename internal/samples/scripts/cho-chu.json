@@ -18,7 +18,6 @@
     "type": "waitImage",
     "findBy": "text",
     "findText": "DA XONG",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 15000
    },

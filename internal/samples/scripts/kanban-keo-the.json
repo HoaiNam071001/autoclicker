@@ -34,7 +34,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "VIEC {{vars.i}}",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 200,

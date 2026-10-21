@@ -27,7 +27,7 @@ export function ElementQueryFields({ step: s }: { step: Step }) {
         <VarTextInput value={s.elementApp ?? ''} onChange={(v) => set({ elementApp: v || undefined })} inputs={script.inputs ?? []} nodeVars={nodeVars}
           onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} rows={1} compact placeholder="trống = cửa sổ trên cùng" />
       </Field>
-      <SwitchField label="Bỏ qua dấu" on={!!s.textNoAccent} onChange={(textNoAccent) => set({ textNoAccent: textNoAccent || undefined })} />
+      <SwitchField label="Bỏ qua dấu" on={!s.textAccent} onChange={(v) => set({ textAccent: v ? undefined : true })} />
       <Field label="Chỗ thứ" help="Nhiều phần tử khớp thì lấy cái thứ mấy (theo thứ tự đọc)">
         <NumInput value={Math.max(s.occurrence ?? 1, 1)} min={1} stepper onChange={(n) => set({ occurrence: n > 1 ? n : undefined })} />
       </Field>

@@ -14,7 +14,7 @@
    { "type": "waitImage", "findBy": "text", "findText": "MUA NGAY", "searchArea": "screen", "timeoutMs": 10000 },
    { "type": "waitUntil", "at": "{{gio}}" },
    { "type": "clickImage", "imageSource": "node", "imageFrom": "s2", "human": "off", "delayAfter": 200 },
-   { "type": "waitImage", "findBy": "text", "findText": "THANH CONG", "textNoAccent": true, "searchArea": "screen", "timeoutMs": 5000 },
+   { "type": "waitImage", "findBy": "text", "findText": "THANH CONG", "searchArea": "screen", "timeoutMs": 5000 },
    { "type": "screenshot", "shotArea": "node", "imageFrom": "s5", "fileName": "san-sale-{{gio}}" },
    { "type": "end", "endStatus": "success", "message": "Đặt được – chạy tiếp lúc {{n3.output.firedAt}} (trễ {{n3.output.lateMs}} ms so với giờ hẹn), bằng chứng {{n6.output.path}}" }
   ],

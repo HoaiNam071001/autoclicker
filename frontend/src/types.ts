@@ -58,7 +58,7 @@ export interface Cond {
   kind: CondKind;
   not?: boolean; // đảo kết quả
   template?: string; templateScale?: number; threshold?: number; matchMode?: MatchMode; colorTol?: number; searchArea?: string; // image (như Chờ ảnh)
-  findText?: string; textExact?: boolean; textNoAccent?: boolean; occurrence?: number; // text, nhận {{biến}}
+  findText?: string; textExact?: boolean; textAccent?: boolean; occurrence?: number; // text, nhận {{biến}}
   selectors?: string[]; elementApp?: string; // element (bước 37): như Chờ ảnh tìm theo phần tử, nhận {{biến}}
   points?: StepPoint[]; color?: string; tolerance?: number; // pixel: points[0]
   left?: string; op?: CondOp; right?: string; // value: so 2 vế, nhận {{biến}}
@@ -142,7 +142,7 @@ export interface Step extends AdvancedFields {
   elementApp?: string; // findBy element: tên app / bundle id, trống = app có cửa sổ trên cùng; nhận {{biến}}
   findText?: string; // chữ cần tìm, nhận {{biến}}
   textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
-  textNoAccent?: boolean; // bỏ qua dấu
+  textAccent?: boolean; // so đúng dấu (mặc định bỏ qua dấu)
   occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu
   // Đọc phần tử (bước 37 E4, engine/elementread.go): findBy text = tìm nhãn bằng OCR
   readNear?: 'right' | 'below'; // OCR chữ bên phải / bên dưới nhãn; bỏ trống = đọc chính phần tử

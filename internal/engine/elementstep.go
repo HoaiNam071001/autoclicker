@@ -78,7 +78,7 @@ func elementHit(n element.Node) hit {
 // findElementStep chờ tới khi thấy phần tử đang hiện; bị kẹp ở mép (ngoài khung nhìn) thì cuộn tới rồi đo lại lần sau.
 // settle: đọc lại lần nữa, khung phải đứng yên (click).
 func (e *Engine) findElementStep(ctx context.Context, s model.Step, settle bool) (hit, error) {
-	q, err := elementQuery(s.Selectors, s.TextNoAccent, s.Occurrence, e.elementArea(s))
+	q, err := elementQuery(s.Selectors, !s.TextAccent, s.Occurrence, e.elementArea(s))
 	if err != nil {
 		return hit{}, err
 	}
@@ -147,7 +147,7 @@ func elementNames(nodes []element.Node, n int) []string {
 // findElementOnce – nút Thử tìm: đọc cây một lần, không cuộn, không chờ.
 func (e *Engine) findElementOnce(s model.Step) (FindResult, error) {
 	area := e.elementArea(s)
-	q, err := elementQuery(s.Selectors, s.TextNoAccent, s.Occurrence, area)
+	q, err := elementQuery(s.Selectors, !s.TextAccent, s.Occurrence, area)
 	if err != nil {
 		return FindResult{}, err
 	}
@@ -178,7 +178,7 @@ type elementRead struct {
 // elementCond – điều kiện "thấy phần tử": có trong cây là đúng (không cuộn – xét điều kiện không làm đổi trang).
 // Mỗi lần xét đọc cây mỗi app một lần dù nhiều điều kiện.
 func (e *Engine) elementCond(c model.Cond, snap *snapshot, part *CondPart) (bool, error) {
-	q, err := elementQuery(c.Selectors, c.TextNoAccent, c.Occurrence, e.elementArea(c.Probe("")))
+	q, err := elementQuery(c.Selectors, !c.TextAccent, c.Occurrence, e.elementArea(c.Probe("")))
 	if err != nil {
 		return false, err
 	}

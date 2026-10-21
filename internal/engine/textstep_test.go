@@ -52,6 +52,7 @@ func TestWaitTextThenClick(t *testing.T) {
 func TestWaitTextTimeout(t *testing.T) {
 	e := newEngine(&devicetest.FakeInput{}, scripttest.Linear(scripttest.TextScript("Xem lịch sử")), nil)
 	e.sc.Steps[0].TimeoutMs = 5
+	e.sc.Steps[0].TextAccent = true // so đúng dấu – mặc định bỏ dấu thì "Xem lich su" đã khớp
 	e.scr, e.ocr = &fakeScreen{frames: []image.Image{image.NewRGBA(image.Rect(0, 0, 400, 300))}},
 		&fakeOCR{reads: [][]vision.TextLine{{line("Xem lich su", 0, 0, 100, 20)}}}
 	err := e.Run(context.Background())

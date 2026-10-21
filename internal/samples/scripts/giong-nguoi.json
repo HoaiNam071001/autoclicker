@@ -11,11 +11,11 @@
   "human": "medium",
   "steps": [
    {"type": "open", "target": "{{sandbox}}/human.html", "delayAfter": 2500},
-   {"type": "waitImage", "findBy": "text", "findText": "VET CHUOT", "textNoAccent": true, "searchArea": "screen", "timeoutMs": 10000},
-   {"type": "clickImage", "imageSource": "search", "findBy": "text", "findText": "DIEM A", "textNoAccent": true, "textExact": true, "searchArea": "screen", "timeoutMs": 5000, "delayAfter": 300},
-   {"type": "clickImage", "imageSource": "search", "findBy": "text", "findText": "DIEM B", "textNoAccent": true, "textExact": true, "searchArea": "screen", "timeoutMs": 5000, "delayAfter": 300},
-   {"type": "clickImage", "imageSource": "search", "findBy": "text", "findText": "DIEM C", "textNoAccent": true, "textExact": true, "searchArea": "screen", "timeoutMs": 5000, "delayAfter": 300},
-   {"type": "clickImage", "imageSource": "search", "findBy": "text", "findText": "O GO", "textNoAccent": true, "textExact": true, "searchArea": "screen", "timeoutMs": 5000, "delayAfter": 200},
+   {"type": "waitImage", "findBy": "text", "findText": "VET CHUOT", "searchArea": "screen", "timeoutMs": 10000},
+   {"type": "clickImage", "imageSource": "search", "findBy": "text", "findText": "DIEM A", "textExact": true, "searchArea": "screen", "timeoutMs": 5000, "delayAfter": 300},
+   {"type": "clickImage", "imageSource": "search", "findBy": "text", "findText": "DIEM B", "textExact": true, "searchArea": "screen", "timeoutMs": 5000, "delayAfter": 300},
+   {"type": "clickImage", "imageSource": "search", "findBy": "text", "findText": "DIEM C", "textExact": true, "searchArea": "screen", "timeoutMs": 5000, "delayAfter": 300},
+   {"type": "clickImage", "imageSource": "search", "findBy": "text", "findText": "O GO", "textExact": true, "searchArea": "screen", "timeoutMs": 5000, "delayAfter": 200},
    {"type": "type", "text": "xin chao, day la nhip go giong nguoi", "delayAfter": 300},
    {"type": "end", "endStatus": "success", "message": "Xong – xem vệt chuột và nhịp gõ trên trang"}
   ]

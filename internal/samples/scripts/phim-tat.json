@@ -19,7 +19,6 @@
     "type": "waitImage",
     "findBy": "text",
     "findText": "O GO CHU",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 10000
    },

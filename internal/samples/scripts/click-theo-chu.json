@@ -19,7 +19,6 @@
     "imageSource": "search",
     "findBy": "text",
     "findText": "BAM VAO TOI",
-    "textNoAccent": true,
     "searchArea": "screen",
     "timeoutMs": 5000,
     "delayAfter": 600
