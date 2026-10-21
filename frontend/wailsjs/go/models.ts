@@ -1204,6 +1204,7 @@ export namespace model {
 	    minCount?: number;
 	    maxCount?: number;
 	    occurrence?: number;
+	    pageAll?: boolean;
 	    readNear?: string;
 	    readSpan?: number;
 	    readPattern?: string;
@@ -1354,6 +1355,7 @@ export namespace model {
 	        this.minCount = source["minCount"];
 	        this.maxCount = source["maxCount"];
 	        this.occurrence = source["occurrence"];
+	        this.pageAll = source["pageAll"];
 	        this.readNear = source["readNear"];
 	        this.readSpan = source["readSpan"];
 	        this.readPattern = source["readPattern"];

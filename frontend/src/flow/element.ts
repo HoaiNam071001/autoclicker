@@ -28,6 +28,13 @@ export function fmtElementRead(s: Step): string {
   return `nhãn “${s.findText}”${nth} (OCR)${near}${filter} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
 }
 
+// Dòng chi tiết node Đọc chữ trang: cả cửa sổ Google Chrome · gồm phần ngoài khung nhìn · tối đa 10 s
+export function fmtPageText(s: Step): string {
+  const app = s.elementApp?.trim() || 'app trên cùng';
+  const scope = s.selectors?.some((l) => l.trim()) ? `trong ${firstSelector(s.selectors)} · ${app}` : `cả cửa sổ ${app}`;
+  return `${scope}${s.pageAll ? ' · gồm phần ngoài khung nhìn' : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
+}
+
 // Dòng cách tìm không dùng được cho phần tử màn hình (css / xpath chỉ có ở node web) – khớp CheckSelector (element/find.go).
 // Dòng có {{biến}} chỉ biết lúc chạy. '' = ổn.
 export function elementSelectorError(selectors?: string[]): string {

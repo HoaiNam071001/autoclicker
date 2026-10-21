@@ -71,6 +71,7 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
     case 'screenshot': return { ...s, saveDir: s.saveDir && f(s.saveDir), fileName: s.fileName && f(s.fileName) };
     case 'waitImage': case 'clickImage': case 'findAll': return s.findBy === 'text' ? { ...s, findText: f(s.findText ?? '') }
       : s.findBy === 'element' ? { ...s, selectors: s.selectors?.map(f), elementApp: s.elementApp && f(s.elementApp) } : s;
+    case 'pageText': return { ...s, selectors: s.selectors?.map(f), elementApp: s.elementApp && f(s.elementApp) };
     case 'elementRead': return s.findBy === 'text' ? { ...s, findText: f(s.findText ?? '') }
       : { ...s, selectors: s.selectors?.map(f), elementApp: s.elementApp && f(s.elementApp) };
     case 'webWait': case 'webClick': case 'webRead': return { ...s, selectors: s.selectors?.map(f), tab: s.tab && f(s.tab) };

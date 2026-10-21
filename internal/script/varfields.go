@@ -65,7 +65,7 @@ func VarFields(s *model.Step) []VarField {
 		}
 	case model.StepWebKey:
 		add("tab", &s.Tab, false)
-	case model.StepElementRead:
+	case model.StepElementRead, model.StepPageText:
 		if s.FindBy == model.FindByText {
 			add("findText", &s.FindText, false)
 			break

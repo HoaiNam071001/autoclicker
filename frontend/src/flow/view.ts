@@ -202,6 +202,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'webClick': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...WEB_FOUND];
     case 'webType': return [{ key: 'text', desc: 'chữ đã gõ (sau khi thay biến)' }, { key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' },
       ...WEB_FOUND.filter((f) => f.key !== 'text')];
+    case 'pageText': return [{ key: 'text', desc: 'toàn bộ chữ, mỗi khối một dòng' }, { key: 'lines', desc: 'mảng các dòng (nối vào Lặp qua danh sách)' }, { key: 'count', desc: 'số dòng' }];
     case 'elementRead': return [{ key: 'text', desc: s.readPattern || s.readNumber ? 'giá trị sau khi lọc' : 'chữ / giá trị đọc được' },
       ...(s.readPattern || s.readNumber ? [{ key: 'raw', desc: 'chữ đọc được trước khi lọc' }] : []),
       ...(s.readChange ? [{ key: 'old', desc: 'giá trị trước khi đổi' }] : []),

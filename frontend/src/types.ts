@@ -18,7 +18,7 @@ export type MatchMode = '' | 'edge';
 // Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
 export type Retry = { count?: number; delayMs?: number };
 // Node hay "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại (thử lại)
-export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'browserTab', 'browserGo', 'browserNorm', 'waitUntil', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'webKey', 'elementRead', 'open'];
+export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'browserTab', 'browserGo', 'browserNorm', 'waitUntil', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'webKey', 'elementRead', 'pageText', 'open'];
 
 // ---- Flow (bước 20, flow.go) ----
 // Cạnh: node from đi ra cổng port thì chạy node to. Mỗi cổng tối đa một cạnh. Khớp Edge trong model.go.
@@ -45,7 +45,7 @@ const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = 
 void edgeMatchesGo, resultMatchesGo;
 
 export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'findAll' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'browserTab' | 'browserGo' | 'browserNorm' | 'waitUntil' | 'path'
-  | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead';
+  | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead' | 'pageText';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'forEach' | 'end' | 'setVar' | 'calc' | TextType;
 export type StepType = ActionType | ControlType;
@@ -155,7 +155,7 @@ export interface Step extends AdvancedFields, TextFields {
   readSpan?: number; // khoảng đọc từ mép nhãn (px), 0 = 300
   readPattern?: string; // lọc theo regex (nhóm () đầu nếu có); không khớp = chờ đọc lại
   readNumber?: boolean; // chuẩn hoá số: 1.234.000₫ → 1234000
-  readChange?: boolean; // chờ giá trị đổi so với lần đọc đầu
+  readChange?: boolean; pageAll?: boolean; // chờ giá trị đổi so với lần đọc đầu | pageText: gồm cả phần ngoài khung nhìn
   retry?: Retry; // thất bại thì thử lại; hết lượt → cổng fail (internal/engine/flowrun.go execNode)
   numVars?: NumVar[]; // trường số lấy từ biến (F5c) – giá trị lúc chạy thay cho trường đó
   human?: HumanLevel; // mức giống người riêng của node – trống = theo kịch bản (bước 34)
@@ -278,6 +278,7 @@ export const STEP_LABEL: Record<StepType, string> = {
   webType: 'Gõ vào ô web',
   webRead: 'Đọc phần tử web',
   elementRead: 'Đọc phần tử',
+  pageText: 'Đọc chữ trang',
   webScroll: 'Cuộn trang web',
   webKey: 'Phím trên trang web',
   if: 'Nếu',

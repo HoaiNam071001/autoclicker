@@ -11,6 +11,7 @@ import { fmtFile } from '../../flow/file';
 import { fmtSystem } from '../../flow/system';
 import { fmtWindow } from '../../flow/window';
 import { fmtApp } from '../../flow/app';
+import { fmtPageText } from '../../flow/element';
 import { fmtBrowserGo, fmtBrowserNorm, fmtBrowserTab } from '../../flow/browserTab';
 import { fmtWaitUntil } from '../../flow/waitUntil';
 import { pathVertices } from '../../flow/shape';
@@ -47,6 +48,7 @@ function bubbleOf(s: Step): string | null {
     case 'waitUntil': return `⏰ Chờ ${fmtWaitUntil(s)} – xem trước không chờ thật`;
     case 'system': return `🔊 ${fmtSystem(s)}`;
     case 'app': return `🧩 Ứng dụng: ${fmtApp(s)} – xem trước không đụng app thật`;
+    case 'pageText': return `📄 Đọc chữ trang: ${fmtPageText(s)} – chữ biết khi chạy thật`;
     case 'browserGo': return `🗂 Đi tới URL: ${fmtBrowserGo(s, refOf)} – xem trước không đụng trình duyệt thật`;
     case 'browserNorm': return `🗂 Chuẩn hoá trình duyệt: ${fmtBrowserNorm(s, refOf)} – xem trước không đụng trình duyệt thật`;
     case 'browserTab': return `🗂 Tab trình duyệt: ${fmtBrowserTab(s, refOf)} – xem trước không đụng trình duyệt thật`;

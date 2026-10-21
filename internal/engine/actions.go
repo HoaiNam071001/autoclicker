@@ -78,6 +78,8 @@ func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[strin
 		return e.webScroll(ctx, s)
 	case model.StepElementRead:
 		return e.elementRead(ctx, s)
+	case model.StepPageText:
+		return e.pageText(ctx, s)
 	case model.StepScreenshot:
 		return e.screenshot(ctx, s)
 	case model.StepWaitScreen:

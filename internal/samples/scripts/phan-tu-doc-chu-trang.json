@@ -1,0 +1,28 @@
+{
+ "meta": {
+  "name": "Phần tử – đọc toàn bộ chữ trang",
+  "description": "Mở trang Bảng giá rồi đọc mọi chữ đang hiện trong cửa sổ trình duyệt (qua Accessibility, không OCR) vào {{n2.output.text}}. Đúng: lời kết ghi số dòng đọc được và các tên món + giá theo thứ tự trên trang. Cần quyền Accessibility, cửa sổ trình duyệt đang hiện.",
+  "level": 1,
+  "app": "Phần tử",
+  "page": "price-list.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/price-list.html",
+    "delayAfter": 3000
+   },
+   {
+    "type": "pageText",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "{{n2.output.count}} dòng: {{n2.output.text}}"
+   }
+  ]
+ }
+}

@@ -72,6 +72,7 @@ type Step struct {
 	MinCount      int     `json:"minCount,omitempty"`   // findAll: cần thấy ít nhất chừng này chỗ (0 = 1) – chưa đủ thì chờ tiếp
 	MaxCount      int     `json:"maxCount,omitempty"`   // findAll: thấy nhiều hơn chừng này chỗ → chờ tiếp / cổng fail (0 = không giới hạn)
 	Occurrence    int     `json:"occurrence,omitempty"` // FindBy text / phần tử / node web: chỗ thứ mấy (trên → dưới, trái → phải; web: thứ tự trong trang trong số phần tử đang hiện); 0 = chỗ đầu (web: chỗ bấm được đầu tiên)
+	PageAll       bool    `json:"pageAll,omitempty"`    // pageText: đọc cả phần ngoài khung nhìn (mặc định chỉ chữ đang hiện)
 	// Đọc phần tử (bước 37 E4): FindBy "" = tìm bằng cây phần tử (Selectors) | text = tìm nhãn bằng OCR (FindText…)
 	ReadNear    string `json:"readNear,omitempty"`    // "" = đọc chính phần tử | right / below = OCR chữ bên phải / bên dưới nhãn
 	ReadSpan    int    `json:"readSpan,omitempty"`    // ReadNear: khoảng đọc tính từ mép nhãn (px); 0 = 300

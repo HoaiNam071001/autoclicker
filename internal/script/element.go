@@ -3,6 +3,7 @@ package script
 import (
 	"errors"
 	"regexp"
+	"slices"
 	"strings"
 
 	"ghosthand/internal/element"
@@ -66,4 +67,14 @@ func checkElementSelectors(lines []string) error {
 		return errors.New("chưa nhập cách tìm phần tử")
 	}
 	return nil
+}
+
+// checkPageText – node Đọc chữ trang: selectors có thể trống (đọc cả cửa sổ); có thì phải là text= / aria= / role=.
+func checkPageText(i int, s model.Step) error {
+	if slices.ContainsFunc(s.Selectors, func(l string) bool { return strings.TrimSpace(l) != "" }) {
+		if err := checkElementSelectors(s.Selectors); err != nil {
+			return stepErr(i, s, "selectors", "%v", err)
+		}
+	}
+	return checkFindWait(i, s)
 }

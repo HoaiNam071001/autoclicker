@@ -41,6 +41,7 @@ const (
 	StepWebKey    = "webKey"    // bấm Keys (+ Modifiers, KeyMode) vào tab qua CDP – không cần Chrome ở trước (46 B3)
 
 	// Phần tử màn hình qua Accessibility (bước 37, engine/elementstep.go) – Chờ / Click dùng waitImage / clickImage FindBy element
+	StepPageText    = "pageText"    // đọc toàn bộ chữ trong cửa sổ app / trang trình duyệt thường (hoặc trong một phần tử) qua cây accessibility (engine/pagetext.go, bước 43 B4)
 	StepElementRead = "elementRead" // chờ phần tử có trong cửa sổ app rồi đọc chữ / giá trị (không di chuột, không cuộn)
 
 	// Node điều khiển (bước 20 F3, nodes.go) – không làm gì trên màn hình ngoài nhìn, chọn cổng ra theo kết quả.
@@ -63,7 +64,7 @@ const (
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
 	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepBrowserTab, StepBrowserGo, StepBrowserNorm, StepWebWait, StepWebClick,
-	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc,
+	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepPageText, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc,
 	StepTextMatch, StepTextSplit, StepTextClean, StepTextNumber}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.

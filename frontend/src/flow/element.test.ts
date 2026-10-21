@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeStep, stepLabel, type Step } from '../types';
-import { elementSelectorError, firstSelector, fmtElement, fmtElementRead, patternError } from './element';
+import { elementSelectorError, firstSelector, fmtElement, fmtElementRead, fmtPageText, patternError } from './element';
 import { condMissing, condText } from './view';
 
 const wait = (p: Partial<Step>) =>
@@ -40,5 +40,13 @@ describe('phần tử màn hình', () => {
   it('elementSelectorError', () => {
     expect(elementSelectorError(['text=Mua', 'role=button[name="Gửi"]', '{{cach}}'])).toBe('');
     expect(elementSelectorError(['Mua', 'css=.buy'])).toContain('“css=.buy”');
+  });
+});
+
+describe('fmtPageText', () => {
+  it('cả cửa sổ / trong phần tử', () => {
+    const s = { elementApp: 'Google Chrome', timeoutMs: 10000 } as Step;
+    expect(fmtPageText(s)).toBe('cả cửa sổ Google Chrome · tối đa 10 s');
+    expect(fmtPageText({ ...s, selectors: ['role=table'], pageAll: true })).toContain('trong “role=table” · Google Chrome · gồm phần ngoài khung nhìn');
   });
 });

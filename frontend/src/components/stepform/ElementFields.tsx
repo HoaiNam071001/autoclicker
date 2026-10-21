@@ -12,15 +12,17 @@ import { pickElement, testFind, useImageState } from '../../imageSteps';
 import { inWails, openOverlay } from '../../windowMode';
 import { FindAllResult } from './FindAllResult';
 
-export function ElementQueryFields({ step: s }: { step: Step }) {
+// optional: cách tìm có thể trống (node Đọc chữ trang: trống = cả cửa sổ)
+export function ElementQueryFields({ step: s, optional }: { step: Step; optional?: boolean }) {
   const script = useScript();
   const nodeVars = useNodeVars(s.id);
   const set = (patch: Partial<Step>) => updateStep(s.id, patch);
   const bad = elementSelectorError(s.selectors);
   return (
     <>
-      <SelectorsField step={s} label="Cách tìm phần tử" value={s.selectors} onChange={(selectors) => set({ selectors })}
-        placeholder={'text=₫\naria=Thêm vào giỏ\nrole=button[name="Mua ngay"]'} emptyText="Chưa nhập cách tìm – chạy sẽ báo lỗi"
+      <SelectorsField step={s} label={optional ? 'Chỉ đọc trong phần tử' : 'Cách tìm phần tử'} value={s.selectors} onChange={(selectors) => set({ selectors })}
+        placeholder={optional ? 'trống = cả cửa sổ\nrole=table\nrole=dialog' : 'text=₫\naria=Thêm vào giỏ\nrole=button[name="Mua ngay"]'}
+        emptyText={optional ? 'Trống – đọc cả cửa sổ' : 'Chưa nhập cách tìm – chạy sẽ báo lỗi'}
         help={'text= chữ trên phần tử (chứa; text="Gửi" = đúng cả chuỗi), aria= nhãn (nút chỉ có icon), role=button[name="Gửi"] vai trò + tên.'}>
         {bad && <span className={errText}>{bad}</span>}
       </SelectorsField>
