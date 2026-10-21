@@ -8,6 +8,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"ghosthand/internal/store"
+	"ghosthand/internal/web"
 )
 
 // Thử trang + ưu tiên node (bước 44): probe_page mở trang trên Chrome của app, dò captcha / chặn bot / canvas → AI
@@ -17,6 +18,7 @@ import (
 var nodePrefTips = map[string]string{
 	store.NodePrefWeb: `Ưu tiên node web (Cài đặt / set_node_preference): việc trên trang web → probe_page(url) trước.
 - verdict ok: node open (webBrowser true – Chrome của app) + webWait / webClick / webType / webRead / webScroll, selector lấy từ outline (sel) – chính xác hơn tìm chữ / ảnh.
+- Trang đã mở và đang thao tác dở (hộp thoại, popup): read_web_outline(dialog: true) lấy selector thật của ô / nút trong hộp thoại, thay vì đoán rồi chạy thử.
 - loading (trang tải lâu): chờ vài giây rồi probe_page không url (dò lại tab, không tải lại) – tối đa 2–3 lần, vẫn loading thì screenshot xem trang rồi quyết.
 - captcha / blocked / canvas / empty: dùng node ảnh / chữ (open bằng trình duyệt thường, waitImage / clickImage findBy "text") và nói người dùng lý do (signs).
 - Chrome của app chỉ để trang không cần đăng nhập – không đăng nhập tài khoản thật ở đó (dễ bị captcha / khoá); trang cần đăng nhập dùng trình duyệt thường + node ảnh / chữ.`,
@@ -26,6 +28,11 @@ var nodePrefTips = map[string]string{
 
 type probeIn struct {
 	URL string `json:"url,omitempty" jsonschema:"trang cần thử (https://… hoặc tên miền); bỏ trống = dò lại tab đang mở, không tải lại"`
+}
+
+type outlineIn struct {
+	Tab    string `json:"tab,omitempty" jsonschema:"id tab (lấy từ tabs của lần gọi trước) hoặc chuỗi có trong URL / tiêu đề tab; bỏ trống = tab đang hiện"`
+	Dialog bool   `json:"dialog,omitempty" jsonschema:"true = chỉ phần tử trong hộp thoại (role=dialog) đang mở trên cùng – form sửa / tạo mới"`
 }
 
 type prefIn struct {
@@ -38,6 +45,10 @@ func (s *Server) addWebTools() {
 		"loading (trang tải lâu, chưa hiện gì), useWeb, signs (dấu hiệu), elements, outline (≤ 40 phần tử kèm selector sel dùng được cho node web). " +
 		"Gọi trước khi soạn node web cho một trang. Không truyền url = dò lại tab đang mở, không tải lại: verdict loading hoặc loaded false " +
 		"→ chờ vài giây rồi gọi lại không url (hoặc screenshot để xem trang)."}, s.probePage)
+	addTool(s, KindRead, &mcp.Tool{Name: "read_web_outline", Description: "Đọc cấu trúc trang của tab đang điều khiển trên Chrome của app (không bật trình duyệt, không đụng chuột / phím): " +
+		"outline = từng dòng vai trò \"tên\" = giá trị [trạng thái] selector  – chép selector vào node web; tab = id tab đã đọc; tabs = mọi tab đang mở " +
+		"(id, title, url; đứng đầu = đang dùng) – truyền id vào tab để đọc / ghim tab khác; dialog true = chỉ hộp thoại đang mở (form antd). " +
+		"Khác probe_page: không mở trang, không dò captcha – dùng khi trang đã mở và đang thao tác dở (popup, hộp thoại)."}, s.readWebOutline)
 	addTool(s, KindRead, &mcp.Tool{Name: "get_preferences", Description: "Cài đặt của app ảnh hưởng cách soạn: nodePref (vision | web), " +
 		"mức chạy của AI (run)."}, s.getPrefs)
 	addTool(s, KindSettings, &mcp.Tool{Name: "set_node_preference", Description: "Đổi ưu tiên node khi soạn: vision = node ảnh / chữ (mặc định), " +
@@ -80,4 +91,29 @@ func (s *Server) setPref(_ context.Context, _ *mcp.CallToolRequest, in prefIn) (
 		return fail(err)
 	}
 	return ok(map[string]any{"nodePref": p, "tips": nodePrefTips[p]})
+}
+
+func (s *Server) readWebOutline(ctx context.Context, _ *mcp.CallToolRequest, in outlineIn) (*mcp.CallToolResult, any, error) {
+	o, tabs, err := s.back.ReadOutline(ctx, strings.TrimSpace(in.Tab), in.Dialog)
+	if err != nil {
+		return fail(err)
+	}
+	if !isWebURL(o.URL) { // tab file:// / chrome:// – không đưa nội dung cho AI (như probe_page)
+		return fail(errors.New("tab đang đọc không phải trang http:// / https:// – chọn tab khác bằng tab (id) hoặc mở trang bằng probe_page"))
+	}
+	return ok(map[string]any{
+		"url": o.URL, "title": o.Title, "tab": o.Tab, "tabs": webTabs(tabs), "dialogs": o.Dialogs,
+		"total": o.Total, "outline": o.Text(),
+	})
+}
+
+// webTabs – chỉ tab http(s): tab file:// / chrome:// của người dùng không lộ cho AI.
+func webTabs(tabs []web.Tab) []web.Tab {
+	out := make([]web.Tab, 0, len(tabs))
+	for _, t := range tabs {
+		if isWebURL(t.URL) {
+			out = append(out, t)
+		}
+	}
+	return out
 }

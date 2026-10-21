@@ -3,6 +3,12 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
+## 46 – MCP web tinh chỉnh (A0–A3, A2) · [phase3/46-mcp-web-tinh-chinh.md](phase3/46-mcp-web-tinh-chinh.md)
+
+- [ ] Mở sân thử *Form kiểu antd* (Mẫu thử → trang): để Claude gọi `read_web_outline` với `dialog: true` → thấy ô Mã nhân viên / Ngày sinh / nút Lưu của hộp thoại, không lẫn ô lọc lưới
+- [ ] `webType` vào ô Mã nhân viên (selector role=textbox[name="Mã nhân viên"]) → gõ vào ô trong hộp thoại; `text="Ngày sinh"` và ô Thành phố (focus chậm) gõ được, không báo "không nhận focus"
+- [ ] Trang tự mở popup (window.open) → `probe_page` không url / `read_web_outline` đọc đúng tab popup; truyền `tab` = id tab đọc được tab cũ
+
 ## 45 – đổi tên thành Ghosthand · [phase3/45-doi-ten-ghosthand.md](phase3/45-doi-ten-ghosthand.md)
 
 - [ ] `wails build` → ra `build/bin/ghosthand.exe`; mở lần đầu trên máy đã dùng bản cũ → Cài đặt (theme, thư mục Lưu trữ, API / AI), *Mở gần đây*, lịch sử chạy của kịch bản còn nguyên; `%APPDATA%\autoclicker` đã thành `%APPDATA%\ghosthand`

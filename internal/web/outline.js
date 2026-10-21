@@ -2,7 +2,7 @@
 // tiêu đề, ảnh có alt, vùng chính (nav / main / form / dialog…) đang hiện, cả trong iframe cùng nguồn, theo thứ tự
 // trang. Mỗi dòng kèm selector đã kiểm: find.js tìm selector đó ra đúng phần tử này. Khung theo toạ độ client của
 // trang chính (CSS px). max = số dòng tối đa.
-(max) => {
+(max, onlyDialog) => {
   const ACTIVE = new Set(['button', 'link', 'textbox', 'searchbox', 'checkbox', 'radio', 'switch', 'slider', 'spinbutton',
     'combobox', 'tab', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'option', 'treeitem']);
   const BOXES = new Set(['navigation', 'main', 'form', 'search', 'dialog', 'alertdialog', 'tablist', 'menu', 'menubar',
@@ -52,6 +52,9 @@
     }
     return s;
   };
+  // onlyDialog: chỉ phần tử trong hộp thoại đang mở trên cùng (cuối trang) – form antd nằm ở portal cuối body
+  const dialogs = docs.flatMap(d => Array.from(d.querySelectorAll('[role=dialog], [role=alertdialog], dialog[open]'))).filter(shown);
+  const top = onlyDialog && dialogs.length ? dialogs[dialogs.length - 1] : null;
   const items = [], depth = new Map(); // vùng (BOXES) đã giữ → độ sâu
   let total = 0;
   for (const doc of docs) {
@@ -60,6 +63,7 @@
       if (SKIP.has(tag(el))) continue;
       const role = roleOf(el);
       if (!KEEP(role) || !shown(el)) continue;
+      if (top && !top.contains(el)) continue;
       if (role === 'option' && el.closest('select')) { // không liệt kê, nhưng find.js vẫn đếm khi tìm role=option
         (before.option || (before.option = [])).push(norm(accName(el)));
         continue;
@@ -83,5 +87,5 @@
     try { if (!f.contentDocument) crossFrames++; } catch (e) { crossFrames++; }
   }
   return { url: location.href, title: document.title, viewW: innerWidth, viewH: innerHeight, scrollX: Math.round(scrollX),
-    scrollY: Math.round(scrollY), items, total, crossFrames };
+    scrollY: Math.round(scrollY), items, total, crossFrames, dialogs: dialogs.length };
 }

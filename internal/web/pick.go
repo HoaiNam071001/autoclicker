@@ -115,8 +115,18 @@ func (c *Chrome) verify(ctx context.Context, t *tabConn, cands []string) ([]stri
 
 const sameTargetJS = `(() => { const p = window.__acPicked, t = window.__acTarget; return !!(p && t && (p === t || p.contains(t))); })()`
 
-// tabFor – kết nối tới tab lọc theo filter (như Query.Tab) + URL của nó.
+// tabFor – kết nối tới tab lọc theo filter (như Query.Tab) + URL của nó; filter rỗng = tab ưu tiên của node web.
 func (c *Chrome) tabFor(ctx context.Context, filter string) (*tabConn, string, error) {
+	return c.pickFor(ctx, filter, false)
+}
+
+// activeTabFor – như tabFor nhưng filter rỗng = tab đang hiện (vừa mở / vừa dùng gần nhất, kể cả popup trang tự mở),
+// không bám tab Open cũ – cho công cụ đọc của AI (probe_page, read_web_outline).
+func (c *Chrome) activeTabFor(ctx context.Context, filter string) (*tabConn, string, error) {
+	return c.pickFor(ctx, filter, true)
+}
+
+func (c *Chrome) pickFor(ctx context.Context, filter string, active bool) (*tabConn, string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	port, err := c.connect(ctx)
@@ -127,7 +137,11 @@ func (c *Chrome) tabFor(ctx context.Context, filter string) (*tabConn, string, e
 	if err != nil {
 		return nil, "", &BrowserError{"mất kết nối trình duyệt: " + err.Error()}
 	}
-	ti, ok := pickTab(tabs, filter, c.prefer)
+	prefer := c.prefer
+	if active {
+		prefer = ""
+	}
+	ti, ok := pickTab(tabs, filter, prefer)
 	if !ok {
 		if filter == "" {
 			return nil, "", ErrNoBrowser

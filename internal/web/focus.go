@@ -6,8 +6,8 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-// Focused – webType: sau khi click, ô đang focus (xuống cả iframe cùng nguồn) phải là ô nhập và là phần tử đích, con /
-// cha của nó hoặc ô của label đích – không thì gõ sẽ rơi vào chỗ khác.
+// Focused – webType: sau khi click, ô đang focus (xuống cả iframe cùng nguồn) phải là ô nhập và là phần tử đích / chỗ chuột
+// vừa bấm xuống (con, cha hoặc ô của label) – không thì gõ sẽ rơi vào chỗ khác.
 func (c *Chrome) Focused(ctx context.Context) (bool, string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -27,6 +27,8 @@ const focusJS = `() => {
   const t = window.__acTarget;
   const editable = a && (a.isContentEditable || a.matches('input:not([type=button]):not([type=submit]):not([type=checkbox]):not([type=radio]), textarea, select'));
   const label = t && (t.control || (t.closest && t.closest('label') && t.closest('label').control));
-  const ok = !!(editable && t && (a === t || t.contains(a) || a.contains(t) || a === label));
+  // đích tìm hoặc chỗ chuột bấm xuống thật (bấm lệch từ nhãn xuống ô: ô đúng đã focus)
+  const rel = x => !!x && (a === x || x.contains(a) || a.contains(x) || (x.closest && x.closest("label") && x.closest("label").control === a));
+  const ok = !!(editable && (rel(window.__acDown) || (t && (rel(t) || a === label))));
   return { OK: ok, At: ok ? '' : !a || a === document.body ? 'không có ô nào' : describe(a) };
 }`

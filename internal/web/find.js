@@ -10,6 +10,9 @@
     const a = norm(got), b = norm(value);
     return a !== '' && (exact ? a === b : a.includes(b));
   };
+  // Chữ nằm trực tiếp trong phần tử (bỏ chữ của thẻ con): nhãn “<span>*</span> Ngày sinh” khớp cả chuỗi “Ngày sinh”.
+  const directText = el => Array.from(el.childNodes).filter(n => n.nodeType === Node.TEXT_NODE).map(n => n.data).join(" ");
+  const ownMatches = (el, sel) => matches(ownText(el), sel.value, sel.exact) || (sel.exact && matches(directText(el), sel.value, true));
   const SKIP = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'HEAD']);
   const all = doc => Array.from(doc.body ? doc.body.querySelectorAll('*') : []).filter(el => !SKIP.has(tag(el)));
   // Phần tử sâu nhất chứa chữ: bỏ phần tử có con cũng khớp (chữ trong <button><span>Gửi</span></button> → span).
@@ -22,11 +25,11 @@
     const w = doc.createTreeWalker(doc.body || doc.documentElement, NodeFilter.SHOW_TEXT);
     for (let n; (n = w.nextNode());) {
       const p = n.parentElement;
-      if (p && !SKIP.has(tag(p)) && matches(n.data, sel.value, false) && matches(ownText(p), sel.value, sel.exact)) hits.push(p);
+      if (p && !SKIP.has(tag(p)) && matches(n.data, sel.value, false) && ownMatches(p, sel)) hits.push(p);
     }
     for (const el of doc.querySelectorAll('input, textarea')) if (matches(ownText(el), sel.value, sel.exact)) hits.push(el);
     if (hits.length) return inDocOrder(hits);
-    return deepest(all(doc).filter(el => matches(el.textContent, sel.value, false) && matches(ownText(el), sel.value, sel.exact)));
+    return deepest(all(doc).filter(el => matches(el.textContent, sel.value, false) && ownMatches(el, sel)));
   };
   const byAria = (sel, doc) => all(doc).filter(el => (el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby')) && matches(ariaLabel(el), sel.value, sel.exact));
   const byRole = (sel, doc) => {
@@ -67,7 +70,20 @@
   // counts[i] – số phần tử hiện / ẩn khớp selector i (chỉ các selector đã xét – không thấy thì là tất cả; báo lỗi cho AI)
   const out = { sel: -1, hidden: 0, counts: [], geom, loading, focus: document.hasFocus(), visible: document.visibilityState === 'visible' };
   window.__acTarget = null;
+  // chỗ chuột bấm xuống thật (webType: ô nhận focus có phải chỗ vừa bấm không, kể cả khi bấm lệch khỏi đích)
+  window.__acDown = null;
+  for (const d of docs) if (!d.__acDownHook) { d.__acDownHook = true; d.addEventListener("mousedown", e => { window.__acDown = e.target; }, true); }
   if (viewport) return Object.assign(out, { sel: 0, x: 0, y: 0, w: innerWidth, h: innerHeight, text: '', inView: true, count: 1 });
+  // Nhiều phần tử cùng tên (ô lọc của lưới sau hộp thoại + ô trong hộp thoại): sắp bấm thì lấy cái đầu tiên đang trong
+  // vùng nhìn mà không bị che; không có thì như cũ (cái đầu) để báo đúng phần tử che.
+  const pickClear = list => {
+    if (!scroll || list.length < 2) return list[0];
+    for (const c of list.slice(0, 20)) {
+      const p = place(c);
+      if (p.inView && !coverOf(c, p.cx, p.cy)) return c;
+    }
+    return list[0];
+  };
   // href / src: URL đầy đủ (thuộc tính có thể là đường dẫn tương đối)
   const readOf = el => {
     if (read === 'value') return el.value == null ? '' : String(el.value);
@@ -79,7 +95,7 @@
   };
   for (let i = 0; i < sels.length; i++) {
     const found = docs.flatMap(doc => findIn(sels[i], doc));
-    const visible = found.filter(shown), el = visible[0];
+    const visible = found.filter(shown), el = pickClear(visible);
     out.counts.push({ shown: visible.length, hidden: found.length - visible.length });
     if (!el) { out.hidden = Math.max(out.hidden, found.length); continue; }
     let p = place(el);

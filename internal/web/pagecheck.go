@@ -69,7 +69,7 @@ func (c *Chrome) CheckPage(ctx context.Context, u string) (PageCheck, error) {
 			return PageCheck{}, err
 		}
 	}
-	t, _, err := c.tabFor(ctx, "")
+	t, _, err := c.activeTabFor(ctx, "")
 	if errors.Is(err, ErrNoBrowser) && u == "" {
 		return PageCheck{}, &BrowserError{"chưa có trang nào mở trên Chrome của app – nhập URL để thử"}
 	}
@@ -84,7 +84,7 @@ func (c *Chrome) CheckPage(ctx context.Context, u string) (PageCheck, error) {
 	if err != nil {
 		return PageCheck{}, err
 	}
-	o, err := c.PageOutline(ctx, "")
+	o, err := outlineOf(ctx, t, false)
 	if err != nil {
 		return PageCheck{}, err
 	}

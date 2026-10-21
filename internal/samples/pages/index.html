@@ -44,6 +44,7 @@
     ['table.html', 'Bảng dữ liệu', 'Ô nhập như bảng tính, Tab / Enter di chuyển', 'click lệch · gõ chữ · tab'],
     ['captcha.html', 'Captcha giả', 'Khung reCAPTCHA giả – nút Thử trang phải báo Có captcha', 'thử trang (Chrome của app)'],
     ['canvas-game.html', 'Game canvas', 'Nút CHƠI vẽ trong canvas, bấm trúng +1 điểm – node web không thấy, tìm chữ thì thấy', 'thử trang · click theo chữ'],
+    ['antd-form.html', 'Form kiểu antd', 'Ô lọc lưới cùng tên nằm sau hộp thoại, nhãn có dấu *, ô ngày mở lịch ở lớp riêng, ô nhận focus chậm', 'web: webType · scope · outline'],
   ];
   document.getElementById('list').innerHTML = pages.map(([href, name, desc, tag]) =>
     `<a href="${href}"><div class="card"><h2>${name}</h2><p>${desc}</p><span class="tag">${tag}</span></div></a>`).join('');

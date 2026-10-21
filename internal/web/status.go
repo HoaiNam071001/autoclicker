@@ -9,6 +9,7 @@ type Status struct {
 }
 
 type Tab struct {
+	ID    string `json:"id"` // id tab – ghim tab cho node web (selector tab nhận id)
 	Title string `json:"title"`
 	URL   string `json:"url"`
 }
@@ -27,7 +28,7 @@ func (c *Chrome) Status(ctx context.Context) Status {
 	}
 	st := Status{Open: true, Tabs: make([]Tab, 0, len(tabs))}
 	for _, t := range tabs {
-		st.Tabs = append(st.Tabs, Tab{Title: t.Title, URL: t.URL})
+		st.Tabs = append(st.Tabs, Tab{ID: t.ID, Title: t.Title, URL: t.URL})
 	}
 	return st
 }

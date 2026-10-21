@@ -21,16 +21,20 @@ import (
 
 // fakeBackend – file thật trong thư mục tạm, revision trong bộ nhớ.
 type fakeBackend struct {
-	dir      string
-	revs     *store.Revisions
-	recent   []string
-	editor   Editor
-	opened   []string
-	sess     *session.Manager // phiên chạy thật, thiết bị giả (runBackend trong run_test.go)
-	in       *devicetest.FakeInput
-	settings store.MCPSettings // tool tắt (31b2)
-	page     web.PageCheck     // probe_page trả (44)
-	probed   string
+	dir           string
+	revs          *store.Revisions
+	recent        []string
+	editor        Editor
+	opened        []string
+	sess          *session.Manager // phiên chạy thật, thiết bị giả (runBackend trong run_test.go)
+	in            *devicetest.FakeInput
+	settings      store.MCPSettings // tool tắt (31b2)
+	page          web.PageCheck     // probe_page trả (44)
+	outline       web.Outline       // read_web_outline trả (46)
+	tabs          []web.Tab
+	outlineTab    string
+	outlineDialog bool
+	probed        string
 }
 
 func (f *fakeBackend) Enabled() bool          { return true }
@@ -38,6 +42,10 @@ func (f *fakeBackend) MCP() store.MCPSettings { return f.settings }
 func (f *fakeBackend) CheckPage(_ context.Context, u string) (web.PageCheck, error) {
 	f.probed = u
 	return f.page, nil
+}
+func (f *fakeBackend) ReadOutline(_ context.Context, tab string, dialog bool) (web.Outline, []web.Tab, error) {
+	f.outlineTab, f.outlineDialog = tab, dialog
+	return f.outline, f.tabs, nil
 }
 func (f *fakeBackend) SetNodePref(p string) error {
 	if p != store.NodePrefVision && p != store.NodePrefWeb {

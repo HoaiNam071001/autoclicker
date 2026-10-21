@@ -30,8 +30,10 @@ type Outline struct {
 	ScrollX     int           `json:"scrollX"`
 	ScrollY     int           `json:"scrollY"`
 	Items       []OutlineItem `json:"items"`
-	Total       int           `json:"total"`       // số phần tử khớp trước khi cắt ở maxOutline
-	CrossFrames int           `json:"crossFrames"` // iframe khác nguồn – không đọc được bên trong
+	Total       int           `json:"total"`         // số phần tử khớp trước khi cắt ở maxOutline
+	CrossFrames int           `json:"crossFrames"`   // iframe khác nguồn – không đọc được bên trong
+	Dialogs     int           `json:"dialogs"`       // số hộp thoại (role=dialog) đang mở
+	Tab         string        `json:"tab,omitempty"` // id tab đã đọc (ReadOutline) – ghim tab cho node web
 }
 
 // OutlineItem – một phần tử: vai trò, tên truy cập, selector đã kiểm (find tìm ra đúng nó) + trạng thái.
@@ -66,17 +68,32 @@ type outlineResult struct {
 	Items []outlineItem `json:"items"`
 }
 
-// PageOutline đọc tab lọc theo tab (như Query.Tab, "" = tab đang dùng).
+// PageOutline đọc tab lọc theo tab (như Query.Tab, "" = tab ưu tiên của node web).
 func (c *Chrome) PageOutline(ctx context.Context, tab string) (Outline, error) {
 	t, _, err := c.tabFor(ctx, tab)
 	if err != nil {
 		return Outline{}, err
 	}
-	r, err := run(ctx, t.ctx, "đọc cấu trúc trang", chromedp.Evaluate[outlineResult](pageJS(outlineJS, strconv.Itoa(maxOutline))))
+	return outlineOf(ctx, t, false)
+}
+
+// ReadOutline – cho AI (read_web_outline): tab lọc theo tab (id tab hoặc URL / tiêu đề chứa); rỗng = tab đang hiện.
+// onlyDialog: chỉ phần tử trong hộp thoại đang mở trên cùng. Không bật trình duyệt nếu chưa mở.
+func (c *Chrome) ReadOutline(ctx context.Context, tab string, onlyDialog bool) (Outline, error) {
+	t, _, err := c.activeTabFor(ctx, tab)
+	if err != nil {
+		return Outline{}, err
+	}
+	return outlineOf(ctx, t, onlyDialog)
+}
+
+func outlineOf(ctx context.Context, t *tabConn, onlyDialog bool) (Outline, error) {
+	r, err := run(ctx, t.ctx, "đọc cấu trúc trang", chromedp.Evaluate[outlineResult](pageJS(outlineJS, strconv.Itoa(maxOutline), strconv.FormatBool(onlyDialog))))
 	if err != nil {
 		return Outline{}, err
 	}
 	o := r.Outline
+	o.Tab = t.id
 	o.Items = make([]OutlineItem, len(r.Items))
 	for i, it := range r.Items {
 		o.Items[i] = it.OutlineItem

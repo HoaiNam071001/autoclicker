@@ -119,6 +119,11 @@ func listTabs(ctx context.Context, port int) ([]tabInfo, error) {
 // node Mở) nếu còn, không thì tab dùng gần nhất.
 func pickTab(tabs []tabInfo, filter, prefer string) (tabInfo, bool) {
 	if f := strings.ToLower(strings.TrimSpace(filter)); f != "" {
+		for _, t := range tabs { // id tab (read_web_outline trả) đi trước – không nhầm với tab khác cùng URL
+			if strings.EqualFold(t.ID, f) {
+				return t, true
+			}
+		}
 		for _, t := range tabs {
 			if strings.Contains(strings.ToLower(t.URL), f) || strings.Contains(strings.ToLower(t.Title), f) {
 				return t, true

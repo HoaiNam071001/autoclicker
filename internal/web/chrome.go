@@ -34,6 +34,7 @@ type Chrome struct {
 }
 
 type tabConn struct {
+	id       string
 	ctx      context.Context
 	cancel   context.CancelFunc
 	cal      *calibration // nil = chưa đo / phải đo lại
@@ -149,7 +150,7 @@ func (c *Chrome) tab(id string, alive []tabInfo) (*tabConn, error) {
 		cancel()
 		return nil, browserErr("nối vào tab", err)
 	}
-	t := &tabConn{ctx: ctx, cancel: cancel}
+	t := &tabConn{id: id, ctx: ctx, cancel: cancel}
 	c.tabs[id] = t
 	return t, nil
 }

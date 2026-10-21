@@ -1,0 +1,172 @@
+package web
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	cdpruntime "github.com/chromedp/cdproto/runtime"
+	"github.com/chromedp/chromedp"
+
+	"ghosthand/internal/model"
+)
+
+// Bước 46 A0 – tái hiện các lỗi góp ý khi dùng MCP trên form kiểu antd (`samples/pages/antd-form.html`).
+// Mỗi ca ghi điều ĐÚNG ra sao; ca nào đang đỏ là lỗi chưa sửa (A3 / A2). Chỉ khi GHOSTHAND_REAL=1.
+
+func antdChrome(t *testing.T) (*Chrome, context.Context, string) {
+	t.Helper()
+	if os.Getenv("GHOSTHAND_REAL") != "1" {
+		t.Skip("đặt GHOSTHAND_REAL=1 để thử với Chrome thật")
+	}
+	src, err := filepath.Abs("../samples/pages/antd-form.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := NewChrome(filepath.Join(os.TempDir(), "ghosthand-test-browser"), func(int, int) error { return nil })
+	t.Cleanup(c.Close)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	t.Cleanup(cancel)
+	page := "file://" + filepath.ToSlash(src)
+	if !strings.HasPrefix(filepath.ToSlash(src), "/") {
+		page = "file:///" + filepath.ToSlash(src)
+	}
+	if err := c.Open(ctx, page); err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(time.Second)
+	return c, ctx, page
+}
+
+func antdFind(c *Chrome, ctx context.Context, sel model.Selector) (Found, error) {
+	return c.Find(ctx, Query{Selectors: []model.Selector{sel}, Scroll: true, Background: true})
+}
+
+// Ô “Mã nhân viên” có hai chỗ: ô lọc lưới (sau lớp phủ) và ô trong hộp thoại. Selector phải ra ô bấm được.
+func TestRealAntdSameNameBehindModal(t *testing.T) {
+	c, ctx, _ := antdChrome(t)
+	f, err := antdFind(c, ctx, model.Selector{By: model.SelRole, Value: "textbox", Name: "Mã nhân viên"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("found: %+v", f)
+	if !f.OK {
+		t.Errorf("khớp nhầm ô lọc của lưới nằm sau hộp thoại: OK=false, bị che bởi %q (%d ô hiện)", f.Covered, f.Count)
+	}
+}
+
+// text="Ngày sinh" (khớp cả chuỗi) phải thấy nhãn dù trong nhãn còn dấu * ở thẻ riêng.
+func TestRealAntdExactTextWithStar(t *testing.T) {
+	c, ctx, _ := antdChrome(t)
+	f, err := antdFind(c, ctx, model.Selector{By: model.SelText, Value: "Ngày sinh", Exact: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("found: %+v", f)
+	if !f.OK {
+		t.Errorf("text=\"Ngày sinh\" không thấy nhãn “* Ngày sinh” (counts %+v)", f.Counts)
+	}
+}
+
+// webType: click rồi chờ focusWaitMs (100 ms) kiểm tra ô nhận focus – lặp lại đúng thứ tự đó.
+func antdTypeFocus(t *testing.T, sel model.Selector, dy int) (bool, string) {
+	t.Helper()
+	c, ctx, _ := antdChrome(t)
+	dx := 0
+	if dy < 0 { // dy < 0: lệch đúng bằng khoảng từ đích tới ô #join
+		l, err1 := antdFind(c, ctx, sel)
+		j, err2 := antdFind(c, ctx, model.Selector{By: model.SelCSS, Value: "#join"})
+		if err1 != nil || err2 != nil || !l.OK || !j.OK {
+			t.Fatalf("đo khoảng cách: %v %v", err1, err2)
+		}
+		dy = j.Rect.Y + j.Rect.H/2 - (l.Rect.Y + l.Rect.H/2)
+		dx = j.Rect.X + j.Rect.W/2 - (l.Rect.X + l.Rect.W/2)
+	}
+	f, err := antdFind(c, ctx, sel)
+	if err != nil || !f.OK {
+		t.Fatalf("không tìm thấy %+v: %+v %v", sel, f, err)
+	}
+	x, y := f.Rect.X+f.Rect.W/2+dx, f.Rect.Y+f.Rect.H/2+dy
+	if err := c.BgClick(ctx, x, y, "left", 1); err != nil {
+		t.Fatal(err)
+	}
+	// như Engine.waitFocus: chờ 100 ms rồi hỏi lại mỗi 50 ms tới 600 ms
+	time.Sleep(100 * time.Millisecond)
+	for waited := 100; ; waited += 50 {
+		ok, at, err := c.Focused(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ok || waited >= 600 {
+			return ok, at
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+// Đích là ô ngày bọc trong khung (css) – focus ở ô con.
+func TestRealAntdPickerFocus(t *testing.T) {
+	if ok, at := antdTypeFocus(t, model.Selector{By: model.SelCSS, Value: "#dob-wrap"}, 0); !ok {
+		t.Errorf("ô ngày không nhận focus (đang focus: %s)", at)
+	}
+}
+
+// Đích là nhãn không có for + dy xuống ô bên dưới (cách người dùng hay làm khi chỉ biết nhãn).
+func TestRealAntdLabelWithOffset(t *testing.T) {
+	if ok, at := antdTypeFocus(t, model.Selector{By: model.SelText, Value: "Ngày vào làm"}, -1); !ok {
+		t.Errorf("click xuống dưới nhãn vào đúng ô mà báo không nhận focus (đang focus: %s)", at)
+	}
+}
+
+// Ô nhận focus chậm hơn 100 ms sau click (React state / animation).
+func TestRealAntdSlowFocus(t *testing.T) {
+	if ok, at := antdTypeFocus(t, model.Selector{By: model.SelCSS, Value: "#city"}, 0); !ok {
+		t.Errorf("ô nhận focus sau 250 ms bị báo không nhận focus (đang focus: %s)", at)
+	}
+}
+
+// probe_page không URL phải dò tab đang điều khiển, kể cả tab popup do trang tự mở (window.open).
+func TestRealCheckPageFollowsPopup(t *testing.T) {
+	c, ctx, page := antdChrome(t)
+	tab, _, err := c.tabFor(ctx, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	popup := strings.Replace(page, "antd-form.html", "login.html", 1)
+	if _, err := run(ctx, tab.ctx, "mở popup", chromedp.Evaluate[any](`!!window.open("`+popup+`")`, func(p *cdpruntime.EvaluateParams) { g := true; p.UserGesture = &g })); err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(2 * time.Second)
+	t.Logf("tabs: %+v", c.Status(ctx).Tabs)
+	pc, err := c.CheckPage(ctx, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("title=%q url=%q", pc.Title, pc.URL)
+	if strings.Contains(pc.URL, "antd-form") {
+		t.Errorf("dò lại vẫn trả tab cũ (%s), không phải popup vừa mở", pc.URL)
+	}
+}
+
+// read_web_outline: dialog = chỉ ô trong hộp thoại (không lẫn ô lọc của lưới), tab ghim được theo id.
+func TestRealReadOutlineDialog(t *testing.T) {
+	c, ctx, _ := antdChrome(t)
+	all, err := c.ReadOutline(ctx, "", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dlg, err := c.ReadOutline(ctx, all.Tab, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("\n" + dlg.Text())
+	if dlg.Dialogs != 1 || dlg.Total >= all.Total || strings.Contains(dlg.Text(), "Tên nhân viên") {
+		t.Errorf("dialog=%d total %d/%d, lẫn ô lọc lưới:\n%s", dlg.Dialogs, dlg.Total, all.Total, dlg.Text())
+	}
+	if !strings.Contains(dlg.Text(), `Mã nhân viên`) || !strings.Contains(dlg.Text(), "Lưu") {
+		t.Errorf("thiếu ô / nút trong hộp thoại:\n%s", dlg.Text())
+	}
+}

@@ -62,6 +62,8 @@ type Backend interface {
 	// SetNodePref lưu + báo người dùng.
 	MCP() store.MCPSettings
 	CheckPage(ctx context.Context, url string) (web.PageCheck, error)
+	// ReadOutline – read_web_outline: cây rút gọn của tab (id / URL / tiêu đề; rỗng = tab đang hiện) + các tab đang mở
+	ReadOutline(ctx context.Context, tab string, onlyDialog bool) (web.Outline, []web.Tab, error)
 	SetNodePref(p string) error
 }
 
@@ -79,6 +81,7 @@ Sửa: read_script (lấy revision) → update_script theo id / ref node. Thiế
 Thử – sửa: run_script (cả / stopAt / only) → node lỗi có error.detail + ảnh → update_script → resume_run (chạy tiếp từ node lỗi, giữ biến).
 Xem màn hình: describe_screen (chữ + cửa sổ, rẻ) trước, screenshot khi cần nhìn. Người dùng muốn xem / tự chạy: open_in_app.
 Trang web: get_preferences – nodePref web thì probe_page(url) trước, verdict ok mới dùng node web; mặc định (vision) dùng node ảnh / chữ.
+Đang thao tác dở trên trang (popup, hộp thoại): read_web_outline (dialog true = chỉ hộp thoại) lấy selector, tab = id tab trong tabs.
 App có thể chỉ cho soạn hoặc hỏi người dùng trước khi chạy (Cài đặt) – bị từ chối thì báo người dùng, không thử lại liên tục.`
 
 func New(back Backend) *Server {

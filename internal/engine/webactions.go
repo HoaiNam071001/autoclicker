@@ -13,8 +13,28 @@ import (
 
 // Node web D4: gõ vào ô, đọc phần tử, cuộn – tìm qua web.Browser như webClick, thao tác bằng chuột / phím thật.
 
-// focusWaitMs – sau khi click vào ô, chờ trang chuyển focus rồi mới kiểm tra.
-const focusWaitMs = 100
+// Sau khi click vào ô, trang cần chút thời gian chuyển focus (React state, hiệu ứng): chờ tối thiểu focusWaitMs rồi hỏi
+// lại mỗi focusPollMs tới focusMaxMs mới coi là không nhận focus.
+const (
+	focusWaitMs = 100
+	focusPollMs = 50
+	focusMaxMs  = 600
+)
+
+func (e *Engine) waitFocus(ctx context.Context) (bool, string, error) {
+	if err := Sleep(ctx, focusWaitMs); err != nil {
+		return false, "", err
+	}
+	for waited := focusWaitMs; ; waited += focusPollMs {
+		ok, at, err := e.browser.Focused(ctx)
+		if err != nil || ok || waited >= focusMaxMs {
+			return ok, at, err
+		}
+		if err := Sleep(ctx, focusPollMs); err != nil {
+			return false, "", err
+		}
+	}
+}
 
 // webType click vào ô (như webClick một lần), kiểm tra ô nhận focus, xoá chữ cũ (WebClear), gõ Text, Enter (WebEnter).
 func (e *Engine) webType(ctx context.Context, s model.Step) (map[string]any, error) {
@@ -28,10 +48,7 @@ func (e *Engine) webType(ctx context.Context, s model.Step) (map[string]any, err
 	if err := e.webPress(ctx, s, f.at, "left", 1); err != nil {
 		return nil, err
 	}
-	if err := Sleep(ctx, focusWaitMs); err != nil {
-		return nil, err
-	}
-	ok, at, err := e.browser.Focused(ctx)
+	ok, at, err := e.waitFocus(ctx)
 	if err != nil {
 		return nil, err
 	}

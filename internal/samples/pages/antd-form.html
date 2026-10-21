@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Sân thử form kiểu antd</title>
+<link rel="stylesheet" href="sandbox.css">
+<style>
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 10; }
+  .modal { position: fixed; z-index: 11; left: 50%; top: 40px; transform: translateX(-50%); width: 420px; background: #fff; color: #111; padding: 16px; border-radius: 8px; }
+  .row { margin: 10px 0; } .row > label { display: block; margin-bottom: 4px; }
+  .req { color: #d33; margin-right: 4px; }
+  .picker { display: inline-block; border: 1px solid #aaa; padding: 4px 8px; border-radius: 6px; }
+  .picker input { border: 0; outline: 0; background: transparent; }
+  .popup { position: absolute; z-index: 12; background: #fff; color: #111; border: 1px solid #aaa; padding: 8px; }
+  .popup[hidden] { display: none; }
+  table input { width: 100px; }
+</style></head><body>
+<h1>Sân thử form kiểu antd</h1>
+<p>Lưới có ô lọc “Mã nhân viên” nằm sau hộp thoại; hộp thoại có form với ô cùng tên, nhãn có dấu * và ô ngày mở lịch ở lớp riêng (bước 46 A0).</p>
+
+<table id="grid"><thead><tr>
+  <th>Mã <input id="f-code" aria-label="Mã nhân viên" placeholder="Mã nhân viên"></th>
+  <th>Tên <input id="f-name" aria-label="Tên nhân viên" placeholder="Tên nhân viên"></th>
+</tr></thead><tbody><tr><td>NV001</td><td>An</td></tr></tbody></table>
+
+<div class="mask"></div>
+<div class="modal" role="dialog" aria-label="Sửa nhân viên">
+  <div class="row"><label for="code"><span class="req">*</span>Mã nhân viên</label><input id="code" aria-label="Mã nhân viên"></div>
+  <div class="row"><label for="dob"><span class="req">*</span>Ngày sinh</label>
+    <div class="picker" id="dob-wrap"><input id="dob" placeholder="Chọn ngày"></div></div>
+  <!-- nhãn không có for: bấm dưới nhãn một đoạn mới vào ô -->
+  <div class="row"><label><span class="req">*</span>Ngày vào làm</label>
+    <div class="picker" id="join-wrap"><input id="join" placeholder="Chọn ngày"></div></div>
+  <!-- ô chỉ nhận focus sau 250 ms (React state / animation) -->
+  <div class="row"><label for="city">Thành phố</label><div class="picker"><input id="city" readonly placeholder="Chọn thành phố"></div></div>
+  <button id="save">Lưu</button>
+</div>
+<div class="popup" id="calendar" hidden>Lịch tháng 10 · <button>21</button></div>
+
+<script>
+  window.log = { opened: 0 };
+  const cal = document.getElementById('calendar');
+  for (const id of ['dob', 'join']) {
+    const input = document.getElementById(id);
+    input.addEventListener('focus', () => { // lịch mở ở lớp riêng, focus vẫn ở ô
+      const r = input.getBoundingClientRect();
+      cal.style.left = r.left + 'px'; cal.style.top = r.bottom + 4 + 'px'; cal.hidden = false; log.opened++;
+    });
+  }
+  document.getElementById('city').addEventListener('mousedown', e => {
+    e.preventDefault(); setTimeout(() => e.target.focus(), 250);
+  });
+</script>
+</body></html>

@@ -118,3 +118,12 @@ func TestWebScrollUntil(t *testing.T) {
 		t.Errorf("lỗi %v, khung %+v", err, b.queries[1])
 	}
 }
+
+// Ô nhận focus chậm (React state, hiệu ứng): hỏi lại vài lần thay vì báo lỗi ngay ở lần đầu.
+func TestWebTypeLateFocus(t *testing.T) {
+	b := &fakeBrowser{finds: []web.Found{found(0, model.Rect{W: 10, H: 10})}, focus: []bool{false, false, true}}
+	_, res, err := runWeb(t, b, webNode(model.StepWebType, func(s *model.Step) { s.Text = "x" }))
+	if err != nil || res[0].Output["text"] != "x" || b.nFocus != 3 {
+		t.Errorf("lỗi %v, focus hỏi %d lần, output %v", err, b.nFocus, res[0].Output)
+	}
+}
