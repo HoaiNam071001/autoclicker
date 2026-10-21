@@ -50,5 +50,7 @@ describe('fmtWebStep', () => {
   it('cuộn tới', () => expect(web({ id: 'a', type: 'webScroll' })).toBe('tới chữ “Gửi” · tối đa 5 s'));
   it('cuộn tới khi thấy', () => expect(web({ id: 'a', type: 'webScroll', scrollMode: 'until', direction: 'down', amount: 3, tab: 'shop' }))
     .toBe('lăn ↓ 3 nấc tới khi thấy chữ “Gửi” · tab “shop” · tối đa 5 s'));
+  it('chỗ thứ + hộp thoại', () => expect(web({ id: 'a', type: 'webClick', selectors: ['label=Ngày sinh'], occurrence: 2, webScope: 'dialog' }))
+    .toBe('ô của nhãn “Ngày sinh” · chỗ thứ 2 · trong hộp thoại · tối đa 5 s'));
   it('chờ mất', () => expect(web({ id: 'a', type: 'webWait', webGone: true })).toBe('chữ “Gửi” · chờ mất · tối đa 5 s'));
 });

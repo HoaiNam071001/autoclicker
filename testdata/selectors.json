@@ -11,6 +11,8 @@
   {"in": "role= Link [name=\"Xem lịch sử\"]", "want": {"by": "role", "value": "link", "name": "Xem lịch sử"}},
   {"in": "role=checkbox[name=Nhớ tôi]", "want": {"by": "role", "value": "checkbox", "name": "Nhớ tôi"}},
   {"in": "role=button[name=\"\"]", "want": {"by": "role", "value": "button"}},
+  {"in": "label=Ngày sinh", "want": {"by": "label", "value": "Ngày sinh"}},
+  {"in": "label=\"Ngày sinh\"", "want": {"by": "label", "value": "Ngày sinh", "exact": true}},
   {"in": "role=nút bấm", "bad": true},
   {"in": "role=button[title=x]", "bad": true},
   {"in": "text=", "bad": true},

@@ -10,6 +10,7 @@ import { browserStatusText, parseSelector, selectorLines, WEB_BASIC_NOTE, webFin
 import { cancelPick, openAppBrowser, pickElement, refreshBrowser, testWebFind, useWebState } from '../../webSteps';
 import { inWails, openOverlay } from '../../windowMode';
 import { WebTools } from './WebTools';
+import { WebScopeField } from './WebScopeField';
 import { SelectorsField, WebClickFields, webHintText, WebModeField, WebReadFields, WebScrollFields, WebTypeFields, WebWaitFields } from './WebActionFields';
 import { Field, fmtSec, hint, NumField, useNodeVars } from './shared';
 
@@ -40,11 +41,12 @@ export function WebFields({ step: s }: { step: Step }) {
       {s.type === 'webScroll' && <WebScrollFields step={s} />}
       <SelectorsField step={s} label={selectorsLabel(s)} value={s.selectors} onChange={(selectors) => set({ selectors })}
         placeholder={'text=Xem lịch sử\naria=Lịch sử\ncss=#history'} emptyText="Chưa nhập cách tìm – chạy sẽ báo lỗi"
-        help={'text= chữ trên trang (chứa, không phân biệt hoa thường; text="Gửi" = đúng cả chuỗi), aria= nhãn aria-label, role=button[name="Gửi"] vai trò + tên, css=, xpath=. Ưu tiên chữ / aria / role – tránh class tự sinh kiểu x1n2onr6. ' + WEB_BASIC_NOTE} />
+        help={'text= chữ trên trang (chứa, không phân biệt hoa thường; text="Gửi" = đúng cả chuỗi), aria= nhãn aria-label, role=button[name="Gửi"] vai trò + tên, label=Ngày sinh ô nhập của nhãn, css=, xpath=. Ưu tiên chữ / aria / role – tránh class tự sinh kiểu x1n2onr6. ' + WEB_BASIC_NOTE} />
       <Field label="Tab" wide group help="Tuỳ chọn: URL hoặc tiêu đề tab chứa chữ này. Trang phải mở bằng node Mở với “Chrome của app”.">
         <VarTextInput value={s.tab ?? ''} onChange={(tab) => set({ tab: tab || undefined })} inputs={script.inputs ?? []} nodeVars={nodeVars}
           onCreateInput={(key) => addInput({ key, label: key, type: 'text' })} rows={1} compact placeholder="trống = tab đang hiện" />
       </Field>
+      <WebScopeField step={s} />
       {s.type === 'webClick' && <WebClickFields step={s} />}
       {s.type === 'webType' && <WebTypeFields step={s} />}
       {s.type === 'webRead' && <WebReadFields step={s} />}

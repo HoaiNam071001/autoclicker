@@ -5,6 +5,7 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 
 ## 46 – MCP web tinh chỉnh (A0–A3, A2) · [phase3/46-mcp-web-tinh-chinh.md](phase3/46-mcp-web-tinh-chinh.md)
 
+- [ ] (A3) Mẫu thử *Web: form trong hộp thoại* chạy thành công; trên inspector node web thấy *Tìm trong* (Cả trang / Hộp thoại đang mở), *Chỗ thứ*, webType có *Bỏ kiểm tra focus*; *Thử tìm* với `label="Ngày sinh"` khoanh đúng ô ngày; chọn *Hộp thoại đang mở* trên trang không có hộp thoại → báo rõ
 - [ ] (A1) Kịch bản có vùng: nhờ Claude chụp `screenshot` rồi tạo node click theo toạ độ trên ảnh với `coordSpace: "absolute"` → chạy click đúng chỗ; marker trên overlay đúng chỗ, inspector ghi *Màn hình*; đổi vùng không dời điểm đó; node thường ngoài vùng → lỗi nêu "gốc vùng X,Y" + gợi ý coordSpace
 
 - [ ] Mở sân thử *Form kiểu antd* (Mẫu thử → trang): để Claude gọi `read_web_outline` với `dialog: true` → thấy ô Mã nhân viên / Ngày sinh / nút Lưu của hộp thoại, không lẫn ô lọc lưới

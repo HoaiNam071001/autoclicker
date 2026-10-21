@@ -1,0 +1,79 @@
+{
+ "meta": {
+  "name": "Web: form trong hộp thoại",
+  "description": "Gõ vào form trong hộp thoại kiểu antd bằng Chrome của app: ô “Mã nhân viên” chỉ tìm trong hộp thoại (bỏ ô lọc cùng tên của lưới phía sau), ô “Ngày vào làm” tìm theo nhãn (label=, nhãn không gắn for), rồi đọc lại giá trị ô. Đúng: kết thúc thành công, ô Mã nhân viên trong hộp thoại có NV009, ô lọc của lưới vẫn trống, đọc được “21/10/2026”.",
+  "app": "Web (DOM)",
+  "level": 2,
+  "page": "antd-form.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/antd-form.html",
+    "webBrowser": true,
+    "delayAfter": 500
+   },
+   {
+    "type": "webType",
+    "selectors": [
+     "role=textbox[name=\"Mã nhân viên\"]"
+    ],
+    "webScope": "dialog",
+    "text": "NV009",
+    "webClear": true,
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 200
+   },
+   {
+    "type": "webType",
+    "selectors": [
+     "label=\"Ngày vào làm\""
+    ],
+    "text": "21/10/2026",
+    "webClear": true,
+    "timeoutMs": 5000,
+    "intervalMs": 200,
+    "delayAfter": 200
+   },
+   {
+    "type": "webRead",
+    "selectors": [
+     "label=\"Ngày vào làm\""
+    ],
+    "readFrom": "value",
+    "timeoutMs": 5000,
+    "intervalMs": 200
+   },
+   {
+    "type": "if",
+    "cond": {
+     "kind": "value",
+     "left": "{{n4.output.text}}",
+     "op": "eq",
+     "right": "21/10/2026"
+    }
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã gõ vào form trong hộp thoại"
+   },
+   {
+    "type": "end",
+    "endStatus": "fail",
+    "message": "Ô Ngày vào làm đọc được “{{n4.output.text}}”"
+   }
+  ],
+  "edges": [
+   {"from": "s1", "port": "success", "to": "s2"},
+   {"from": "s2", "port": "success", "to": "s3"},
+   {"from": "s3", "port": "success", "to": "s4"},
+   {"from": "s4", "port": "success", "to": "s5"},
+   {"from": "s5", "port": "true", "to": "s6"},
+   {"from": "s5", "port": "false", "to": "s7"}
+  ]
+ }
+}

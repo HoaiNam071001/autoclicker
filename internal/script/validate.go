@@ -228,6 +228,9 @@ func checkWebStep(i int, s model.Step) error {
 	if n == 0 {
 		return stepErr(i, s, "selectors", "chưa nhập cách tìm phần tử (vd text=Xem lịch sử)")
 	}
+	if s.Occurrence < 0 {
+		return stepErr(i, s, "occurrence", "chỗ thứ mấy phải ≥ 1")
+	}
 	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
 		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
 	}

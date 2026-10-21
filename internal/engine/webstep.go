@@ -19,7 +19,7 @@ var errNoBrowserOpt = &web.BrowserError{Msg: "lần chạy này không điều k
 // gốc để báo lại. click: sắp bấm / lăn chuột vào phần tử (cuộn tới, chưa tính khi bị che, tab lên trước – chạy nền
 // thì không đưa lên).
 func webQuery(s model.Step, sels []string, click bool) (web.Query, []string, error) {
-	q := web.Query{Tab: s.Tab, Scroll: click, Background: s.WebBackground}
+	q := web.Query{Tab: s.Tab, Scroll: click, Background: s.WebBackground, Scope: s.WebScope, Occurrence: s.Occurrence}
 	var lines []string
 	for _, line := range sels {
 		if strings.TrimSpace(line) == "" {
@@ -123,6 +123,10 @@ func webMissMsg(s model.Step, f webTry, lines []string, gone bool) string {
 	switch {
 	case f.NoTab:
 		return fmt.Sprintf("không thấy tab nào có URL / tiêu đề chứa “%s” %s", s.Tab, after)
+	case f.NoDialog:
+		return fmt.Sprintf("chỉ tìm trong hộp thoại (webScope dialog) nhưng trang không có hộp thoại nào đang mở %s", after)
+	case f.Selector < 0 && s.Occurrence > 1 && maxShown(f.Counts) > 0:
+		return fmt.Sprintf("“%s” chỉ có %d phần tử đang hiện, không có chỗ thứ %d %s", strings.Join(lines, "”, “"), maxShown(f.Counts), s.Occurrence, after)
 	case f.OK && f.hover != "":
 		return fmt.Sprintf("thấy phần tử “%s” nhưng chưa bấm được: %s %s", lines[f.Selector], f.hover, after)
 	case f.Covered != "":
@@ -135,6 +139,15 @@ func webMissMsg(s model.Step, f webTry, lines []string, gone bool) string {
 		return fmt.Sprintf("có %d phần tử khớp “%s” nhưng đang ẩn %s", f.Hidden, strings.Join(lines, "”, “"), after)
 	}
 	return fmt.Sprintf("không thấy phần tử “%s” %s (tab %s)", strings.Join(lines, "”, “"), after, f.Tab)
+}
+
+// maxShown – số phần tử đang hiện nhiều nhất của một selector (báo khi chỗ thứ N vượt quá).
+func maxShown(cs []web.SelCount) int {
+	n := 0
+	for _, c := range cs {
+		n = max(n, c.Shown)
+	}
+	return n
 }
 
 func webOutput(f web.Found, lines []string) map[string]any {

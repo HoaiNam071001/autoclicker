@@ -127,3 +127,28 @@ func TestWebTypeLateFocus(t *testing.T) {
 		t.Errorf("lỗi %v, focus hỏi %d lần, output %v", err, b.nFocus, res[0].Output)
 	}
 }
+
+// skipFocusCheck (46 A3): ô tuỳ biến không nhận focus kiểu thường vẫn gõ, không hỏi focus; scope / chỗ thứ N đi vào query.
+func TestWebTypeSkipFocusCheck(t *testing.T) {
+	b := &fakeBrowser{finds: []web.Found{found(0, model.Rect{W: 10, H: 10})}, focus: []bool{false}}
+	_, res, err := runWeb(t, b, webNode(model.StepWebType, func(s *model.Step) {
+		s.Text, s.SkipFocusCheck, s.WebScope, s.Occurrence = "x", true, model.WebScopeDialog, 2
+	}))
+	if err != nil || res[0].Output["text"] != "x" || b.nFocus != 0 {
+		t.Errorf("lỗi %v, focus hỏi %d lần, output %v", err, b.nFocus, res[0].Output)
+	}
+	if q := b.queries[0]; q.Scope != model.WebScopeDialog || q.Occurrence != 2 {
+		t.Errorf("query %+v", q)
+	}
+}
+
+// Hết giờ khi chỉ tìm trong hộp thoại mà trang không có hộp thoại → lời báo nói rõ.
+func TestWebNoDialogMessage(t *testing.T) {
+	f := missing
+	f.NoDialog = true
+	b := &fakeBrowser{finds: []web.Found{f}}
+	_, _, err := runWeb(t, b, webNode(model.StepWebClick, func(s *model.Step) { s.WebScope, s.TimeoutMs = model.WebScopeDialog, 50 }))
+	if err == nil || !strings.Contains(err.Error(), "không có hộp thoại nào đang mở") {
+		t.Errorf("lỗi %v", err)
+	}
+}

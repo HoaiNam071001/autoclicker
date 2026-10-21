@@ -76,17 +76,17 @@ type Step struct {
 	ClickInterval int      `json:"clickInterval"`        // ms giữa các click
 	HoldMs        int      `json:"holdMs"`
 	DragMs        int      `json:"dragMs"`
-	DragFromPrev  bool     `json:"dragFromPrev"`       // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
-	DragRelative  bool     `json:"dragRelative"`       // drag: points[1] là độ lệch (dx, dy) so với điểm bắt đầu
+	DragFromPrev  bool     `json:"dragFromPrev"`         // drag: bắt đầu từ chỗ chuột dừng ở bước chuột trước (bỏ qua points[0])
+	DragRelative  bool     `json:"dragRelative"`         // drag: points[1] là độ lệch (dx, dy) so với điểm bắt đầu
 	CoordSpace    string   `json:"coordSpace,omitempty"` // node có điểm: "" | region = toạ độ cộng gốc vùng của kịch bản; absolute = toạ độ màn hình (như ảnh screenshot)
-	Text          string   `json:"text"`               // type / webType: chuỗi cần gõ
-	TypeMode      string   `json:"typeMode,omitempty"` // type / webType: TypeModes – "" tự chọn | keys gõ phím | paste dán
-	Keys          []string `json:"keys"`               // key: phím chính theo tên robotgo (enter, tab, a, f5…)
-	KeyMode       string   `json:"keyMode"`            // key: chord | sequence (chỉ khác nhau khi có ≥ 2 phím chính)
-	Modifiers     []string `json:"modifiers"`          // key: cmd | ctrl | alt | shift
-	DelayAfter    int      `json:"delayAfter"`         // ms, sang bước kế tiếp
-	JitterMs      int      `json:"jitterMs"`           // ngẫu nhiên ± ms cho DelayAfter và ClickInterval
-	JitterPx      int      `json:"jitterPx"`           // ngẫu nhiên ± px cho mỗi lần di chuột tới điểm
+	Text          string   `json:"text"`                 // type / webType: chuỗi cần gõ
+	TypeMode      string   `json:"typeMode,omitempty"`   // type / webType: TypeModes – "" tự chọn | keys gõ phím | paste dán
+	Keys          []string `json:"keys"`                 // key: phím chính theo tên robotgo (enter, tab, a, f5…)
+	KeyMode       string   `json:"keyMode"`              // key: chord | sequence (chỉ khác nhau khi có ≥ 2 phím chính)
+	Modifiers     []string `json:"modifiers"`            // key: cmd | ctrl | alt | shift
+	DelayAfter    int      `json:"delayAfter"`           // ms, sang bước kế tiếp
+	JitterMs      int      `json:"jitterMs"`             // ngẫu nhiên ± ms cho DelayAfter và ClickInterval
+	JitterPx      int      `json:"jitterPx"`             // ngẫu nhiên ± px cho mỗi lần di chuột tới điểm
 	Enabled       bool     `json:"enabled"`
 	Direction     string   `json:"direction,omitempty"`  // scroll: up | down | left | right
 	Amount        int      `json:"amount,omitempty"`     // scroll: số nấc
@@ -99,6 +99,9 @@ type Step struct {
 	WebGone   bool     `json:"webGone,omitempty"`   // webWait: chờ phần tử mất (không còn / bị ẩn)
 	WebClear  bool     `json:"webClear,omitempty"`  // webType: xoá chữ cũ trong ô (Cmd/Ctrl+A, Backspace) trước khi gõ
 	WebEnter  bool     `json:"webEnter,omitempty"`  // webType: bấm Enter sau khi gõ
+	// webType: không kiểm tra ô nhận focus sau khi click (ô tuỳ biến – picker, editor – focus vào phần tử khác ô nhập)
+	SkipFocusCheck bool   `json:"skipFocusCheck,omitempty"`
+	WebScope       string `json:"webScope,omitempty"` // node web: WebScopes – "" = cả trang | dialog = chỉ trong hộp thoại đang mở trên cùng
 	// webWait / webClick / webType / webScroll: chạy nền (D4b) – bấm / gõ / lăn qua CDP, không đụng chuột / phím thật,
 	// không đưa Chrome lên trước (cửa sổ bị che / thu nhỏ vẫn chạy); output x, y… theo toạ độ trong trang
 	WebBackground bool   `json:"webBackground,omitempty"`
@@ -126,7 +129,7 @@ type Step struct {
 	FindText      string  `json:"findText,omitempty"`   // FindBy text: chữ cần tìm; nhận {{biến}}
 	TextExact     bool    `json:"textExact,omitempty"`  // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
 	TextAccent    bool    `json:"textAccent,omitempty"` // FindBy text: so đúng dấu (mặc định bỏ qua dấu – OCR hay đọc lệch dấu)
-	Occurrence    int     `json:"occurrence,omitempty"` // FindBy text: chỗ thứ mấy (trên → dưới, trái → phải); 0 = chỗ đầu
+	Occurrence    int     `json:"occurrence,omitempty"` // FindBy text / phần tử / node web: chỗ thứ mấy (trên → dưới, trái → phải; web: thứ tự trong trang trong số phần tử đang hiện); 0 = chỗ đầu (web: chỗ bấm được đầu tiên)
 	// Đọc phần tử (bước 37 E4): FindBy "" = tìm bằng cây phần tử (Selectors) | text = tìm nhãn bằng OCR (FindText…)
 	ReadNear    string `json:"readNear,omitempty"`    // "" = đọc chính phần tử | right / below = OCR chữ bên phải / bên dưới nhãn
 	ReadSpan    int    `json:"readSpan,omitempty"`    // ReadNear: khoảng đọc tính từ mép nhãn (px); 0 = 300

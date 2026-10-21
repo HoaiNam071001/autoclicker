@@ -116,11 +116,13 @@ export interface Step extends AdvancedFields {
   app?: string; // open: mở bằng app này, '' = mặc định của máy
   webBrowser?: boolean; // open: mở bằng Chrome của app (profile riêng) – node web điều khiển được; bỏ qua app
   // web qua DOM (bước 25d, internal/engine/webstep.go) – cách tìm ở flow/web.ts
-  selectors?: string[]; // node web: mỗi dòng một cách tìm (text= / aria= / role= / css= / xpath=), dòng đầu ưu tiên; nhận {{biến}}
+  selectors?: string[]; // node web: mỗi dòng một cách tìm (text= / aria= / role= / label= / css= / xpath=), dòng đầu ưu tiên; nhận {{biến}}
   tab?: string; // tab có URL / tiêu đề chứa chuỗi này, bỏ trống = tab đang hiện; nhận {{biến}}
   webGone?: boolean; // webWait: chờ phần tử mất
   webClear?: boolean; // webType: xoá chữ cũ trước khi gõ
   webEnter?: boolean; // webType: Enter sau khi gõ
+  skipFocusCheck?: boolean; // webType: không kiểm tra ô nhận focus sau khi click (ô tuỳ biến)
+  webScope?: 'dialog'; // node web: chỉ tìm trong hộp thoại đang mở trên cùng (bỏ trống = cả trang)
   webBackground?: boolean; // webWait / webClick / webType / webScroll: chạy nền qua CDP, không đụng chuột / phím thật (flow/web.ts canBackground)
   readFrom?: ReadFrom; // webRead: bỏ trống = chữ hiển thị
   attr?: string; // webRead readFrom attr: tên thuộc tính
@@ -144,7 +146,7 @@ export interface Step extends AdvancedFields {
   findText?: string; // chữ cần tìm, nhận {{biến}}
   textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
   textAccent?: boolean; // so đúng dấu (mặc định bỏ qua dấu)
-  occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu
+  occurrence?: number; // chỗ thứ mấy theo thứ tự đọc, 0 = chỗ đầu (node web: chỗ bấm được đầu tiên)
   // Đọc phần tử (bước 37 E4, engine/elementread.go): findBy text = tìm nhãn bằng OCR
   readNear?: 'right' | 'below'; // OCR chữ bên phải / bên dưới nhãn; bỏ trống = đọc chính phần tử
   readSpan?: number; // khoảng đọc từ mép nhãn (px), 0 = 300

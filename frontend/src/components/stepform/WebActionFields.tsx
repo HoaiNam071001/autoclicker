@@ -70,6 +70,8 @@ export function WebTypeFields({ step: s }: { step: Step }) {
     {!s.webBackground && <TypeModeField step={s} />}
     <SwitchField label="Xoá chữ cũ" help="Xoá chữ cũ trong ô trước khi gõ" on={!!s.webClear} onChange={(webClear) => set(s, { webClear: webClear || undefined })} />
     <SwitchField label="Enter sau khi gõ" on={!!s.webEnter} onChange={(webEnter) => set(s, { webEnter: webEnter || undefined })} />
+    <SwitchField label="Bỏ kiểm tra focus" help="Không kiểm tra ô đã nhận focus sau khi click – cho ô tuỳ biến (chọn ngày, editor) focus vào phần tử khác"
+      on={!!s.skipFocusCheck} onChange={(skipFocusCheck) => set(s, { skipFocusCheck: skipFocusCheck || undefined })} />
   </>;
 }
 

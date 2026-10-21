@@ -48,7 +48,10 @@ func (e *Engine) webType(ctx context.Context, s model.Step) (map[string]any, err
 	if err := e.webPress(ctx, s, f.at, "left", 1); err != nil {
 		return nil, err
 	}
-	ok, at, err := e.waitFocus(ctx)
+	ok, at, err := true, "", error(nil)
+	if !s.SkipFocusCheck {
+		ok, at, err = e.waitFocus(ctx)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +163,7 @@ func (e *Engine) scrollUntil(ctx context.Context, s model.Step) (map[string]any,
 	if err != nil {
 		return nil, err
 	}
+	box.Occurrence = 0 // chỗ thứ N là của phần tử cần thấy, không phải khung cuộn
 	if box.Viewport = len(boxLines) == 0; box.Viewport {
 		box.Selectors = nil
 	}

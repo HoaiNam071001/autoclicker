@@ -22,8 +22,9 @@ type WebFindResult struct {
 	Hidden   int    `json:"hidden"`   // số phần tử khớp nhưng đang ẩn
 	Tab      string `json:"tab"`      // URL tab đã tìm
 	NoTab    bool   `json:"noTab"`
-	Count    int    `json:"count"` // số phần tử đang hiện khớp
-	Value    string `json:"value"` // webRead: giá trị sẽ đọc được
+	NoDialog bool   `json:"noDialog"` // webScope dialog nhưng trang không có hộp thoại đang mở
+	Count    int    `json:"count"`    // số phần tử đang hiện khớp
+	Value    string `json:"value"`    // webRead: giá trị sẽ đọc được
 	Ms       int    `json:"ms"`
 }
 
@@ -49,7 +50,7 @@ func (e *Engine) FindElement(ctx context.Context, s model.Step) (WebFindResult, 
 	}
 	r := WebFindResult{
 		Found: f.OK, X: f.Rect.X, Y: f.Rect.Y, W: f.Rect.W, H: f.Rect.H, Text: f.Text, Covered: f.Covered, OffView: f.OffView,
-		Hidden: f.Hidden, Tab: f.Tab, NoTab: f.NoTab, Count: f.Count, Value: f.Value, Ms: int(time.Since(start).Milliseconds()),
+		Hidden: f.Hidden, Tab: f.Tab, NoTab: f.NoTab, NoDialog: f.NoDialog, Count: f.Count, Value: f.Value, Ms: int(time.Since(start).Milliseconds()),
 	}
 	if f.Selector >= 0 {
 		r.Selector = lines[f.Selector]

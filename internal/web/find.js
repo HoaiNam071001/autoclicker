@@ -3,8 +3,9 @@
 // viewport thì cuộn vào giữa; read = đọc chữ / value / thuộc tính attr của phần tử (webRead); viewport = trả chính
 // khung nhìn của trang (lăn chuột giữa trang – webScroll). Trả khung theo toạ độ client của trang chính (CSS px), phần tử che tâm (elementFromPoint
 // từng tầng frame) và hình học cửa sổ để Go biết khi nào phải đo lại toạ độ. Phần tử thấy được ghi vào
-// window.__acTarget để probe.js kiểm khi thử hover.
-(sels, { scroll, read, attr, viewport }) => {
+// window.__acTarget để probe.js kiểm khi thử hover. scope "dialog" = chỉ trong hộp thoại đang mở trên cùng; nth = chỗ thứ
+// mấy trong số phần tử đang hiện (0 = chỗ bấm được đầu tiên).
+(sels, { scroll, read, attr, viewport, scope, nth }) => {
   const norm = s => clean(s).toLowerCase();
   const matches = (got, value, exact) => {
     const a = norm(got), b = norm(value);
@@ -38,6 +39,25 @@
     const list = inDocOrder([...explicit, ...implicit]);
     return sel.name ? list.filter(el => matches(accName(el), sel.name, false)) : list;
   };
+  // label=: ô nhập của nhãn – label for / aria-labelledby, không có thì ô đầu tiên sau nhãn trong khối gần nhất (≤ 4 tầng,
+  // nhãn antd không gắn for). Nhãn tìm như text=.
+  const FIELD = 'input:not([type=hidden]), textarea, select, [contenteditable=""], [contenteditable=true], [role=textbox], [role=combobox], [role=spinbutton]';
+  const after = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+  const fieldOf = lab => {
+    const own = lab.closest('label');
+    if (own && own.control) return own.control;
+    const id = lab.id || (own && own.id);
+    const by = id && lab.ownerDocument.querySelector('[aria-labelledby~="' + CSS.escape(id) + '"]');
+    if (by) return by;
+    let box = own || lab;
+    for (let up = 0; up < 4 && box.parentElement; up++) {
+      box = box.parentElement;
+      const f = Array.from(box.querySelectorAll(FIELD)).find(x => after(lab, x) && !(own || lab).contains(x));
+      if (f) return f;
+    }
+    return null;
+  };
+  const byLabel = (sel, doc) => Array.from(new Set(byText(sel, doc).map(fieldOf).filter(Boolean)));
   const byXPath = (v, doc) => {
     const r = doc.evaluate(v, doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     return Array.from({ length: r.snapshotLength }, (_, i) => r.snapshotItem(i)).filter(n => n.nodeType === Node.ELEMENT_NODE);
@@ -47,6 +67,7 @@
       case 'text': return byText(sel, doc);
       case 'aria': return byAria(sel, doc);
       case 'role': return byRole(sel, doc);
+      case 'label': return byLabel(sel, doc);
       case 'css': return Array.from(doc.querySelectorAll(sel.value));
       case 'xpath': return byXPath(sel.value, doc);
     }
@@ -74,6 +95,18 @@
   window.__acDown = null;
   for (const d of docs) if (!d.__acDownHook) { d.__acDownHook = true; d.addEventListener("mousedown", e => { window.__acDown = e.target; }, true); }
   if (viewport) return Object.assign(out, { sel: 0, x: 0, y: 0, w: innerWidth, h: innerHeight, text: '', inView: true, count: 1 });
+  // Hộp thoại trên cùng: cái đang hiện mà tâm của nó không bị phần khác che, không có thì cái sau cùng trong trang.
+  let dialog = null;
+  if (scope === 'dialog') {
+    const ds = docs.flatMap(d => Array.from(d.querySelectorAll('[role=dialog], [role=alertdialog], [aria-modal=true], dialog[open]'))).filter(shown);
+    dialog = ds.slice().reverse().find(d => { const p = place(d); return p.inView && !coverOf(d, p.cx, p.cy); }) || ds[ds.length - 1] || null;
+    if (!dialog) return Object.assign(out, { noDialog: true });
+  }
+  const inScope = el => {
+    if (!dialog) return true;
+    for (let x = el; x; x = x.ownerDocument.defaultView.frameElement) if (dialog.contains(x)) return true;
+    return false;
+  };
   // Nhiều phần tử cùng tên (ô lọc của lưới sau hộp thoại + ô trong hộp thoại): sắp bấm thì lấy cái đầu tiên đang trong
   // vùng nhìn mà không bị che; không có thì như cũ (cái đầu) để báo đúng phần tử che.
   const pickClear = list => {
@@ -94,8 +127,8 @@
     return clean(el.innerText ?? el.textContent);
   };
   for (let i = 0; i < sels.length; i++) {
-    const found = docs.flatMap(doc => findIn(sels[i], doc));
-    const visible = found.filter(shown), el = pickClear(visible);
+    const found = docs.flatMap(doc => findIn(sels[i], doc)).filter(inScope);
+    const visible = found.filter(shown), el = nth > 0 ? visible[nth - 1] : pickClear(visible);
     out.counts.push({ shown: visible.length, hidden: found.length - visible.length });
     if (!el) { out.hidden = Math.max(out.hidden, found.length); continue; }
     let p = place(el);

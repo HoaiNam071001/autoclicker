@@ -34,7 +34,7 @@ export function elementSelectorError(selectors?: string[]): string {
   for (const line of selectorLines(selectors)) {
     if (line.includes('{{')) continue;
     const sel = parseSelector(line);
-    if (sel && (sel.by === 'css' || sel.by === 'xpath')) return `“${line.trim()}”: phần tử màn hình chỉ tìm theo text= / aria= / role= – css / xpath chỉ dùng ở node web`;
+    if (sel && sel.by !== 'text' && sel.by !== 'aria' && sel.by !== 'role') return `“${line.trim()}”: phần tử màn hình chỉ tìm theo text= / aria= / role= – ${sel.by}= chỉ dùng ở node web`;
   }
   return '';
 }

@@ -14,15 +14,23 @@ const (
 	SelRole  = "role"  // vai trò (thẻ hoặc thuộc tính role): role=button, role=link[name="Xem lịch sử"] (tên chứa, như text)
 	SelCSS   = "css"   // CSS selector
 	SelXPath = "xpath" // XPath
+	// ô nhập của nhãn chứa giá trị (cùng cách so như text): label for / aria-labelledby, không có thì ô đầu tiên sau nhãn
+	// trong cùng khối form (nhãn antd không gắn for) – bước 46 A3
+	SelLabel = "label"
 )
 
 // SelectorKinds – các tiền tố hợp lệ (frontend có bản sao trong flow/web.ts).
-var SelectorKinds = []string{SelText, SelAria, SelRole, SelCSS, SelXPath}
+var SelectorKinds = []string{SelText, SelAria, SelRole, SelLabel, SelCSS, SelXPath}
+
+// Phạm vi tìm của node web (Step.WebScope).
+const WebScopeDialog = "dialog" // chỉ trong hộp thoại đang mở trên cùng (role=dialog / aria-modal / <dialog open>)
+
+var WebScopes = []string{"", WebScopeDialog}
 
 type Selector struct {
 	By    string `json:"by"`
 	Value string `json:"value"`
-	Exact bool   `json:"exact,omitempty"` // text / aria: giá trị trong nháy kép
+	Exact bool   `json:"exact,omitempty"` // text / aria / label: giá trị trong nháy kép
 	Name  string `json:"name,omitempty"`  // role: tên truy cập phải chứa (chữ / aria-label) – kiểu Playwright [name="…"]
 }
 
@@ -40,7 +48,7 @@ func ParseSelector(line string) (Selector, error) {
 			}
 		}
 	}
-	if sel.By == SelText || sel.By == SelAria {
+	if sel.By == SelText || sel.By == SelAria || sel.By == SelLabel {
 		if n := len(sel.Value); n >= 2 && sel.Value[0] == '"' && sel.Value[n-1] == '"' {
 			sel.Value, sel.Exact = sel.Value[1:n-1], true
 		}

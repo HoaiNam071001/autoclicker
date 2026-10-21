@@ -9,9 +9,10 @@ export const WEB_BASIC_NOTE = 'Chỉ dùng cho trang web cơ bản, không bắt
 
 // Selector của node web – cùng công thức ParseSelector (internal/model/web.go), test chung testdata/selectors.json.
 // Một dòng Step.selectors = "<cách>=<giá trị>", không tiền tố = text; text / aria trong nháy kép = đúng cả chuỗi.
-export type SelectorKind = 'text' | 'aria' | 'role' | 'css' | 'xpath';
-export const SELECTOR_KINDS: SelectorKind[] = ['text', 'aria', 'role', 'css', 'xpath'];
-export const SELECTOR_LABEL: Record<SelectorKind, string> = { text: 'chữ', aria: 'aria', role: 'vai trò', css: 'CSS', xpath: 'XPath' };
+// label= – ô nhập của nhãn (label for / aria-labelledby, không có thì ô đầu tiên sau nhãn trong khối form – 46 A3).
+export type SelectorKind = 'text' | 'aria' | 'role' | 'label' | 'css' | 'xpath';
+export const SELECTOR_KINDS: SelectorKind[] = ['text', 'aria', 'role', 'label', 'css', 'xpath'];
+export const SELECTOR_LABEL: Record<SelectorKind, string> = { text: 'chữ', aria: 'aria', role: 'vai trò', label: 'ô của nhãn', css: 'CSS', xpath: 'XPath' };
 // name: role – tên truy cập phải chứa (role=button[name="Gửi"], kiểu Playwright).
 export interface Selector { by: SelectorKind; value: string; exact?: boolean; name?: string }
 
@@ -27,7 +28,7 @@ export function parseSelector(line: string): Selector | null {
     const kind = SELECTOR_KINDS.find((k) => k === by);
     if (kind) sel = { by: kind, value: t.slice(eq + 1).trim() };
   }
-  if ((sel.by === 'text' || sel.by === 'aria') && sel.value.length >= 2 && sel.value.startsWith('"') && sel.value.endsWith('"')) {
+  if ((sel.by === 'text' || sel.by === 'aria' || sel.by === 'label') && sel.value.length >= 2 && sel.value.startsWith('"') && sel.value.endsWith('"')) {
     sel = { ...sel, value: sel.value.slice(1, -1), exact: true };
   }
   if (sel.by === 'role' && sel.value !== '') {
@@ -47,7 +48,7 @@ export function fmtSelectors(selectors: string[] | undefined): string {
   const lines = selectorLines(selectors);
   const first = lines.length ? parseSelector(lines[0]) : null;
   if (!first) return 'chưa nhập cách tìm phần tử';
-  const what = first.by === 'text' || first.by === 'aria' ? `“${first.value}”`
+  const what = first.by === 'text' || first.by === 'aria' || first.by === 'label' ? `“${first.value}”`
     : first.by === 'role' && first.name ? `${first.value} “${first.name}”` : first.value;
   return `${SELECTOR_LABEL[first.by]} ${what}${lines.length > 1 ? ` (+${lines.length - 1} dự phòng)` : ''}`;
 }
@@ -65,7 +66,8 @@ export const canBackground = (s: Step) => s.type === 'webWait' || s.type === 'we
 // Dòng chi tiết trên thẻ node web.
 export function fmtWebStep(s: Step): string {
   const sel = fmtSelectors(s.selectors);
-  const tail = `${s.tab ? ` · tab “${s.tab}”` : ''}${s.webBackground && canBackground(s) ? ' · chạy nền' : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
+  const where = `${(s.occurrence ?? 0) > 1 ? ` · chỗ thứ ${s.occurrence}` : ''}${s.webScope === 'dialog' ? ' · trong hộp thoại' : ''}`;
+  const tail = `${where}${s.tab ? ` · tab “${s.tab}”` : ''}${s.webBackground && canBackground(s) ? ' · chạy nền' : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
   const roll = `${SCROLL_ARROW[s.direction ?? 'down']} ${s.amount ?? 0} nấc`;
   switch (s.type) {
     case 'webType': return `“${s.text}”${s.webEnter ? ' + Enter' : ''} vào ${sel}${tail}`;
@@ -81,7 +83,7 @@ export function fmtWebStep(s: Step): string {
 // Kết quả "Thử tìm" node web (engine.WebFindResult – Go internal/engine/webfind.go).
 export interface WebFind {
   found: boolean; x: number; y: number; w: number; h: number; text: string; selector: string;
-  covered: string; offView: boolean; hidden: number; tab: string; noTab: boolean; count: number; value: string; ms: number;
+  covered: string; offView: boolean; hidden: number; tab: string; noTab: boolean; noDialog?: boolean; count: number; value: string; ms: number;
 }
 
 // Dòng kết quả Thử tìm: ok = thấy và click được ngay; warn = thấy nhưng còn vướng / không thấy. read: node Đọc –
@@ -89,6 +91,7 @@ export interface WebFind {
 export function webFindText(r: WebFind, tab?: string, read?: boolean): { ok: boolean; text: string } {
   const ms = `${read && r.found ? ` · đọc được “${r.value}”` : ''}${r.count > 1 ? ` · ${r.count} phần tử khớp, dùng cái đầu` : ''} · ${r.ms} ms`;
   if (r.noTab) return { ok: false, text: `Không có tab nào có URL / tiêu đề chứa “${tab ?? ''}”` };
+  if (r.noDialog) return { ok: false, text: 'Trang không có hộp thoại nào đang mở (đang chỉ tìm trong hộp thoại)' };
   if (!r.found) {
     return { ok: false, text: (r.hidden > 0 ? `Có ${r.hidden} phần tử khớp nhưng đang ẩn` : 'Không thấy trên tab hiện tại') + ms };
   }

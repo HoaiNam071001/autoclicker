@@ -34,13 +34,15 @@ type Browser interface {
 
 // Query – phần tử cần tìm: thử từng selector theo thứ tự, cái đầu thấy thì dùng.
 type Query struct {
-	Selectors []model.Selector
-	Tab       string // URL / tiêu đề tab chứa chuỗi này ("" = tab đang hiện)
-	Scroll    bool   // sắp bấm (webClick): ngoài viewport thì cuộn vào giữa, bị che thì chưa tính là thấy, tab lên trước
-	CheckOnly bool   // chỉ xem có hay không (webWait chờ mất, webRead) – không đo toạ độ, không di chuột
-	Read      string // webRead: đọc vào Found.Value – "text" (chữ hiển thị) | "value" (giá trị ô) | "attr" (thuộc tính Attr)
-	Attr      string
-	Viewport  bool // tìm chính khung nhìn của trang (bỏ qua Selectors) – lăn chuột giữa trang (webScroll)
+	Selectors  []model.Selector
+	Tab        string // URL / tiêu đề tab chứa chuỗi này ("" = tab đang hiện)
+	Scroll     bool   // sắp bấm (webClick): ngoài viewport thì cuộn vào giữa, bị che thì chưa tính là thấy, tab lên trước
+	CheckOnly  bool   // chỉ xem có hay không (webWait chờ mất, webRead) – không đo toạ độ, không di chuột
+	Read       string // webRead: đọc vào Found.Value – "text" (chữ hiển thị) | "value" (giá trị ô) | "attr" (thuộc tính Attr)
+	Attr       string
+	Viewport   bool   // tìm chính khung nhìn của trang (bỏ qua Selectors) – lăn chuột giữa trang (webScroll)
+	Scope      string // model.WebScopes: "dialog" = chỉ trong hộp thoại đang mở trên cùng (không có hộp thoại → không thấy)
+	Occurrence int    // chỗ thứ mấy trong số phần tử đang hiện (thứ tự trong trang); 0 = chỗ bấm được đầu tiên
 	// Background: chạy nền – không đưa tab lên trước, không đo toạ độ bằng chuột; Found.Rect theo toạ độ trong trang
 	Background bool
 }
@@ -60,6 +62,7 @@ type Found struct {
 	OffView  bool       // thấy nhưng tâm nằm ngoài vùng nhìn thấy của trang (chưa cuộn tới)
 	Count    int        // số phần tử đang hiện khớp selector đã dùng
 	Counts   []SelCount // số khớp từng selector đã xét (không thấy: mọi selector) – chi tiết lỗi cho AI
+	NoDialog bool       // Query.Scope dialog nhưng trang không có hộp thoại đang mở
 	Value    string     // Query.Read: giá trị đọc được
 }
 

@@ -170,3 +170,36 @@ func TestRealReadOutlineDialog(t *testing.T) {
 		t.Errorf("thiếu ô / nút trong hộp thoại:\n%s", dlg.Text())
 	}
 }
+
+// 46 A3 – trường mới: label= ra ô của nhãn (cả nhãn không gắn for), webScope dialog bỏ ô lọc phía sau, occurrence chọn chỗ thứ N.
+func TestRealAntdScopeLabelOccurrence(t *testing.T) {
+	c, ctx, _ := antdChrome(t)
+	idOf := func(q Query) string {
+		t.Helper()
+		q.Read, q.Attr, q.Background = "attr", "id", true
+		f, err := c.Find(ctx, q)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return f.Value
+	}
+	label := func(v string) []model.Selector { return []model.Selector{{By: model.SelLabel, Value: v, Exact: true}} }
+	for v, want := range map[string]string{"Ngày vào làm": "join", "Ngày sinh": "dob", "Thành phố": "city"} {
+		if got := idOf(Query{Selectors: label(v)}); got != want {
+			t.Errorf("label=%q → ô %q, muốn %q", v, got, want)
+		}
+	}
+	aria := []model.Selector{{By: model.SelAria, Value: "Mã nhân viên"}}
+	if got := idOf(Query{Selectors: aria, Scope: model.WebScopeDialog}); got != "code" {
+		t.Errorf("webScope dialog → %q, muốn ô trong hộp thoại", got)
+	}
+	if got := idOf(Query{Selectors: aria, Occurrence: 1}); got != "f-code" {
+		t.Errorf("occurrence 1 → %q, muốn ô lọc của lưới (chỗ đầu trong trang)", got)
+	}
+	if got := idOf(Query{Selectors: aria, Occurrence: 2}); got != "code" {
+		t.Errorf("occurrence 2 → %q, muốn ô trong hộp thoại", got)
+	}
+	if f, err := c.Find(ctx, Query{Selectors: aria, Occurrence: 3, Background: true}); err != nil || f.OK || f.Selector >= 0 {
+		t.Errorf("occurrence 3 (chỉ có 2 ô) phải không thấy: %+v, %v", f, err)
+	}
+}

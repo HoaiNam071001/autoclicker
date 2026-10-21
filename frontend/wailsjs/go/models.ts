@@ -1109,6 +1109,8 @@ export namespace model {
 	    webGone?: boolean;
 	    webClear?: boolean;
 	    webEnter?: boolean;
+	    skipFocusCheck?: boolean;
+	    webScope?: string;
 	    webBackground?: boolean;
 	    readFrom?: string;
 	    attr?: string;
@@ -1230,6 +1232,8 @@ export namespace model {
 	        this.webGone = source["webGone"];
 	        this.webClear = source["webClear"];
 	        this.webEnter = source["webEnter"];
+	        this.skipFocusCheck = source["skipFocusCheck"];
+	        this.webScope = source["webScope"];
 	        this.webBackground = source["webBackground"];
 	        this.readFrom = source["readFrom"];
 	        this.attr = source["attr"];
