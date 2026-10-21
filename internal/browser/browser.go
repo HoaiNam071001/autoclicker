@@ -20,6 +20,9 @@ type Backend interface {
 	Close(ctx context.Context, t model.TabInfo) error                 // đóng tab
 	Nav(ctx context.Context, t model.TabInfo, op string) error        // model.TabReload / TabBack / TabForward
 	Go(ctx context.Context, t model.TabInfo, url string) error        // đổi URL của tab (không cần tab ở trước)
+	Frame(ctx context.Context, t model.TabInfo) (model.TabFrame, error)
+	// Normalize – tab t phải đang ở trước (Activate): zoom / Esc là phím gửi cho cửa sổ trước nhất. Trả: cửa sổ đã ở toàn màn hình.
+	Normalize(ctx context.Context, t model.TabInfo, o model.NormalizeOpts) (wasFullscreen bool, err error)
 }
 
 var (

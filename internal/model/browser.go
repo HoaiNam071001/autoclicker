@@ -42,6 +42,21 @@ type TabInfo struct {
 	Loading bool   `json:"loading"` // trang đang tải
 }
 
+// TabFrame – cửa sổ chứa một tab: khung (cùng hệ toạ độ với điểm click) và có đang toàn màn hình không.
+type TabFrame struct {
+	Box        Rect `json:"box"`
+	Fullscreen bool `json:"fullscreen"`
+}
+
+// NormalizeOpts – việc node Chuẩn hoá trình duyệt nhờ trình duyệt làm (browser.Backend.Normalize). Thứ tự: thoát
+// toàn màn hình → đặt khung → zoom → đóng popup.
+type NormalizeOpts struct {
+	Zoom       bool  `json:"zoom"`
+	Fullscreen bool  `json:"fullscreen"`
+	Popups     bool  `json:"popups"`
+	Bounds     *Rect `json:"bounds,omitempty"` // nil = giữ khung
+}
+
 // MatchTabs – chỉ số các tab có tiêu đề hoặc URL khớp want theo mode (NameMatches); want "" → mọi tab.
 func MatchTabs(tabs []TabInfo, want, mode string) ([]int, error) {
 	var out []int

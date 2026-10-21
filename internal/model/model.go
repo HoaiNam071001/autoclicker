@@ -141,6 +141,11 @@ type Step struct {
 	Browser  string `json:"browser,omitempty"`  // Browsers: "" = trình duyệt họ Chromium đang ở trước | chrome | edge | brave | coccoc
 	TabMatch string `json:"tabMatch,omitempty"` // NameMatches như WinMatch – so Tab với tiêu đề và URL
 	TabFrom  string `json:"tabFrom,omitempty"`  // id node Mở: làm với tab node đó vừa mở (bỏ qua Tab)
+	// Chuẩn hoá trình duyệt (bước 43 B3, engine/browsernorm.go) – chọn tab như Tab trình duyệt; cỡ cửa sổ dùng WinPreset / WinRect / Display của node Cửa sổ
+	NormZoom       bool `json:"normZoom,omitempty"`       // đưa zoom trang về 100 % (Cmd / Ctrl+0)
+	NormFullscreen bool `json:"normFullscreen,omitempty"` // thoát toàn màn hình nếu đang bật
+	NormSize       bool `json:"normSize,omitempty"`       // đặt vị trí + cỡ cửa sổ theo WinPreset / WinRect
+	NormPopups     bool `json:"normPopups,omitempty"`     // đóng popup / bong bóng đang mở (dịch trang, tải xuống…) bằng Esc
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>

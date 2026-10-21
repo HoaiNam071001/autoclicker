@@ -100,7 +100,7 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if err := validateApp(i, s); err != nil {
 				return err
 			}
-		case model.StepBrowserTab, model.StepBrowserGo:
+		case model.StepBrowserTab, model.StepBrowserGo, model.StepBrowserNorm:
 			if err := validateTab(i, s); err != nil {
 				return err
 			}

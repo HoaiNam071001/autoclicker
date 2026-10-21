@@ -63,6 +63,7 @@ const GROUPS: PaletteGroup[] = [
       { icon: 'app', label: 'Ứng dụng', info: NODE_INFO.app, keywords: 'app ung dung chuong trinh dang chay kiem tra cho mo thoat tat buoc thoat kill quit process tien trinh', run: () => addStep('app') },
       { icon: 'browserTab', label: 'Tab trình duyệt', info: NODE_INFO.browserTab, keywords: 'tab trinh duyet chrome edge brave coc coc dong tab mo tab moi chuyen tab tai lai quay lai url tieu de browser', run: () => addStep('browserTab') },
       { icon: 'browserGo', label: 'Đi tới URL', info: NODE_INFO.browserGo, keywords: 'di toi url doi trang dia chi trong tab hien tai chrome trinh duyet go navigate tai trang', run: () => addStep('browserGo') },
+      { icon: 'browserNorm', label: 'Chuẩn hoá trình duyệt', info: NODE_INFO.browserNorm, keywords: 'chuan hoa trinh duyet zoom 100 toan man hinh fullscreen dat co cua so popup dich trang chrome toa do lech', run: () => addStep('browserNorm') },
       { icon: 'elementRead', label: 'Đọc phần tử', info: NODE_INFO.elementRead, keywords: 'doc phan tu accessibility chrome thuong app gia tri o nhap gia tien lay du lieu', run: () => addStep('elementRead') },
     ],
   },

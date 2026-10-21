@@ -3,8 +3,9 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 43 – Node chuyên sâu (B1 Tab trình duyệt, B2 Đi tới URL – macOS) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
+## 43 – Node chuyên sâu (B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
 
+- [ ] (B3) Mẫu thử *Chuẩn hoá trình duyệt – zoom 100 %, đặt cỡ giữa màn* trên macOS: trước khi chạy bật toàn màn hình Chrome + phóng to trang (Cmd +); chạy xong Chrome thoát toàn màn hình, cửa sổ 1000×700 giữa màn, chữ trang về cỡ thường; lời kết thúc ghi đúng khung + “trước đó toàn màn hình: true”. Lần đầu macOS có thể hỏi quyền Automation / Accessibility (System Events gửi phím) → OK. Thử thêm: Edge / Cốc Cốc; preset Trái / Phải / Đầy; popup dịch trang đang mở bị đóng; Cmd+0 không làm hỏng ô đang gõ trên trang
 - [ ] (B2) Node *Đi tới URL*: Chrome đang bị cửa sổ khác che vẫn đổi trang trong tab đang hiện (không mở tab mới), node chờ tới khi trang tải xong mới đi tiếp; URL có biến tiếng Việt / dấu cách mở đúng; URL lỗi (vd `http://localhost:1`) vẫn không treo quá *Chờ tối đa*
 - [ ] (B1) Mẫu thử *Tab trình duyệt – mở, chuyển, đi tới URL, đóng đúng tab* trên macOS với Chrome đang mở vài tab khác: lần đầu macOS hỏi cho phép Ghosthand điều khiển Google Chrome → OK; Chrome mở danh sách sân thử, mở thêm Bảng click ở tab mới, quay lại tab danh sách + tải lại, rồi đóng đúng 2 tab đó (tab khác giữ nguyên); lời kết thúc ghi tiêu đề tab + số tab mở từ file ≥ 2
 - [ ] (B1) Từ chối quyền Automation (System Settings → Privacy & Security → Automation) → node báo lỗi *permission* có hướng dẫn bật lại; đóng hết Chrome rồi chạy node *Mở tab mới* với trình duyệt *Đang ở trước* → lỗi *browser* “chưa mở trình duyệt”

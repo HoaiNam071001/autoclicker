@@ -1,0 +1,38 @@
+{
+ "meta": {
+  "name": "Chuẩn hoá trình duyệt – zoom 100 %, đặt cỡ giữa màn",
+  "description": "Mở danh sách sân thử bằng Chrome thường → Chuẩn hoá: thoát toàn màn hình, đặt cửa sổ 1000×700 giữa màn, zoom về 100 %, đóng popup. Đúng: cửa sổ Chrome hiện giữa màn đúng cỡ, chữ trang trở về cỡ thường dù trước đó phóng to / thu nhỏ; lời kết thúc ghi khung cửa sổ và có đang toàn màn hình trước đó không.",
+  "app": "Trình duyệt",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Hiện chỉ chạy trên macOS. Cần Google Chrome; lần đầu macOS hỏi quyền Automation (và Accessibility để gửi phím). Thử khó hơn: trước khi chạy bật toàn màn hình Chrome và phóng to trang (Cmd +)."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/index.html",
+    "app": "Google Chrome",
+    "delayAfter": 2000
+   },
+   {
+    "type": "browserNorm",
+    "tabFrom": "s1",
+    "normZoom": true,
+    "normFullscreen": true,
+    "normSize": true,
+    "normPopups": true,
+    "winPreset": "center",
+    "winRect": { "x": 0, "y": 0, "w": 1000, "h": 700 },
+    "timeoutMs": 5000,
+    "delayAfter": 800
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Cửa sổ {{n2.output.w}}×{{n2.output.h}} tại ({{n2.output.left}}, {{n2.output.top}}); trước đó toàn màn hình: {{n2.output.wasFullscreen}}"
+   }
+  ]
+ }
+}

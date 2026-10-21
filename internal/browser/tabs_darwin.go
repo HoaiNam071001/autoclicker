@@ -88,4 +88,29 @@ func (System) Go(ctx context.Context, t model.TabInfo, url string) error {
 	return err
 }
 
+func (System) Frame(ctx context.Context, t model.TabInfo) (model.TabFrame, error) {
+	out, err := osa(ctx, "frame", t.Browser, id(t.Window), id(t.ID))
+	if err != nil {
+		return model.TabFrame{}, err
+	}
+	var f model.TabFrame
+	return f, json.Unmarshal([]byte(out), &f)
+}
+
+func (System) Normalize(ctx context.Context, t model.TabInfo, o model.NormalizeOpts) (bool, error) {
+	arg, err := json.Marshal(o)
+	if err != nil {
+		return false, err
+	}
+	out, err := osa(ctx, "normalize", t.Browser, id(t.Window), id(t.ID), string(arg))
+	if err != nil {
+		return false, err
+	}
+	var r struct {
+		WasFullscreen bool `json:"wasFullscreen"`
+	}
+	err = json.Unmarshal([]byte(out), &r)
+	return r.WasFullscreen, err
+}
+
 func id(n int64) string { return strconv.FormatInt(n, 10) }

@@ -252,3 +252,25 @@ func TestValidateBrowserGo(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateBrowserNorm(t *testing.T) {
+	norm := func(f func(s *model.Step)) error {
+		sc := model.Script{Loops: 1, Steps: []model.Step{modeltest.Node("g", "n1", model.StepBrowserNorm, func(s *model.Step) {
+			s.NormZoom, s.NormFullscreen, s.NormPopups = true, false, false // NewStep bật cả ba
+			f(s)
+		})}}
+		return script.ValidateScript(scripttest.Linear(sc), model.Rect{})
+	}
+	if err := norm(func(*model.Step) {}); err != nil {
+		t.Errorf("hợp lệ: %v", err)
+	}
+	if err := norm(func(s *model.Step) { s.NormZoom = false }); err == nil {
+		t.Error("không bật mục nào phải báo lỗi")
+	}
+	if err := norm(func(s *model.Step) { s.NormSize = true }); err == nil {
+		t.Error("đặt cỡ theo toạ độ chưa nhập cỡ phải báo lỗi")
+	}
+	if err := norm(func(s *model.Step) { s.NormSize, s.WinPreset = true, model.PresetFull }); err != nil {
+		t.Errorf("preset full không cần cỡ: %v", err)
+	}
+}

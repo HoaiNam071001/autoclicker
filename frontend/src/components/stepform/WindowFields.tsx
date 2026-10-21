@@ -13,6 +13,7 @@ import { matchWindow, WIN_MATCHES, WIN_OPS, WIN_PRESETS, windowHasBox, type Wind
 import { Rect, Step } from '../../types';
 import { errText, Field, fmtSec, hint, NumField, selectBox, useNodeVars } from './shared';
 import { DisplayPicker } from './ShotFields';
+import { BoundsFields } from './BoundsFields';
 import { WindowPicker } from './WindowPicker';
 
 // Danh sách cửa sổ đang mở – tải khi cần (mở danh sách / lấy khung), không tự làm mới.
@@ -72,33 +73,7 @@ export function WindowFields({ step: s }: { step: Step }) {
           {picking && (wins || error) && <WindowPicker wins={wins ?? []}error={error} onPick={pick} onRefresh={load} />}
         </div>
       )}
-      {op === 'setBounds' && (
-        <>
-          <Field label="Đặt ở" wide group help="Trái / Phải / Giữa: cỡ dưới đây trong vùng làm việc của màn (không đè taskbar) – cỡ 0 = nửa màn. Đầy: cả vùng làm việc. Toạ độ: đúng X, Y, W, H.">
-            <Segmented value={s.winPreset ?? ''} full label="Đặt ở" onChange={(v) => set({ winPreset: v || undefined })} options={WIN_PRESETS} />
-          </Field>
-          {s.winPreset !== 'full' && (
-            <Field label={s.winPreset ? 'Cỡ' : 'Khung'} wide group>
-              {!s.winPreset && <div className="flex gap-2">
-                <NumInput prefix="X" value={rect.x} signed onChange={(x) => setRect({ x })} className="flex-1" />
-                <NumInput prefix="Y" value={rect.y} signed onChange={(y) => setRect({ y })} className="flex-1" />
-              </div>}
-              <div className="flex gap-2">
-                <NumInput prefix="W" value={rect.w} min={0} onChange={(w) => setRect({ w })} className="flex-1" />
-                <NumInput prefix="H" value={rect.h} min={0} onChange={(h) => setRect({ h })} className="flex-1" />
-              </div>
-              {inWails && <button onClick={takeCurrent} className="h-8 rounded-control border border-line text-[13px] text-ink hover:bg-hover">Lấy khung hiện tại của cửa sổ</button>}
-              {note && <span className={errText}>{note}</span>}
-              {!s.winPreset && !(rect.w > 0 && rect.h > 0) && <span className={errText}>Chưa nhập cỡ – chạy sẽ báo lỗi</span>}
-            </Field>
-          )}
-          {s.winPreset && (
-            <Field label="Màn hình" wide group>
-              <DisplayPicker value={s.display ?? 0} onChange={(display) => set({ display: display || undefined })} zero="Màn đang chứa cửa sổ" />
-            </Field>
-          )}
-        </>
-      )}
+      {op === 'setBounds' && <BoundsFields step={s} onTakeCurrent={inWails ? takeCurrent : undefined} note={note} />}
       <NumField label="Chờ tối đa" info={`Chờ cửa sổ ${op === 'waitClose' ? 'đóng' : 'hiện'} tối đa – quá giờ đi cổng Thất bại`} step={s} field="timeoutMs" unit="ms" min={0} />
       <span className={`col-span-2 -mt-1 ${hint}`}>
         {op === 'waitClose' ? `Cửa sổ còn mở sau ${fmtSec(s.timeoutMs)} → cổng Thất bại.`

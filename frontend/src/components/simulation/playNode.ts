@@ -11,7 +11,7 @@ import { fmtFile } from '../../flow/file';
 import { fmtSystem } from '../../flow/system';
 import { fmtWindow } from '../../flow/window';
 import { fmtApp } from '../../flow/app';
-import { fmtBrowserGo, fmtBrowserTab } from '../../flow/browserTab';
+import { fmtBrowserGo, fmtBrowserNorm, fmtBrowserTab } from '../../flow/browserTab';
 import { fmtWaitUntil } from '../../flow/waitUntil';
 import { pathVertices } from '../../flow/shape';
 import { fmtKey } from '../../keys';
@@ -48,6 +48,7 @@ function bubbleOf(s: Step): string | null {
     case 'system': return `🔊 ${fmtSystem(s)}`;
     case 'app': return `🧩 Ứng dụng: ${fmtApp(s)} – xem trước không đụng app thật`;
     case 'browserGo': return `🗂 Đi tới URL: ${fmtBrowserGo(s, refOf)} – xem trước không đụng trình duyệt thật`;
+    case 'browserNorm': return `🗂 Chuẩn hoá trình duyệt: ${fmtBrowserNorm(s, refOf)} – xem trước không đụng trình duyệt thật`;
     case 'browserTab': return `🗂 Tab trình duyệt: ${fmtBrowserTab(s, refOf)} – xem trước không đụng trình duyệt thật`;
     case 'window': return `🪟 Cửa sổ: ${fmtWindow(s)} – xem trước không đổi cửa sổ thật`;
     case 'file': return `📄 ${fmtFile(s)}`;

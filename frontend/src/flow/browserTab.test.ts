@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { browserTabOutputs, browserTabWarning, fmtBrowserGo, fmtBrowserTab } from './browserTab';
+import { browserTabOutputs, browserTabWarning, fmtBrowserGo, fmtBrowserNorm, fmtBrowserTab } from './browserTab';
 
 const refOf = (id: string) => (id === 'o' ? 'n1' : id);
 const refs = new Map([['o', 'n1']]);
@@ -34,5 +34,17 @@ describe('node Đi tới URL', () => {
     expect(fmtBrowserGo({ type: 'browserGo', url: 'a.vn', tabFrom: 'o', browser: 'edge' }, refOf)).toBe('a.vn · tab của n1 · Edge');
     expect(browserTabWarning({ type: 'browserGo', url: ' ' }, refs)).toBe('Chưa nhập URL');
     expect(browserTabOutputs({ type: 'browserGo' }).map((o) => o.key)).toContain('ms');
+  });
+});
+
+describe('node Chuẩn hoá trình duyệt', () => {
+  it('chi tiết, cảnh báo, output', () => {
+    const on = { type: 'browserNorm' as const, normZoom: true, normFullscreen: true, normSize: true, winPreset: 'center' as const };
+    expect(fmtBrowserNorm(on, refOf)).toBe('thoát toàn màn hình · cỡ giữa · zoom 100 % · tab đang hiện');
+    expect(fmtBrowserNorm({ type: 'browserNorm' }, refOf)).toBe('chưa bật việc nào · tab đang hiện');
+    expect(browserTabWarning({ type: 'browserNorm' }, refs)).toBe('Chưa bật việc nào');
+    expect(browserTabWarning({ ...on, winPreset: undefined }, refs)).toBe('Chưa nhập cỡ cửa sổ');
+    expect(browserTabWarning(on, refs)).toBeUndefined();
+    expect(browserTabOutputs({ type: 'browserNorm' }).map((o) => o.key)).toContain('wasFullscreen');
   });
 });

@@ -1,6 +1,7 @@
 package script
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -21,12 +22,36 @@ func checkTab(s model.Step) error {
 	if !slices.Contains(model.NameMatches, s.TabMatch) {
 		return fmt.Errorf("cách so tab không hợp lệ: %q (trống = chứa | exact | regex)", s.TabMatch)
 	}
+	if s.Type == model.StepBrowserNorm {
+		if !slices.Contains(model.WinPresets, s.WinPreset) {
+			return fmt.Errorf("khung đặt sẵn không hợp lệ: %q (trống = theo winRect | center | left | right | full)", s.WinPreset)
+		}
+		if s.Display < 0 {
+			return errors.New("số thứ tự màn hình không được âm")
+		}
+	}
+	return nil
+}
+
+// validateNorm – node Chuẩn hoá phải làm ít nhất một việc; đặt cỡ theo toạ độ cần đủ W, H.
+func validateNorm(i int, s model.Step) error {
+	switch r := s.WinRect; {
+	case !s.NormZoom && !s.NormFullscreen && !s.NormSize && !s.NormPopups:
+		return stepErr(i, s, "normZoom", "chưa chọn việc nào – bật ít nhất một mục chuẩn hoá")
+	case s.NormSize && s.WinPreset == model.PresetRect && (r == nil || r.W <= 0 || r.H <= 0):
+		return stepErr(i, s, "winRect", "chưa nhập cỡ cửa sổ")
+	}
 	return nil
 }
 
 // validateTab – chờ tab cần chuỗi tìm; URL tab mới mở được bằng trình duyệt. Node Mở TabFrom kiểm ở validateTabFrom.
 func validateTab(i int, s model.Step) error {
 	tab := strings.TrimSpace(s.Tab)
+	if s.Type == model.StepBrowserNorm {
+		if err := validateNorm(i, s); err != nil {
+			return err
+		}
+	}
 	switch {
 	case s.TabOp == model.TabWaitOpen && tab == "":
 		return stepErr(i, s, "tab", "chưa nhập tiêu đề / URL tab cần chờ")

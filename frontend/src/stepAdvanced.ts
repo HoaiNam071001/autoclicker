@@ -72,6 +72,11 @@ export interface AdvancedFields {
   browser?: BrowserName; // bỏ trống = trình duyệt đang ở trước
   tabMatch?: WinMatch; // như winMatch – so tab với tiêu đề và URL
   tabFrom?: string; // id node Mở: làm với tab node đó vừa mở (bỏ qua tab)
+  // chuẩn hoá trình duyệt (bước 43 B3, internal/engine/browsernorm.go) – cỡ cửa sổ dùng winPreset / winRect / display
+  normZoom?: boolean; // zoom về 100 %
+  normFullscreen?: boolean; // thoát toàn màn hình
+  normSize?: boolean; // đặt vị trí + cỡ cửa sổ
+  normPopups?: boolean; // đóng popup bằng Esc
 }
 
 // Node xử lý chữ (bước 42 G4b, internal/textop) – chữ vào ở value

@@ -43,6 +43,32 @@ function newTab(b, url) {
   return { window: Number(w.id()), id: Number(t.id()), index: w.activeTabIndex(), title: t.title(), url: t.url() };
 }
 
+// Phím và thuộc tính cửa sổ đi qua System Events (cần quyền Accessibility – app đã xin cho click). Tab phải đang ở trước.
+function winOf(b) { return Application('System Events').processes.whose({ bundleIdentifier: IDS[b] })[0].windows[0]; }
+
+function isFullscreen(b) {
+  try { return winOf(b).attributes.byName('AXFullScreen').value() === true; } catch (e) { return false; }
+}
+
+function frame(b, w) {
+  const r = app(b).windows.byId(Number(w)).bounds();
+  return { box: { x: r.x, y: r.y, w: r.width, h: r.height }, fullscreen: isFullscreen(b) };
+}
+
+function normalize(b, w, o) {
+  let was = false;
+  if (o.fullscreen && isFullscreen(b)) {
+    was = true;
+    winOf(b).attributes.byName('AXFullScreen').value = false;
+    delay(1.2); // chờ hiệu ứng thoát toàn màn hình
+  }
+  if (o.bounds) app(b).windows.byId(Number(w)).bounds = { x: o.bounds.x, y: o.bounds.y, width: o.bounds.w, height: o.bounds.h };
+  const se = Application('System Events');
+  if (o.zoom) se.keystroke('0', { using: 'command down' });
+  if (o.popups) se.keyCode(53); // Esc
+  return { wasFullscreen: was };
+}
+
 function run(argv) {
   const [cmd, b, w, t, url] = argv;
   switch (cmd) {
@@ -61,6 +87,8 @@ function run(argv) {
       return '';
     }
     case 'go': tab(b, w, t).url = url; return '';
+    case 'frame': return JSON.stringify(frame(b, w));
+    case 'normalize': return JSON.stringify(normalize(b, w, JSON.parse(url))); // url = tuỳ chọn dạng JSON
     case 'close': tab(b, w, t).close(); return '';
     case 'reload': tab(b, w, t).reload(); return '';
     case 'back': tab(b, w, t).goBack(); return '';

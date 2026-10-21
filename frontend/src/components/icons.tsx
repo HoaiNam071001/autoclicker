@@ -131,6 +131,7 @@ export const STEP_ICON = {
   app: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM16.5 13v7M13 16.5h7', // lưới app + dấu cộng
   browserTab: 'M3 8h18v11H3zM3 8V5h7l1.5 3M12 5h5l1.5 3M7 13h10', // cửa sổ có 2 tab
   browserGo: 'M3 5h18v14H3zM3 9h18M7 14h7M11.5 11.5L14 14l-2.5 2.5', // cửa sổ trình duyệt + mũi tên đi tới
+  browserNorm: 'M3 5h18v14H3zM3 9h18M9 13l-2 2 2 2M15 13l2 2-2 2', // cửa sổ trình duyệt + ngoặc chuẩn
   group: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
   // node điều khiển của flow (bước 20)
   if: 'M12 3l9 9-9 9-9-9zM12 8v5M12 16v.01',

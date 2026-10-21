@@ -1260,6 +1260,10 @@ export namespace model {
 	    browser?: string;
 	    tabMatch?: string;
 	    tabFrom?: string;
+	    normZoom?: boolean;
+	    normFullscreen?: boolean;
+	    normSize?: boolean;
+	    normPopups?: boolean;
 	    cond?: Cond;
 	    cases?: Case[];
 	    value?: string;
@@ -1406,6 +1410,10 @@ export namespace model {
 	        this.browser = source["browser"];
 	        this.tabMatch = source["tabMatch"];
 	        this.tabFrom = source["tabFrom"];
+	        this.normZoom = source["normZoom"];
+	        this.normFullscreen = source["normFullscreen"];
+	        this.normSize = source["normSize"];
+	        this.normPopups = source["normPopups"];
 	        this.cond = this.convertValues(source["cond"], Cond);
 	        this.cases = this.convertValues(source["cases"], Case);
 	        this.value = source["value"];

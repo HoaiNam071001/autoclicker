@@ -2,6 +2,7 @@
 // internal/engine/browsertab.go (kiểm tra: internal/script/tabcheck.go).
 import type { Step } from '../types';
 import type { OutputField } from './view';
+import { WIN_PRESETS } from './window';
 
 export type TabOp = '' | 'list' | 'switch' | 'new' | 'close' | 'closeOthers' | 'reload' | 'back' | 'forward' | 'waitOpen' | 'waitClose';
 export type BrowserName = '' | 'chrome' | 'edge' | 'brave' | 'coccoc';
@@ -43,10 +44,23 @@ export function fmtBrowserTab(s: TabStep, refOf: (id: string) => string): string
 export const fmtBrowserGo = (s: TabStep, refOf: (id: string) => string): string =>
   `${s.url?.trim() || 'chưa nhập URL'} · ${tabTarget(s, refOf)}${s.browser ? ` · ${BROWSERS.find((b) => b.id === s.browser)?.label ?? s.browser}` : ''}`;
 
+type NormStep = TabStep & Pick<Step, 'normZoom' | 'normFullscreen' | 'normSize' | 'normPopups' | 'winPreset' | 'winRect'>;
+
+// Dòng chi tiết node Chuẩn hoá: "Zoom 100 % · Toàn màn hình · Cỡ giữa · tab của n1".
+export function fmtBrowserNorm(s: NormStep, refOf: (id: string) => string): string {
+  const size = s.winPreset ? `cỡ ${WIN_PRESETS.find((p) => p.id === s.winPreset)?.label.toLowerCase()}` : s.winRect ? `cỡ ${s.winRect.w}×${s.winRect.h}` : 'cỡ';
+  const todo = [s.normFullscreen && 'thoát toàn màn hình', s.normSize && size, s.normZoom && 'zoom 100 %', s.normPopups && 'đóng popup'].filter(Boolean);
+  return `${todo.length ? todo.join(' · ') : 'chưa bật việc nào'} · ${tabTarget(s, refOf)}${s.browser ? ` · ${BROWSERS.find((b) => b.id === s.browser)?.label ?? s.browser}` : ''}`;
+}
+
 // Cảnh báo khi soạn (khớp validateTab / validateTabFrom); refs: id các node còn trong kịch bản.
-export function browserTabWarning(s: TabStep, refs: Map<string, string>): string | undefined {
+export function browserTabWarning(s: NormStep, refs: Map<string, string>): string | undefined {
   const op = s.tabOp ?? '';
   if (s.type === 'browserGo' && !s.url?.trim()) return 'Chưa nhập URL';
+  if (s.type === 'browserNorm') {
+    if (!s.normZoom && !s.normFullscreen && !s.normSize && !s.normPopups) return 'Chưa bật việc nào';
+    if (s.normSize && !s.winPreset && !(s.winRect && s.winRect.w > 0 && s.winRect.h > 0)) return 'Chưa nhập cỡ cửa sổ';
+  }
   if (s.tabFrom && TAB_FROM_OPS.includes(op) && !refs.has(s.tabFrom)) return 'Node Mở đã chọn không còn – chọn lại';
   if (op === 'waitOpen' && !s.tab?.trim()) return 'Chưa nhập tiêu đề / URL tab cần chờ';
   if (op === 'waitClose' && !s.tab?.trim() && !s.tabFrom) return 'Chưa nhập tab cần chờ đóng';
@@ -58,6 +72,10 @@ const TAB_INFO: OutputField[] = [{ key: 'url', desc: 'URL tab' }, { key: 'title'
 
 // Output theo thao tác (khớp tabOutput / items – internal/engine/browsertab.go).
 export function browserTabOutputs(s: Pick<Step, 'tabOp'> & { type?: Step['type'] }): OutputField[] {
+  if (s.type === 'browserNorm') {
+    return [...TAB_INFO, { key: 'left', desc: 'góc trên trái cửa sổ – X' }, { key: 'top', desc: 'góc trên trái – Y' }, { key: 'w', desc: 'rộng cửa sổ' }, { key: 'h', desc: 'cao cửa sổ' },
+      { key: 'x', desc: 'tâm cửa sổ – X' }, { key: 'y', desc: 'tâm cửa sổ – Y' }, { key: 'wasFullscreen', desc: 'trước đó đang toàn màn hình' }, { key: 'zoomReset', desc: 'đã gửi phím zoom 100 %' }];
+  }
   if (s.type === 'browserGo') return [...TAB_INFO, { key: 'ms', desc: 'thời gian tới khi tải xong (ms)' }];
   switch (s.tabOp ?? '') {
     case 'list': return [{ key: 'items', desc: 'danh sách tab [{title, url, browser, window, active, tabId}] – nối vào Lặp qua danh sách' }, { key: 'count', desc: 'số tab' }];

@@ -19,17 +19,18 @@ const (
 	StepFindAll    = "findAll"    // như waitImage nhưng trả mọi chỗ khớp (items), số chỗ trong MinCount..MaxCount (engine/findall.go, bước 42 G3)
 
 	// Node nâng cao (bước 35)
-	StepScreenshot = "screenshot" // chụp vùng ShotArea, lưu PNG vào SaveDir / FileName, tuỳ chọn chép vào clipboard (engine/shot.go)
-	StepClipboard  = "clipboard"  // ClipOp: đọc chữ vào output / ghi Text / ghi ảnh PNG từ FilePath (engine/clip.go)
-	StepHTTP       = "http"       // gọi API: Method URL + Query / Headers / Body; 2xx → success, khác → fail (engine/http.go)
-	StepSystem     = "system"     // SysOp: âm lượng đặt / tăng / giảm, tắt / bật tiếng (engine/system.go)
-	StepWaitUntil  = "waitUntil"  // chờ đến giờ At (hôm nay / ngày giờ), tuỳ chọn canh giờ chuẩn NTP (engine/waituntil.go)
-	StepPath       = "path"       // vẽ: giữ chuột đi qua Points (đường gấp khúc) hoặc hình Shape quanh Points[0] trong DragMs (engine/draw.go)
-	StepWindow     = "window"     // WinOp: focus / chờ mở · đóng / đặt khung / thu nhỏ… cửa sổ khớp WinApp + WinTitle (engine/window.go)
-	StepApp        = "app"        // AppOp: kiểm tra đang chạy (cổng yes / no) / chờ chạy · thoát / thoát app khớp AppName (engine/app.go)
-	StepBrowserTab = "browserTab" // TabOp: đọc / liệt kê / chuyển / mở / đóng / tải lại tab của trình duyệt thường họ Chromium (engine/browsertab.go, bước 43 B1)
-	StepBrowserGo  = "browserGo"  // đặt URL cho tab (như browserTab chọn tab) rồi chờ tải xong (engine/browsergo.go, bước 43 B2)
-	StepFile       = "file"       // FileOp: ghi file / thêm dòng csv · xlsx / tạo thư mục / xoá vào Thùng rác / dọn Thùng rác (engine/file.go)
+	StepScreenshot  = "screenshot"  // chụp vùng ShotArea, lưu PNG vào SaveDir / FileName, tuỳ chọn chép vào clipboard (engine/shot.go)
+	StepClipboard   = "clipboard"   // ClipOp: đọc chữ vào output / ghi Text / ghi ảnh PNG từ FilePath (engine/clip.go)
+	StepHTTP        = "http"        // gọi API: Method URL + Query / Headers / Body; 2xx → success, khác → fail (engine/http.go)
+	StepSystem      = "system"      // SysOp: âm lượng đặt / tăng / giảm, tắt / bật tiếng (engine/system.go)
+	StepWaitUntil   = "waitUntil"   // chờ đến giờ At (hôm nay / ngày giờ), tuỳ chọn canh giờ chuẩn NTP (engine/waituntil.go)
+	StepPath        = "path"        // vẽ: giữ chuột đi qua Points (đường gấp khúc) hoặc hình Shape quanh Points[0] trong DragMs (engine/draw.go)
+	StepWindow      = "window"      // WinOp: focus / chờ mở · đóng / đặt khung / thu nhỏ… cửa sổ khớp WinApp + WinTitle (engine/window.go)
+	StepApp         = "app"         // AppOp: kiểm tra đang chạy (cổng yes / no) / chờ chạy · thoát / thoát app khớp AppName (engine/app.go)
+	StepBrowserTab  = "browserTab"  // TabOp: đọc / liệt kê / chuyển / mở / đóng / tải lại tab của trình duyệt thường họ Chromium (engine/browsertab.go, bước 43 B1)
+	StepBrowserGo   = "browserGo"   // đặt URL cho tab (như browserTab chọn tab) rồi chờ tải xong (engine/browsergo.go, bước 43 B2)
+	StepBrowserNorm = "browserNorm" // đưa trình duyệt thường về trạng thái chuẩn: zoom 100 %, thoát toàn màn hình, đặt cỡ cửa sổ, đóng popup (engine/browsernorm.go, bước 43 B3)
+	StepFile        = "file"        // FileOp: ghi file / thêm dòng csv · xlsx / tạo thư mục / xoá vào Thùng rác / dọn Thùng rác (engine/file.go)
 
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
 	StepWebWait   = "webWait"   // chờ tới khi phần tử hiện (WebGone: mất)
@@ -61,7 +62,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepBrowserTab, StepBrowserGo, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepBrowserTab, StepBrowserGo, StepBrowserNorm, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc,
 	StepTextMatch, StepTextSplit, StepTextClean, StepTextNumber}
 

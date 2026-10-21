@@ -3,8 +3,10 @@ package browsertest
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 	"sync"
 
 	"ghosthand/internal/browser"
@@ -20,6 +22,7 @@ type Fake struct {
 	OnList func(f *Fake) // gọi trước mỗi lần Tabs – đổi tab giữa chừng (tab mở / đóng khi đang chờ)
 	// LoadPolls – số lần đọc Tabs tab vừa Go còn đang tải (0 = tải xong ngay)
 	LoadPolls int
+	Frames    map[int64]model.TabFrame // khung cửa sổ theo id cửa sổ; chưa có → 1280×800 tại (0, 0)
 	loadLeft  int
 	nextID    int64
 }
@@ -110,4 +113,56 @@ func (f *Fake) do(op string, t model.TabInfo, apply func(i int)) error {
 	}
 	apply(i)
 	return nil
+}
+
+func (f *Fake) Frame(_ context.Context, t model.TabInfo) (model.TabFrame, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.Calls = append(f.Calls, "frame "+strconv.FormatInt(t.ID, 10))
+	if f.Err != nil {
+		return model.TabFrame{}, f.Err
+	}
+	if fr, ok := f.Frames[t.Window]; ok {
+		return fr, nil
+	}
+	return model.TabFrame{Box: model.Rect{W: 1280, H: 800}}, nil
+}
+
+// Normalize ghi "normalize <id> zoom,fullscreen,popups,bounds=x,y wxh" (chỉ phần được xin) và đổi khung trong Frames.
+func (f *Fake) Normalize(_ context.Context, t model.TabInfo, o model.NormalizeOpts) (bool, error) {
+	was := false
+	err := f.do("normalize"+normLog(o), t, func(int) {
+		if f.Frames == nil {
+			f.Frames = map[int64]model.TabFrame{}
+		}
+		fr, ok := f.Frames[t.Window]
+		if !ok {
+			fr.Box = model.Rect{W: 1280, H: 800}
+		}
+		if o.Fullscreen {
+			was, fr.Fullscreen = fr.Fullscreen, false
+		}
+		if o.Bounds != nil {
+			fr.Box = *o.Bounds
+		}
+		f.Frames[t.Window] = fr
+	})
+	return was, err
+}
+
+func normLog(o model.NormalizeOpts) string {
+	var p []string
+	if o.Zoom {
+		p = append(p, "zoom")
+	}
+	if o.Fullscreen {
+		p = append(p, "fullscreen")
+	}
+	if o.Popups {
+		p = append(p, "popups")
+	}
+	if b := o.Bounds; b != nil {
+		p = append(p, fmt.Sprintf("bounds=%d,%d %dx%d", b.X, b.Y, b.W, b.H))
+	}
+	return " [" + strings.Join(p, " ") + "]"
 }

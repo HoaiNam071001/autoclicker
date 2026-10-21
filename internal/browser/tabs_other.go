@@ -21,3 +21,9 @@ func (System) NewTab(context.Context, string, string) (model.TabInfo, error) {
 func (System) Close(context.Context, model.TabInfo) error       { return errUnsupported }
 func (System) Nav(context.Context, model.TabInfo, string) error { return errUnsupported }
 func (System) Go(context.Context, model.TabInfo, string) error  { return errUnsupported }
+func (System) Frame(context.Context, model.TabInfo) (model.TabFrame, error) {
+	return model.TabFrame{}, errUnsupported
+}
+func (System) Normalize(context.Context, model.TabInfo, model.NormalizeOpts) (bool, error) {
+	return false, errUnsupported
+}
