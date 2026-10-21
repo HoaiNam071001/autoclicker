@@ -37,6 +37,12 @@ Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi t
 - [ ] (G1) Thêm node *Chờ màn hình* từ bảng thêm node (nhóm Chờ): inspector có Chờ tới khi (Đứng yên / Thay đổi), Vùng theo dõi (Vùng cố định → Khoanh trên màn hình… ghi đúng vùng), Đứng yên, Ngưỡng đổi; thanh mini ghi *đang chờ màn hình*; xem cả theme sáng + tối
 - [ ] (G1) Trang thật tải chậm (YouTube, Shopee): Chờ màn hình đứng yên thay Chờ 3 s – không đi sớm khi còn spinner (spinner nhỏ: thu hẹp vùng hoặc ngưỡng 0)
 
+## 47 – Hình minh hoạ động cho node · [phase3/47-hinh-minh-hoa-node.md](phase3/47-hinh-minh-hoa-node.md)
+
+- [ ] Ctrl/Cmd+K → rê / mũi tên qua từng loại node: khung dưới hiện hoạt hoạ lặp + chữ mô tả, bảng không giật khi đổi mục; thử cả theme sáng và tối
+- [ ] Chọn một node → bấm tên loại dưới tên node ở inspector → hiện bảng (không còn dropdown) → chọn loại khác thì node đổi loại, cổng / thời gian giữ nguyên
+- [ ] Mở `#demo-illus`: lướt qua mọi hình, báo hình nào khó hiểu / lệch chữ để chỉnh
+
 ## 46 – MCP web tinh chỉnh (A0–A3, A2) · [phase3/46-mcp-web-tinh-chinh.md](phase3/46-mcp-web-tinh-chinh.md)
 
 - [ ] (B1) Nhờ Claude “thử bấm nút X trên trang đang mở” → AI dùng run_script với script tạm: hộp hỏi ghi *Kịch bản tạm*, không có nút *Cho phép đến khi đóng app*; không có file kịch bản mới, không thêm lịch sử chạy

@@ -4,10 +4,13 @@
 import { KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { StepIcon, StepIconName } from './icons';
 import { fold } from '../fold';
-import type { NodeInfo } from '../flow/nodeInfo';
+import type { InfoKey, NodeInfo } from '../flow/nodeInfo';
+import type { StepType } from '../types';
+import { ILLUS } from './palette/illus';
 import { categoryName, NodeCategory } from '../flow/category';
 
-export type PaletteItem = { icon: StepIconName; label: string; keywords: string; info?: NodeInfo; run?: () => unknown; soon?: string };
+// key: tên mô tả / hoạt hoạ (flow/nodeInfo); type: loại node thuần – chỉ mục có type mới hiện khi Đổi loại node.
+export type PaletteItem = { icon: StepIconName; label: string; keywords: string; info?: NodeInfo; key?: InfoKey; type?: StepType; run?: () => unknown; soon?: string };
 // cat: nhóm node (tên + chấm màu nhóm – flow/category); note: dòng ghi chú dưới tên nhóm
 export type PaletteGroup = { cat: NodeCategory; note?: string; items: PaletteItem[] };
 type Item = PaletteItem;
@@ -15,8 +18,8 @@ type Item = PaletteItem;
 const COLS = 3;
 
 // context: dòng ghi bước / node mới sẽ nối vào đâu (vd "Nối từ n2 · Thất bại").
-export function PaletteView({ groups: all, onClose, onCancel, footer, context }: {
-  groups: PaletteGroup[]; onClose: () => void; onCancel?: () => void; footer?: ReactNode; context?: ReactNode;
+export function PaletteView({ groups: all, onClose, onCancel, footer, context, label = 'Thêm bước' }: {
+  groups: PaletteGroup[]; onClose: () => void; onCancel?: () => void; footer?: ReactNode; context?: ReactNode; label?: string;
 }) {
   const cancel = () => {
     onCancel?.();
@@ -59,7 +62,7 @@ export function PaletteView({ groups: all, onClose, onCancel, footer, context }:
   return (
     <div className="fixed inset-0 z-30 flex items-start justify-center bg-black/20 px-4 pt-[10vh]"
       onMouseDown={(e) => { if (!panel.current?.contains(e.target as Node)) cancel(); }}>
-      <div ref={panel} role="dialog" aria-label="Thêm bước" onKeyDown={onKey}
+      <div ref={panel} role="dialog" aria-label={label} onKeyDown={onKey}
         className="flex max-h-[80vh] w-[680px] max-w-full flex-col overflow-hidden rounded-panel border border-line bg-surface text-ink shadow-[0_16px_48px_rgb(0_0_0/.22)]">
         {context && <div className="mx-3.5 mt-3 -mb-1.5 text-xs text-muted">{context}</div>}
         <label className="mx-3.5 mt-3.5 mb-1.5 flex h-10 flex-none items-center gap-3 rounded-lg px-3 ring-focus">
@@ -111,16 +114,19 @@ export function PaletteView({ groups: all, onClose, onCancel, footer, context }:
   );
 }
 
-// Mô tả mục đang chọn / rê chuột – cao cố định để bảng không giật khi đổi mục.
+// Mô tả mục đang chọn / rê chuột: hoạt hoạ minh hoạ bên trái, chữ bên phải – cao cố định để bảng không giật khi đổi mục.
 function PaletteDetail({ item }: { item?: Item }) {
+  const scene = item?.key && ILLUS[item.key];
   return (
-    <div aria-live="polite" className="flex min-h-[76px] flex-none items-start gap-3 border-t border-line px-4 py-3">
+    <div aria-live="polite" className="flex h-[148px] flex-none items-center gap-4 border-t border-line px-4 py-3">
       {item && <>
-        <span className="grid h-9 w-9 flex-none place-items-center rounded-[9px] bg-accent-soft text-accent-text">
-          <StepIcon type={item.icon} className="h-[18px] w-[18px]" />
-        </span>
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="flex items-center gap-2 font-semibold">{item.label}
+        <div className="grid h-[112px] w-[200px] flex-none place-items-center overflow-hidden rounded-card border border-line bg-bg">
+          {scene ? <div key={item.key} className="h-full w-full">{scene()}</div>
+            : <span className="grid h-14 w-14 place-items-center rounded-xl bg-accent-soft text-accent-text"><StepIcon type={item.icon} className="h-7 w-7" /></span>}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="flex items-center gap-2 text-[15px] font-semibold">
+            <StepIcon type={item.icon} className="h-4 w-4 text-accent-text" />{item.label}
             {item.soon && <span className="rounded-full bg-soft px-1.5 py-px text-[10px] font-semibold text-muted">Sắp có · {item.soon}</span>}
           </span>
           {item.info && <>

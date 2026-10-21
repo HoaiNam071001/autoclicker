@@ -1,14 +1,14 @@
 // Inspector – cấu hình node đang chọn (design v3, cột phải), sửa trực tiếp vào store.
 // Khung: đầu (màu nhóm, tên, mã node, loại, ⓘ, bật / tắt), tab Node / Input, khối thu gọn Thiết lập → Thời gian → khối flow;
 // trường theo loại nằm ở components/stepform/.
-import Select from './Select';
+import ChangeTypePalette from './palette/ChangeTypePalette';
 import { ResizeHandle, usePanelWidth } from './PanelResize';
 import { ReactNode, useState } from 'react';
 import { Eye } from './icons';
 import { Switch } from './Switch';
 import { openOverlay } from '../windowMode';
-import { changeStepType, toggleStep, updateStep, useScript } from '../store';
-import { isControl, numVarOf, STEP_LABEL, Step, stepLabel, StepPoint, StepType } from '../types';
+import { toggleStep, updateStep, useScript } from '../store';
+import { isControl, numVarOf, STEP_LABEL, Step, stepLabel, StepPoint } from '../types';
 import { hint, NumField, TabBtn } from './stepform/shared';
 import { InfoButton, iconBtn, InspectorHead, Section } from './stepform/InspectorParts';
 import { nodeCategory } from '../flow/category';
@@ -45,8 +45,6 @@ import { usesHuman } from '../flow/human';
 import { nodeInfo } from '../flow/nodeInfo';
 
 // Loại node hành động đổi qua lại được trong ô loại node ở đầu (node điều khiển có trường riêng, không đổi loại)
-const TYPES: StepType[] = ['click', 'double', 'hold', 'drag', 'scroll', 'wait', 'type', 'key', 'open', 'waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'browserTab', 'browserGo', 'browserNorm', 'waitUntil', 'path', 'webWait', 'webClick',
-  'webType', 'webRead', 'webScroll', 'webKey', 'elementRead', 'pageText'];
 const REF_RE = /^[A-Za-z][A-Za-z0-9_]{0,31}$/; // khớp validRef (flow.go)
 
 export default function StepForm({ step: s }: { step: Step }) {
@@ -114,18 +112,19 @@ export default function StepForm({ step: s }: { step: Step }) {
   );
 }
 
-// Loại node dưới tên (chữ màu nhóm): node hành động đổi qua lại được, node điều khiển chỉ hiện chữ.
+// Loại node dưới tên (chữ màu nhóm): node hành động bấm vào mở bảng chọn loại (có hoạt hoạ), node điều khiển chỉ hiện chữ.
 function TypeSelect({ step: s }: { step: Step }) {
+  const [open, setOpen] = useState(false);
   if (isControl(s.type)) return <span className="truncate text-cat">{STEP_LABEL[s.type]}</span>;
   return (
-    <Select value={s.type} onChange={(t) => changeStepType(s.id, t)} aria-label="Loại node" title="Đổi loại node" menuWidth={220}
-      options={TYPES.map((t) => ({ value: t, label: t === s.type ? stepLabel(s) : STEP_LABEL[t] }))}
-      trigger={
-        <span className="inline-flex min-w-0 items-center gap-0.5 rounded px-0.5 text-cat hover:bg-hover">
-          <span className="truncate">{stepLabel(s)}</span>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" className="flex-none" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
-        </span>
-      } />
+    <>
+      <button type="button" onClick={() => setOpen(true)} aria-label="Loại node" title="Đổi loại node"
+        className="inline-flex min-w-0 items-center gap-0.5 rounded px-0.5 text-cat hover:bg-hover">
+        <span className="truncate">{stepLabel(s)}</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" className="flex-none" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
+      </button>
+      {open && <ChangeTypePalette step={s} onClose={() => setOpen(false)} />}
+    </>
   );
 }
 
