@@ -3,8 +3,9 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 43 – Node chuyên sâu (S6 Bộ gõ, S5 Tiến trình, S4 Thông tin máy, S2 Shortcuts, S1 Chạy lệnh, E3 Đọc tài liệu, E2 Chờ sự kiện giao diện, E1 Thao tác phần tử, B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS, B4 Đọc chữ trang, B5 Đọc bảng, B6 Chờ tải xong, B7 Lưu PDF) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
+## 43 – Node chuyên sâu (S8 Nén / giải nén, S6 Bộ gõ, S5 Tiến trình, S4 Thông tin máy, S2 Shortcuts, S1 Chạy lệnh, E3 Đọc tài liệu, E2 Chờ sự kiện giao diện, E1 Thao tác phần tử, B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS, B4 Đọc chữ trang, B5 Đọc bảng, B6 Chờ tải xong, B7 Lưu PDF) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
 
+- [ ] (S8) Mẫu thử *Nén / giải nén zip*: chạy – lời kết ghi nén 2 file, giải nén 2 file; `~/Documents/ghosthand-mau-zip/bao-cao.zip` mở được bằng Finder / Explorer, thư mục `giai-nen/bao-cao` có a.txt + sub/b.txt, không có ghi-chu.log. Thử thêm zip thật nhiều file / tiếng Việt có dấu trong tên (zip tạo trên Windows mở trên Mac và ngược lại)
 - [ ] (S6) Mẫu thử *Bộ gõ*: chạy – lời kết ghi bộ gõ trước đó, sau đổi là ABC, và bộ gõ máy trở về như cũ (xem menu bộ gõ trên thanh menu / khay hệ thống). macOS: bấm Chạy từ app thật (không từ `go test`) vì API bộ gõ cần main thread; thử thêm khi Unikey / EVKey đang chạy → imeApp có tên. Windows chưa chạy thử
 - [ ] (S5) Mẫu thử *Tiến trình*: chạy – lời kết ghi số tiến trình / CPU / RAM của “ghosthand” khớp Activity Monitor / Task Manager (đổi tên nếu bản wails dev mang tên khác). Thử thêm *Chờ hết bận* với một app đang render / xuất file, và *Chờ thoát* với app bạn tự đóng; Windows chưa chạy thử
 - [ ] (S4) Mẫu thử *Thông tin máy*: chạy – lời kết ghi tên máy, pin %, CPU, RAM, ổ trống, số màn + độ phân giải, mạng khớp máy bạn (macOS: Wi-Fi có thể trống; Windows: pin / Wi-Fi / scale chưa thử – kiểm tra cả laptop lẫn máy bàn)

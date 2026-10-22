@@ -147,6 +147,10 @@ func VarFields(s *model.Step) []VarField {
 		}
 	case model.StepInputSource:
 		add("inputLayout", &s.InputLayout, false)
+	case model.StepZip:
+		add("filePath", &s.FilePath, false)
+		add("filePattern", &s.FilePattern, false)
+		add("zipTo", &s.ZipTo, false)
 	case model.StepProcess:
 		add("procName", &s.ProcName, false)
 	case model.StepApp:

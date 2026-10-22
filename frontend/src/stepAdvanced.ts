@@ -12,6 +12,7 @@ import type { WinMatch, WinOp, WinPreset } from './flow/window';
 import type { AppOp } from './flow/app';
 import type { ProcOp } from './flow/process';
 import type { InputOp } from './flow/inputSource';
+import type { ZipOp } from './flow/zip';
 import type { BrowserName, TabOp } from './flow/browserTab';
 import type { CaseMode, NumOp, NumStyle } from './flow/textNodes';
 import type { KV, Rect } from './types';
@@ -69,6 +70,9 @@ export interface AdvancedFields {
   appName?: string; // tên app / tên exe / bundle id; nhận {{biến}}
   appMatch?: WinMatch; // như winMatch
   appForce?: boolean; // thoát: quá giờ chưa thoát thì buộc thoát
+  // nén / giải nén (bước 43 S8, internal/engine/zip.go) – nguồn = filePath, lọc tên file khi nén thư mục = filePattern
+  zipOp?: ZipOp; // bỏ trống = nén
+  zipTo?: string; // đích: nén = file .zip, giải nén = thư mục; nhận {{biến}}
   // bộ gõ (bước 43 S6, internal/engine/inputsource.go)
   inputOp?: InputOp; // bỏ trống = đọc
   inputLayout?: string; // set: bộ gõ cần đổi sang – id hoặc tên; nhận {{biến}}

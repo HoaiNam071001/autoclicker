@@ -45,6 +45,15 @@ export const data: Scenes = {
       <Show from={0.4}><rect x={144} y={36} width="82" height="62" rx="6" className="fill-surface stroke-ok" /><T x={152} y={54} s={8} cls="fill-ink">pin 87%</T><T x={152} y={70} s={8} cls="fill-ink">ổ 44 GB</T><T x={152} y={86} s={8} cls="fill-ink">mạng có</T><Tick x={226} y={36} from={0.4} /></Show>
     </Stage>
   ),
+  zip: () => (
+    <Stage>
+      {box(14, 34, 70, 66, 'bao-cao')}
+      <Arr x1={92} y1={67} x2={128} y2={67} />
+      <rect x={132} y={40} width="64" height="54" rx="6" className="fill-surface stroke-line-strong" />
+      <rect x={160} y={40} width="8" height="54" className="fill-soft stroke-line" />
+      <Show from={0.5}><T x={164} y={112} anchor="middle" s={9} cls="fill-ok">.zip</T><Tick x={196} y={40} from={0.5} /></Show>
+    </Stage>
+  ),
   inputSource: () => (
     <Stage>
       {box(14, 40, 62, 54)}<Show to={0.5}><T x={45} y={72} anchor="middle" s={11}>Telex</T></Show>

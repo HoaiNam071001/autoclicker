@@ -173,6 +173,10 @@ func checkStep(s *model.Step) error {
 		if !slices.Contains(model.InputOps, s.InputOp) {
 			return fmt.Errorf("thao tác bộ gõ không hợp lệ: %q (trống = đọc | set)", s.InputOp)
 		}
+	case model.StepZip:
+		if err := checkZip(*s); err != nil {
+			return err
+		}
 	case model.StepProcess:
 		if err := checkProcess(*s); err != nil {
 			return err

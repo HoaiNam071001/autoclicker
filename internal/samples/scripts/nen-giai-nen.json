@@ -1,0 +1,21 @@
+{
+ "meta": {
+  "name": "Nén / giải nén zip",
+  "description": "Tạo thư mục ~/Documents/ghosthand-mau-zip/bao-cao với 2 file .txt (một ở thư mục con) và 1 file .log, nén chỉ các file *.txt ra bao-cao.zip, rồi giải nén vào thư mục giai-nen. Đúng: lời kết ghi nén 2 file, giải nén 2 file; thư mục giai-nen/bao-cao có a.txt và sub/b.txt, không có ghi-chu.log.",
+  "app": "Tệp",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Không cần trình duyệt. Mẫu chỉ ghi trong ~/Documents/ghosthand-mau-zip."
+ },
+ "script": {
+  "steps": [
+   { "type": "file", "filePath": "~/Documents/ghosthand-mau-zip/bao-cao/a.txt", "text": "doanh thu thang 10" },
+   { "type": "file", "filePath": "~/Documents/ghosthand-mau-zip/bao-cao/sub/b.txt", "text": "chi phi thang 10" },
+   { "type": "file", "filePath": "~/Documents/ghosthand-mau-zip/bao-cao/ghi-chu.log", "text": "khong nen nen file nay" },
+   { "type": "zip", "filePath": "~/Documents/ghosthand-mau-zip/bao-cao", "zipTo": "~/Documents/ghosthand-mau-zip/bao-cao.zip", "filePattern": "*.txt" },
+   { "type": "zip", "zipOp": "extract", "filePath": "{{n4.output.path}}", "zipTo": "~/Documents/ghosthand-mau-zip/giai-nen" },
+   { "type": "end", "endStatus": "success", "message": "Nén {{n4.output.count}} file ({{n4.output.size}} byte) → {{n4.output.path}}; giải nén {{n5.output.count}} file vào {{n5.output.path}}" }
+  ]
+ }
+}

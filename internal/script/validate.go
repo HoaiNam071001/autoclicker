@@ -136,6 +136,10 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if s.InputOp == model.InputSet && strings.TrimSpace(s.InputLayout) == "" {
 				return stepErr(i, s, "inputLayout", "chưa nhập bộ gõ cần đổi sang")
 			}
+		case model.StepZip:
+			if err := validateZip(i, s); err != nil {
+				return err
+			}
 		case model.StepProcess:
 			if err := validateProcess(i, s); err != nil {
 				return err

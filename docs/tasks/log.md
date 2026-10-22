@@ -239,3 +239,4 @@
 - **2026-10-22** – Bước 43 S4 node Thông tin máy (sysInfo): internal/sysinfo + engine + inspector + mẫu thong-tin-may. go vet/test, npm build/test OK; chưa thử tay (Windows chưa build).
 - **2026-10-22** – Bước 43 S5 node Tiến trình (process): internal/procinfo + engine/process.go + inspector + mẫu tien-trinh. go vet/test, npm build/test OK; chưa thử tay (Windows chưa chạy thử).
 - **2026-10-22** – Bước 43 S6 node Bộ gõ (inputSource): internal/inputsource (macOS cgo đã đọc thật) + engine + inspector + mẫu bo-go; tách S6b (bật / tắt tiếng Việt Unikey / EVKey). go vet/test, npm build/test OK; chưa thử tay từ app (Windows chưa chạy thử).
+- **2026-10-22** – 43 S8: node Nén / giải nén zip (`zip`) – nén file / thư mục theo mẫu tên, giải nén chặn zip slip / liên kết / zip bomb; mẫu `nen-giai-nen` chạy thật OK. go vet + go test + npm build + npm test xanh; chưa thử tay trong app.

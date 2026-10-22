@@ -23,6 +23,7 @@ import { pathVertices } from '../../flow/shape';
 import { fmtKey } from '../../keys';
 import { Point, Rect, Step, stepLabel } from '../../types';
 import { fmtInputSource } from '../../flow/inputSource';
+import { fmtZip } from '../../flow/zip';
 import { fmtProcess } from '../../flow/process';
 import { scrollDelta } from '../../scroll';
 import type { SimState } from '../Simulation';
@@ -53,6 +54,7 @@ function bubbleOf(s: Step): string | null {
     case 'webWait': case 'webClick': case 'webType': case 'webRead': case 'webScroll':
       return `${stepLabel(s)}: ${fmtSelectors(s.selectors)} – vị trí biết khi chạy thật`;
     case 'waitUntil': return `⏰ Chờ ${fmtWaitUntil(s)} – xem trước không chờ thật`;
+    case 'zip': return `🗜 ${fmtZip(s)} – xem trước không nén / giải nén thật`;
     case 'inputSource': return `⌨ Bộ gõ: ${fmtInputSource(s)} – xem trước không đổi thật`;
     case 'process': return `⚙ Tiến trình ${fmtProcess(s)} – xem trước không đọc thật`;
     case 'sysInfo': return '🖥 Đọc thông tin máy – xem trước không đọc thật';
