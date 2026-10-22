@@ -127,7 +127,7 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if err := checkWebStep(i, s); err != nil {
 				return err
 			}
-		case model.StepPageText:
+		case model.StepPageText, model.StepReadDocument:
 			if err := checkPageText(i, s); err != nil {
 				return err
 			}

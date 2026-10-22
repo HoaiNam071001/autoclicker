@@ -173,7 +173,7 @@ func checkStep(s *model.Step) error {
 			return fmt.Errorf("phép clipboard không hợp lệ: %q (trống = đọc | write | image)", s.ClipOp)
 		}
 	case model.StepWait, model.StepText, model.StepKey, model.StepOpen, model.StepScroll, model.StepWaitImage, model.StepClickImage, model.StepFindAll,
-		model.StepWebWait, model.StepWebClick, model.StepWebType, model.StepWebRead, model.StepWebScroll, model.StepWebKey, model.StepElementRead, model.StepPageText, model.StepReadTable, model.StepWaitDownload, model.StepElementAction, model.StepWaitUIEvent:
+		model.StepWebWait, model.StepWebClick, model.StepWebType, model.StepWebRead, model.StepWebScroll, model.StepWebKey, model.StepElementRead, model.StepPageText, model.StepReadTable, model.StepWaitDownload, model.StepElementAction, model.StepReadDocument, model.StepWaitUIEvent:
 		if err := checkWebFields(s); err != nil {
 			return err
 		}

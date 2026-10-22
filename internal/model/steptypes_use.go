@@ -61,6 +61,7 @@ var stepTypeUses = map[string]TypeUse{
 	StepWaitUIEvent:   {grpWait, "Chờ giao diện thay đổi mà không chụp màn: cửa sổ mới mở, đổi cửa sổ trên cùng, menu / hộp thoại / popup bật lên, giá trị phần tử đổi. Chờ một ảnh / chữ cụ thể → waitImage; chờ vùng đứng yên → waitScreen."},
 	StepWaitDownload:  {grpWait, "Chờ file tải về xong (hết .crdownload, cỡ đứng yên) rồi lấy đường dẫn để mở / đọc / đổi tên. Chờ trang hoặc màn hình xong → waitScreen / chờ chữ."},
 	StepReadTable:     {grpWeb, "Đọc cả BẢNG trên trang / app thành dòng + cột (items theo tên cột) để lặp từng dòng hoặc ghi csv / xlsx. Chữ rời không phải bảng → pageText."},
+	StepReadDocument:  {grpWeb, "Đọc nguyên văn nội dung ô soạn thảo / tài liệu đang mở (giữ xuống dòng) hoặc phần đang bôi đen. Chữ rời trên trang / nhiều khối → pageText; một ô nhỏ → elementRead."},
 	StepPageText:      {grpWeb, "Đọc MỌI chữ trong cửa sổ app / Chrome thường (hoặc trong một khung) để lọc bằng textMatch / textSplit. Một phần tử cụ thể → elementRead."},
 	StepIf:            {grpFlow, "Rẽ nhánh theo điều kiện (thấy chữ / ảnh, so biến). Nhiều trạng thái trang → switchScreen; nhiều giá trị → switch."},
 	StepSwitch:        {grpFlow, "Rẽ nhiều nhánh theo giá trị biến (eq / contains / regex)."},

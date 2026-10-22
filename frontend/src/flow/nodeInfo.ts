@@ -41,6 +41,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   waitUIEvent: { desc: 'Chờ cửa sổ mới mở, đổi cửa sổ trên cùng, menu / hộp thoại hiện hoặc giá trị phần tử đổi – không chụp màn hình.', use: 'Sau nút mở hộp thoại chậm hiện, hoặc chờ app mở cửa sổ mới.' },
   waitDownload: { desc: 'Chờ một file tải về xong trong thư mục Tải xuống (hết đuôi tạm, cỡ ngừng tăng) rồi đưa ra tên + đường dẫn.', use: 'Đặt sau nút Tải / Xuất file trên web, rồi mở hoặc đọc file đó.' },
   readTable: { desc: 'Đọc cả bảng (table / grid) trên trang Chrome thường hoặc app thành dòng + cột, không OCR; ghi ra .csv / .xlsx được.', use: 'Lấy bảng đơn hàng, bảng giá rồi lặp từng dòng hoặc lưu thành file Excel.' },
+  readDocument: { desc: 'Đọc nguyên văn nội dung ô soạn thảo / tài liệu đang mở (giữ xuống dòng) hoặc đoạn đang chọn.', use: 'Lấy cả ghi chú trong Word / TextEdit để lọc hoặc tách dòng (macOS).' },
   pageText: { desc: 'Đọc mọi chữ đang hiện trong cửa sổ app / trang Chrome thường (hoặc một khung), không OCR.', use: 'Lấy cả bảng giá, danh sách trên trang đã đăng nhập rồi tách / lặp từng dòng (macOS).' },
   elementRead: { desc: 'Đọc chữ / giá trị của phần tử trong cửa sổ app đang mở (Chrome thường, app khác) – chữ chính xác, không qua OCR.', use: 'Lấy giá, số dư, nội dung ô nhập trên trang đã đăng nhập sẵn (macOS).' },
   webRead: { desc: 'Đọc chữ, giá trị hoặc thuộc tính của phần tử trong trang web vào biến.', use: 'Lấy giá, mã đơn, số dư, link để node sau dùng hoặc so sánh.' },

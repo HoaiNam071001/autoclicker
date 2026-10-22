@@ -17,6 +17,7 @@ type Node struct {
 	Desc        string     // nhãn mô tả (web: aria-label; app: nút chỉ có icon)
 	Value       string     // giá trị: chữ của khối chữ, nội dung ô nhập, mục select đang chọn, checkbox 0 / 1
 	Placeholder string     // chữ mờ của ô nhập
+	Selected    string     // đoạn chữ đang bôi đen trong ô soạn thảo (macOS AXSelectedText; trống = không có / chưa đọc được)
 	Box         model.Rect // khung theo toạ độ màn hình của robotgo (macOS: point)
 	Depth       int        // độ sâu trong cây (0 = cửa sổ)
 }

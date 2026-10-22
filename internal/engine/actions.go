@@ -86,6 +86,8 @@ func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[strin
 		return e.waitDownload(ctx, s)
 	case model.StepReadTable:
 		return e.readTable(ctx, s)
+	case model.StepReadDocument:
+		return e.readDocument(ctx, s)
 	case model.StepPageText:
 		return e.pageText(ctx, s)
 	case model.StepScreenshot:

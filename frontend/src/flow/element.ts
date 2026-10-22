@@ -35,6 +35,13 @@ export function fmtPageText(s: Step): string {
   return `${scope}${s.pageAll ? ' · gồm phần ngoài khung nhìn' : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
 }
 
+// Dòng chi tiết node Đọc tài liệu: phần đang chọn trong TextEdit · tối đa 10 s
+export function fmtReadDocument(s: Step): string {
+  const app = s.elementApp?.trim() || 'app trên cùng';
+  const where = s.selectors?.some((l) => l.trim()) ? `${firstSelector(s.selectors)} · ${app}` : `ô soạn thảo của ${app}`;
+  return `${s.selectionOnly ? 'phần đang chọn trong ' : ''}${where} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
+}
+
 // Dòng chi tiết node Đọc bảng: bảng đầu tiên của Google Chrome → ghi ra don-hang.csv · tối đa 10 s
 export function fmtReadTable(s: Step): string {
   const app = s.elementApp?.trim() || 'app trên cùng';

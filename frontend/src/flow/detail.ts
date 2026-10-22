@@ -16,7 +16,7 @@ import { fmtBrowserGo, fmtBrowserNorm, fmtBrowserTab, fmtSavePdf } from './brows
 import { fmtWaitUntil } from './waitUntil';
 import { fmtPath } from './shape';
 import { fmtWebStep, isWebStep } from './web';
-import { fmtElement, fmtElementRead, fmtPageText, fmtReadTable } from './element';
+import { fmtElement, fmtElementRead, fmtPageText, fmtReadDocument, fmtReadTable } from './element';
 import { fmtMs, numVarOf, type Step, type StepPoint } from '../types';
 import { SCROLL_ARROW, SCROLL_NOTCH_PX } from '../scroll';
 
@@ -50,6 +50,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'path' ? fmtPath(s)
     : s.type === 'elementRead' ? fmtElementRead(s)
     : s.type === 'pageText' ? fmtPageText(s)
+    : s.type === 'readDocument' ? fmtReadDocument(s)
     : s.type === 'elementAction' ? fmtElementAction(s)
     : s.type === 'waitUIEvent' ? fmtWaitUIEvent(s)
     : s.type === 'waitDownload' ? fmtWaitDownload(s)

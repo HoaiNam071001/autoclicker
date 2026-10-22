@@ -127,6 +127,7 @@ export const STEP_ICON = {
   waitUIEvent: 'M12 5a7 7 0 100 14 7 7 0 000-14zM12 9v3.5l2.5 1.5M4 4l2.5 2.5M20 4l-2.5 2.5', // đồng hồ chuông báo – chờ có biến động
   waitDownload: 'M12 4v10M8 10.5l4 4 4-4M4 19h16M7 19v-2M17 19v-2', // mũi tên tải xuống xuống khay
   readTable: 'M4 5h16v14H4zM4 10h16M4 15h16M10 5v14', // lưới bảng
+  readDocument: 'M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 15h7M9 18h4', // tờ giấy có dòng chữ
   pageText: 'M4 4h16M4 8h16M4 12h10M4 16h16M4 20h8', // các dòng chữ của trang
   elementRead: 'M4 4h10v6H4zM6 7h6M4 14h16M4 18h11', // khung phần tử + dòng chữ đọc ra
   webScroll: 'M3 5h18v14H3zM3 9h18M12 11v6M9.5 14.5l2.5 2.5 2.5-2.5', // cửa sổ trình duyệt + mũi tên cuộn

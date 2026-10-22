@@ -64,17 +64,18 @@ type Step struct {
 	ImageFrom     string  `json:"imageFrom,omitempty"`     // clickImage ImageSource node / screenshot ShotArea node: id node lấy chỗ thấy
 	Dx            int     `json:"dx,omitempty"`            // clickImage / webClick: lệch so với tâm ảnh / phần tử
 	Dy            int     `json:"dy,omitempty"`
-	FindBy        string  `json:"findBy,omitempty"`     // waitImage / clickImage tự tìm: "" = ảnh mẫu | text = chữ | element = phần tử (Selectors)
-	ElementApp    string  `json:"elementApp,omitempty"` // FindBy element: tên app / bundle id ("" = app có cửa sổ trên cùng); nhận {{biến}}
-	FindText      string  `json:"findText,omitempty"`   // FindBy text: chữ cần tìm; nhận {{biến}}
-	TextExact     bool    `json:"textExact,omitempty"`  // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
-	ElementAct    string  `json:"elementAct,omitempty"` // elementAction: ElementActs (trống = press); setValue lấy Text
-	UIEvent       string  `json:"uiEvent,omitempty"`    // waitUIEvent: UIEvents (trống = newWindow); cửa sổ lọc bằng WinApp / WinTitle, phần tử bằng ElementApp / Selectors
-	TextAccent    bool    `json:"textAccent,omitempty"` // FindBy text: so đúng dấu (mặc định bỏ qua dấu – OCR hay đọc lệch dấu)
-	MinCount      int     `json:"minCount,omitempty"`   // findAll: cần thấy ít nhất chừng này chỗ (0 = 1) – chưa đủ thì chờ tiếp
-	MaxCount      int     `json:"maxCount,omitempty"`   // findAll: thấy nhiều hơn chừng này chỗ → chờ tiếp / cổng fail (0 = không giới hạn)
-	Occurrence    int     `json:"occurrence,omitempty"` // FindBy text / phần tử / node web: chỗ thứ mấy (trên → dưới, trái → phải; web: thứ tự trong trang trong số phần tử đang hiện); 0 = chỗ đầu (web: chỗ bấm được đầu tiên)
-	PageAll       bool    `json:"pageAll,omitempty"`    // pageText: đọc cả phần ngoài khung nhìn (mặc định chỉ chữ đang hiện)
+	FindBy        string  `json:"findBy,omitempty"`        // waitImage / clickImage tự tìm: "" = ảnh mẫu | text = chữ | element = phần tử (Selectors)
+	ElementApp    string  `json:"elementApp,omitempty"`    // FindBy element: tên app / bundle id ("" = app có cửa sổ trên cùng); nhận {{biến}}
+	FindText      string  `json:"findText,omitempty"`      // FindBy text: chữ cần tìm; nhận {{biến}}
+	TextExact     bool    `json:"textExact,omitempty"`     // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
+	ElementAct    string  `json:"elementAct,omitempty"`    // elementAction: ElementActs (trống = press); setValue lấy Text
+	UIEvent       string  `json:"uiEvent,omitempty"`       // waitUIEvent: UIEvents (trống = newWindow); cửa sổ lọc bằng WinApp / WinTitle, phần tử bằng ElementApp / Selectors
+	TextAccent    bool    `json:"textAccent,omitempty"`    // FindBy text: so đúng dấu (mặc định bỏ qua dấu – OCR hay đọc lệch dấu)
+	MinCount      int     `json:"minCount,omitempty"`      // findAll: cần thấy ít nhất chừng này chỗ (0 = 1) – chưa đủ thì chờ tiếp
+	MaxCount      int     `json:"maxCount,omitempty"`      // findAll: thấy nhiều hơn chừng này chỗ → chờ tiếp / cổng fail (0 = không giới hạn)
+	Occurrence    int     `json:"occurrence,omitempty"`    // FindBy text / phần tử / node web: chỗ thứ mấy (trên → dưới, trái → phải; web: thứ tự trong trang trong số phần tử đang hiện); 0 = chỗ đầu (web: chỗ bấm được đầu tiên)
+	PageAll       bool    `json:"pageAll,omitempty"`       // pageText: đọc cả phần ngoài khung nhìn (mặc định chỉ chữ đang hiện)
+	SelectionOnly bool    `json:"selectionOnly,omitempty"` // readDocument: chỉ lấy phần đang bôi đen (mặc định cả tài liệu)
 	// Đọc phần tử (bước 37 E4): FindBy "" = tìm bằng cây phần tử (Selectors) | text = tìm nhãn bằng OCR (FindText…)
 	ReadNear    string `json:"readNear,omitempty"`    // "" = đọc chính phần tử | right / below = OCR chữ bên phải / bên dưới nhãn
 	ReadSpan    int    `json:"readSpan,omitempty"`    // ReadNear: khoảng đọc tính từ mép nhãn (px); 0 = 300

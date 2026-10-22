@@ -208,6 +208,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'elementAction': return [{ key: 'action', desc: 'thao tác đã làm' }, { key: 'role', desc: 'vai trò phần tử (button, checkbox…)' }, { key: 'text', desc: 'chữ / tên phần tử sau thao tác' }, { key: 'value', desc: 'giá trị sau thao tác (ô nhập, checkbox 0 / 1)' }];
     case 'waitDownload': return [{ key: 'path', desc: 'đường dẫn đầy đủ của file tải về' }, { key: 'name', desc: 'tên file' }, { key: 'size', desc: 'cỡ file (byte)' }];
     case 'readTable': return [{ key: 'rows', desc: 'mảng các dòng, mỗi dòng mảng ô (gồm dòng tên cột)' }, { key: 'items', desc: 'mỗi dòng dữ liệu một đối tượng {tên cột không dấu: giá trị} – nối vào Lặp qua danh sách' }, { key: 'columns', desc: 'tên các cột' }, { key: 'count', desc: 'số dòng dữ liệu' }, { key: 'path', desc: 'file đã ghi (khi có Ghi ra file)' }];
+    case 'readDocument': return [{ key: 'text', desc: 'nội dung nguyên văn, giữ xuống dòng' }, { key: 'length', desc: 'số ký tự' }, { key: 'lines', desc: 'số dòng' }];
     case 'pageText': return [{ key: 'text', desc: 'toàn bộ chữ, mỗi khối một dòng' }, { key: 'lines', desc: 'mảng các dòng (nối vào Lặp qua danh sách)' }, { key: 'count', desc: 'số dòng' }];
     case 'elementRead': return [{ key: 'text', desc: s.readPattern || s.readNumber ? 'giá trị sau khi lọc' : 'chữ / giá trị đọc được' },
       ...(s.readPattern || s.readNumber ? [{ key: 'raw', desc: 'chữ đọc được trước khi lọc' }] : []),

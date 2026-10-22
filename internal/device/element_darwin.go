@@ -11,7 +11,7 @@ package device
 #include <string.h>
 #include <unistd.h>
 
-typedef struct { char *role, *subrole, *title, *desc, *value, *placeholder; double x, y, w, h; int depth; } ax_node;
+typedef struct { char *role, *subrole, *title, *desc, *value, *placeholder, *selected; double x, y, w, h; int depth; } ax_node;
 
 typedef struct {
 	ax_node *nodes;
@@ -26,7 +26,7 @@ typedef struct {
 } ax_walk;
 
 enum { AX_ACT_SCROLL, AX_ACT_PRESS, AX_ACT_SET, AX_ACT_EXPAND, AX_ACT_COLLAPSE, AX_ACT_SELECT };
-enum { AX_ROLE, AX_SUBROLE, AX_TITLE, AX_DESC, AX_VALUE, AX_PLACEHOLDER, AX_POS, AX_SIZE, AX_CHILDREN, AX_NATTR };
+enum { AX_ROLE, AX_SUBROLE, AX_TITLE, AX_DESC, AX_VALUE, AX_PLACEHOLDER, AX_SELECTED, AX_POS, AX_SIZE, AX_CHILDREN, AX_NATTR };
 
 // Chuỗi C (strdup) từ giá trị AX: chuỗi, số (checkbox 0 / 1, thanh trượt); kiểu khác / lỗi → NULL.
 static char *ax_str(CFTypeRef v) {
@@ -85,6 +85,7 @@ static void ax_walk_el(AXUIElementRef el, int depth, ax_walk *c) {
 	o->desc = ax_str(CFArrayGetValueAtIndex(vals, AX_DESC));
 	o->value = ax_str(CFArrayGetValueAtIndex(vals, AX_VALUE));
 	o->placeholder = ax_str(CFArrayGetValueAtIndex(vals, AX_PLACEHOLDER));
+	o->selected = ax_str(CFArrayGetValueAtIndex(vals, AX_SELECTED));
 	CFTypeRef pos = CFArrayGetValueAtIndex(vals, AX_POS), size = CFArrayGetValueAtIndex(vals, AX_SIZE);
 	CGPoint p = CGPointZero; CGSize s = CGSizeZero;
 	if (pos && CFGetTypeID(pos) == AXValueGetTypeID() && AXValueGetValue(pos, kAXValueCGPointType, &p) &&
@@ -154,7 +155,7 @@ static int ax_read(pid_t pid, int maxNodes, double seconds, int target, int act,
 	CFTypeRef wins = NULL;
 	AXUIElementCopyAttributeValue(ax, kAXWindowsAttribute, &wins);
 	CFStringRef names[AX_NATTR] = {kAXRoleAttribute, kAXSubroleAttribute, kAXTitleAttribute, kAXDescriptionAttribute,
-		kAXValueAttribute, CFSTR("AXPlaceholderValue"), kAXPositionAttribute, kAXSizeAttribute, kAXChildrenAttribute};
+		kAXValueAttribute, CFSTR("AXPlaceholderValue"), kAXSelectedTextAttribute, kAXPositionAttribute, kAXSizeAttribute, kAXChildrenAttribute};
 	ax_walk c = {0};
 	c.max = maxNodes;
 	c.target = target;
@@ -187,7 +188,7 @@ static int ax_trusted(void) { return AXIsProcessTrusted(); }
 
 static void ax_free(ax_node *ns, int n) {
 	for (int i = 0; i < n; i++) {
-		free(ns[i].role); free(ns[i].subrole); free(ns[i].title); free(ns[i].desc); free(ns[i].value); free(ns[i].placeholder);
+		free(ns[i].role); free(ns[i].subrole); free(ns[i].title); free(ns[i].desc); free(ns[i].value); free(ns[i].placeholder); free(ns[i].selected);
 	}
 	free(ns);
 }
@@ -318,7 +319,7 @@ func readPid(pid C.pid_t, name string) ([]element.Node, error) {
 		out = append(out, element.Node{
 			Role: element.RoleFromAX(raw, sub), Raw: raw,
 			Title: oneLine(C.GoString(c.title)), Desc: oneLine(C.GoString(c.desc)), Value: C.GoString(c.value),
-			Placeholder: oneLine(C.GoString(c.placeholder)),
+			Placeholder: oneLine(C.GoString(c.placeholder)), Selected: C.GoString(c.selected),
 			Box: model.Rect{X: int(math.Round(float64(c.x))), Y: int(math.Round(float64(c.y))),
 				W: int(math.Round(float64(c.w))), H: int(math.Round(float64(c.h)))},
 			Depth: int(c.depth),

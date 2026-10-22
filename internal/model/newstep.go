@@ -91,7 +91,7 @@ func NewStep(stepType string) (Step, error) {
 		s.ElementAct, s.Selectors, s.TimeoutMs, s.IntervalMs = ElActPress, []string{"text="}, 10000, 250
 	case StepWaitDownload:
 		s.TimeoutMs, s.IntervalMs = 60000, 500
-	case StepPageText, StepReadTable:
+	case StepPageText, StepReadTable, StepReadDocument:
 		s.TimeoutMs, s.IntervalMs = 10000, 250
 	case StepWebKey:
 		s.Keys, s.DelayAfter = []string{"enter"}, 300

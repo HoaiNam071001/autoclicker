@@ -1207,6 +1207,7 @@ export namespace model {
 	    maxCount?: number;
 	    occurrence?: number;
 	    pageAll?: boolean;
+	    selectionOnly?: boolean;
 	    readNear?: string;
 	    readSpan?: number;
 	    readPattern?: string;
@@ -1360,6 +1361,7 @@ export namespace model {
 	        this.maxCount = source["maxCount"];
 	        this.occurrence = source["occurrence"];
 	        this.pageAll = source["pageAll"];
+	        this.selectionOnly = source["selectionOnly"];
 	        this.readNear = source["readNear"];
 	        this.readSpan = source["readSpan"];
 	        this.readPattern = source["readPattern"];

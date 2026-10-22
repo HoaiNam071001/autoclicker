@@ -44,6 +44,7 @@ const (
 	// Phần tử màn hình qua Accessibility (bước 37, engine/elementstep.go) – Chờ / Click dùng waitImage / clickImage FindBy element
 	StepPageText      = "pageText"      // đọc toàn bộ chữ trong cửa sổ app / trang trình duyệt thường (hoặc trong một phần tử) qua cây accessibility (engine/pagetext.go, bước 43 B4)
 	StepElementAction = "elementAction" // thao tác phần tử qua accessibility không cần chuột: bấm / đặt giá trị / tick / mở rộng / chọn (engine/elementaction.go, bước 43 E1)
+	StepReadDocument  = "readDocument"  // đọc toàn bộ chữ của ô soạn thảo / tài liệu đang mở (hoặc phần đang chọn) qua accessibility (engine/readdocument.go, bước 43 E3)
 	StepWaitUIEvent   = "waitUIEvent"   // chờ sự kiện giao diện: cửa sổ mới / đổi focus / phần tử mới hiện / giá trị đổi (engine/waituievent.go, bước 43 E2)
 	StepWaitDownload  = "waitDownload"  // chờ file tải xong trong thư mục tải về (engine/waitdownload.go, bước 43 B6)
 	StepReadTable     = "readTable"     // đọc bảng (table / grid) trong cửa sổ app / trang trình duyệt thường → rows / items, tuỳ chọn ghi csv / xlsx (engine/readtable.go, bước 43 B5)
@@ -69,7 +70,7 @@ const (
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
 	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepBrowserTab, StepBrowserGo, StepBrowserNorm, StepSavePdf, StepWebWait, StepWebClick,
-	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepPageText, StepReadTable, StepWaitDownload, StepElementAction, StepWaitUIEvent, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc,
+	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepPageText, StepReadTable, StepWaitDownload, StepElementAction, StepReadDocument, StepWaitUIEvent, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc,
 	StepTextMatch, StepTextSplit, StepTextClean, StepTextNumber}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.

@@ -1,0 +1,28 @@
+{
+ "meta": {
+  "name": "Phần tử – đọc nội dung tài liệu",
+  "description": "Mở trang Ghi chú rồi đọc nguyên văn ô soạn thảo 3 dòng vào {{n2.output.text}} (giữ xuống dòng, không OCR). Đúng: lời kết ghi 3 dòng và có “Biên bản họp”, “1.250.000 đ”, “hẹn thứ Sáu”. Cần quyền Accessibility, cửa sổ trình duyệt đang hiện.",
+  "level": 1,
+  "app": "Phần tử",
+  "page": "document.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/document.html",
+    "delayAfter": 3000
+   },
+   {
+    "type": "readDocument",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "{{n2.output.lines}} dòng: {{n2.output.text}}"
+   }
+  ]
+ }
+}

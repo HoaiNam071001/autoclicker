@@ -14,7 +14,7 @@ import { fmtFile } from '../../flow/file';
 import { fmtSystem } from '../../flow/system';
 import { fmtWindow } from '../../flow/window';
 import { fmtApp } from '../../flow/app';
-import { fmtPageText, fmtReadTable } from '../../flow/element';
+import { fmtPageText, fmtReadDocument, fmtReadTable } from '../../flow/element';
 import { fmtBrowserGo, fmtBrowserNorm, fmtBrowserTab, fmtSavePdf } from '../../flow/browserTab';
 import { fmtWaitUntil } from '../../flow/waitUntil';
 import { pathVertices } from '../../flow/shape';
@@ -55,6 +55,7 @@ function bubbleOf(s: Step): string | null {
     case 'waitUIEvent': return `👁 Chờ sự kiện ${fmtWaitUIEvent(s)} – xem trước không chờ thật`;
     case 'waitDownload': return `⬇ Chờ tải xong ${fmtWaitDownload(s)} – xem trước không chờ thật`;
     case 'readTable': return `▦ Đọc bảng: ${fmtReadTable(s)} – bảng biết khi chạy thật`;
+    case 'readDocument': return `📝 Đọc tài liệu: ${fmtReadDocument(s)} – chữ biết khi chạy thật`;
     case 'pageText': return `📄 Đọc chữ trang: ${fmtPageText(s)} – chữ biết khi chạy thật`;
     case 'savePdf': return `📄 Lưu trang ra PDF: ${fmtSavePdf(s, refOf)} – xem trước không đụng trình duyệt thật`;
     case 'browserGo': return `🗂 Đi tới URL: ${fmtBrowserGo(s, refOf)} – xem trước không đụng trình duyệt thật`;

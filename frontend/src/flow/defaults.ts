@@ -39,6 +39,7 @@ export const STEP_DEFAULTS: Partial<Record<StepType, Partial<Step>>> = {
   waitUIEvent: { clicks: 0, uiEvent: 'newWindow', timeoutMs: 10000, delayAfter: 0 },
   elementAction: { clicks: 0, elementAct: undefined, timeoutMs: 10000, intervalMs: 250, delayAfter: 300 },
   readTable: { clicks: 0, timeoutMs: 10000, intervalMs: 250, delayAfter: 0 },
+  readDocument: { clicks: 0, timeoutMs: 10000, intervalMs: 250, delayAfter: 0 },
   pageText: { clicks: 0, timeoutMs: 10000, intervalMs: 250, delayAfter: 0 },
   elementRead: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 250, delayAfter: 0 },
   webKey: { clicks: 0, keys: ['enter'], delayAfter: 300 },

@@ -37,6 +37,7 @@ import { WaitUntilFields } from './stepform/WaitUntilFields';
 import { PathFields } from './stepform/PathFields';
 import ElementReadFields from './stepform/ElementReadFields';
 import PageTextFields from './stepform/PageTextFields';
+import ReadDocumentFields from './stepform/ReadDocumentFields';
 import ReadTableFields from './stepform/ReadTableFields';
 import ElementActionFields from './stepform/ElementActionFields';
 import WaitUIEventFields from './stepform/WaitUIEventFields';
@@ -161,6 +162,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'waitUntil' && <WaitUntilFields step={s} />}
       {isWebStep(s.type) && <WebFields step={s} />}
       {s.type === 'elementRead' && <ElementReadFields step={s} />}
+      {s.type === 'readDocument' && <ReadDocumentFields step={s} />}
       {s.type === 'pageText' && <PageTextFields step={s} />}
       {s.type === 'elementAction' && <ElementActionFields step={s} />}
       {s.type === 'waitUIEvent' && <WaitUIEventFields step={s} />}
