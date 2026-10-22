@@ -127,6 +127,13 @@ func VarFields(s *model.Step) []VarField {
 	case model.StepWindow:
 		add("winApp", &s.WinApp, false)
 		add("winTitle", &s.WinTitle, false)
+	case model.StepWaitUIEvent:
+		add("winApp", &s.WinApp, false)
+		add("winTitle", &s.WinTitle, false)
+		add("elementApp", &s.ElementApp, false)
+		for i := range s.Selectors {
+			add(fmt.Sprintf("selectors[%d]", i), &s.Selectors[i], false)
+		}
 	case model.StepApp:
 		add("appName", &s.AppName, false)
 	case model.StepBrowserTab, model.StepBrowserGo, model.StepBrowserNorm, model.StepSavePdf:

@@ -107,6 +107,16 @@ const (
 
 var ElementActs = []string{ElActPress, ElActSetValue, ElActCheck, ElActUncheck, ElActExpand, ElActCollapse, ElActSelect, ElActScroll}
 
+// Sự kiện của node Chờ sự kiện giao diện (Step.UIEvent, bước 43 E2).
+const (
+	UIEventNewWindow   = "newWindow"   // cửa sổ mới mở (lọc WinApp / WinTitle)
+	UIEventFocus       = "focus"       // cửa sổ trên cùng đổi sang cửa sổ khác (lọc WinApp / WinTitle)
+	UIEventNewElement  = "newElement"  // phần tử khớp Selectors xuất hiện mà lúc bắt đầu chưa có (menu, hộp thoại, popup)
+	UIEventValueChange = "valueChange" // giá trị / chữ của phần tử khớp Selectors khác lúc bắt đầu
+)
+
+var UIEvents = []string{UIEventNewWindow, UIEventFocus, UIEventNewElement, UIEventValueChange}
+
 // Thao tác của node Hệ thống (Step.SysOp).
 const (
 	SysVolume     = "volume"     // đặt âm lượng = Volume %

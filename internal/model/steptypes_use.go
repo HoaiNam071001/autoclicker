@@ -58,6 +58,7 @@ var stepTypeUses = map[string]TypeUse{
 	StepWebKey:        {grpWeb, "Bấm phím vào trang web qua CDP, không cần Chrome ở trước (esc đóng hộp thoại, tab, enter)."},
 	StepElementRead:   {grpWeb, "Đọc chữ chính xác của phần tử trong app / Chrome thường qua cây accessibility (không OCR). Dùng khi OCR đọc sai hoặc muốn chữ chuẩn."},
 	StepElementAction: {grpWeb, "Bấm / đặt giá trị / tick / mở rộng / chọn phần tử của app hoặc Chrome thường qua accessibility, không đụng chuột – cửa sổ bị che vẫn chạy. Bấm bằng chuột thật theo ảnh / chữ → clickImage; ô web React không nhận giá trị → gõ chữ."},
+	StepWaitUIEvent:   {grpWait, "Chờ giao diện thay đổi mà không chụp màn: cửa sổ mới mở, đổi cửa sổ trên cùng, menu / hộp thoại / popup bật lên, giá trị phần tử đổi. Chờ một ảnh / chữ cụ thể → waitImage; chờ vùng đứng yên → waitScreen."},
 	StepWaitDownload:  {grpWait, "Chờ file tải về xong (hết .crdownload, cỡ đứng yên) rồi lấy đường dẫn để mở / đọc / đổi tên. Chờ trang hoặc màn hình xong → waitScreen / chờ chữ."},
 	StepReadTable:     {grpWeb, "Đọc cả BẢNG trên trang / app thành dòng + cột (items theo tên cột) để lặp từng dòng hoặc ghi csv / xlsx. Chữ rời không phải bảng → pageText."},
 	StepPageText:      {grpWeb, "Đọc MỌI chữ trong cửa sổ app / Chrome thường (hoặc trong một khung) để lọc bằng textMatch / textSplit. Một phần tử cụ thể → elementRead."},

@@ -202,6 +202,9 @@ function ownOutputs(s: Step): OutputField[] {
     case 'webClick': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...WEB_FOUND];
     case 'webType': return [{ key: 'text', desc: 'chữ đã gõ (sau khi thay biến)' }, { key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' },
       ...WEB_FOUND.filter((f) => f.key !== 'text')];
+    case 'waitUIEvent': return [{ key: 'event', desc: 'sự kiện đã bắt được' }, { key: 'title', desc: 'tiêu đề cửa sổ (sự kiện cửa sổ)' }, { key: 'app', desc: 'app của cửa sổ' },
+      { key: 'role', desc: 'vai trò phần tử (sự kiện phần tử)' }, { key: 'text', desc: 'chữ / tên phần tử' }, { key: 'value', desc: 'giá trị phần tử' },
+      { key: 'x', desc: 'tâm X' }, { key: 'y', desc: 'tâm Y' }, { key: 'w', desc: 'rộng' }, { key: 'h', desc: 'cao' }];
     case 'elementAction': return [{ key: 'action', desc: 'thao tác đã làm' }, { key: 'role', desc: 'vai trò phần tử (button, checkbox…)' }, { key: 'text', desc: 'chữ / tên phần tử sau thao tác' }, { key: 'value', desc: 'giá trị sau thao tác (ô nhập, checkbox 0 / 1)' }];
     case 'waitDownload': return [{ key: 'path', desc: 'đường dẫn đầy đủ của file tải về' }, { key: 'name', desc: 'tên file' }, { key: 'size', desc: 'cỡ file (byte)' }];
     case 'readTable': return [{ key: 'rows', desc: 'mảng các dòng, mỗi dòng mảng ô (gồm dòng tên cột)' }, { key: 'items', desc: 'mỗi dòng dữ liệu một đối tượng {tên cột không dấu: giá trị} – nối vào Lặp qua danh sách' }, { key: 'columns', desc: 'tên các cột' }, { key: 'count', desc: 'số dòng dữ liệu' }, { key: 'path', desc: 'file đã ghi (khi có Ghi ra file)' }];

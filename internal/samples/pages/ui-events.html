@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  main { padding: 24px 40px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+  #dialog { display: none; border: 3px solid var(--line); border-radius: 14px; padding: 18px 28px; font-size: 30px; font-weight: 800; }
+</style></head>
+<body>
+<main>
+  <button class="btn" id="start">BẮT ĐẦU</button>
+  <div role="dialog" aria-label="Hoàn tất" id="dialog">ĐÃ XONG</div>
+  <div class="stats"></div>
+  <div class="log"></div>
+</main>
+<script src="sandbox.js"></script>
+<script>
+  // Sự kiện giao diện (bước 43 E2): bấm BẮT ĐẦU, sau 2 giây hộp thoại “Hoàn tất” mới hiện – node Chờ sự kiện giao diện
+  // bắt phần tử mới xuất hiện (role=dialog) thay vì chờ cố định hay chụp màn hình.
+  sb.header('Sự kiện giao diện');
+  const setRuns = sb.stat('Lần bắt đầu', 0);
+  let runs = 0;
+  document.getElementById('start').addEventListener('click', () => {
+    runs++; setRuns(runs);
+    setTimeout(() => { document.getElementById('dialog').style.display = 'block'; }, 2000);
+  });
+</script>
+</body></html>

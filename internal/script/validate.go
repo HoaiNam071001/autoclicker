@@ -142,6 +142,10 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if err := checkTableFile(i, s); err != nil {
 				return err
 			}
+		case model.StepWaitUIEvent:
+			if err := checkWaitUIEvent(i, s); err != nil {
+				return err
+			}
 		case model.StepElementAction:
 			if err := checkElementAction(i, s); err != nil {
 				return err

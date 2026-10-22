@@ -5,6 +5,7 @@ import { fmtSelectors } from '../../flow/web';
 import { fmtShot } from '../../flow/shot';
 import { fmtWaitScreen } from '../../flow/waitScreen';
 import { fmtElementAction } from '../../flow/elementAction';
+import { fmtWaitUIEvent } from '../../flow/uiEvent';
 import { fmtWaitDownload } from '../../flow/file';
 import { fmtPos } from '../../flow/detail';
 import { fmtClip } from '../../flow/clipboard';
@@ -51,6 +52,7 @@ function bubbleOf(s: Step): string | null {
     case 'system': return `🔊 ${fmtSystem(s)}`;
     case 'app': return `🧩 Ứng dụng: ${fmtApp(s)} – xem trước không đụng app thật`;
     case 'elementAction': return `🖱 Thao tác phần tử: ${fmtElementAction(s)} – xem trước không thao tác thật`;
+    case 'waitUIEvent': return `👁 Chờ sự kiện ${fmtWaitUIEvent(s)} – xem trước không chờ thật`;
     case 'waitDownload': return `⬇ Chờ tải xong ${fmtWaitDownload(s)} – xem trước không chờ thật`;
     case 'readTable': return `▦ Đọc bảng: ${fmtReadTable(s)} – bảng biết khi chạy thật`;
     case 'pageText': return `📄 Đọc chữ trang: ${fmtPageText(s)} – chữ biết khi chạy thật`;

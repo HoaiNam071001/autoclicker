@@ -65,6 +65,13 @@ export const wait: Scenes = {
       <Show from={0.55}><Lines x={34} y={34} ws={[120, 150, 90, 130]} /><rect x={34} y={74} width="60" height="32" rx="4" className="fill-field" /><Tick x={196} y={34} from={0} /><T x={150} y={104} anchor="middle" cls="fill-ok" s={8}>đứng yên → đi tiếp</T></Show>
     </Stage>
   ),
+  waitUIEvent: () => (
+    <Stage><Win />
+      <Btn x={30} y={36} w={64} h={22} label="Mở" />
+      <Show from={0} to={0.55}><T x={150} y={90} anchor="middle" cls="fill-muted" s={8}>đang chờ giao diện đổi…</T></Show>
+      <Show from={0.55}><rect x={104} y={58} width="104" height="52" rx="6" className="fill-surface stroke-accent" /><T x={156} y={88} anchor="middle" cls="fill-ink" s={9}>Hộp thoại</T><Tick x={214} y={58} from={0.55} /></Show>
+    </Stage>
+  ),
   waitDownload: () => (
     <Stage><Win />
       <Btn x={30} y={36} w={64} h={22} label="Tải về" />

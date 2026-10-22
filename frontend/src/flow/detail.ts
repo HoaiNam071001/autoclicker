@@ -7,6 +7,7 @@ import { countRange } from './findAll';
 import { fmtClip } from './clipboard';
 import { fmtHTTP } from './http';
 import { fmtElementAction } from './elementAction';
+import { fmtWaitUIEvent } from './uiEvent';
 import { fmtFile, fmtWaitDownload } from './file';
 import { fmtSystem } from './system';
 import { fmtWindow } from './window';
@@ -50,6 +51,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'elementRead' ? fmtElementRead(s)
     : s.type === 'pageText' ? fmtPageText(s)
     : s.type === 'elementAction' ? fmtElementAction(s)
+    : s.type === 'waitUIEvent' ? fmtWaitUIEvent(s)
     : s.type === 'waitDownload' ? fmtWaitDownload(s)
     : s.type === 'readTable' ? fmtReadTable(s)
     : s.type === 'waitImage' || s.type === 'findAll' || (s.type === 'clickImage' && s.imageSource === 'search')

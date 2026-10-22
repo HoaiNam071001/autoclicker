@@ -1,0 +1,36 @@
+{
+ "meta": {
+  "name": "Chờ sự kiện giao diện",
+  "description": "Bấm BẮT ĐẦU rồi chờ hộp thoại “Hoàn tất” bật lên sau 2 giây bằng node Chờ sự kiện giao diện (đọc cây Accessibility, không chụp màn hình). Đúng: kịch bản kết thúc thành công sau ~2 giây. Cần quyền Accessibility và cửa sổ trình duyệt đang hiện. Phần phần tử chỉ macOS; chờ cửa sổ mới / đổi cửa sổ chạy cả Windows.",
+  "level": 1,
+  "app": "Phần tử",
+  "page": "ui-events.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/ui-events.html",
+    "delayAfter": 3000
+   },
+   {
+    "type": "elementAction",
+    "selectors": ["role=button[name=\"BẮT ĐẦU\"]"],
+    "elementAct": "press",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "waitUIEvent",
+    "uiEvent": "newElement",
+    "selectors": ["role=dialog"],
+    "timeoutMs": 10000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Hộp thoại “Hoàn tất” đã hiện – bắt được sự kiện mà không chụp màn hình"
+   }
+  ]
+ }
+}

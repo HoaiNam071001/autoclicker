@@ -69,6 +69,7 @@ type Step struct {
 	FindText      string  `json:"findText,omitempty"`   // FindBy text: chữ cần tìm; nhận {{biến}}
 	TextExact     bool    `json:"textExact,omitempty"`  // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
 	ElementAct    string  `json:"elementAct,omitempty"` // elementAction: ElementActs (trống = press); setValue lấy Text
+	UIEvent       string  `json:"uiEvent,omitempty"`    // waitUIEvent: UIEvents (trống = newWindow); cửa sổ lọc bằng WinApp / WinTitle, phần tử bằng ElementApp / Selectors
 	TextAccent    bool    `json:"textAccent,omitempty"` // FindBy text: so đúng dấu (mặc định bỏ qua dấu – OCR hay đọc lệch dấu)
 	MinCount      int     `json:"minCount,omitempty"`   // findAll: cần thấy ít nhất chừng này chỗ (0 = 1) – chưa đủ thì chờ tiếp
 	MaxCount      int     `json:"maxCount,omitempty"`   // findAll: thấy nhiều hơn chừng này chỗ → chờ tiếp / cổng fail (0 = không giới hạn)

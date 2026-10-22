@@ -99,3 +99,23 @@ func checkElementAction(i int, s model.Step) error {
 	}
 	return checkElementFind(i, s)
 }
+
+// checkWaitUIEvent – node Chờ sự kiện giao diện: sự kiện hợp lệ; sự kiện về phần tử phải có selector để biết theo dõi gì.
+func checkWaitUIEvent(i int, s model.Step) error {
+	ev := s.UIEvent
+	if ev == "" {
+		ev = model.UIEventNewWindow
+	}
+	if !slices.Contains(model.UIEvents, ev) {
+		return stepErr(i, s, "uiEvent", "sự kiện không hợp lệ: %q (newWindow | focus | newElement | valueChange)", s.UIEvent)
+	}
+	if s.TimeoutMs <= 0 {
+		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa phải > 0")
+	}
+	if ev == model.UIEventNewElement || ev == model.UIEventValueChange {
+		if err := checkElementSelectors(s.Selectors); err != nil {
+			return stepErr(i, s, "selectors", "%v", err)
+		}
+	}
+	return nil
+}
