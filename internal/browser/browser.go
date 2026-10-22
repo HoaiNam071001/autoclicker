@@ -36,3 +36,9 @@ var (
 
 // System – trình duyệt thật của máy.
 type System struct{}
+
+// BundleID – id app trên macOS của trình duyệt (Browsers khác ""), để đọc cây accessibility của đúng trình duyệt.
+func BundleID(b string) string {
+	return map[string]string{model.BrowserChrome: "com.google.Chrome", model.BrowserEdge: "com.microsoft.edgemac",
+		model.BrowserBrave: "com.brave.Browser", model.BrowserCocCoc: "com.coccoc.Coccoc"}[b]
+}

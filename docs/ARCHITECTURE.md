@@ -35,7 +35,7 @@
 
 | Loại | Cổng ra |
 |---|---|
-| hành động (click, double, hold, drag, wait, type, key, scroll, open, browserTab, browserGo, browserNorm, pageText, readTable, waitDownload, elementAction, waitImage, clickImage, waitPixel, webWait, webClick, webType, webRead, webScroll, elementRead) | `success`, `fail` |
+| hành động (click, double, hold, drag, wait, type, key, scroll, open, browserTab, browserGo, browserNorm, savePdf, pageText, readTable, waitDownload, elementAction, waitImage, clickImage, waitPixel, webWait, webClick, webType, webRead, webScroll, elementRead) | `success`, `fail` |
 | `if` | `true`, `false` |
 | `switch` / `switchScreen` | `case:<key>`… + `default` / `none` |
 | `counter` | `next`, `done` |

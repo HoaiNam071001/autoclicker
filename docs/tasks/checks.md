@@ -3,9 +3,10 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 43 – Node chuyên sâu (E1 Thao tác phần tử, B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS, B4 Đọc chữ trang, B5 Đọc bảng, B6 Chờ tải xong) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
+## 43 – Node chuyên sâu (E1 Thao tác phần tử, B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS, B4 Đọc chữ trang, B5 Đọc bảng, B6 Chờ tải xong, B7 Lưu PDF) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
 
 - [ ] (E1) Mẫu thử *Phần tử – thao tác không cần chuột* (Chrome / Safari, cấp Accessibility): chuột đứng yên, ô Họ tên được điền “Nguyễn Văn An”, tick Nhớ tôi, bấm GỬI → trang hiện “Nguyễn Văn An · NHỚ”; thử che một nửa cửa sổ bằng cửa sổ khác vẫn chạy; thử `uncheck` khi chưa tick (đi tiếp, không bấm); thử `setValue` lên ô web React thật để xem có báo “giá trị vẫn là …”.
+- [ ] (B7) Mẫu thử *Lưu trang ra PDF* (Chrome macOS, cấp Accessibility + Automation; trước đó in tay một lần chọn đích *Lưu dưới dạng PDF*): hộp in hiện rồi tự đóng, `~/Downloads/ghosthand-bang-gia.pdf` có và mở ra thấy bảng giá; chạy lại → ghi đè không hỏi; đổi đích hộp in sang máy in → node Thất bại “đang chọn máy in thật”; thử thêm Edge / Cốc Cốc (giao diện hộp in có thể khác – xem `error.detail.stage`).
 - [ ] (B6) Mẫu thử *Chờ file tải xong* (Chrome tải thẳng vào Downloads, không hỏi chỗ lưu): sau ~2 s file `ghosthand-bao-cao-….txt` về, lời kết ghi tên + cỡ ~2 KB; chạy lại → vẫn lấy file MỚI, không nhặt file lần trước; thử `Mẫu tên file` không khớp → hết giờ báo Thất bại.
 - [ ] (B5) Mẫu thử *Phần tử – đọc bảng* (Chrome thường, cấp Accessibility): lời kết ghi “3 đơn · khách đầu: Nguyễn Văn An · 1.250.000 ₫”; thử điền *Ghi ra file* `~/Documents/don-hang.xlsx` / `.csv` → mở bằng Excel đúng 4 dòng × 3 cột, tiếng Việt không lỗi; thử bảng thật (Google Sheets / bảng trên web đã đăng nhập, bảng role=grid) và trên Windows (UIA)
 

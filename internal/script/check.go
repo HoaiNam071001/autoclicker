@@ -164,7 +164,7 @@ func checkStep(s *model.Step) error {
 		if err := checkApp(*s); err != nil {
 			return err
 		}
-	case model.StepBrowserTab, model.StepBrowserGo, model.StepBrowserNorm:
+	case model.StepBrowserTab, model.StepBrowserGo, model.StepBrowserNorm, model.StepSavePdf:
 		if err := checkTab(*s); err != nil {
 			return err
 		}

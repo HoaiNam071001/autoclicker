@@ -47,6 +47,7 @@ var stepTypeUses = map[string]TypeUse{
 	StepBrowserTab:    {grpBrowser, "Liệt kê / chuyển / mở / đóng / tải lại tab của Chrome, Edge, Brave, Cốc Cốc người dùng đang dùng (đã đăng nhập). Chỉ macOS; chưa có Windows."},
 	StepBrowserGo:     {grpBrowser, "Đổi URL của tab trình duyệt thường rồi chờ tải xong (khác open: không mở tab mới)."},
 	StepBrowserNorm:   {grpBrowser, "Chuẩn hoá cửa sổ trình duyệt thường (thoát toàn màn hình, đặt cỡ, zoom 100 %, đóng popup) ngay sau open, trước khi click theo ảnh / chữ."},
+	StepSavePdf:       {grpBrowser, "In tab trình duyệt thường ra file PDF (hộp in Chrome → Lưu dưới dạng PDF). Lưu cả trang bằng ảnh chụp thì screenshot."},
 	StepWaitUntil:     {grpWait, "Chờ tới đúng giờ (đặt hẹn, canh mở bán, kịch bản chạy hằng ngày với ifPassed tomorrow)."},
 	StepPath:          {grpMouse, "Vẽ nét liền qua nhiều điểm hoặc hình tròn / chữ nhật / sao (vẽ, ký, game). Kéo thẳng hai điểm → drag."},
 	StepWebWait:       {grpWeb, "Chờ phần tử trang web hiện / mất theo selector. Chỉ dùng khi probe_page báo ok và nodePref là web; ngược lại dùng waitImage theo chữ."},

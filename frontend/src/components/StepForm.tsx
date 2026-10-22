@@ -30,6 +30,7 @@ import { SystemFields } from './stepform/SystemFields';
 import { AppFields } from './stepform/AppFields';
 import { BrowserTabFields } from './stepform/BrowserTabFields';
 import { BrowserGoFields } from './stepform/BrowserGoFields';
+import { SavePdfFields } from './stepform/SavePdfFields';
 import { BrowserNormFields } from './stepform/BrowserNormFields';
 import { WindowFields } from './stepform/WindowFields';
 import { WaitUntilFields } from './stepform/WaitUntilFields';
@@ -153,6 +154,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'window' && <WindowFields step={s} />}
       {s.type === 'app' && <AppFields step={s} />}
       {s.type === 'browserTab' && <BrowserTabFields step={s} />}
+      {s.type === 'savePdf' && <SavePdfFields step={s} />}
       {s.type === 'browserGo' && <BrowserGoFields step={s} />}
       {s.type === 'browserNorm' && <BrowserNormFields step={s} />}
       {s.type === 'waitUntil' && <WaitUntilFields step={s} />}

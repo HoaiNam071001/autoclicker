@@ -51,6 +51,14 @@ export const app: Scenes = {
       <Cur pts={[[0, 40, 90], [0.2, 118, 38], [0.55, 205, 34]]} /><Ripple x={118} y={36} t={0.2} r={8} />
     </Stage>
   ),
+  savePdf: () => (
+    <Stage>
+      <Browser url="" />
+      <Lines x={34} y={46} ws={[130, 60, 100]} />
+      <Show from={0.35}><Spinner x={120} y={76} r={11} /></Show>
+      <Show from={0.7}><Tick x={200} y={50} from={0} /></Show>
+    </Stage>
+  ),
   browserGo: () => (
     <Stage>
       <Browser url="" />

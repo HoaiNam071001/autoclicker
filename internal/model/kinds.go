@@ -30,6 +30,7 @@ const (
 	StepBrowserTab  = "browserTab"  // TabOp: đọc / liệt kê / chuyển / mở / đóng / tải lại tab của trình duyệt thường họ Chromium (engine/browsertab.go, bước 43 B1)
 	StepBrowserGo   = "browserGo"   // đặt URL cho tab (như browserTab chọn tab) rồi chờ tải xong (engine/browsergo.go, bước 43 B2)
 	StepBrowserNorm = "browserNorm" // đưa trình duyệt thường về trạng thái chuẩn: zoom 100 %, thoát toàn màn hình, đặt cỡ cửa sổ, đóng popup (engine/browsernorm.go, bước 43 B3)
+	StepSavePdf     = "savePdf"     // in tab trình duyệt thường ra file PDF qua hộp in + hộp lưu của hệ điều hành (engine/savepdf.go, bước 43 B7)
 	StepFile        = "file"        // FileOp: ghi file / thêm dòng csv · xlsx / tạo thư mục / xoá vào Thùng rác / dọn Thùng rác (engine/file.go)
 
 	// Web qua DOM (bước 25d, engine/webstep.go): tìm phần tử bằng Selectors trên tab của Chrome của app, bấm bằng chuột thật.
@@ -66,7 +67,7 @@ const (
 
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
-	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepBrowserTab, StepBrowserGo, StepBrowserNorm, StepWebWait, StepWebClick,
+	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepBrowserTab, StepBrowserGo, StepBrowserNorm, StepSavePdf, StepWebWait, StepWebClick,
 	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepPageText, StepReadTable, StepWaitDownload, StepElementAction, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc,
 	StepTextMatch, StepTextSplit, StepTextClean, StepTextNumber}
 

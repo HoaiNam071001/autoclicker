@@ -57,6 +57,12 @@ func validateTab(i int, s model.Step) error {
 		return stepErr(i, s, "tab", "chưa nhập tiêu đề / URL tab cần chờ")
 	case s.TabOp == model.TabWaitClose && tab == "" && s.TabFrom == "":
 		return stepErr(i, s, "tab", "chưa nhập tiêu đề / URL tab cần chờ đóng (hoặc chọn node Mở)")
+	case s.Type == model.StepSavePdf && s.TabOp != model.TabRead:
+		return stepErr(i, s, "tabOp", "node Lưu PDF không có thao tác tab")
+	case s.Type == model.StepSavePdf && strings.TrimSpace(s.FilePath) == "":
+		return stepErr(i, s, "filePath", "chưa nhập nơi lưu file PDF")
+	case s.Type == model.StepSavePdf && !strings.Contains(s.FilePath, "{{") && !strings.HasSuffix(strings.ToLower(strings.TrimSpace(s.FilePath)), ".pdf"):
+		return stepErr(i, s, "filePath", "file lưu phải có đuôi .pdf")
 	case s.Type == model.StepBrowserGo && s.TabOp != model.TabRead:
 		return stepErr(i, s, "tabOp", "node Đi tới URL không có thao tác tab")
 	case s.Type == model.StepBrowserGo && strings.TrimSpace(s.URL) == "":

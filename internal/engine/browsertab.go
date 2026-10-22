@@ -200,7 +200,7 @@ func (e *Engine) rereadTab(ctx context.Context, t model.TabInfo) model.TabInfo {
 // quyền Automation khi không dùng).
 func (e *Engine) opensTab(id string) bool {
 	return slices.ContainsFunc(e.sc.Steps, func(s model.Step) bool {
-		return (s.Type == model.StepBrowserTab || s.Type == model.StepBrowserGo || s.Type == model.StepBrowserNorm) && s.TabFrom == id
+		return (s.Type == model.StepBrowserTab || s.Type == model.StepBrowserGo || s.Type == model.StepBrowserNorm || s.Type == model.StepSavePdf) && s.TabFrom == id
 	})
 }
 

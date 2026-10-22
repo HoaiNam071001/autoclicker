@@ -106,6 +106,8 @@ func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[strin
 		return e.browserTab(ctx, s)
 	case model.StepBrowserGo:
 		return e.browserGo(ctx, s)
+	case model.StepSavePdf:
+		return e.savePdf(ctx, s)
 	case model.StepBrowserNorm:
 		return e.browserNorm(ctx, s)
 	case model.StepSystem:

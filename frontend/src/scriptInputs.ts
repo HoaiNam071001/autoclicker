@@ -64,6 +64,7 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
     }
     case 'app': return { ...s, appName: s.appName && f(s.appName) };
     case 'browserGo': return { ...s, tab: s.tab && f(s.tab), url: s.url && f(s.url) };
+    case 'savePdf': return { ...s, tab: s.tab && f(s.tab), filePath: s.filePath && f(s.filePath) };
     case 'browserNorm': return { ...s, tab: s.tab && f(s.tab) };
     case 'browserTab': return { ...s, tab: s.tab && f(s.tab), ...(s.tabOp === 'new' ? { url: s.url && f(s.url) } : {}) };
     case 'window': return { ...s, winApp: s.winApp && f(s.winApp), winTitle: s.winTitle && f(s.winTitle) };

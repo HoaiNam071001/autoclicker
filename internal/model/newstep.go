@@ -65,6 +65,8 @@ func NewStep(stepType string) (Step, error) {
 		s.TimeoutMs, s.DelayAfter = 5000, 300
 	case StepBrowserNorm:
 		s.NormZoom, s.NormFullscreen, s.NormPopups, s.TimeoutMs, s.DelayAfter = true, true, true, 5000, 500
+	case StepSavePdf:
+		s.TimeoutMs, s.IntervalMs, s.DelayAfter = 30000, 300, 300
 	case StepBrowserGo:
 		s.URL, s.TimeoutMs, s.DelayAfter = "https://", 15000, 300
 	case StepWaitUntil:

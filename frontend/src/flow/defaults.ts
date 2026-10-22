@@ -27,6 +27,7 @@ export const STEP_DEFAULTS: Partial<Record<StepType, Partial<Step>>> = {
   app: { clicks: 0, timeoutMs: 10000, delayAfter: 300 },
   browserTab: { clicks: 0, timeoutMs: 5000, delayAfter: 300 },
   browserNorm: { clicks: 0, normZoom: true, normFullscreen: true, normPopups: true, timeoutMs: 5000, delayAfter: 500 },
+  savePdf: { clicks: 0, timeoutMs: 30000, intervalMs: 300, delayAfter: 300 },
   browserGo: { clicks: 0, url: 'https://', timeoutMs: 15000, delayAfter: 300 },
   file: { clicks: 0, filePath: '~/Documents/ghosthand/nhat-ky.txt', delayAfter: 300 },
   http: { clicks: 0, method: 'GET', url: 'https://', timeoutMs: 15000, delayAfter: 0 },

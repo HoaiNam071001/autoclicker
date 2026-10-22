@@ -47,6 +47,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   webScroll: { desc: 'Cuộn trang web tới phần tử, cuộn trong một khung, hoặc cuộn tới khi thấy phần tử.', use: 'Đưa nút cuối trang vào tầm nhìn, lăn feed tới bài cần tìm.' },
   window: { desc: 'Đưa cửa sổ lên trước, chờ mở / đóng, đặt vị trí + cỡ, thu nhỏ hay đóng.', use: 'Đầu kịch bản: cố định cửa sổ để toạ độ click, ảnh mẫu không lệch giữa các lần chạy.' },
   browserTab: { desc: 'Đọc, liệt kê, chuyển, mở, đóng, tải lại tab của Chrome / Edge / Cốc Cốc bạn đang dùng (chỉ macOS).', use: 'Đóng đúng tab node Mở vừa mở; rẽ nhánh theo URL / tiêu đề tab.' },
+  savePdf: { desc: 'In tab Chrome / Edge… ra file PDF qua hộp in + hộp lưu file (chỉ macOS). Đích hộp in phải là Lưu dưới dạng PDF.', use: 'Lưu hoá đơn, báo cáo, trang đã đăng nhập thành PDF để gửi hoặc lưu trữ.' },
   browserNorm: { desc: 'Đưa cửa sổ Chrome / Edge… về trạng thái chuẩn: thoát toàn màn hình, đặt cỡ, zoom 100 % (chỉ macOS).', use: 'Ngay sau node Mở, trước click theo ảnh / chữ để toạ độ không lệch.' },
   browserGo: { desc: 'Đổi trang ngay trong tab đang dùng (không mở tab mới) rồi chờ trang tải xong (chỉ macOS).', use: 'Lần lượt mở các trang trong cùng một tab, URL ghép từ biến.' },
   app: { desc: 'Kiểm tra app đang chạy (rẽ nhánh), chờ app mở xong / thoát hẳn, thoát hay buộc thoát app.', use: 'App chưa chạy thì Mở rồi chờ có cửa sổ; cuối kịch bản tắt app.' },

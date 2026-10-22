@@ -44,7 +44,7 @@ export function fmtBrowserTab(s: TabStep, refOf: (id: string) => string): string
 export const fmtBrowserGo = (s: TabStep, refOf: (id: string) => string): string =>
   `${s.url?.trim() || 'chưa nhập URL'} · ${tabTarget(s, refOf)}${s.browser ? ` · ${BROWSERS.find((b) => b.id === s.browser)?.label ?? s.browser}` : ''}`;
 
-type NormStep = TabStep & Pick<Step, 'normZoom' | 'normFullscreen' | 'normSize' | 'normPopups' | 'winPreset' | 'winRect'>;
+type NormStep = TabStep & Pick<Step, 'filePath' | 'normZoom' | 'normFullscreen' | 'normSize' | 'normPopups' | 'winPreset' | 'winRect'>;
 
 // Dòng chi tiết node Chuẩn hoá: "Zoom 100 % · Toàn màn hình · Cỡ giữa · tab của n1".
 export function fmtBrowserNorm(s: NormStep, refOf: (id: string) => string): string {
@@ -53,10 +53,19 @@ export function fmtBrowserNorm(s: NormStep, refOf: (id: string) => string): stri
   return `${todo.length ? todo.join(' · ') : 'chưa bật việc nào'} · ${tabTarget(s, refOf)}${s.browser ? ` · ${BROWSERS.find((b) => b.id === s.browser)?.label ?? s.browser}` : ''}`;
 }
 
+// Dòng chi tiết node Lưu PDF: "~/Downloads/a.pdf · tab của n1".
+export const fmtSavePdf = (s: TabStep & Pick<Step, 'filePath'>, refOf: (id: string) => string): string =>
+  `${s.filePath?.trim() || 'chưa nhập nơi lưu'} · ${tabTarget(s, refOf)}${s.browser ? ` · ${BROWSERS.find((b) => b.id === s.browser)?.label ?? s.browser}` : ''}`;
+
 // Cảnh báo khi soạn (khớp validateTab / validateTabFrom); refs: id các node còn trong kịch bản.
 export function browserTabWarning(s: NormStep, refs: Map<string, string>): string | undefined {
   const op = s.tabOp ?? '';
   if (s.type === 'browserGo' && !s.url?.trim()) return 'Chưa nhập URL';
+  if (s.type === 'savePdf') {
+    const p = s.filePath?.trim() ?? '';
+    if (!p) return 'Chưa nhập nơi lưu file PDF';
+    if (!p.includes('{{') && !/\.pdf$/i.test(p)) return 'File lưu phải có đuôi .pdf';
+  }
   if (s.type === 'browserNorm') {
     if (!s.normZoom && !s.normFullscreen && !s.normSize && !s.normPopups) return 'Chưa bật việc nào';
     if (s.normSize && !s.winPreset && !(s.winRect && s.winRect.w > 0 && s.winRect.h > 0)) return 'Chưa nhập cỡ cửa sổ';
@@ -76,6 +85,7 @@ export function browserTabOutputs(s: Pick<Step, 'tabOp'> & { type?: Step['type']
     return [...TAB_INFO, { key: 'left', desc: 'góc trên trái cửa sổ – X' }, { key: 'top', desc: 'góc trên trái – Y' }, { key: 'w', desc: 'rộng cửa sổ' }, { key: 'h', desc: 'cao cửa sổ' },
       { key: 'x', desc: 'tâm cửa sổ – X' }, { key: 'y', desc: 'tâm cửa sổ – Y' }, { key: 'wasFullscreen', desc: 'trước đó đang toàn màn hình' }, { key: 'zoomReset', desc: 'đã gửi phím zoom 100 %' }];
   }
+  if (s.type === 'savePdf') return [{ key: 'path', desc: 'đường dẫn file PDF' }, { key: 'name', desc: 'tên file' }, { key: 'size', desc: 'cỡ file (byte)' }, { key: 'url', desc: 'URL tab' }, { key: 'title', desc: 'tiêu đề tab' }];
   if (s.type === 'browserGo') return [...TAB_INFO, { key: 'ms', desc: 'thời gian tới khi tải xong (ms)' }];
   switch (s.tabOp ?? '') {
     case 'list': return [{ key: 'items', desc: 'danh sách tab [{title, url, browser, window, active, tabId}] – nối vào Lặp qua danh sách' }, { key: 'count', desc: 'số tab' }];
