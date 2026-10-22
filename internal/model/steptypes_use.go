@@ -43,6 +43,7 @@ var stepTypeUses = map[string]TypeUse{
 	StepFile:          {grpData, "Ghi text, thêm dòng vào csv / xlsx, tạo thư mục, chuyển file vào thùng rác – xuất kết quả, ghi log. Đọc danh sách từ file → forEach listFrom."},
 	StepOSShortcut:    {grpData, "macOS: chạy Shortcut có sẵn trong app Phím tắt (nhận chữ, trả chữ) – dùng lại việc người dùng đã tự động hoá. Việc có node riêng → dùng node đó; lệnh dòng lệnh → shell."},
 	StepSysInfo:       {grpData, "Đọc pin, CPU / RAM, ổ trống, màn hình, mạng, tên máy để rẽ nhánh (pin yếu thì dừng, ổ đầy thì báo). Không đụng chuột / phím; cần việc khác của máy → shell."},
+	StepProcess:       {grpData, "Đọc / chờ tiến trình kể cả tiến trình nền không có cửa sổ: CPU / RAM của một app, danh sách tiến trình theo tên, chờ tiến trình chạy / thoát, chờ app hết bận (render / xuất file xong). Thoát app → node Ứng dụng."},
 	StepShell:         {grpData, "Chạy lệnh / script của máy (shell, PowerShell, AppleScript) lấy stdout để dùng tiếp; biến vào lệnh qua biến môi trường. Cần người dùng đồng ý nội dung lệnh. Việc có node riêng (mở app, ghi file, gọi API) → dùng node đó, đừng viết lệnh."},
 	StepSystem:        {grpData, "Chỉnh âm lượng / tắt tiếng máy. Không đụng chuột / phím."},
 	StepWindow:        {grpWin, "Đưa cửa sổ lên trước, đặt vị trí / cỡ (setBounds), chờ cửa sổ hiện / mất. Đặt sau open để toạ độ luôn đúng."},

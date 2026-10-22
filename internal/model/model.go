@@ -156,6 +156,11 @@ type Step struct {
 	ShellEnv  []KV   `json:"shellEnv,omitempty"`  // biến môi trường cho lệnh: tên → giá trị (nhận {{biến}})
 	// Shortcuts của hệ điều hành (bước 43 S2, engine/osshortcut.go) – input chữ lấy từ Text; TimeoutMs: hết giờ
 	ShortcutName string `json:"shortcutName,omitempty"` // tên Shortcut trong ứng dụng Phím tắt; nhận {{biến}}
+	// Tiến trình (bước 43 S5, engine/process.go) – chờ dùng TimeoutMs / IntervalMs; waitIdle dùng thêm StableMs
+	ProcOp    string `json:"procOp,omitempty"`    // ProcOps: "" = đọc | waitStart | waitQuit | waitIdle
+	ProcName  string `json:"procName,omitempty"`  // tên tiến trình (notepad.exe, Google Chrome Helper); "" = mọi tiến trình (chỉ khi đọc); nhận {{biến}}
+	ProcMatch string `json:"procMatch,omitempty"` // NameMatches như WinMatch
+	CPUBelow  int    `json:"cpuBelow,omitempty"`  // waitIdle: tổng CPU của tiến trình khớp phải dưới ngưỡng này (%, 100 = đầy một lõi; 0 = 5)
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>

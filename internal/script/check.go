@@ -169,6 +169,10 @@ func checkStep(s *model.Step) error {
 			return err
 		}
 	case model.StepSysInfo:
+	case model.StepProcess:
+		if err := checkProcess(*s); err != nil {
+			return err
+		}
 	case model.StepOSShortcut:
 		if s.TimeoutMs < 0 {
 			return fmt.Errorf("thời gian chờ không được âm")

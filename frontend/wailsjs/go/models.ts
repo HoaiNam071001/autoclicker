@@ -1272,6 +1272,10 @@ export namespace model {
 	    script?: string;
 	    shellEnv?: KV[];
 	    shortcutName?: string;
+	    procOp?: string;
+	    procName?: string;
+	    procMatch?: string;
+	    cpuBelow?: number;
 	    cond?: Cond;
 	    cases?: Case[];
 	    value?: string;
@@ -1430,6 +1434,10 @@ export namespace model {
 	        this.script = source["script"];
 	        this.shellEnv = this.convertValues(source["shellEnv"], KV);
 	        this.shortcutName = source["shortcutName"];
+	        this.procOp = source["procOp"];
+	        this.procName = source["procName"];
+	        this.procMatch = source["procMatch"];
+	        this.cpuBelow = source["cpuBelow"];
 	        this.cond = this.convertValues(source["cond"], Cond);
 	        this.cases = this.convertValues(source["cases"], Case);
 	        this.value = source["value"];

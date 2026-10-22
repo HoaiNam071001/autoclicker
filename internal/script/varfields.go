@@ -145,6 +145,8 @@ func VarFields(s *model.Step) []VarField {
 		for i := range s.Selectors {
 			add(fmt.Sprintf("selectors[%d]", i), &s.Selectors[i], false)
 		}
+	case model.StepProcess:
+		add("procName", &s.ProcName, false)
 	case model.StepApp:
 		add("appName", &s.AppName, false)
 	case model.StepBrowserTab, model.StepBrowserGo, model.StepBrowserNorm, model.StepSavePdf:

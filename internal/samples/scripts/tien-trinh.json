@@ -1,0 +1,38 @@
+{
+ "meta": {
+  "name": "Tiến trình – đọc CPU / RAM, chờ hết bận",
+  "description": "Chờ tiến trình “ghosthand” chạy, đọc CPU / RAM của nó, rồi chờ nó hết bận (CPU dưới 50 %). Đúng: lời kết ghi số tiến trình, CPU và RAM khớp Activity Monitor / Task Manager.",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Không cần chuẩn bị – tiến trình đọc là chính app này (tên chứa “ghosthand”; bản chạy bằng wails dev có thể mang tên khác – sửa Tên tiến trình cho khớp). Muốn thử chờ hết bận thật: đổi tên sang một app đang render / xuất file."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "process",
+    "procOp": "waitStart",
+    "procName": "ghosthand",
+    "timeoutMs": 5000
+   },
+   {
+    "type": "process",
+    "procName": "ghosthand"
+   },
+   {
+    "type": "process",
+    "procOp": "waitIdle",
+    "procName": "ghosthand",
+    "cpuBelow": 50,
+    "stableMs": 500,
+    "timeoutMs": 20000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "{{n2.output.count}} tiến trình · CPU {{n2.output.cpuPercent}}% · RAM {{n2.output.memMB}} MB · nặng nhất {{n2.output.name}} (pid {{n2.output.pid}})"
+   }
+  ]
+ }
+}

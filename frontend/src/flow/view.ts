@@ -198,6 +198,12 @@ function ownOutputs(s: Step): OutputField[] {
       { key: 'online', desc: 'có mạng' }, { key: 'ip', desc: 'IP của máy' }, { key: 'wifi', desc: 'tên Wi-Fi ("" nếu không có)' },
       { key: 'hostname', desc: 'tên máy' }, { key: 'user', desc: 'tên người dùng' }, { key: 'os', desc: 'darwin | windows' },
     ];
+    case 'process': return [
+      { key: 'running', desc: 'có tiến trình khớp (true / false)' }, { key: 'count', desc: 'số tiến trình khớp' },
+      { key: 'pid', desc: 'mã tiến trình dùng CPU nhiều nhất' }, { key: 'name', desc: 'tên tiến trình đó' },
+      { key: 'cpuPercent', desc: 'tổng CPU (%, 100 = đầy một lõi)' }, { key: 'memMB', desc: 'tổng RAM (MB)' },
+      { key: 'items', desc: 'mỗi dòng “tên · pid · CPU · RAM”, nặng → nhẹ' },
+    ];
     case 'osShortcut': return [{ key: 'text', desc: 'chữ Shortcut trả về (rỗng nếu không xuất gì)' }];
     case 'shell': return [{ key: 'stdout', desc: 'chữ lệnh in ra (bỏ xuống dòng cuối)' }, { key: 'stderr', desc: 'chữ lỗi lệnh in ra' }, { key: 'exitCode', desc: 'mã thoát (0 = thành công)' }];
     case 'system': return [{ key: 'volume', desc: 'âm lượng sau khi chạy (%)' }, { key: 'muted', desc: 'đang tắt tiếng (true / false)' }];

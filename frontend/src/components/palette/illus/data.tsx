@@ -45,6 +45,15 @@ export const data: Scenes = {
       <Show from={0.4}><rect x={144} y={36} width="82" height="62" rx="6" className="fill-surface stroke-ok" /><T x={152} y={54} s={8} cls="fill-ink">pin 87%</T><T x={152} y={70} s={8} cls="fill-ink">ổ 44 GB</T><T x={152} y={86} s={8} cls="fill-ink">mạng có</T><Tick x={226} y={36} from={0.4} /></Show>
     </Stage>
   ),
+  process: () => (
+    <Stage>
+      {box(14, 28, 96, 78, 'ffmpeg')}
+      <rect x={24} y={58} width="76" height="8" rx="3" className="fill-soft stroke-line" /><rect x={26} y={60} width="70" height="4" rx="2" className="fill-accent"><Tween attr="width" pts={[[0.5, 70], [0.65, 10]]} /></rect>
+      <rect x={24} y={76} width="76" height="8" rx="3" className="fill-soft stroke-line" /><rect x={26} y={78} width="36" height="4" rx="2" className="fill-ok" />
+      <Arr x1={116} y1={67} x2={150} y2={67} />
+      <Show from={0.6}><rect x={154} y={44} width="72" height="46" rx="6" className="fill-surface stroke-ok" /><T x={162} y={62} s={8} cls="fill-ink">CPU 2%</T><T x={162} y={78} s={8} cls="fill-ink">hết bận</T><Tick x={226} y={44} from={0.6} /></Show>
+    </Stage>
+  ),
   osShortcut: () => (
     <Stage>
       {box(14, 40, 62, 54, 'Phím tắt')}

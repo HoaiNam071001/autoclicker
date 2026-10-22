@@ -3,8 +3,9 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 43 – Node chuyên sâu (S4 Thông tin máy, S2 Shortcuts, S1 Chạy lệnh, E3 Đọc tài liệu, E2 Chờ sự kiện giao diện, E1 Thao tác phần tử, B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS, B4 Đọc chữ trang, B5 Đọc bảng, B6 Chờ tải xong, B7 Lưu PDF) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
+## 43 – Node chuyên sâu (S5 Tiến trình, S4 Thông tin máy, S2 Shortcuts, S1 Chạy lệnh, E3 Đọc tài liệu, E2 Chờ sự kiện giao diện, E1 Thao tác phần tử, B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS, B4 Đọc chữ trang, B5 Đọc bảng, B6 Chờ tải xong, B7 Lưu PDF) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
 
+- [ ] (S5) Mẫu thử *Tiến trình*: chạy – lời kết ghi số tiến trình / CPU / RAM của “ghosthand” khớp Activity Monitor / Task Manager (đổi tên nếu bản wails dev mang tên khác). Thử thêm *Chờ hết bận* với một app đang render / xuất file, và *Chờ thoát* với app bạn tự đóng; Windows chưa chạy thử
 - [ ] (S4) Mẫu thử *Thông tin máy*: chạy – lời kết ghi tên máy, pin %, CPU, RAM, ổ trống, số màn + độ phân giải, mạng khớp máy bạn (macOS: Wi-Fi có thể trống; Windows: pin / Wi-Fi / scale chưa thử – kiểm tra cả laptop lẫn máy bàn)
 - [ ] (S2) Mẫu thử *Shortcuts hệ điều hành* (macOS): tạo Shortcut “Ghosthand thử” (Đầu vào → CHỮ HOA → Dừng và xuất) rồi chạy: lời kết “XIN CHÀO GHOSTHAND”; inspector có ô *Chọn từ danh sách…* liệt kê Shortcut; đổi tên sai → fail not_found; lần đầu macOS có thể hỏi quyền
 - [ ] (S1) Mẫu thử *Chạy lệnh – shell với biến môi trường* (macOS): bấm Chạy → hộp xác nhận hiện nguyên văn lệnh; Cho phép → lời kết ghi “Xin chao Ghosthand” + số file trong Downloads; chạy lại không hỏi; sửa một ký tự trong lệnh → hỏi lại. Thử lệnh `sleep 60` với chờ 3000 ms → fail timeout, `ps` không còn tiến trình `sleep`; bấm Dừng giữa chừng cũng giết hết; lệnh `exit 3` → cổng Thất bại, `exitCode` = 3; thử AppleScript `display notification "xin chào"` / JXA

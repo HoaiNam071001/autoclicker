@@ -22,6 +22,7 @@ import { fmtWaitUntil } from '../../flow/waitUntil';
 import { pathVertices } from '../../flow/shape';
 import { fmtKey } from '../../keys';
 import { Point, Rect, Step, stepLabel } from '../../types';
+import { fmtProcess } from '../../flow/process';
 import { scrollDelta } from '../../scroll';
 import type { SimState } from '../Simulation';
 
@@ -51,6 +52,7 @@ function bubbleOf(s: Step): string | null {
     case 'webWait': case 'webClick': case 'webType': case 'webRead': case 'webScroll':
       return `${stepLabel(s)}: ${fmtSelectors(s.selectors)} – vị trí biết khi chạy thật`;
     case 'waitUntil': return `⏰ Chờ ${fmtWaitUntil(s)} – xem trước không chờ thật`;
+    case 'process': return `⚙ Tiến trình ${fmtProcess(s)} – xem trước không đọc thật`;
     case 'sysInfo': return '🖥 Đọc thông tin máy – xem trước không đọc thật';
     case 'osShortcut': return `⚡ Shortcut ${fmtOSShortcut(s)} – xem trước không chạy thật`;
     case 'shell': return `⌨ Chạy lệnh ${fmtShell(s)} – xem trước không chạy thật`;
