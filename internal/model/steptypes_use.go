@@ -41,6 +41,7 @@ var stepTypeUses = map[string]TypeUse{
 	StepClipboard:     {grpData, "Đọc / ghi clipboard (lấy chữ vừa copy bằng key Cmd/Ctrl+C, đưa chữ dài vào app). Gõ chữ ngắn → type."},
 	StepHTTP:          {grpData, "Gọi API, lấy JSON / chữ về cho node sau (forEach mảng JSON). Có API thì ưu tiên hơn thao tác giao diện."},
 	StepFile:          {grpData, "Ghi text, thêm dòng vào csv / xlsx, tạo thư mục, chuyển file vào thùng rác – xuất kết quả, ghi log. Đọc danh sách từ file → forEach listFrom."},
+	StepShell:         {grpData, "Chạy lệnh / script của máy (shell, PowerShell, AppleScript) lấy stdout để dùng tiếp; biến vào lệnh qua biến môi trường. Cần người dùng đồng ý nội dung lệnh. Việc có node riêng (mở app, ghi file, gọi API) → dùng node đó, đừng viết lệnh."},
 	StepSystem:        {grpData, "Chỉnh âm lượng / tắt tiếng máy. Không đụng chuột / phím."},
 	StepWindow:        {grpWin, "Đưa cửa sổ lên trước, đặt vị trí / cỡ (setBounds), chờ cửa sổ hiện / mất. Đặt sau open để toạ độ luôn đúng."},
 	StepApp:           {grpWin, "Kiểm tra app đang chạy (cổng yes / no), chờ app khởi động, hoặc thoát app. Kiểm tra đầu kịch bản trước khi open."},

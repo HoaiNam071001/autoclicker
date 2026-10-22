@@ -12,7 +12,7 @@ import (
 // MCP cũng không chạy được khi người dùng chưa đồng ý trong app.
 
 // ErrDangerNotConfirmed – chạy kịch bản có thao tác nguy hiểm chưa được đồng ý.
-var ErrDangerNotConfirmed = errors.New("kịch bản có thao tác cần xác nhận (xoá file / thoát app / đóng cửa sổ) – bấm Chạy trong app để xem và đồng ý")
+var ErrDangerNotConfirmed = errors.New("kịch bản có thao tác cần xác nhận (xoá file / thoát app / đóng cửa sổ / chạy lệnh) – bấm Chạy trong app để xem và đồng ý")
 
 // AllowDanger – lần chạy được làm thao tác nguy hiểm không: không có → false (không cần); có thì phải đã đồng ý, hoặc
 // confirm (Options.ConfirmDanger) đúng dấu vân tay lúc này – khi đó ghi nhớ để lần sau không hỏi.

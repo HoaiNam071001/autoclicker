@@ -2,7 +2,7 @@
 // Enter = Chạy, Esc = Huỷ.
 import { useEffect } from 'react';
 import { answerDanger, useDangerAsk } from '../dangerConfirm';
-import { dangerOpText, dangerTitle, isPermanent } from '../flow/danger';
+import { dangerOpText, dangerScript, dangerTitle, isPermanent } from '../flow/danger';
 import { Power, Trash } from './icons';
 
 export default function DangerConfirmDialog() {
@@ -34,10 +34,11 @@ export default function DangerConfirmDialog() {
             <ul id="danger-desc" className="flex flex-col gap-1.5 text-[13px]">
               {ask.ops.map((o, i) => (
                 <li key={i} className="flex gap-2"><span className="flex-none rounded bg-soft px-1.5 font-mono text-xs leading-5 text-muted">{o.ref}</span>
-                  <span className={isPermanent(o) ? 'text-danger-text' : ''}>{dangerOpText(o)}</span></li>
+                  <span className="min-w-0 flex-1"><span className={isPermanent(o) ? 'text-danger-text' : ''}>{dangerOpText(o)}</span>
+                    {dangerScript(o) && <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-all rounded-control bg-field px-2 py-1.5 font-mono text-xs text-ink">{dangerScript(o)}</pre>}</span></li>
               ))}
             </ul>
-            <span className="text-xs text-muted">Đồng ý một lần – lần sau chạy không hỏi lại, trừ khi đổi thư mục / mẫu tên / app / cửa sổ.{ask.ops.some((o) => o.op === 'emptyTrash') ? ' Dọn Thùng rác xoá cả file không phải do kịch bản tạo.' : ''}</span>
+            <span className="text-xs text-muted">Đồng ý một lần – lần sau chạy không hỏi lại, trừ khi đổi thư mục / mẫu tên / app / cửa sổ / nội dung lệnh.{ask.ops.some((o) => o.op === 'emptyTrash') ? ' Dọn Thùng rác xoá cả file không phải do kịch bản tạo.' : ''}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 border-t border-line bg-chrome px-[18px] py-3">

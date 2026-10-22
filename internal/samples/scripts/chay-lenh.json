@@ -1,0 +1,26 @@
+{
+ "meta": {
+  "name": "Chạy lệnh – shell với biến môi trường",
+  "description": "Chạy một lệnh shell in lời chào và số file trong thư mục Downloads; tên người chào đi vào lệnh qua biến môi trường (không ghép vào chuỗi lệnh). Lần chạy đầu app hỏi đồng ý nội dung lệnh. Đúng: lời kết ghi “Xin chao Ghosthand” và một con số file.",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Không cần trình duyệt. Lệnh dùng cú pháp zsh (macOS); trên Windows đổi sang %TEN% / dir."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "shell",
+    "script": "echo \"Xin chao $TEN\"; ls -1 \"$HOME/Downloads\" | wc -l | tr -d ' '",
+    "shellEnv": [{"key": "TEN", "value": "Ghosthand"}],
+    "timeoutMs": 15000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Lệnh trả về (mã {{n1.output.exitCode}}): {{n1.output.stdout}}"
+   }
+  ]
+ }
+}

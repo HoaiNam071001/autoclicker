@@ -131,6 +131,10 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if err := checkPageText(i, s); err != nil {
 				return err
 			}
+		case model.StepShell:
+			if err := validateShell(i, s); err != nil {
+				return err
+			}
 		case model.StepWaitDownload:
 			if err := checkWaitDownload(i, s); err != nil {
 				return err

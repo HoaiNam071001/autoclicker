@@ -276,6 +276,7 @@ func errCode(err error) string {
 	var status *httpStatusErr
 	var network *networkErr
 	var late *timeoutErr
+	var exit *exitErr
 	switch {
 	case errors.As(err, &nf), errors.Is(err, browser.ErrTabGone):
 		return model.ErrNotFound
@@ -289,6 +290,8 @@ func errCode(err error) string {
 		return model.ErrHTTPStatus
 	case errors.As(err, &network):
 		return model.ErrNetwork
+	case errors.As(err, &exit):
+		return model.ErrExitCode
 	case errors.As(err, &late):
 		return model.ErrTimeout
 	case errors.Is(err, device.ErrNoPermission), errors.Is(err, device.ErrNoAccessibility), errors.Is(err, errDangerNotAllowed),

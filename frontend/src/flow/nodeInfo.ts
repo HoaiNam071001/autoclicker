@@ -31,6 +31,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   clipboard: { desc: 'Đọc chữ đang có trong clipboard vào biến, ghi chữ (nhận {{biến}}) hoặc ghi ảnh PNG từ file.', use: 'Copy / paste: ghép với Phím tắt Cmd/Ctrl+C, Cmd/Ctrl+V; chép ảnh vừa chụp để dán vào chat.' },
   http: { desc: 'Gọi API (GET / POST / PUT / PATCH / DELETE) kèm tham số, header, thân JSON / form; đọc kết quả JSON vào biến.', use: 'Lấy dữ liệu từ server, gửi đơn / tin nhắn qua API, báo kết quả chạy về Telegram / webhook.' },
   file: { desc: 'Ghi chữ vào file, thêm dòng vào bảng .csv / .xlsx, tạo thư mục, xoá file vào Thùng rác hoặc dọn Thùng rác.', use: 'Lưu nhật ký / kết quả từng vòng vào Excel, dọn ảnh chụp cũ trong thư mục.' },
+  shell: { desc: 'Chạy một đoạn lệnh của máy (shell, PowerShell, AppleScript), lấy chữ in ra và mã thoát.', use: 'Việc chưa có node riêng, như đổi tên hàng loạt hay gọi công cụ dòng lệnh. Cần bạn đồng ý nội dung lệnh.' },
   system: { desc: 'Chỉnh âm lượng loa của máy: đặt mức, tăng / giảm, tắt / bật tiếng.', use: 'Bật nhạc nền vừa đủ nghe, tắt tiếng trước khi họp, giảm âm lượng ban đêm.' },
   waitUntil: { desc: 'Chờ tới đúng giờ hẹn (tới ms, có thể kèm ngày) rồi chạy tiếp; canh được theo giờ chuẩn internet.', use: 'Săn sale lúc 20:00:00, gửi tin nhắn đúng giờ, chạy việc mỗi ngày lúc 9:00.' },
   path: { desc: 'Giữ chuột kéo một nét liền qua nhiều điểm, hoặc vẽ hình tròn / chữ nhật / sao quanh một tâm.', use: 'Vẽ trong app vẽ, ký tên, mở khoá bằng hình vẽ, khoanh vùng trên bản đồ.' },

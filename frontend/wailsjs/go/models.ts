@@ -1268,6 +1268,9 @@ export namespace model {
 	    normFullscreen?: boolean;
 	    normSize?: boolean;
 	    normPopups?: boolean;
+	    shellLang?: string;
+	    script?: string;
+	    shellEnv?: KV[];
 	    cond?: Cond;
 	    cases?: Case[];
 	    value?: string;
@@ -1422,6 +1425,9 @@ export namespace model {
 	        this.normFullscreen = source["normFullscreen"];
 	        this.normSize = source["normSize"];
 	        this.normPopups = source["normPopups"];
+	        this.shellLang = source["shellLang"];
+	        this.script = source["script"];
+	        this.shellEnv = this.convertValues(source["shellEnv"], KV);
 	        this.cond = this.convertValues(source["cond"], Cond);
 	        this.cases = this.convertValues(source["cases"], Case);
 	        this.value = source["value"];
@@ -1633,6 +1639,9 @@ export namespace script {
 	    folder?: string;
 	    pattern?: string;
 	    target?: string;
+	    lang?: string;
+	    script?: string;
+	    dir?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new DangerOp(source);
@@ -1645,6 +1654,9 @@ export namespace script {
 	        this.folder = source["folder"];
 	        this.pattern = source["pattern"];
 	        this.target = source["target"];
+	        this.lang = source["lang"];
+	        this.script = source["script"];
+	        this.dir = source["dir"];
 	    }
 	}
 

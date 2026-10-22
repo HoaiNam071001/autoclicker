@@ -80,6 +80,12 @@ func VarFields(s *model.Step) []VarField {
 		if s.Type == model.StepReadTable {
 			add("filePath", &s.FilePath, false)
 		}
+	case model.StepShell:
+		// Script KHÔNG nhận biến (chống chèn lệnh) – biến đi qua ShellEnv
+		add("filePath", &s.FilePath, false)
+		for i := range s.ShellEnv {
+			add(fmt.Sprintf("shellEnv[%d].value", i), &s.ShellEnv[i].Value, false)
+		}
 	case model.StepWaitDownload:
 		add("filePath", &s.FilePath, false)
 		add("filePattern", &s.FilePattern, false)

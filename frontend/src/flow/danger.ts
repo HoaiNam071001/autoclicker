@@ -2,7 +2,7 @@
 // vào / dọn Thùng rác, buộc thoát app, thoát app có buộc thoát khi quá giờ, đóng cửa sổ.
 
 // Khớp script.DangerOp.
-export type DangerOp = { ref: string; op: string; folder?: string; pattern?: string; target?: string };
+export type DangerOp = { ref: string; op: string; folder?: string; pattern?: string; target?: string; lang?: string; script?: string; dir?: string };
 
 // Câu cho hộp xác nhận.
 export function dangerOpText(d: DangerOp): string {
@@ -11,6 +11,7 @@ export function dangerOpText(d: DangerOp): string {
     case 'trash': return `Chuyển các file khớp “${d.pattern}” trong ${d.folder} vào Thùng rác (khôi phục được)`;
     case 'forceQuit': return `Buộc thoát ${d.target} – mất dữ liệu chưa lưu`;
     case 'quit': return `Thoát ${d.target}, quá giờ chưa thoát thì buộc thoát – mất dữ liệu chưa lưu`;
+    case 'shell': return `Chạy lệnh${d.lang ? ` ${d.lang}` : ''}${d.dir ? ` trong ${d.dir}` : ''} – lệnh có toàn quyền như bạn trên máy này`;
     case 'close': return `Đóng cửa sổ ${d.target} (app có thể hỏi lưu)`;
   }
   return d.op;
@@ -19,9 +20,13 @@ export function dangerOpText(d: DangerOp): string {
 // Thao tác không khôi phục được – tô màu cảnh báo.
 export const isPermanent = (d: DangerOp) => d.op !== 'trash' && d.op !== 'close';
 
+// Nội dung lệnh cần hiện nguyên văn cho người dùng đọc trước khi đồng ý.
+export const dangerScript = (d: DangerOp) => (d.op === 'shell' ? d.script ?? '' : '');
+
 // Tiêu đề hộp xác nhận theo nhóm thao tác.
 export function dangerTitle(ops: DangerOp[]): string {
   const file = ops.every((o) => o.op === 'trash' || o.op === 'emptyTrash');
+  if (ops.every((o) => o.op === 'shell')) return 'Kịch bản này sẽ chạy lệnh trên máy';
   const app = ops.every((o) => o.op === 'quit' || o.op === 'forceQuit' || o.op === 'close');
   return file ? 'Kịch bản này sẽ xoá file' : app ? 'Kịch bản này sẽ thoát app / đóng cửa sổ' : 'Kịch bản có thao tác cần xác nhận';
 }

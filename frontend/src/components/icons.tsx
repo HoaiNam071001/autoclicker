@@ -114,6 +114,7 @@ export const STEP_ICON = {
   waitScreen: 'M3 5h18v11H3zM8 20h8M12 16v4M9 10.5h.01M12 10.5h.01M15 10.5h.01', // màn hình + ba chấm đang tải
   findAll: 'M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 8h3v3H8zM13 8h3v3h-3zM8 13h3v3H8zM13 13h3v3h-3z', // khung tìm + bốn ô – mọi chỗ thấy
   waitUntil: 'M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM12 9v4l2.5 1.5M5 3 2 6M19 3l3 3', // đồng hồ báo thức
+  shell: 'M4 5h16v14H4zM7.5 10l3 2.5-3 2.5M12.5 15h4', // cửa sổ dòng lệnh
   system: 'M4 9h4l5-4v14l-5-4H4zM16.5 9a4 4 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11', // loa
   file: 'M6 3h8l4 4v14H6zM14 3v4h4M9 13h6M9 17h6', // tờ giấy
   http: 'M4 12h11M11 8l4 4-4 4M19 5v14', // mũi tên gửi đi

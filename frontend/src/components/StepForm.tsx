@@ -41,6 +41,7 @@ import ReadDocumentFields from './stepform/ReadDocumentFields';
 import ReadTableFields from './stepform/ReadTableFields';
 import ElementActionFields from './stepform/ElementActionFields';
 import WaitUIEventFields from './stepform/WaitUIEventFields';
+import ShellFields from './stepform/ShellFields';
 import WaitDownloadFields from './stepform/WaitDownloadFields';
 import { isWebStep } from '../flow/web';
 import FlowSections from './stepform/FlowSections';
@@ -166,6 +167,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'pageText' && <PageTextFields step={s} />}
       {s.type === 'elementAction' && <ElementActionFields step={s} />}
       {s.type === 'waitUIEvent' && <WaitUIEventFields step={s} />}
+      {s.type === 'shell' && <ShellFields step={s} />}
       {s.type === 'waitDownload' && <WaitDownloadFields step={s} />}
       {s.type === 'readTable' && <ReadTableFields step={s} />}
       {s.type === 'open' && <OpenFields step={s} />}

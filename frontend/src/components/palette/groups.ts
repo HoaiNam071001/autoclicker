@@ -48,6 +48,7 @@ export const GROUPS: PaletteGroup[] = [
       { icon: 'clipboard', label: 'Clipboard', info: NODE_INFO.clipboard, key: 'clipboard', keywords: 'clipboard copy paste dan chep bo nho tam doc ghi', type: 'clipboard', run: () => addStep('clipboard') },
       { icon: 'http', label: 'HTTP / API', info: NODE_INFO.http, key: 'http', keywords: 'http api rest get post put delete webhook json goi server request', type: 'http', run: () => addStep('http') },
       { icon: 'file', label: 'Tệp / thư mục', info: NODE_INFO.file, key: 'file', keywords: 'file tep thu muc folder ghi luu csv excel xlsx xoa thung rac don dep', type: 'file', run: () => addStep('file') },
+      { icon: 'shell', label: 'Chạy lệnh', info: NODE_INFO.shell, key: 'shell', keywords: 'chay lenh script shell terminal command cmd powershell applescript jxa bash zsh dong lenh', type: 'shell', run: () => addStep('shell') },
       { icon: 'system', label: 'Âm lượng', info: NODE_INFO.system, key: 'system', keywords: 'he thong am luong volume loa tat tieng mute sound', type: 'system', run: () => addStep('system') },
       { icon: 'calc', label: 'Tính toán', info: NODE_INFO.calc, key: 'calc', keywords: 'tinh toan bieu thuc cong tru nhan chia lam tron so sanh calc math round', run: () => addControl('calc') },
       { icon: 'textNumber', label: 'Số & ngày', info: NODE_INFO.textNumber, key: 'textNumber', keywords: 'lay so gia tien dinh dang so ngay gio thang nam number date format nghin', run: () => addControl('textNumber') },

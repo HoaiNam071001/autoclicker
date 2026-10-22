@@ -150,6 +150,10 @@ type Step struct {
 	NormFullscreen bool `json:"normFullscreen,omitempty"` // thoát toàn màn hình nếu đang bật
 	NormSize       bool `json:"normSize,omitempty"`       // đặt vị trí + cỡ cửa sổ theo WinPreset / WinRect
 	NormPopups     bool `json:"normPopups,omitempty"`     // đóng popup / bong bóng đang mở (dịch trang, tải xuống…) bằng Esc
+	// Chạy lệnh (bước 43 S1, engine/shell.go) – FilePath: thư mục chạy; TimeoutMs: hết giờ thì giết cả cây tiến trình
+	ShellLang string `json:"shellLang,omitempty"` // ShellLangs: "" = shell của máy | powershell | applescript | jxa
+	Script    string `json:"script,omitempty"`    // nội dung lệnh – KHÔNG nhận {{biến}} (chống chèn lệnh); đưa biến vào lệnh qua ShellEnv
+	ShellEnv  []KV   `json:"shellEnv,omitempty"`  // biến môi trường cho lệnh: tên → giá trị (nhận {{biến}})
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>

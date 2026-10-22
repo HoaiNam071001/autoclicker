@@ -9,6 +9,7 @@ import { fmtHTTP } from './http';
 import { fmtElementAction } from './elementAction';
 import { fmtWaitUIEvent } from './uiEvent';
 import { fmtFile, fmtWaitDownload } from './file';
+import { fmtShell } from './shell';
 import { fmtSystem } from './system';
 import { fmtWindow } from './window';
 import { fmtApp } from './app';
@@ -40,6 +41,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'http' ? fmtHTTP(s)
     : s.type === 'file' ? fmtFile(s)
     : s.type === 'system' ? fmtSystem(s)
+    : s.type === 'shell' ? fmtShell(s)
     : s.type === 'window' ? fmtWindow(s)
     : s.type === 'app' ? fmtApp(s)
     : s.type === 'browserTab' ? fmtBrowserTab(s, refOf)

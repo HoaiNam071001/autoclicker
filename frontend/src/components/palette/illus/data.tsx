@@ -36,6 +36,14 @@ export const data: Scenes = {
       <Show from={0.4}><T x={206} y={113} anchor="end" cls="fill-accent-text">+ dòng mới</T></Show>
     </Stage>
   ),
+  shell: () => (
+    <Stage>
+      <rect x={30} y={22} width="180" height="94" rx="7" className="fill-ink" opacity="0.92" />
+      <Typed x={40} y={46} w={120} text="$ ls | wc -l" from={0.1} to={0.45} s={10} />
+      <Show from={0.55}><T x={40} y={68} s={10} cls="fill-ok font-mono">42</T></Show>
+      <Show from={0.7}><Chip x={150} y={92} w={52} label="exit 0 ✓" cls="fill-surface stroke-ok" /></Show>
+    </Stage>
+  ),
   system: () => (
     <Stage>
       <path d="M70 58h14l18-14v46L84 76H70z" className="fill-ink" />

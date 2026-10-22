@@ -190,6 +190,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'app': return [{ key: 'running', desc: 'đang chạy (true / false)' }, { key: 'pid', desc: 'mã tiến trình' }, { key: 'name', desc: 'tên app' },
       { key: 'id', desc: 'đường dẫn exe / bundle id' }, { key: 'windows', desc: 'số cửa sổ đang mở' }];
     case 'browserTab': case 'browserGo': case 'browserNorm': case 'savePdf': return browserTabOutputs(s);
+    case 'shell': return [{ key: 'stdout', desc: 'chữ lệnh in ra (bỏ xuống dòng cuối)' }, { key: 'stderr', desc: 'chữ lỗi lệnh in ra' }, { key: 'exitCode', desc: 'mã thoát (0 = thành công)' }];
     case 'system': return [{ key: 'volume', desc: 'âm lượng sau khi chạy (%)' }, { key: 'muted', desc: 'đang tắt tiếng (true / false)' }];
     case 'file': return s.fileOp === 'trash' ? [{ key: 'count', desc: 'số file đã xoá' }, { key: 'files', desc: 'tên các file đã xoá' }]
       : s.fileOp === 'emptyTrash' ? [] : s.fileOp === 'row' ? [{ key: 'path', desc: 'đường dẫn file' }, { key: 'rows', desc: 'số dòng sau khi thêm' }]

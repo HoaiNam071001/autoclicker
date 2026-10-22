@@ -18,13 +18,13 @@ export type MatchMode = '' | 'edge';
 // Node thất bại (không thấy ảnh / chữ / màu, lỗi): thử lại thêm count lần, nghỉ delayMs; hết lượt → cổng fail. Khớp Retry trong model.go.
 export type Retry = { count?: number; delayMs?: number };
 // Node hay "thất bại" theo nghĩa người dùng hiểu – mới hiện phần Khi thất bại (thử lại)
-export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'browserTab', 'browserGo', 'browserNorm', 'savePdf', 'waitUntil', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'webKey', 'elementRead', 'pageText', 'readTable', 'waitDownload', 'elementAction', 'readDocument', 'waitUIEvent', 'open'];
+export const CAN_FAIL: StepType[] = ['waitImage', 'clickImage', 'waitPixel', 'waitScreen', 'findAll', 'screenshot', 'clipboard', 'http', 'file', 'system', 'window', 'app', 'browserTab', 'browserGo', 'browserNorm', 'savePdf', 'waitUntil', 'webWait', 'webClick', 'webType', 'webRead', 'webScroll', 'webKey', 'elementRead', 'pageText', 'readTable', 'waitDownload', 'shell', 'elementAction', 'readDocument', 'waitUIEvent', 'open'];
 
 // ---- Flow (bước 20, flow.go) ----
 // Cạnh: node from đi ra cổng port thì chạy node to. Mỗi cổng tối đa một cạnh. Khớp Edge trong model.go.
 export interface Edge { id: string; from: string; port: string; to: string }
 export type StepStatus = 'success' | 'fail' | 'skipped' | 'cancelled';
-export type ErrorCode = 'not_found' | 'timeout' | 'permission' | 'invalid_input' | 'cancelled' | 'end' | 'browser' | 'http_status' | 'network' | 'internal';
+export type ErrorCode = 'not_found' | 'timeout' | 'permission' | 'invalid_input' | 'cancelled' | 'end' | 'browser' | 'http_status' | 'network' | 'exit_code' | 'internal';
 // Kết quả một lần chạy node (event engine:node) – khớp StepResult trong flow.go.
 export interface StepResult {
   nodeId: string;
@@ -45,7 +45,7 @@ const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = 
 void edgeMatchesGo, resultMatchesGo;
 
 export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'findAll' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'browserTab' | 'browserGo' | 'browserNorm' | 'savePdf' | 'waitUntil' | 'path'
-  | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead' | 'pageText' | 'readTable' | 'waitDownload' | 'elementAction' | 'readDocument' | 'waitUIEvent';
+  | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead' | 'pageText' | 'readTable' | 'waitDownload' | 'shell' | 'elementAction' | 'readDocument' | 'waitUIEvent';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'forEach' | 'end' | 'setVar' | 'calc' | TextType;
 export type StepType = ActionType | ControlType;
@@ -148,6 +148,9 @@ export interface Step extends AdvancedFields, TextFields {
   textExact?: boolean; // cả dòng đúng chuỗi (mặc định: chứa chuỗi)
   textAccent?: boolean; // so đúng dấu (mặc định bỏ qua dấu)
   uiEvent?: string; // waitUIEvent: UiEvent (trống = newWindow); cửa sổ lọc bằng winApp / winTitle, phần tử bằng elementApp / selectors
+  shellLang?: string; // shell: ShellLang (trống = shell của máy)
+  script?: string; // shell: nội dung lệnh nguyên văn – KHÔNG nhận {{biến}}
+  shellEnv?: KV[]; // shell: biến môi trường cho lệnh (giá trị nhận {{biến}})
   elementAct?: string; // elementAction: ElementAct (trống = press); setValue lấy text
   minCount?: number; // findAll: cần thấy ít nhất chừng này chỗ (0 / trống = 1)
   maxCount?: number; // findAll: thấy nhiều hơn → chờ tiếp / Thất bại (0 / trống = không giới hạn)
@@ -263,6 +266,7 @@ export const STEP_LABEL: Record<StepType, string> = {
   waitPixel: 'Chờ màu pixel',
   waitScreen: 'Chờ màn hình',
   waitDownload: 'Chờ tải xong',
+  shell: 'Chạy lệnh',
   elementAction: 'Thao tác phần tử',
   readDocument: 'Đọc tài liệu',
   waitUIEvent: 'Chờ sự kiện giao diện',

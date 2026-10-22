@@ -11,6 +11,7 @@ import { fmtPos } from '../../flow/detail';
 import { fmtClip } from '../../flow/clipboard';
 import { fmtHTTP } from '../../flow/http';
 import { fmtFile } from '../../flow/file';
+import { fmtShell } from '../../flow/shell';
 import { fmtSystem } from '../../flow/system';
 import { fmtWindow } from '../../flow/window';
 import { fmtApp } from '../../flow/app';
@@ -49,6 +50,7 @@ function bubbleOf(s: Step): string | null {
     case 'webWait': case 'webClick': case 'webType': case 'webRead': case 'webScroll':
       return `${stepLabel(s)}: ${fmtSelectors(s.selectors)} – vị trí biết khi chạy thật`;
     case 'waitUntil': return `⏰ Chờ ${fmtWaitUntil(s)} – xem trước không chờ thật`;
+    case 'shell': return `⌨ Chạy lệnh ${fmtShell(s)} – xem trước không chạy thật`;
     case 'system': return `🔊 ${fmtSystem(s)}`;
     case 'app': return `🧩 Ứng dụng: ${fmtApp(s)} – xem trước không đụng app thật`;
     case 'elementAction': return `🖱 Thao tác phần tử: ${fmtElementAction(s)} – xem trước không thao tác thật`;
