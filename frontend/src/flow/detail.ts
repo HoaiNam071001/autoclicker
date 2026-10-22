@@ -43,6 +43,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'file' ? fmtFile(s)
     : s.type === 'system' ? fmtSystem(s)
     : s.type === 'shell' ? fmtShell(s)
+    : s.type === 'sysInfo' ? (s.filePath?.trim() ? `ổ ${s.filePath.trim()}` : 'pin · CPU · RAM · ổ · mạng')
     : s.type === 'osShortcut' ? fmtOSShortcut(s)
     : s.type === 'window' ? fmtWindow(s)
     : s.type === 'app' ? fmtApp(s)

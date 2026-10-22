@@ -190,6 +190,14 @@ function ownOutputs(s: Step): OutputField[] {
     case 'app': return [{ key: 'running', desc: 'đang chạy (true / false)' }, { key: 'pid', desc: 'mã tiến trình' }, { key: 'name', desc: 'tên app' },
       { key: 'id', desc: 'đường dẫn exe / bundle id' }, { key: 'windows', desc: 'số cửa sổ đang mở' }];
     case 'browserTab': case 'browserGo': case 'browserNorm': case 'savePdf': return browserTabOutputs(s);
+    case 'sysInfo': return [
+      { key: 'batteryPercent', desc: 'pin còn (%, máy bàn = 100)' }, { key: 'hasBattery', desc: 'máy có pin không' }, { key: 'charging', desc: 'đang cắm sạc' },
+      { key: 'cpuPercent', desc: 'CPU đang dùng (%)' }, { key: 'memUsedPercent', desc: 'RAM đang dùng (%)' }, { key: 'memFreeMB', desc: 'RAM còn trống (MB)' }, { key: 'memTotalMB', desc: 'RAM tổng (MB)' },
+      { key: 'diskFreeGB', desc: 'ổ đĩa còn trống (GB)' }, { key: 'diskTotalGB', desc: 'ổ đĩa tổng (GB)' },
+      { key: 'displays', desc: 'số màn hình' }, { key: 'screenWidth', desc: 'rộng màn chính' }, { key: 'screenHeight', desc: 'cao màn chính' }, { key: 'scale', desc: 'tỷ lệ scale màn chính' },
+      { key: 'online', desc: 'có mạng' }, { key: 'ip', desc: 'IP của máy' }, { key: 'wifi', desc: 'tên Wi-Fi ("" nếu không có)' },
+      { key: 'hostname', desc: 'tên máy' }, { key: 'user', desc: 'tên người dùng' }, { key: 'os', desc: 'darwin | windows' },
+    ];
     case 'osShortcut': return [{ key: 'text', desc: 'chữ Shortcut trả về (rỗng nếu không xuất gì)' }];
     case 'shell': return [{ key: 'stdout', desc: 'chữ lệnh in ra (bỏ xuống dòng cuối)' }, { key: 'stderr', desc: 'chữ lỗi lệnh in ra' }, { key: 'exitCode', desc: 'mã thoát (0 = thành công)' }];
     case 'system': return [{ key: 'volume', desc: 'âm lượng sau khi chạy (%)' }, { key: 'muted', desc: 'đang tắt tiếng (true / false)' }];

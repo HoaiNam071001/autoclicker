@@ -80,6 +80,8 @@ func VarFields(s *model.Step) []VarField {
 		if s.Type == model.StepReadTable {
 			add("filePath", &s.FilePath, false)
 		}
+	case model.StepSysInfo:
+		add("filePath", &s.FilePath, false)
 	case model.StepOSShortcut:
 		add("shortcutName", &s.ShortcutName, false)
 		add("text", &s.Text, false)

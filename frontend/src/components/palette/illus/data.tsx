@@ -36,6 +36,15 @@ export const data: Scenes = {
       <Show from={0.4}><T x={206} y={113} anchor="end" cls="fill-accent-text">+ dòng mới</T></Show>
     </Stage>
   ),
+  sysInfo: () => (
+    <Stage>
+      {box(14, 28, 70, 78, 'Máy')}
+      <rect x={26} y={56} width="46" height="10" rx="3" className="fill-soft stroke-line" /><rect x={28} y={58} width="30" height="6" rx="2" className="fill-ok" />
+      <rect x={26} y={72} width="46" height="10" rx="3" className="fill-soft stroke-line" /><rect x={28} y={74} width="18" height="6" rx="2" className="fill-accent" />
+      <Arr x1={88} y1={67} x2={140} y2={67} />
+      <Show from={0.4}><rect x={144} y={36} width="82" height="62" rx="6" className="fill-surface stroke-ok" /><T x={152} y={54} s={8} cls="fill-ink">pin 87%</T><T x={152} y={70} s={8} cls="fill-ink">ổ 44 GB</T><T x={152} y={86} s={8} cls="fill-ink">mạng có</T><Tick x={226} y={36} from={0.4} /></Show>
+    </Stage>
+  ),
   osShortcut: () => (
     <Stage>
       {box(14, 40, 62, 54, 'Phím tắt')}

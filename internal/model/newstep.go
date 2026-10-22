@@ -89,6 +89,7 @@ func NewStep(stepType string) (Step, error) {
 		s.UIEvent, s.TimeoutMs = UIEventNewWindow, 10000
 	case StepElementAction:
 		s.ElementAct, s.Selectors, s.TimeoutMs, s.IntervalMs = ElActPress, []string{"text="}, 10000, 250
+	case StepSysInfo:
 	case StepOSShortcut:
 		s.TimeoutMs = OSShortcutTimeoutMs
 	case StepShell:

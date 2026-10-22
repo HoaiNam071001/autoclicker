@@ -41,6 +41,7 @@ import ReadDocumentFields from './stepform/ReadDocumentFields';
 import ReadTableFields from './stepform/ReadTableFields';
 import ElementActionFields from './stepform/ElementActionFields';
 import WaitUIEventFields from './stepform/WaitUIEventFields';
+import SysInfoFields from './stepform/SysInfoFields';
 import OSShortcutFields from './stepform/OSShortcutFields';
 import ShellFields from './stepform/ShellFields';
 import WaitDownloadFields from './stepform/WaitDownloadFields';
@@ -168,6 +169,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'pageText' && <PageTextFields step={s} />}
       {s.type === 'elementAction' && <ElementActionFields step={s} />}
       {s.type === 'waitUIEvent' && <WaitUIEventFields step={s} />}
+      {s.type === 'sysInfo' && <SysInfoFields step={s} />}
       {s.type === 'osShortcut' && <OSShortcutFields step={s} />}
       {s.type === 'shell' && <ShellFields step={s} />}
       {s.type === 'waitDownload' && <WaitDownloadFields step={s} />}

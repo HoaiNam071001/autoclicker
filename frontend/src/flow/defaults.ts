@@ -35,6 +35,7 @@ export const STEP_DEFAULTS: Partial<Record<StepType, Partial<Step>>> = {
   webClick: { selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 500 },
   webType: { clicks: 0, selectors: ['text='], webClear: true, timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
   webRead: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 0 },
+  sysInfo: { clicks: 0, delayAfter: 0 },
   osShortcut: { clicks: 0, timeoutMs: 60000, delayAfter: 0 },
   shell: { clicks: 0, timeoutMs: 30000, delayAfter: 0 },
   waitDownload: { clicks: 0, timeoutMs: 60000, intervalMs: 500, delayAfter: 0 },

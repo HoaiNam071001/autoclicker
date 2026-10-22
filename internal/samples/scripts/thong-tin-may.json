@@ -1,0 +1,23 @@
+{
+ "meta": {
+  "name": "Thông tin máy – pin, ổ đĩa, mạng",
+  "description": "Đọc pin, CPU / RAM, ổ trống, màn hình, mạng, rồi báo gọn trong lời kết. Đúng: lời kết ghi pin %, ổ trống GB, tên máy, có mạng hay không khớp với máy bạn.",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Không cần chuẩn bị. Máy bàn không có pin → pin ghi 100 %. Wi-Fi trên macOS có thể trống nếu app chưa được cấp quyền Vị trí."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "sysInfo"
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "{{n1.output.hostname}} · pin {{n1.output.batteryPercent}}% · CPU {{n1.output.cpuPercent}}% · RAM dùng {{n1.output.memUsedPercent}}% · ổ trống {{n1.output.diskFreeGB}} GB · {{n1.output.displays}} màn {{n1.output.screenWidth}}x{{n1.output.screenHeight}} · mạng {{n1.output.online}} {{n1.output.wifi}}"
+   }
+  ]
+ }
+}

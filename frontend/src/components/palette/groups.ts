@@ -48,6 +48,7 @@ export const GROUPS: PaletteGroup[] = [
       { icon: 'clipboard', label: 'Clipboard', info: NODE_INFO.clipboard, key: 'clipboard', keywords: 'clipboard copy paste dan chep bo nho tam doc ghi', type: 'clipboard', run: () => addStep('clipboard') },
       { icon: 'http', label: 'HTTP / API', info: NODE_INFO.http, key: 'http', keywords: 'http api rest get post put delete webhook json goi server request', type: 'http', run: () => addStep('http') },
       { icon: 'file', label: 'Tệp / thư mục', info: NODE_INFO.file, key: 'file', keywords: 'file tep thu muc folder ghi luu csv excel xlsx xoa thung rac don dep', type: 'file', run: () => addStep('file') },
+      { icon: 'sysInfo', label: 'Thông tin máy', info: NODE_INFO.sysInfo, key: 'sysInfo', keywords: 'thong tin may pin cpu ram o dia mang wifi man hinh ten may battery', type: 'sysInfo', run: () => addStep('sysInfo') },
       { icon: 'osShortcut', label: 'Shortcuts (macOS)', info: NODE_INFO.osShortcut, key: 'osShortcut', keywords: 'shortcuts phim tat apple macos tu dong hoa chay shortcut', type: 'osShortcut', run: () => addStep('osShortcut') },
       { icon: 'shell', label: 'Chạy lệnh', info: NODE_INFO.shell, key: 'shell', keywords: 'chay lenh script shell terminal command cmd powershell applescript jxa bash zsh dong lenh', type: 'shell', run: () => addStep('shell') },
       { icon: 'system', label: 'Âm lượng', info: NODE_INFO.system, key: 'system', keywords: 'he thong am luong volume loa tat tieng mute sound', type: 'system', run: () => addStep('system') },

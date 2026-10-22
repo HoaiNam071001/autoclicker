@@ -51,6 +51,7 @@ function bubbleOf(s: Step): string | null {
     case 'webWait': case 'webClick': case 'webType': case 'webRead': case 'webScroll':
       return `${stepLabel(s)}: ${fmtSelectors(s.selectors)} – vị trí biết khi chạy thật`;
     case 'waitUntil': return `⏰ Chờ ${fmtWaitUntil(s)} – xem trước không chờ thật`;
+    case 'sysInfo': return '🖥 Đọc thông tin máy – xem trước không đọc thật';
     case 'osShortcut': return `⚡ Shortcut ${fmtOSShortcut(s)} – xem trước không chạy thật`;
     case 'shell': return `⌨ Chạy lệnh ${fmtShell(s)} – xem trước không chạy thật`;
     case 'system': return `🔊 ${fmtSystem(s)}`;

@@ -9,6 +9,7 @@ require (
 	github.com/google/jsonschema-go v0.4.3
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/robotn/gohook v0.50.0
+	github.com/shirou/gopsutil/v4 v4.26.9
 	github.com/wailsapp/wails/v2 v2.16.0
 	github.com/xuri/excelize/v2 v2.9.1
 	golang.org/x/sys v0.48.0
@@ -48,7 +49,6 @@ require (
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/segmentio/asm v1.1.3 // indirect
 	github.com/segmentio/encoding v0.5.4 // indirect
-	github.com/shirou/gopsutil/v4 v4.26.9 // indirect
 	github.com/tailscale/win v0.0.0-20260619195133-2d76c33a64c1 // indirect
 	github.com/tiendc/go-deepcopy v1.6.0 // indirect
 	github.com/tklauser/go-sysconf v0.4.0 // indirect
