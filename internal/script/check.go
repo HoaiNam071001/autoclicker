@@ -169,6 +169,10 @@ func checkStep(s *model.Step) error {
 			return err
 		}
 	case model.StepSysInfo:
+	case model.StepInputSource:
+		if !slices.Contains(model.InputOps, s.InputOp) {
+			return fmt.Errorf("thao tác bộ gõ không hợp lệ: %q (trống = đọc | set)", s.InputOp)
+		}
 	case model.StepProcess:
 		if err := checkProcess(*s); err != nil {
 			return err

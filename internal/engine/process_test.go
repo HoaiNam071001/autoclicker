@@ -59,7 +59,10 @@ func TestProcessReadAllWhenNameEmpty(t *testing.T) {
 }
 
 func TestProcessWaitStartAndQuit(t *testing.T) {
-	out, err := runProc(t, &fakeProcs{snaps: [][]procinfo.Info{nil, nil, chrome}}, func(s *model.Step) { s.ProcOp, s.ProcName = model.ProcWaitStart, "Finder"; s.ProcMatch = model.MatchExact })
+	out, err := runProc(t, &fakeProcs{snaps: [][]procinfo.Info{nil, nil, chrome}}, func(s *model.Step) {
+		s.ProcOp, s.ProcName = model.ProcWaitStart, "Finder"
+		s.ProcMatch = model.MatchExact
+	})
 	if err != nil || out["running"] != true {
 		t.Errorf("waitStart out=%v err=%v", out, err)
 	}
@@ -73,7 +76,9 @@ func TestProcessWaitIdleResetsWhenBusyAgain(t *testing.T) {
 	busy := []procinfo.Info{{PID: 1, Name: "ffmpeg", CPU: 80}}
 	quiet := []procinfo.Info{{PID: 1, Name: "ffmpeg", CPU: 1}}
 	f := &fakeProcs{snaps: [][]procinfo.Info{busy, quiet, busy, quiet}}
-	out, err := runProc(t, f, func(s *model.Step) { s.ProcOp, s.ProcName, s.CPUBelow, s.StableMs = model.ProcWaitIdle, "ffmpeg", 10, 0 })
+	out, err := runProc(t, f, func(s *model.Step) {
+		s.ProcOp, s.ProcName, s.CPUBelow, s.StableMs = model.ProcWaitIdle, "ffmpeg", 10, 0
+	})
 	if err != nil || out["cpuPercent"] != 1.0 {
 		t.Errorf("out=%v err=%v", out, err)
 	}

@@ -18,6 +18,7 @@ import { fmtBrowserGo, fmtBrowserNorm, fmtBrowserTab, fmtSavePdf } from './brows
 import { fmtWaitUntil } from './waitUntil';
 import { fmtPath } from './shape';
 import { fmtWebStep, isWebStep } from './web';
+import { fmtInputSource } from './inputSource';
 import { fmtProcess } from './process';
 import { fmtElement, fmtElementRead, fmtPageText, fmtReadDocument, fmtReadTable } from './element';
 import { fmtMs, numVarOf, type Step, type StepPoint } from '../types';
@@ -45,6 +46,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'system' ? fmtSystem(s)
     : s.type === 'shell' ? fmtShell(s)
     : s.type === 'sysInfo' ? (s.filePath?.trim() ? `ổ ${s.filePath.trim()}` : 'pin · CPU · RAM · ổ · mạng')
+    : s.type === 'inputSource' ? fmtInputSource(s)
     : s.type === 'process' ? fmtProcess(s)
     : s.type === 'osShortcut' ? fmtOSShortcut(s)
     : s.type === 'window' ? fmtWindow(s)

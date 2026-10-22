@@ -11,6 +11,7 @@ import type { Shape } from './flow/shape';
 import type { WinMatch, WinOp, WinPreset } from './flow/window';
 import type { AppOp } from './flow/app';
 import type { ProcOp } from './flow/process';
+import type { InputOp } from './flow/inputSource';
 import type { BrowserName, TabOp } from './flow/browserTab';
 import type { CaseMode, NumOp, NumStyle } from './flow/textNodes';
 import type { KV, Rect } from './types';
@@ -68,6 +69,9 @@ export interface AdvancedFields {
   appName?: string; // tên app / tên exe / bundle id; nhận {{biến}}
   appMatch?: WinMatch; // như winMatch
   appForce?: boolean; // thoát: quá giờ chưa thoát thì buộc thoát
+  // bộ gõ (bước 43 S6, internal/engine/inputsource.go)
+  inputOp?: InputOp; // bỏ trống = đọc
+  inputLayout?: string; // set: bộ gõ cần đổi sang – id hoặc tên; nhận {{biến}}
   // tiến trình (bước 43 S5, internal/engine/process.go) – timeoutMs / stableMs: chờ
   procOp?: ProcOp; // bỏ trống = đọc
   procName?: string; // tên tiến trình; nhận {{biến}}

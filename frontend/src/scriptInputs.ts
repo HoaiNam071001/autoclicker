@@ -76,6 +76,7 @@ function mapFieldText(s: Step, f: (t: string) => string): Step {
     case 'pageText': return { ...s, selectors: s.selectors?.map(f), elementApp: s.elementApp && f(s.elementApp) };
     case 'elementAction': return { ...s, selectors: s.selectors?.map(f), elementApp: s.elementApp && f(s.elementApp), text: f(s.text) };
     case 'waitUIEvent': return { ...s, winApp: s.winApp && f(s.winApp), winTitle: s.winTitle && f(s.winTitle), selectors: s.selectors?.map(f), elementApp: s.elementApp && f(s.elementApp) };
+    case 'inputSource': return { ...s, inputLayout: s.inputLayout && f(s.inputLayout) };
     case 'process': return { ...s, procName: s.procName && f(s.procName) };
     case 'sysInfo': return { ...s, filePath: s.filePath && f(s.filePath) };
     case 'osShortcut': return { ...s, shortcutName: s.shortcutName && f(s.shortcutName), text: f(s.text) };

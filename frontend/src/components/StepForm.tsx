@@ -41,6 +41,7 @@ import ReadDocumentFields from './stepform/ReadDocumentFields';
 import ReadTableFields from './stepform/ReadTableFields';
 import ElementActionFields from './stepform/ElementActionFields';
 import WaitUIEventFields from './stepform/WaitUIEventFields';
+import InputSourceFields from './stepform/InputSourceFields';
 import ProcessFields from './stepform/ProcessFields';
 import SysInfoFields from './stepform/SysInfoFields';
 import OSShortcutFields from './stepform/OSShortcutFields';
@@ -170,6 +171,7 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'pageText' && <PageTextFields step={s} />}
       {s.type === 'elementAction' && <ElementActionFields step={s} />}
       {s.type === 'waitUIEvent' && <WaitUIEventFields step={s} />}
+      {s.type === 'inputSource' && <InputSourceFields step={s} />}
       {s.type === 'process' && <ProcessFields step={s} />}
       {s.type === 'sysInfo' && <SysInfoFields step={s} />}
       {s.type === 'osShortcut' && <OSShortcutFields step={s} />}

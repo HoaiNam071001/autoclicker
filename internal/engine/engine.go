@@ -13,6 +13,7 @@ import (
 	"ghosthand/internal/browser"
 	"ghosthand/internal/device"
 	"ghosthand/internal/humanize"
+	"ghosthand/internal/inputsource"
 	"ghosthand/internal/launch"
 	"ghosthand/internal/model"
 	"ghosthand/internal/procinfo"
@@ -79,6 +80,7 @@ type Engine struct {
 	wins        device.Windows                 // node Cửa sổ (window.go) – test thay bằng bản giả
 	apps        device.Apps                    // node Ứng dụng (app.go) – test thay bằng bản giả
 	shortcuts   shortcuts.Backend              // node Shortcuts của hệ điều hành (osshortcut.go) – test thay bản giả
+	inputs      inputsource.Backend            // node Bộ gõ (inputsource.go) – test thay bản giả
 	procs       procinfo.Backend               // node Tiến trình (process.go) – test thay bản giả
 	sysinfo     sysinfo.Backend                // node Thông tin máy (sysinfo.go) – test thay bản giả
 	sh          shell.Runner                   // node Chạy lệnh (shell.go) – test thay bằng bản giả
@@ -128,7 +130,7 @@ type Engine struct {
 }
 
 func newEngine(in device.Input, sc model.Script, onProgress func(Progress)) *Engine {
-	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, elems: device.SystemElements{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{}, audio: device.SystemAudio{}, wins: device.SystemWindows{}, apps: device.SystemApps{}, tabs: browser.System{}, sh: shell.System{}, shortcuts: shortcuts.System{}, sysinfo: sysinfo.System{}, procs: procinfo.System{},
+	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, elems: device.SystemElements{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{}, audio: device.SystemAudio{}, wins: device.SystemWindows{}, apps: device.SystemApps{}, tabs: browser.System{}, sh: shell.System{}, shortcuts: shortcuts.System{}, sysinfo: sysinfo.System{}, procs: procinfo.System{}, inputs: inputsource.System{},
 		rng: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))}
 }
 

@@ -1,0 +1,33 @@
+{
+ "meta": {
+  "name": "Bộ gõ – đọc, đổi sang ABC rồi trả lại",
+  "description": "Đọc bộ gõ đang dùng, đổi sang ABC, rồi đổi lại đúng bộ gõ cũ. Đúng: lời kết ghi bộ gõ trước đó, bộ gõ sau khi đổi là ABC / U.S. và cuối cùng bộ gõ máy về như ban đầu.",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Không cần chuẩn bị. Máy cần có bộ gõ tên ABC (macOS) – Windows đổi “ABC” thành en-US. Windows: bộ gõ tính theo cửa sổ đang ở trên cùng, phần này chưa chạy thử. Unikey / EVKey đang chạy chỉ được báo ở imeApp."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "inputSource"
+   },
+   {
+    "type": "inputSource",
+    "inputOp": "set",
+    "inputLayout": "ABC"
+   },
+   {
+    "type": "inputSource",
+    "inputOp": "set",
+    "inputLayout": "{{n1.output.id}}"
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Trước: {{n1.output.name}} (tiếng Việt: {{n1.output.vietnamese}}) · sau đổi: {{n2.output.name}} · đã trả về: {{n3.output.name}} · phần mềm gõ: {{n1.output.imeApp}}"
+   }
+  ]
+ }
+}

@@ -45,6 +45,16 @@ export const data: Scenes = {
       <Show from={0.4}><rect x={144} y={36} width="82" height="62" rx="6" className="fill-surface stroke-ok" /><T x={152} y={54} s={8} cls="fill-ink">pin 87%</T><T x={152} y={70} s={8} cls="fill-ink">ổ 44 GB</T><T x={152} y={86} s={8} cls="fill-ink">mạng có</T><Tick x={226} y={36} from={0.4} /></Show>
     </Stage>
   ),
+  inputSource: () => (
+    <Stage>
+      {box(14, 40, 62, 54)}<Show to={0.5}><T x={45} y={72} anchor="middle" s={11}>Telex</T></Show>
+      <Arr x1={80} y1={67} x2={120} y2={67} />
+      <rect x={124} y={44} width="104" height="46" rx="6" className="fill-field stroke-line-strong" />
+      {[0, 1, 2, 3, 4].map((i) => <rect key={i} x={132 + i * 18} y={52} width="14" height="10" rx="2" className="fill-soft stroke-line" />)}
+      {[0, 1, 2, 3].map((i) => <rect key={i} x={141 + i * 18} y={68} width="14" height="10" rx="2" className="fill-soft stroke-line" />)}
+      <Show from={0.5}><T x={45} y={72} anchor="middle" s={11} cls="fill-ok">ABC</T><Tick x={76} y={40} from={0.5} /></Show>
+    </Stage>
+  ),
   process: () => (
     <Stage>
       {box(14, 28, 96, 78, 'ffmpeg')}

@@ -1276,6 +1276,8 @@ export namespace model {
 	    procName?: string;
 	    procMatch?: string;
 	    cpuBelow?: number;
+	    inputOp?: string;
+	    inputLayout?: string;
 	    cond?: Cond;
 	    cases?: Case[];
 	    value?: string;
@@ -1438,6 +1440,8 @@ export namespace model {
 	        this.procName = source["procName"];
 	        this.procMatch = source["procMatch"];
 	        this.cpuBelow = source["cpuBelow"];
+	        this.inputOp = source["inputOp"];
+	        this.inputLayout = source["inputLayout"];
 	        this.cond = this.convertValues(source["cond"], Cond);
 	        this.cases = this.convertValues(source["cases"], Case);
 	        this.value = source["value"];

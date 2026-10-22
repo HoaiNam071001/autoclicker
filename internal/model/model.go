@@ -161,6 +161,9 @@ type Step struct {
 	ProcName  string `json:"procName,omitempty"`  // tên tiến trình (notepad.exe, Google Chrome Helper); "" = mọi tiến trình (chỉ khi đọc); nhận {{biến}}
 	ProcMatch string `json:"procMatch,omitempty"` // NameMatches như WinMatch
 	CPUBelow  int    `json:"cpuBelow,omitempty"`  // waitIdle: tổng CPU của tiến trình khớp phải dưới ngưỡng này (%, 100 = đầy một lõi; 0 = 5)
+	// Bộ gõ (bước 43 S6, engine/inputsource.go)
+	InputOp     string `json:"inputOp,omitempty"`     // InputOps: "" = đọc | set
+	InputLayout string `json:"inputLayout,omitempty"` // set: bộ gõ cần đổi sang – id hoặc tên (ABC, Telex, vi-VN…, chứa là khớp); nhận {{biến}}
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>
