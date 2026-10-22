@@ -1,0 +1,20 @@
+{
+ "meta": {
+  "name": "Thông báo hệ thống – báo khi xong việc",
+  "description": "Hiện một thông báo của hệ điều hành với tiêu đề “Ghosthand” và nội dung ghi tên bạn nhập. Đúng: góc màn hình hiện thông báo có tên đó; lời kết ghi lại tiêu đề + nội dung.",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "macOS: cấp quyền Thông báo cho Ghosthand (hoặc terminal chạy wails dev) trong Cài đặt hệ thống → Thông báo, tắt Không làm phiền. Windows: tắt Focus assist."
+ },
+ "script": {
+  "steps": [
+   { "type": "notify", "notifyTitle": "Ghosthand", "text": "Xin chào {{ten}}, kịch bản đã chạy xong" },
+   { "type": "end", "endStatus": "success", "message": "Đã hiện thông báo “{{n1.output.title}}: {{n1.output.text}}”" }
+  ],
+  "inputs": [
+   { "key": "ten", "label": "Tên bạn", "type": "text", "default": "Lan" }
+  ]
+ }
+}

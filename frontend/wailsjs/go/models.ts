@@ -1276,6 +1276,7 @@ export namespace model {
 	    procName?: string;
 	    procMatch?: string;
 	    cpuBelow?: number;
+	    notifyTitle?: string;
 	    zipOp?: string;
 	    zipTo?: string;
 	    inputOp?: string;
@@ -1442,6 +1443,7 @@ export namespace model {
 	        this.procName = source["procName"];
 	        this.procMatch = source["procMatch"];
 	        this.cpuBelow = source["cpuBelow"];
+	        this.notifyTitle = source["notifyTitle"];
 	        this.zipOp = source["zipOp"];
 	        this.zipTo = source["zipTo"];
 	        this.inputOp = source["inputOp"];

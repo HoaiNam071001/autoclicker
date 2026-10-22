@@ -45,6 +45,12 @@ export const data: Scenes = {
       <Show from={0.4}><rect x={144} y={36} width="82" height="62" rx="6" className="fill-surface stroke-ok" /><T x={152} y={54} s={8} cls="fill-ink">pin 87%</T><T x={152} y={70} s={8} cls="fill-ink">ổ 44 GB</T><T x={152} y={86} s={8} cls="fill-ink">mạng có</T><Tick x={226} y={36} from={0.4} /></Show>
     </Stage>
   ),
+  notify: () => (
+    <Stage>
+      {box(14, 34, 96, 66)}
+      <Show from={0.4}><rect x={128} y={30} width="110" height="40" rx="8" className="fill-surface stroke-line-strong" /><T x={140} y={48} s={9} cls="fill-ink">Ghosthand</T><T x={140} y={62} s={8} cls="fill-muted">Đã xử lý xong</T><Tick x={238} y={30} from={0.4} /></Show>
+    </Stage>
+  ),
   zip: () => (
     <Stage>
       {box(14, 34, 70, 66, 'bao-cao')}

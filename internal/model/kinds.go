@@ -48,6 +48,7 @@ const (
 	StepWaitUIEvent   = "waitUIEvent"   // chờ sự kiện giao diện: cửa sổ mới / đổi focus / phần tử mới hiện / giá trị đổi (engine/waituievent.go, bước 43 E2)
 	StepOSShortcut    = "osShortcut"    // chạy Shortcut (Phím tắt) của macOS với input chữ, lấy chữ trả về (engine/osshortcut.go, bước 43 S2)
 	StepSysInfo       = "sysInfo"       // đọc pin / CPU / RAM / ổ đĩa / màn hình / mạng / tên máy (engine/sysinfo.go)
+	StepNotify        = "notify"        // thông báo hệ điều hành (engine/toast.go, bước 43 S9)
 	StepZip           = "zip"           // nén / giải nén .zip (engine/zip.go, bước 43 S8)
 	StepProcess       = "process"       // đọc / chờ tiến trình: CPU, RAM, xuất hiện, kết thúc, hết bận (engine/process.go, bước 43 S5)
 	StepInputSource   = "inputSource"   // đọc / đổi bộ gõ – bàn phím đang dùng của hệ điều hành (engine/inputsource.go, bước 43 S6)
@@ -76,7 +77,7 @@ const (
 // StepTypes – mọi loại node app hỗ trợ (steptypes.go có mô tả cho từng loại – test kiểm tra).
 var StepTypes = []string{StepClick, StepDouble, StepHold, StepDrag, StepWait, StepText, StepKey, StepScroll, StepOpen,
 	StepWaitImage, StepClickImage, StepWaitPixel, StepWaitScreen, StepFindAll, StepScreenshot, StepClipboard, StepHTTP, StepFile, StepSystem, StepWaitUntil, StepPath, StepWindow, StepApp, StepBrowserTab, StepBrowserGo, StepBrowserNorm, StepSavePdf, StepWebWait, StepWebClick,
-	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepPageText, StepReadTable, StepWaitDownload, StepElementAction, StepReadDocument, StepWaitUIEvent, StepShell, StepOSShortcut, StepSysInfo, StepProcess, StepZip, StepInputSource, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc,
+	StepWebType, StepWebRead, StepWebScroll, StepWebKey, StepElementRead, StepPageText, StepReadTable, StepWaitDownload, StepElementAction, StepReadDocument, StepWaitUIEvent, StepShell, StepOSShortcut, StepSysInfo, StepProcess, StepZip, StepNotify, StepInputSource, StepIf, StepSwitch, StepSwitchScreen, StepCounter, StepForEach, StepEnd, StepSetVar, StepCalc,
 	StepTextMatch, StepTextSplit, StepTextClean, StepTextNumber}
 
 // IsControl – node điều khiển: không thử lại, không chờ sau khi xong, inspector riêng.

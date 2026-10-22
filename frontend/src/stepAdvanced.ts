@@ -70,6 +70,8 @@ export interface AdvancedFields {
   appName?: string; // tên app / tên exe / bundle id; nhận {{biến}}
   appMatch?: WinMatch; // như winMatch
   appForce?: boolean; // thoát: quá giờ chưa thoát thì buộc thoát
+  // thông báo hệ thống (bước 43 S9, internal/engine/toast.go) – nội dung = text
+  notifyTitle?: string; // tiêu đề (trống = Ghosthand); nhận {{biến}}
   // nén / giải nén (bước 43 S8, internal/engine/zip.go) – nguồn = filePath, lọc tên file khi nén thư mục = filePattern
   zipOp?: ZipOp; // bỏ trống = nén
   zipTo?: string; // đích: nén = file .zip, giải nén = thư mục; nhận {{biến}}

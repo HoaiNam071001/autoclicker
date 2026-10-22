@@ -147,6 +147,9 @@ func VarFields(s *model.Step) []VarField {
 		}
 	case model.StepInputSource:
 		add("inputLayout", &s.InputLayout, false)
+	case model.StepNotify:
+		add("notifyTitle", &s.NotifyTitle, false)
+		add("text", &s.Text, false)
 	case model.StepZip:
 		add("filePath", &s.FilePath, false)
 		add("filePattern", &s.FilePattern, false)

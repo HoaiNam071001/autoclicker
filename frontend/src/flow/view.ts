@@ -198,6 +198,7 @@ function ownOutputs(s: Step): OutputField[] {
       { key: 'online', desc: 'có mạng' }, { key: 'ip', desc: 'IP của máy' }, { key: 'wifi', desc: 'tên Wi-Fi ("" nếu không có)' },
       { key: 'hostname', desc: 'tên máy' }, { key: 'user', desc: 'tên người dùng' }, { key: 'os', desc: 'darwin | windows' },
     ];
+    case 'notify': return [{ key: 'title', desc: 'tiêu đề đã hiện' }, { key: 'text', desc: 'nội dung đã hiện' }];
     case 'zip': return [
       { key: 'path', desc: 'file .zip vừa tạo / thư mục đã giải nén vào' }, { key: 'count', desc: 'số file' }, { key: 'size', desc: 'tổng dung lượng dữ liệu gốc (byte)' },
     ];

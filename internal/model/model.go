@@ -161,6 +161,8 @@ type Step struct {
 	ProcName  string `json:"procName,omitempty"`  // tên tiến trình (notepad.exe, Google Chrome Helper); "" = mọi tiến trình (chỉ khi đọc); nhận {{biến}}
 	ProcMatch string `json:"procMatch,omitempty"` // NameMatches như WinMatch
 	CPUBelow  int    `json:"cpuBelow,omitempty"`  // waitIdle: tổng CPU của tiến trình khớp phải dưới ngưỡng này (%, 100 = đầy một lõi; 0 = 5)
+	// Thông báo hệ thống (bước 43 S9, engine/toast.go) – nội dung = Text
+	NotifyTitle string `json:"notifyTitle,omitempty"` // tiêu đề ("" = Ghosthand); nhận {{biến}}
 	// Nén / giải nén (bước 43 S8, engine/zip.go) – nguồn = FilePath, lọc tên file khi nén thư mục = FilePattern
 	ZipOp string `json:"zipOp,omitempty"` // ZipOps: "" = nén | extract
 	ZipTo string `json:"zipTo,omitempty"` // đích: nén = file .zip ("" = <nguồn>.zip) | giải nén = thư mục ("" = thư mục tên như file zip, cạnh nó); nhận {{biến}}
