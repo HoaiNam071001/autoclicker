@@ -35,6 +35,15 @@ export function fmtPageText(s: Step): string {
   return `${scope}${s.pageAll ? ' · gồm phần ngoài khung nhìn' : ''} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
 }
 
+// Dòng chi tiết node Đọc bảng: bảng đầu tiên của Google Chrome → ghi ra don-hang.csv · tối đa 10 s
+export function fmtReadTable(s: Step): string {
+  const app = s.elementApp?.trim() || 'app trên cùng';
+  const nth = (s.occurrence ?? 0) > 1 ? `bảng thứ ${s.occurrence}` : 'bảng đầu tiên';
+  const scope = s.selectors?.some((l) => l.trim()) ? `bảng trong ${firstSelector(s.selectors)} · ${app}` : `${nth} của ${app}`;
+  const file = s.filePath?.trim() ? ` → ghi ${s.filePath.trim().split(/[\\/]/).pop()}` : '';
+  return `${scope}${file} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
+}
+
 // Dòng cách tìm không dùng được cho phần tử màn hình (css / xpath chỉ có ở node web) – khớp CheckSelector (element/find.go).
 // Dòng có {{biến}} chỉ biết lúc chạy. '' = ổn.
 export function elementSelectorError(selectors?: string[]): string {

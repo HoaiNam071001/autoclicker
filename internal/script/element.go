@@ -2,6 +2,7 @@ package script
 
 import (
 	"errors"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
@@ -77,4 +78,16 @@ func checkPageText(i int, s model.Step) error {
 		}
 	}
 	return checkFindWait(i, s)
+}
+
+// checkTableFile – node Đọc bảng: file ghi ra (nếu có) phải là .csv hoặc .xlsx.
+func checkTableFile(i int, s model.Step) error {
+	p := strings.TrimSpace(s.FilePath)
+	if p == "" || strings.Contains(p, "{{") {
+		return nil
+	}
+	if ext := strings.ToLower(filepath.Ext(p)); ext != ".csv" && ext != ".xlsx" {
+		return stepErr(i, s, "filePath", "chỉ ghi được file .csv hoặc .xlsx (file này: %q)", filepath.Base(p))
+	}
+	return nil
 }

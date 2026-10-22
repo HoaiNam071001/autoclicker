@@ -67,6 +67,14 @@ export const app: Scenes = {
       <Show from={0.8}><Chip x={70} y={50} w={52} label="zoom 100%" cls="fill-surface stroke-ok" /></Show>
     </Stage>
   ),
+  readTable: () => (
+    <Stage><Win w={130} />
+      {[0, 1, 2].map((r) => [0, 1, 2].map((c) => <rect key={`${r}${c}`} x={26 + c * 38} y={30 + r * 24} width="36" height="22" rx="3" className={r === 0 ? 'fill-soft stroke-line-strong' : 'fill-field stroke-line'} />))}
+      {[1, 2].map((r) => <Show key={r} from={0.2 + r * 0.25} to={0.95}><rect x={26} y={30 + r * 24} width="112" height="22" rx="3" className="fill-accent-soft stroke-accent" /></Show>)}
+      <Arr x1={150} y1={70} x2={168} y2={70} cls="stroke-accent" />
+      <Show from={0.5}><Chip x={172} y={56} w={56} label="rows" /></Show>
+    </Stage>
+  ),
   pageText: () => (
     <Stage><Win w={130} />
       {[0, 1, 2, 3].map((i) => <g key={i}><rect x={26} y={28 + i * 22} width="112" height="16" rx="3" className="fill-field" /><rect x={32} y={34 + i * 22} width={70 + (i % 2) * 24} height="4" rx="2" className="fill-line-strong" />

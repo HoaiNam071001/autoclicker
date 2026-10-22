@@ -34,6 +34,7 @@ export const STEP_DEFAULTS: Partial<Record<StepType, Partial<Step>>> = {
   webClick: { selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 500 },
   webType: { clicks: 0, selectors: ['text='], webClear: true, timeoutMs: 10000, intervalMs: 200, delayAfter: 300 },
   webRead: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 200, delayAfter: 0 },
+  readTable: { clicks: 0, timeoutMs: 10000, intervalMs: 250, delayAfter: 0 },
   pageText: { clicks: 0, timeoutMs: 10000, intervalMs: 250, delayAfter: 0 },
   elementRead: { clicks: 0, selectors: ['text='], timeoutMs: 10000, intervalMs: 250, delayAfter: 0 },
   webKey: { clicks: 0, keys: ['enter'], delayAfter: 300 },

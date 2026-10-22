@@ -56,6 +56,7 @@ var stepTypeUses = map[string]TypeUse{
 	StepWebScroll:    {grpWeb, "Cuộn tới phần tử, cuộn trong khung, hoặc cuộn tới khi phần tử xuất hiện (feed tải thêm)."},
 	StepWebKey:       {grpWeb, "Bấm phím vào trang web qua CDP, không cần Chrome ở trước (esc đóng hộp thoại, tab, enter)."},
 	StepElementRead:  {grpWeb, "Đọc chữ chính xác của phần tử trong app / Chrome thường qua cây accessibility (không OCR). Dùng khi OCR đọc sai hoặc muốn chữ chuẩn."},
+	StepReadTable:    {grpWeb, "Đọc cả BẢNG trên trang / app thành dòng + cột (items theo tên cột) để lặp từng dòng hoặc ghi csv / xlsx. Chữ rời không phải bảng → pageText."},
 	StepPageText:     {grpWeb, "Đọc MỌI chữ trong cửa sổ app / Chrome thường (hoặc trong một khung) để lọc bằng textMatch / textSplit. Một phần tử cụ thể → elementRead."},
 	StepIf:           {grpFlow, "Rẽ nhánh theo điều kiện (thấy chữ / ảnh, so biến). Nhiều trạng thái trang → switchScreen; nhiều giá trị → switch."},
 	StepSwitch:       {grpFlow, "Rẽ nhiều nhánh theo giá trị biến (eq / contains / regex)."},

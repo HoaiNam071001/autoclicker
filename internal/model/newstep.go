@@ -83,7 +83,7 @@ func NewStep(stepType string) (Step, error) {
 		s.Selectors, s.TimeoutMs, s.IntervalMs = []string{"text="}, 10000, 200
 	case StepElementRead:
 		s.Selectors, s.TimeoutMs, s.IntervalMs = []string{"text="}, 10000, 250
-	case StepPageText:
+	case StepPageText, StepReadTable:
 		s.TimeoutMs, s.IntervalMs = 10000, 250
 	case StepWebKey:
 		s.Keys, s.DelayAfter = []string{"enter"}, 300

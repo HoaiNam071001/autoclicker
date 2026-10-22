@@ -1,0 +1,28 @@
+{
+ "meta": {
+  "name": "Phần tử – đọc bảng",
+  "description": "Mở trang Đơn hàng rồi đọc bảng HTML (qua Accessibility, không OCR) thành dòng + cột. Đúng: lời kết ghi 3 đơn, tên khách đầu tiên “Nguyễn Văn An” và số tiền “1.250.000 ₫”. Cần quyền Accessibility, cửa sổ trình duyệt đang hiện. Điền Ghi ra file (.csv / .xlsx) ở node Đọc bảng để lưu luôn.",
+  "level": 1,
+  "app": "Phần tử",
+  "page": "orders.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/orders.html",
+    "delayAfter": 3000
+   },
+   {
+    "type": "readTable",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "{{n2.output.count}} đơn · khách đầu: {{n2.output.items.0.khach_hang}} · {{n2.output.items.0.so_tien}}"
+   }
+  ]
+ }
+}

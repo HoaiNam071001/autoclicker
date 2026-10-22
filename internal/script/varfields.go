@@ -65,7 +65,7 @@ func VarFields(s *model.Step) []VarField {
 		}
 	case model.StepWebKey:
 		add("tab", &s.Tab, false)
-	case model.StepElementRead, model.StepPageText:
+	case model.StepElementRead, model.StepPageText, model.StepReadTable:
 		if s.FindBy == model.FindByText {
 			add("findText", &s.FindText, false)
 			break
@@ -74,6 +74,9 @@ func VarFields(s *model.Step) []VarField {
 			add(fmt.Sprintf("selectors[%d]", i), &s.Selectors[i], false)
 		}
 		add("elementApp", &s.ElementApp, false)
+		if s.Type == model.StepReadTable {
+			add("filePath", &s.FilePath, false)
+		}
 	case model.StepHTTP:
 		add("url", &s.URL, false)
 		kv := func(name string, rows []model.KV) {
