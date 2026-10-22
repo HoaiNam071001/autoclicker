@@ -4,6 +4,7 @@ import { boundsOf, refOf, type Ends } from '../../store';
 import { fmtSelectors } from '../../flow/web';
 import { fmtShot } from '../../flow/shot';
 import { fmtWaitScreen } from '../../flow/waitScreen';
+import { fmtWaitDownload } from '../../flow/file';
 import { fmtPos } from '../../flow/detail';
 import { fmtClip } from '../../flow/clipboard';
 import { fmtHTTP } from '../../flow/http';
@@ -48,6 +49,7 @@ function bubbleOf(s: Step): string | null {
     case 'waitUntil': return `⏰ Chờ ${fmtWaitUntil(s)} – xem trước không chờ thật`;
     case 'system': return `🔊 ${fmtSystem(s)}`;
     case 'app': return `🧩 Ứng dụng: ${fmtApp(s)} – xem trước không đụng app thật`;
+    case 'waitDownload': return `⬇ Chờ tải xong ${fmtWaitDownload(s)} – xem trước không chờ thật`;
     case 'readTable': return `▦ Đọc bảng: ${fmtReadTable(s)} – bảng biết khi chạy thật`;
     case 'pageText': return `📄 Đọc chữ trang: ${fmtPageText(s)} – chữ biết khi chạy thật`;
     case 'browserGo': return `🗂 Đi tới URL: ${fmtBrowserGo(s, refOf)} – xem trước không đụng trình duyệt thật`;

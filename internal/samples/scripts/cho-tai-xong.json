@@ -1,0 +1,38 @@
+{
+ "meta": {
+  "name": "Chờ file tải xong",
+  "description": "Bấm nút TAI BAO CAO trên trang, trình duyệt tải file ghosthand-bao-cao-….txt về thư mục Downloads sau ~2 s; node Chờ tải xong chờ file đó xong (hết .crdownload) rồi lấy tên + cỡ. Đúng: lời kết ghi tên file ghosthand-bao-cao-… .txt và cỡ vài nghìn byte. Trình duyệt phải cho tải về thư mục Downloads (không hỏi chỗ lưu).",
+  "app": "Chờ / tìm",
+  "level": 1,
+  "page": "download.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/download.html",
+    "delayAfter": 2500
+   },
+   {
+    "type": "clickImage",
+    "imageSource": "search",
+    "findBy": "text",
+    "findText": "TAI BAO CAO",
+    "searchArea": "screen",
+    "timeoutMs": 5000,
+    "delayAfter": 300
+   },
+   {
+    "type": "waitDownload",
+    "filePattern": "ghosthand-bao-cao-*.txt",
+    "timeoutMs": 30000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã tải {{n3.output.name}} ({{n3.output.size}} byte)"
+   }
+  ]
+ }
+}

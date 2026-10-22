@@ -65,6 +65,13 @@ export const wait: Scenes = {
       <Show from={0.55}><Lines x={34} y={34} ws={[120, 150, 90, 130]} /><rect x={34} y={74} width="60" height="32" rx="4" className="fill-field" /><Tick x={196} y={34} from={0} /><T x={150} y={104} anchor="middle" cls="fill-ok" s={8}>đứng yên → đi tiếp</T></Show>
     </Stage>
   ),
+  waitDownload: () => (
+    <Stage><Win />
+      <Btn x={30} y={36} w={64} h={22} label="Tải về" />
+      <Show from={0} to={0.6}><rect x={110} y={72} width="100" height="24" rx="5" className="fill-field stroke-line-strong" /><rect x={114} y={80} width={Math.round(92 * 0.6)} height="8" rx="3" className="fill-accent-soft" /><T x={160} y={69} anchor="middle" cls="fill-muted" s={8}>bao-cao.pdf.crdownload</T></Show>
+      <Show from={0.6}><rect x={110} y={72} width="100" height="24" rx="5" className="fill-field stroke-ok" /><T x={160} y={88} anchor="middle" cls="fill-ink" s={9}>bao-cao.pdf</T><Tick x={216} y={72} from={0.6} /></Show>
+    </Stage>
+  ),
   waitUntil: () => (
     <Stage><Win />
       <Clock x={86} y={68} r={30} />

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { fmtFile, folderOf, isDeleteOp } from './file';
+import { fmtFile, fmtWaitDownload, folderOf, isDeleteOp } from './file';
 
 it('fmtFile', () => {
   expect(fmtFile({ filePath: '~/Documents/nhat-ky.txt' })).toBe('ghi nhat-ky.txt');
@@ -19,4 +19,9 @@ it('folderOf', () => {
 
 it('isDeleteOp', () => {
   expect(isDeleteOp('trash') && isDeleteOp('emptyTrash') && !isDeleteOp('row') && !isDeleteOp(undefined)).toBe(true);
+});
+
+it('fmtWaitDownload', () => {
+  expect(fmtWaitDownload({ filePattern: '*.pdf', timeoutMs: 60000 })).toBe('*.pdf trong Downloads · tối đa 60 s');
+  expect(fmtWaitDownload({ filePath: '~/Desktop/xuat', timeoutMs: 30000 })).toBe('file mới bất kỳ trong xuat · tối đa 30 s');
 });

@@ -1,6 +1,6 @@
 // Node Tệp / thư mục (bước 35 N4) – nhãn thao tác, dòng chi tiết thẻ. Chạy ở internal/engine/file.go; thao tác xoá
 // cần xác nhận (flow/danger.ts – script.DangerOps).
-import type { Step } from '../types';
+import { fmtMs, type Step } from '../types';
 
 // '' = ghi chữ (khớp model.FileOps)
 export type FileOp = '' | 'row' | 'mkdir' | 'trash' | 'emptyTrash';
@@ -24,4 +24,10 @@ export function fmtFile(s: Pick<Step, 'fileOp' | 'filePath' | 'fileAppend' | 'ce
     case 'emptyTrash': return 'dọn Thùng rác (xoá hẳn)';
   }
   return `${s.fileAppend ? 'thêm vào cuối' : 'ghi'} ${name}`;
+}
+
+// Dòng chi tiết node Chờ tải xong: *.pdf trong Downloads · tối đa 60 s
+export function fmtWaitDownload(s: Pick<Step, 'filePath' | 'filePattern' | 'timeoutMs'>): string {
+  const dir = base(s.filePath) || 'Downloads';
+  return `${s.filePattern?.trim() || 'file mới bất kỳ'} trong ${dir} · tối đa ${fmtMs(s.timeoutMs ?? 0)}`;
 }

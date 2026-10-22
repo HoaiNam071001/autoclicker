@@ -77,6 +77,9 @@ func VarFields(s *model.Step) []VarField {
 		if s.Type == model.StepReadTable {
 			add("filePath", &s.FilePath, false)
 		}
+	case model.StepWaitDownload:
+		add("filePath", &s.FilePath, false)
+		add("filePattern", &s.FilePattern, false)
 	case model.StepHTTP:
 		add("url", &s.URL, false)
 		kv := func(name string, rows []model.KV) {

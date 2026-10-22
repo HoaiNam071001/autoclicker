@@ -229,3 +229,4 @@
 - **2026-10-21** – 47: hoạt hoạ minh hoạ SVG cho 51 loại node trong bảng Thêm node (palette/illus), Đổi loại node ở inspector mở modal bảng node thay dropdown, màn #demo-illus. build + test qua.
 - 2026-10-21: MCP get_step_types thêm compact=true (25 KB thay 68 KB) + steptypes_use.go gợi ý chọn node
 - **2026-10-22** – 43 B5 node Đọc bảng `readTable` (element/table.go, engine/readtable.go, ghi csv/xlsx, mẫu phan-tu-doc-bang + orders.html). go vet/test, npm build/test, check-docs OK; chưa thử tay.
+- **2026-10-22** – Bước 43 B6: node Chờ tải xong (`waitDownload`, quét thư mục tải về), mẫu `cho-tai-xong` + trang `download.html`. go vet/test, npm build/test OK; chưa thử tay với Chrome thật (checks.md).

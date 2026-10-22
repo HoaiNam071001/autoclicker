@@ -3,8 +3,9 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 43 – Node chuyên sâu (B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS, B4 Đọc chữ trang, B5 Đọc bảng) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
+## 43 – Node chuyên sâu (B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS, B4 Đọc chữ trang, B5 Đọc bảng, B6 Chờ tải xong) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
 
+- [ ] (B6) Mẫu thử *Chờ file tải xong* (Chrome tải thẳng vào Downloads, không hỏi chỗ lưu): sau ~2 s file `ghosthand-bao-cao-….txt` về, lời kết ghi tên + cỡ ~2 KB; chạy lại → vẫn lấy file MỚI, không nhặt file lần trước; thử `Mẫu tên file` không khớp → hết giờ báo Thất bại.
 - [ ] (B5) Mẫu thử *Phần tử – đọc bảng* (Chrome thường, cấp Accessibility): lời kết ghi “3 đơn · khách đầu: Nguyễn Văn An · 1.250.000 ₫”; thử điền *Ghi ra file* `~/Documents/don-hang.xlsx` / `.csv` → mở bằng Excel đúng 4 dòng × 3 cột, tiếng Việt không lỗi; thử bảng thật (Google Sheets / bảng trên web đã đăng nhập, bảng role=grid) và trên Windows (UIA)
 
 - [ ] (B4) Mẫu thử *Phần tử – đọc toàn bộ chữ trang* (Chrome thường, cấp Accessibility): lời kết ghi số dòng + tên món / giá theo đúng thứ tự trên trang, không lặp chữ nút; thử selectors `role=table` hoặc một khung → chỉ chữ trong khung đó; trang dài: tắt / bật *Gồm phần ngoài khung nhìn* → bật lấy thêm phần cuộn xuống; trang trống / đang tải → chờ rồi mới đi tiếp

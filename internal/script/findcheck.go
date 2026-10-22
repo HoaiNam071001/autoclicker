@@ -1,6 +1,7 @@
 package script
 
 import (
+	"path/filepath"
 	"strings"
 
 	"ghosthand/internal/model"
@@ -57,6 +58,19 @@ func checkFindAll(i int, s model.Step) error {
 	}
 	if lo := max(s.MinCount, 1); s.MaxCount > 0 && s.MaxCount < lo {
 		return stepErr(i, s, "maxCount", "số chỗ tối đa (%d) nhỏ hơn tối thiểu (%d)", s.MaxCount, lo)
+	}
+	return nil
+}
+
+// checkWaitDownload – node Chờ tải xong: mẫu tên file (nếu không có biến) đúng cú pháp glob, thời gian chờ > 0.
+func checkWaitDownload(i int, s model.Step) error {
+	if s.TimeoutMs <= 0 || s.IntervalMs <= 0 {
+		return stepErr(i, s, "timeoutMs", "thời gian chờ tối đa / kiểm tra mỗi phải > 0")
+	}
+	if p := s.FilePattern; p != "" && !strings.Contains(p, "{{") {
+		if _, err := filepath.Match(p, ""); err != nil {
+			return stepErr(i, s, "filePattern", "mẫu tên file sai cú pháp: %v", err)
+		}
 	}
 	return nil
 }

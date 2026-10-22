@@ -18,7 +18,7 @@ export const CATEGORIES: { id: NodeCategory; name: string }[] = [
 const BY_TYPE: Record<StepType, NodeCategory> = {
   click: 'mouse', double: 'mouse', hold: 'mouse', drag: 'mouse', scroll: 'mouse', path: 'mouse', clickImage: 'mouse',
   type: 'kb', key: 'kb',
-  wait: 'wait', waitImage: 'wait', waitPixel: 'wait', waitScreen: 'wait', findAll: 'wait', waitUntil: 'wait', screenshot: 'wait',
+  wait: 'wait', waitImage: 'wait', waitPixel: 'wait', waitScreen: 'wait', waitDownload: 'wait', findAll: 'wait', waitUntil: 'wait', screenshot: 'wait',
   clipboard: 'data', http: 'data', file: 'data', system: 'data', setVar: 'data', calc: 'data',
   textMatch: 'data', textSplit: 'data', textClean: 'data', textNumber: 'data',
   open: 'app', window: 'app', app: 'app', browserTab: 'app', browserGo: 'app', browserNorm: 'app', elementRead: 'app', pageText: 'app', readTable: 'app',
