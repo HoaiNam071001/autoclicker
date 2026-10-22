@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
+	"ghosthand/internal/inputsource"
 	"ghosthand/internal/model"
 )
 
@@ -171,7 +173,12 @@ func checkStep(s *model.Step) error {
 	case model.StepSysInfo:
 	case model.StepInputSource:
 		if !slices.Contains(model.InputOps, s.InputOp) {
-			return fmt.Errorf("thao tác bộ gõ không hợp lệ: %q (trống = đọc | set)", s.InputOp)
+			return fmt.Errorf("thao tác bộ gõ không hợp lệ: %q (trống = đọc | set | toggleIME)", s.InputOp)
+		}
+		if s.InputOp == model.InputToggleIME && strings.TrimSpace(s.InputHotkey) != "" && !strings.Contains(s.InputHotkey, "{{") {
+			if _, _, err := inputsource.ParseHotkey(s.InputHotkey); err != nil {
+				return err
+			}
 		}
 	case model.StepZip:
 		if err := checkZip(*s); err != nil {
@@ -179,6 +186,14 @@ func checkStep(s *model.Step) error {
 		}
 	case model.StepProcess:
 		if err := checkProcess(*s); err != nil {
+			return err
+		}
+	case model.StepPower:
+		if err := checkPower(*s); err != nil {
+			return err
+		}
+	case model.StepDisplay:
+		if err := checkDisplay(*s); err != nil {
 			return err
 		}
 	case model.StepNotify:

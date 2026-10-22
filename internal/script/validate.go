@@ -144,6 +144,11 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if err := validateProcess(i, s); err != nil {
 				return err
 			}
+		case model.StepPower:
+		case model.StepDisplay:
+			if err := validateDisplay(i, s); err != nil {
+				return err
+			}
 		case model.StepNotify:
 			if strings.TrimSpace(s.NotifyTitle) == "" && strings.TrimSpace(s.Text) == "" {
 				return stepErr(i, s, "text", "chưa nhập nội dung thông báo")

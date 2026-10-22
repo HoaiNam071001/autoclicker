@@ -67,6 +67,12 @@ export default function RunSettings() {
         <HumanScriptField value={script.human} onChange={(human) => updateScript({ human })} />
       </div>
       <label className="flex items-center justify-between border-t border-line pt-3">
+        <span className="flex flex-col">Giữ máy thức khi chạy
+          <span className="text-xs text-muted">Máy không ngủ, màn hình không tắt cho tới khi chạy xong</span>
+        </span>
+        <Switch on={!!script.keepAwake} onChange={(keepAwake) => updateScript({ keepAwake: keepAwake || undefined })} label="Giữ máy thức khi chạy" />
+      </label>
+      <label className="flex items-center justify-between border-t border-line pt-3">
         Đếm ngược 3 giây trước khi chạy
         <Switch on={countdown} onChange={setCountdown} label="Đếm ngược 3 giây" />
       </label>

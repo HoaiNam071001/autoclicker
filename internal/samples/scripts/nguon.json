@@ -1,0 +1,18 @@
+{
+ "meta": {
+  "name": "Nguồn – tắt màn hình sau khi xong, giữ máy thức khi chạy",
+  "description": "Giữ máy thức trong lúc chạy (tuỳ chọn kịch bản), đếm ngược 5 giây rồi tắt màn hình (máy vẫn chạy – chạm chuột / bàn phím để bật lại). Đúng: thanh mini hiện đếm ngược; bấm Dừng trong 5 giây đầu thì màn hình KHÔNG tắt; lời kết ghi hành động đã làm. Hành động ngủ / đăng xuất / tắt / khởi động lại dùng cùng node nhưng cần xác nhận – không đưa vào mẫu.",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Không cần chuẩn bị. Kiểm tra giữ máy thức: macOS chạy `pmset -g assertions` trong lúc kịch bản đang đếm ngược, thấy mục do caffeinate tạo."
+ },
+ "script": {
+  "keepAwake": true,
+  "steps": [
+   { "type": "power", "powerOp": "displaySleep", "countdownSec": 5 },
+   { "type": "end", "endStatus": "success", "message": "Đã {{n1.output.action}} sau {{n1.output.countdownSec}} giây" }
+  ]
+ }
+}

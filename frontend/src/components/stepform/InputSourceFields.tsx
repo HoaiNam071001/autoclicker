@@ -3,7 +3,7 @@ import Segmented from '../Segmented';
 import VarTextInput from '../inputs/VarTextInput';
 import { updateStep, useScript } from '../../store';
 import { addInput } from '../../scriptInputs';
-import { INPUT_OPS, type InputOp } from '../../flow/inputSource';
+import { IME_DEFAULT_HOTKEY, INPUT_OPS, type InputOp } from '../../flow/inputSource';
 import { Step } from '../../types';
 import { Field, hint, useNodeVars } from './shared';
 
@@ -22,8 +22,18 @@ export default function InputSourceFields({ step: s }: { step: Step }) {
           <VarTextInput {...varProps} value={s.inputLayout ?? ''} onChange={(v) => set({ inputLayout: v || undefined })} placeholder="ABC" />
         </Field>
       )}
+      {s.inputOp === 'toggleIME' && (
+        <Field label="Phím tắt của phần mềm gõ" wide group help="Phím tắt đổi chế độ gõ đã đặt trong Unikey / EVKey / OpenKey (mặc định Ctrl+Shift; EVKey cũng có thể là Alt+Z…). Viết dạng ctrl+shift, alt+z, ctrl+space.">
+          <VarTextInput {...varProps} value={s.inputHotkey ?? ''} onChange={(v) => set({ inputHotkey: v || undefined })} placeholder={IME_DEFAULT_HOTKEY} />
+        </Field>
+      )}
+      {s.inputOp === 'toggleIME' && (
+        <span className={`col-span-2 -mt-1 ${hint}`}>
+          Bấm phím tắt đúng MỘT lần để ĐẢO bật ↔ tắt tiếng Việt – các phần mềm này không cho đọc trạng thái hiện tại nên không biết đang bật hay tắt. Không thấy phần mềm gõ đang chạy → Thất bại, không bấm gì.
+        </span>
+      )}
       <span className={`col-span-2 -mt-1 ${hint}`}>
-        Đặt trước node Gõ chữ để dấu không bị méo. Node sau dùng {`{{${s.ref}.output.name}}`}, {`{{${s.ref}.output.vietnamese}}`}, {`{{${s.ref}.output.imeApp}}`} (Unikey / EVKey đang chạy – chỉ báo, chưa bật / tắt được)…
+        Đặt trước node Gõ chữ để dấu không bị méo. Node sau dùng {`{{${s.ref}.output.name}}`}, {`{{${s.ref}.output.vietnamese}}`}, {`{{${s.ref}.output.imeApp}}`} (Unikey / EVKey đang chạy)…
       </span>
     </>
   );

@@ -45,6 +45,23 @@ export const data: Scenes = {
       <Show from={0.4}><rect x={144} y={36} width="82" height="62" rx="6" className="fill-surface stroke-ok" /><T x={152} y={54} s={8} cls="fill-ink">pin 87%</T><T x={152} y={70} s={8} cls="fill-ink">ổ 44 GB</T><T x={152} y={86} s={8} cls="fill-ink">mạng có</T><Tick x={226} y={36} from={0.4} /></Show>
     </Stage>
   ),
+  power: () => (
+    <Stage>
+      {box(14, 34, 96, 66)}
+      <Arr x1={116} y1={67} x2={150} y2={67} />
+      <circle cx={190} cy={67} r={24} className="fill-surface stroke-line-strong" />
+      <path d="M190 52v14" className="stroke-danger" strokeWidth={3} strokeLinecap="round" fill="none"><Tween attr="opacity" pts={[[0.6, 1], [0.8, 0.3]]} /></path>
+      <Show from={0.5}><T x={190} y={112} anchor="middle" s={9} cls="fill-muted">30…29…</T></Show>
+    </Stage>
+  ),
+  display: () => (
+    <Stage>
+      <rect x={20} y={36} width="84" height="58" rx="6" className="fill-ink stroke-line-strong" />
+      <rect x={130} y={36} width="84" height="58" rx="6" className="fill-surface stroke-line-strong" />
+      <Arr x1={108} y1={65} x2={126} y2={65} />
+      <Show from={0.5}><Tick x={214} y={36} from={0.5} /></Show>
+    </Stage>
+  ),
   notify: () => (
     <Stage>
       {box(14, 34, 96, 66)}

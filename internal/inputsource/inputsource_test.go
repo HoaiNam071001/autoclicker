@@ -33,3 +33,24 @@ func TestFindIME(t *testing.T) {
 		t.Error("không có phần mềm gõ phải trả rỗng")
 	}
 }
+
+func TestParseHotkey(t *testing.T) {
+	for _, c := range []struct {
+		in   string
+		mods []string
+		key  string
+		bad  bool
+	}{
+		{"ctrl+shift", []string{"ctrl", "shift"}, "", false},
+		{"Alt + Z", []string{"alt"}, "z", false},
+		{"Control+Space", []string{"ctrl"}, "space", false},
+		{"option+command+k", []string{"alt", "cmd"}, "k", false},
+		{"ctrl+ctrl+shift", []string{"ctrl", "shift"}, "", false},
+		{"", nil, "", true}, {"+", nil, "", true}, {"a+b", nil, "", true},
+	} {
+		mods, key, err := ParseHotkey(c.in)
+		if (err != nil) != c.bad || key != c.key || len(mods) != len(c.mods) {
+			t.Errorf("ParseHotkey(%q) = %v %q %v", c.in, mods, key, err)
+		}
+	}
+}

@@ -45,7 +45,7 @@ const resultMatchesGo: Same<keyof StepResult, keyof Fields<model.StepResult>> = 
 void edgeMatchesGo, resultMatchesGo;
 
 export type ActionType = 'click' | 'double' | 'hold' | 'drag' | 'wait' | 'type' | 'key' | 'scroll' | 'open' | 'waitImage' | 'clickImage' | 'waitPixel' | 'waitScreen' | 'findAll' | 'screenshot' | 'clipboard' | 'http' | 'file' | 'system' | 'window' | 'app' | 'browserTab' | 'browserGo' | 'browserNorm' | 'savePdf' | 'waitUntil' | 'path'
-  | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead' | 'pageText' | 'readTable' | 'waitDownload' | 'shell' | 'osShortcut' | 'sysInfo' | 'process' | 'inputSource' | 'zip' | 'notify' | 'elementAction' | 'readDocument' | 'waitUIEvent';
+  | 'webWait' | 'webClick' | 'webType' | 'webRead' | 'webScroll' | 'webKey' | 'elementRead' | 'pageText' | 'readTable' | 'waitDownload' | 'shell' | 'osShortcut' | 'sysInfo' | 'process' | 'inputSource' | 'zip' | 'notify' | 'power' | 'display' | 'elementAction' | 'readDocument' | 'waitUIEvent';
 // Node điều khiển (bước 20 F3, internal/engine/nodes.go): chỉ chọn cổng ra, inspector riêng (components/flow/nodes/ControlFields)
 export type ControlType = 'if' | 'switch' | 'switchScreen' | 'counter' | 'forEach' | 'end' | 'setVar' | 'calc' | TextType;
 export type StepType = ActionType | ControlType;
@@ -202,6 +202,7 @@ export interface Script {
   anchorMode?: AnchorMode; // điểm mới đặt neo theo: bỏ trống = góc gần nhất, start = luôn trên trái
   inputs?: ScriptInput[]; // giá trị hỏi khi bấm Chạy (bước 21b, internal/script/inputs.go)
   human?: HumanLevel; // thao tác giống người (bước 34, internal/humanize): trống / off = tắt
+  keepAwake?: boolean; // giữ máy + màn hình thức trong lúc chạy (bước 43 S3)
   meta?: ScriptMeta; // nguồn gốc – AI tạo qua MCP (bước 31)
 }
 export type AnchorMode = 'start';
@@ -274,6 +275,8 @@ export const STEP_LABEL: Record<StepType, string> = {
   inputSource: 'Bộ gõ',
   zip: 'Nén / giải nén',
   notify: 'Thông báo hệ thống',
+  power: 'Nguồn',
+  display: 'Màn hình / âm thanh',
   elementAction: 'Thao tác phần tử',
   readDocument: 'Đọc tài liệu',
   waitUIEvent: 'Chờ sự kiện giao diện',

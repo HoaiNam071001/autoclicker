@@ -198,6 +198,13 @@ function ownOutputs(s: Step): OutputField[] {
       { key: 'online', desc: 'có mạng' }, { key: 'ip', desc: 'IP của máy' }, { key: 'wifi', desc: 'tên Wi-Fi ("" nếu không có)' },
       { key: 'hostname', desc: 'tên máy' }, { key: 'user', desc: 'tên người dùng' }, { key: 'os', desc: 'darwin | windows' },
     ];
+    case 'power': return [{ key: 'action', desc: 'hành động đã làm' }, { key: 'countdownSec', desc: 'số giây đã đếm ngược' }];
+    case 'display': return [
+      { key: 'theme', desc: 'light | dark (đọc / đổi chế độ)' }, { key: 'dark', desc: 'đang ở chế độ tối' }, { key: 'changed', desc: 'node đã đổi chế độ' },
+      { key: 'brightness', desc: 'độ sáng % (-1 nếu không đọc được)' }, { key: 'previous', desc: 'độ sáng / thiết bị trước khi đổi' },
+      { key: 'outputName', desc: 'loa mặc định' }, { key: 'inputName', desc: 'micro mặc định' }, { key: 'name', desc: 'thiết bị vừa chọn' }, { key: 'id', desc: 'mã thiết bị vừa chọn' },
+      { key: 'items', desc: 'mỗi dòng “loa|micro: tên” máy có' }, { key: 'sound', desc: 'âm đã phát' }, { key: 'waited', desc: 'đã chờ phát xong' },
+    ];
     case 'notify': return [{ key: 'title', desc: 'tiêu đề đã hiện' }, { key: 'text', desc: 'nội dung đã hiện' }];
     case 'zip': return [
       { key: 'path', desc: 'file .zip vừa tạo / thư mục đã giải nén vào' }, { key: 'count', desc: 'số file' }, { key: 'size', desc: 'tổng dung lượng dữ liệu gốc (byte)' },
@@ -205,7 +212,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'inputSource': return [
       { key: 'id', desc: 'mã bộ gõ đang dùng' }, { key: 'name', desc: 'tên bộ gõ đang dùng' }, { key: 'lang', desc: 'ngôn ngữ (en, vi…)' },
       { key: 'vietnamese', desc: 'bộ gõ hệ điều hành là tiếng Việt' }, { key: 'previousId', desc: 'mã bộ gõ trước node' }, { key: 'changed', desc: 'node đã đổi bộ gõ' },
-      { key: 'imeApp', desc: 'Unikey / EVKey… đang chạy (trống nếu không)' }, { key: 'items', desc: 'tên các bộ gõ máy có' },
+      { key: 'imeApp', desc: 'Unikey / EVKey… đang chạy (trống nếu không)' }, { key: 'items', desc: 'tên các bộ gõ máy có' }, { key: 'hotkey', desc: 'phím tắt đã bấm (toggleIME)' }, { key: 'toggled', desc: 'đã bấm phím tắt đổi chế độ gõ' },
     ];
     case 'process': return [
       { key: 'running', desc: 'có tiến trình khớp (true / false)' }, { key: 'count', desc: 'số tiến trình khớp' },

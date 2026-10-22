@@ -12,10 +12,12 @@ import (
 
 	"ghosthand/internal/browser"
 	"ghosthand/internal/device"
+	"ghosthand/internal/display"
 	"ghosthand/internal/humanize"
 	"ghosthand/internal/inputsource"
 	"ghosthand/internal/launch"
 	"ghosthand/internal/model"
+	"ghosthand/internal/power"
 	"ghosthand/internal/procinfo"
 	"ghosthand/internal/shell"
 	"ghosthand/internal/shortcuts"
@@ -81,6 +83,8 @@ type Engine struct {
 	wins        device.Windows                 // node Cửa sổ (window.go) – test thay bằng bản giả
 	apps        device.Apps                    // node Ứng dụng (app.go) – test thay bằng bản giả
 	mask        *masker                        // che bí mật ở kết quả rời engine (mask.go)
+	powers      power.Backend                  // node Nguồn (power.go) – test thay bản giả
+	disp        display.Backend                // node Màn hình / âm thanh (display.go) – test thay bản giả
 	toasts      toast.Backend                  // node Thông báo hệ thống (toast.go) – test thay bản giả
 	shortcuts   shortcuts.Backend              // node Shortcuts của hệ điều hành (osshortcut.go) – test thay bản giả
 	inputs      inputsource.Backend            // node Bộ gõ (inputsource.go) – test thay bản giả
@@ -133,7 +137,7 @@ type Engine struct {
 }
 
 func newEngine(in device.Input, sc model.Script, onProgress func(Progress)) *Engine {
-	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, elems: device.SystemElements{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{}, audio: device.SystemAudio{}, wins: device.SystemWindows{}, apps: device.SystemApps{}, tabs: browser.System{}, sh: shell.System{}, shortcuts: shortcuts.System{}, toasts: toast.System{}, sysinfo: sysinfo.System{}, procs: procinfo.System{}, inputs: inputsource.System{},
+	return &Engine{in: in, sc: sc, onProgress: onProgress, intN: rand.IntN, open: launch.OpenTarget, scr: device.RobotgoScreen{}, ocr: device.SystemOCR{}, elems: device.SystemElements{}, clip: device.SystemClipboard{}, httpc: &http.Client{}, trash: device.SystemTrash{}, audio: device.SystemAudio{}, wins: device.SystemWindows{}, apps: device.SystemApps{}, tabs: browser.System{}, sh: shell.System{}, shortcuts: shortcuts.System{}, toasts: toast.System{}, powers: power.System{}, disp: display.System{}, sysinfo: sysinfo.System{}, procs: procinfo.System{}, inputs: inputsource.System{},
 		rng: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64()))}
 }
 

@@ -45,6 +45,8 @@ import InputSourceFields from './stepform/InputSourceFields';
 import ProcessFields from './stepform/ProcessFields';
 import ZipFields from './stepform/ZipFields';
 import NotifyFields from './stepform/NotifyFields';
+import PowerFields from './stepform/PowerFields';
+import DisplayFields from './stepform/DisplayFields';
 import SysInfoFields from './stepform/SysInfoFields';
 import OSShortcutFields from './stepform/OSShortcutFields';
 import ShellFields from './stepform/ShellFields';
@@ -174,6 +176,8 @@ function TypeBody({ step: s, setPoint }: { step: Step; setPoint: (i: number, p: 
       {s.type === 'elementAction' && <ElementActionFields step={s} />}
       {s.type === 'waitUIEvent' && <WaitUIEventFields step={s} />}
       {s.type === 'inputSource' && <InputSourceFields step={s} />}
+      {s.type === 'power' && <PowerFields step={s} />}
+      {s.type === 'display' && <DisplayFields step={s} />}
       {s.type === 'notify' && <NotifyFields step={s} />}
       {s.type === 'zip' && <ZipFields step={s} />}
       {s.type === 'process' && <ProcessFields step={s} />}

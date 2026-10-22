@@ -1,0 +1,20 @@
+{
+ "meta": {
+  "name": "Màn hình / âm thanh – đổi sáng ↔ tối, báo bằng âm thanh",
+  "description": "Đọc chế độ sáng / tối, độ sáng, loa và micro mặc định; đảo sáng ↔ tối, đảo lại về như cũ; phát âm “Glass” và chờ phát xong. Đúng: giao diện hệ điều hành đổi rồi trở lại, nghe tiếng báo; lời kết ghi chế độ lúc đầu, loa / micro mặc định và độ sáng (-1 nếu màn ngoài / máy bàn).",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "macOS: lần đầu hỏi quyền điều khiển System Events → OK. Âm “Glass” là âm có sẵn của macOS; Windows đổi sang Asterisk. Muốn thử đổi loa: sửa node thêm một node Màn hình / âm thanh “Đổi loa mặc định” với tên loa của bạn."
+ },
+ "script": {
+  "steps": [
+   { "type": "display" },
+   { "type": "display", "displayOp": "theme", "displayValue": "toggle", "delayAfter": 1500 },
+   { "type": "display", "displayOp": "theme", "displayValue": "{{n1.output.theme}}" },
+   { "type": "display", "displayOp": "sound", "displayValue": "Glass", "soundWait": true },
+   { "type": "end", "endStatus": "success", "message": "Ban đầu: {{n1.output.theme}} · độ sáng {{n1.output.brightness}}% · loa {{n1.output.outputName}} · micro {{n1.output.inputName}}; đã đảo sang {{n2.output.theme}} rồi trả về {{n3.output.theme}}" }
+  ]
+ }
+}

@@ -4,6 +4,8 @@
 // Khớp script.DangerOp.
 export type DangerOp = { ref: string; op: string; folder?: string; pattern?: string; target?: string; lang?: string; script?: string; dir?: string };
 
+const POWER_TEXT: Record<string, string> = { sleep: 'Cho máy ngủ', logout: 'Đăng xuất', shutdown: 'Tắt máy', restart: 'Khởi động lại máy' };
+
 // Câu cho hộp xác nhận.
 export function dangerOpText(d: DangerOp): string {
   switch (d.op) {
@@ -12,6 +14,7 @@ export function dangerOpText(d: DangerOp): string {
     case 'forceQuit': return `Buộc thoát ${d.target} – mất dữ liệu chưa lưu`;
     case 'quit': return `Thoát ${d.target}, quá giờ chưa thoát thì buộc thoát – mất dữ liệu chưa lưu`;
     case 'shell': return `Chạy lệnh${d.lang ? ` ${d.lang}` : ''}${d.dir ? ` trong ${d.dir}` : ''} – lệnh có toàn quyền như bạn trên máy này`;
+    case 'power': return `${POWER_TEXT[d.target ?? ''] ?? 'Thao tác nguồn'} – mất công việc chưa lưu; đếm ngược để huỷ bằng Dừng`;
     case 'close': return `Đóng cửa sổ ${d.target} (app có thể hỏi lưu)`;
   }
   return d.op;
@@ -26,6 +29,7 @@ export const dangerScript = (d: DangerOp) => (d.op === 'shell' ? d.script ?? '' 
 // Tiêu đề hộp xác nhận theo nhóm thao tác.
 export function dangerTitle(ops: DangerOp[]): string {
   const file = ops.every((o) => o.op === 'trash' || o.op === 'emptyTrash');
+  if (ops.every((o) => o.op === 'power')) return 'Kịch bản này sẽ tác động nguồn máy';
   if (ops.every((o) => o.op === 'shell')) return 'Kịch bản này sẽ chạy lệnh trên máy';
   const app = ops.every((o) => o.op === 'quit' || o.op === 'forceQuit' || o.op === 'close');
   return file ? 'Kịch bản này sẽ xoá file' : app ? 'Kịch bản này sẽ thoát app / đóng cửa sổ' : 'Kịch bản có thao tác cần xác nhận';

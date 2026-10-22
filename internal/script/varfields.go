@@ -147,6 +147,9 @@ func VarFields(s *model.Step) []VarField {
 		}
 	case model.StepInputSource:
 		add("inputLayout", &s.InputLayout, false)
+		add("inputHotkey", &s.InputHotkey, false)
+	case model.StepDisplay:
+		add("displayValue", &s.DisplayValue, false)
 	case model.StepNotify:
 		add("notifyTitle", &s.NotifyTitle, false)
 		add("text", &s.Text, false)

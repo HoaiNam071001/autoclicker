@@ -1276,10 +1276,16 @@ export namespace model {
 	    procName?: string;
 	    procMatch?: string;
 	    cpuBelow?: number;
+	    powerOp?: string;
+	    countdownSec?: number;
+	    displayOp?: string;
+	    displayValue?: string;
+	    soundWait?: boolean;
 	    notifyTitle?: string;
 	    zipOp?: string;
 	    zipTo?: string;
 	    inputOp?: string;
+	    inputHotkey?: string;
 	    inputLayout?: string;
 	    cond?: Cond;
 	    cases?: Case[];
@@ -1443,10 +1449,16 @@ export namespace model {
 	        this.procName = source["procName"];
 	        this.procMatch = source["procMatch"];
 	        this.cpuBelow = source["cpuBelow"];
+	        this.powerOp = source["powerOp"];
+	        this.countdownSec = source["countdownSec"];
+	        this.displayOp = source["displayOp"];
+	        this.displayValue = source["displayValue"];
+	        this.soundWait = source["soundWait"];
 	        this.notifyTitle = source["notifyTitle"];
 	        this.zipOp = source["zipOp"];
 	        this.zipTo = source["zipTo"];
 	        this.inputOp = source["inputOp"];
+	        this.inputHotkey = source["inputHotkey"];
 	        this.inputLayout = source["inputLayout"];
 	        this.cond = this.convertValues(source["cond"], Cond);
 	        this.cases = this.convertValues(source["cases"], Case);
@@ -1502,6 +1514,7 @@ export namespace model {
 	    anchorMode?: string;
 	    inputs?: ScriptInput[];
 	    human?: string;
+	    keepAwake?: boolean;
 	    meta?: ScriptMeta;
 	
 	    static createFrom(source: any = {}) {
@@ -1521,6 +1534,7 @@ export namespace model {
 	        this.anchorMode = source["anchorMode"];
 	        this.inputs = this.convertValues(source["inputs"], ScriptInput);
 	        this.human = source["human"];
+	        this.keepAwake = source["keepAwake"];
 	        this.meta = this.convertValues(source["meta"], ScriptMeta);
 	    }
 	

@@ -7,6 +7,7 @@ import (
 
 	"ghosthand/internal/device"
 	"ghosthand/internal/model"
+	"ghosthand/internal/power"
 	"ghosthand/internal/secrets"
 	"ghosthand/internal/store"
 	"ghosthand/internal/web"
@@ -28,6 +29,8 @@ type Deps struct {
 	SaveRun func(rec model.RunRecord, path string, shots map[string]image.Image) error
 	// ShotsDir – thư mục ảnh trong Cài đặt (node Chụp màn hình để trống saveDir), đọc lúc bắt đầu mỗi phiên.
 	ShotsDir func() string
+	// KeepAwake – giữ máy thức trong lúc chạy (Script.KeepAwake); nil = thật (macOS caffeinate, Windows SetThreadExecutionState).
+	KeepAwake func(ctx context.Context) (stop func(), err error)
 	// Secrets – kho bí mật (bước 43 S10); nil = Keychain / Credential Manager thật.
 	Secrets *secrets.Store
 }
@@ -67,6 +70,9 @@ func (d Deps) withDefaults() Deps {
 		d.Touch = func(ctx context.Context, in *device.TrackingInput, paused func() bool, onTouch func()) {
 			device.WatchTouch(ctx, device.Location, in, paused, onTouch)
 		}
+	}
+	if d.KeepAwake == nil {
+		d.KeepAwake = power.KeepAwake
 	}
 	if d.Secrets == nil {
 		d.Secrets = store.Secrets()

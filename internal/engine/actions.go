@@ -88,6 +88,10 @@ func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[strin
 		return e.osShortcut(ctx, s)
 	case model.StepInputSource:
 		return e.inputSource(ctx, s)
+	case model.StepPower:
+		return e.powerStep(ctx, s)
+	case model.StepDisplay:
+		return e.displayStep(ctx, s)
 	case model.StepNotify:
 		return e.notifyStep(ctx, s)
 	case model.StepZip:

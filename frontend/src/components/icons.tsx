@@ -114,6 +114,8 @@ export const STEP_ICON = {
   waitScreen: 'M3 5h18v11H3zM8 20h8M12 16v4M9 10.5h.01M12 10.5h.01M15 10.5h.01', // màn hình + ba chấm đang tải
   findAll: 'M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3M8 8h3v3H8zM13 8h3v3h-3zM8 13h3v3H8zM13 13h3v3h-3z', // khung tìm + bốn ô – mọi chỗ thấy
   waitUntil: 'M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM12 9v4l2.5 1.5M5 3 2 6M19 3l3 3', // đồng hồ báo thức
+  power: 'M12 3v8M7.5 6.5a7 7 0 1 0 9 0', // nút nguồn
+  display: 'M3 5h18v11H3zM8 20h8M12 16v4M10 8.5l4 2.5-4 2.5z', // màn hình có nút phát
   notify: 'M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7zM10 20h4', // chuông – thông báo
   zip: 'M5 3h10l4 4v14H5zM15 3v4h4M10 9h2M10 12h2M10 15h2M9 18h4', // tệp có khoá kéo – zip
   inputSource: 'M3 7h18v10H3zM7 11h.01M11 11h.01M15 11h.01M7 14h10', // bàn phím – bộ gõ

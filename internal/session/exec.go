@@ -83,6 +83,14 @@ func (m *Manager) exec(ctx context.Context, r *run, canDanger bool) {
 		go m.deps.Touch(ctx, in, eng.Paused, func() { eng.PauseTouched() })
 	}
 
+	if r.sc.KeepAwake { // giữ máy thức tới khi chạy xong; lỗi chỉ cảnh báo – kịch bản vẫn chạy
+		if stop, kerr := m.deps.KeepAwake(ctx); kerr != nil {
+			m.emit("log:error", "giữ máy thức: "+kerr.Error())
+		} else {
+			defer stop()
+		}
+	}
+
 	rec.StartedAt = m.deps.Now()
 	err = eng.Run(ctx)
 	rec.DurationMs = m.deps.Now().Sub(rec.StartedAt).Milliseconds()

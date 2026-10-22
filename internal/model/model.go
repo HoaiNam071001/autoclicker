@@ -161,6 +161,13 @@ type Step struct {
 	ProcName  string `json:"procName,omitempty"`  // tên tiến trình (notepad.exe, Google Chrome Helper); "" = mọi tiến trình (chỉ khi đọc); nhận {{biến}}
 	ProcMatch string `json:"procMatch,omitempty"` // NameMatches như WinMatch
 	CPUBelow  int    `json:"cpuBelow,omitempty"`  // waitIdle: tổng CPU của tiến trình khớp phải dưới ngưỡng này (%, 100 = đầy một lõi; 0 = 5)
+	// Nguồn (bước 43 S3, engine/power.go)
+	PowerOp      string `json:"powerOp,omitempty"`      // PowerOps: lock | displaySleep | sleep | logout | shutdown | restart
+	CountdownSec int    `json:"countdownSec,omitempty"` // đếm ngược trước hành động (giây; 0 = PowerCountdownSec cho hành động cần đồng ý, không đếm với khoá màn / tắt màn hình) – bấm Dừng để huỷ
+	// Màn hình / âm thanh (bước 43 S7, engine/display.go)
+	DisplayOp    string `json:"displayOp,omitempty"`    // DisplayOps: "" = đọc | theme | brightness | audioOut | audioIn | sound
+	DisplayValue string `json:"displayValue,omitempty"` // theme: light | dark | toggle · brightness: 0–100 · audioOut / audioIn: tên hoặc mã thiết bị · sound: file hoặc tên âm hệ thống; nhận {{biến}}
+	SoundWait    bool   `json:"soundWait,omitempty"`    // sound: chờ phát xong rồi mới đi tiếp
 	// Thông báo hệ thống (bước 43 S9, engine/toast.go) – nội dung = Text
 	NotifyTitle string `json:"notifyTitle,omitempty"` // tiêu đề ("" = Ghosthand); nhận {{biến}}
 	// Nén / giải nén (bước 43 S8, engine/zip.go) – nguồn = FilePath, lọc tên file khi nén thư mục = FilePattern
@@ -168,6 +175,7 @@ type Step struct {
 	ZipTo string `json:"zipTo,omitempty"` // đích: nén = file .zip ("" = <nguồn>.zip) | giải nén = thư mục ("" = thư mục tên như file zip, cạnh nó); nhận {{biến}}
 	// Bộ gõ (bước 43 S6, engine/inputsource.go)
 	InputOp     string `json:"inputOp,omitempty"`     // InputOps: "" = đọc | set
+	InputHotkey string `json:"inputHotkey,omitempty"` // toggleIME: phím tắt của phần mềm gõ, vd ctrl+shift, alt+z ("" = InputDefaultHotkey)
 	InputLayout string `json:"inputLayout,omitempty"` // set: bộ gõ cần đổi sang – id hoặc tên (ABC, Telex, vi-VN…, chứa là khớp); nhận {{biến}}
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
@@ -258,6 +266,7 @@ type Script struct {
 	AnchorMode string        `json:"anchorMode,omitempty"` // "" = góc gần nhất | start = luôn trên trái
 	Inputs     []ScriptInput `json:"inputs,omitempty"`     // giá trị hỏi khi bấm Chạy (script/inputs.go)
 	Human      string        `json:"human,omitempty"`      // thao tác giống người: "" / off = tắt | low | medium | high
+	KeepAwake  bool          `json:"keepAwake,omitempty"`  // giữ máy + màn hình thức trong lúc kịch bản chạy (macOS caffeinate, Windows SetThreadExecutionState)
 	Meta       *ScriptMeta   `json:"meta,omitempty"`       // nguồn gốc kịch bản (AI tạo – bước 31)
 }
 

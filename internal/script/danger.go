@@ -19,6 +19,7 @@ const (
 	DangerQuit       = "quit"               // thoát app Target, quá giờ thì buộc thoát
 	DangerForceQuit  = "forceQuit"          // buộc thoát app Target
 	DangerClose      = "close"              // đóng cửa sổ Target
+	DangerPower      = "power"              // ngủ / đăng xuất / tắt / khởi động lại máy (node Nguồn, bước 43 S3) – hành động ở Target
 	DangerShell      = "shell"              // chạy lệnh Script bằng Lang (node Chạy lệnh, bước 43 S1)
 )
 
@@ -46,6 +47,8 @@ func dangerOf(s model.Step) (DangerOp, bool) {
 		op.Op, op.Target = DangerForceQuit, strings.TrimSpace(s.AppName)
 	case s.Type == model.StepApp && s.AppOp == model.AppQuit && s.AppForce:
 		op.Op, op.Target = DangerQuit, strings.TrimSpace(s.AppName)
+	case s.Type == model.StepPower && model.PowerNeedsConsent(s.PowerOp):
+		op.Op, op.Target = DangerPower, s.PowerOp
 	case s.Type == model.StepShell:
 		op.Op, op.Lang, op.Script, op.Dir = DangerShell, s.ShellLang, s.Script, strings.TrimSpace(s.FilePath)
 	case s.Type == model.StepWindow && s.WinOp == model.WinClose:

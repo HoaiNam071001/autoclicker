@@ -13,6 +13,8 @@ import type { AppOp } from './flow/app';
 import type { ProcOp } from './flow/process';
 import type { InputOp } from './flow/inputSource';
 import type { ZipOp } from './flow/zip';
+import type { PowerOp } from './flow/power';
+import type { DisplayOp } from './flow/display';
 import type { BrowserName, TabOp } from './flow/browserTab';
 import type { CaseMode, NumOp, NumStyle } from './flow/textNodes';
 import type { KV, Rect } from './types';
@@ -70,6 +72,13 @@ export interface AdvancedFields {
   appName?: string; // tên app / tên exe / bundle id; nhận {{biến}}
   appMatch?: WinMatch; // như winMatch
   appForce?: boolean; // thoát: quá giờ chưa thoát thì buộc thoát
+  // nguồn (bước 43 S3, internal/engine/power.go)
+  powerOp?: PowerOp;
+  countdownSec?: number; // đếm ngược trước khi làm (giây; 0 = 30 s với hành động cần đồng ý) – bấm Dừng để huỷ
+  // màn hình / âm thanh (bước 43 S7, internal/engine/display.go)
+  displayOp?: DisplayOp; // bỏ trống = đọc
+  displayValue?: string; // theme: light | dark | toggle · brightness: 0–100 · audioOut / audioIn: tên thiết bị · sound: file hoặc tên âm; nhận {{biến}}
+  soundWait?: boolean; // sound: chờ phát xong
   // thông báo hệ thống (bước 43 S9, internal/engine/toast.go) – nội dung = text
   notifyTitle?: string; // tiêu đề (trống = Ghosthand); nhận {{biến}}
   // nén / giải nén (bước 43 S8, internal/engine/zip.go) – nguồn = filePath, lọc tên file khi nén thư mục = filePattern
@@ -77,6 +86,7 @@ export interface AdvancedFields {
   zipTo?: string; // đích: nén = file .zip, giải nén = thư mục; nhận {{biến}}
   // bộ gõ (bước 43 S6, internal/engine/inputsource.go)
   inputOp?: InputOp; // bỏ trống = đọc
+  inputHotkey?: string; // toggleIME: phím tắt của phần mềm gõ (trống = ctrl+shift)
   inputLayout?: string; // set: bộ gõ cần đổi sang – id hoặc tên; nhận {{biến}}
   // tiến trình (bước 43 S5, internal/engine/process.go) – timeoutMs / stableMs: chờ
   procOp?: ProcOp; // bỏ trống = đọc

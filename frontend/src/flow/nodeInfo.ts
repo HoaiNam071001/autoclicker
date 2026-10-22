@@ -31,6 +31,8 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   clipboard: { desc: 'Đọc chữ đang có trong clipboard vào biến, ghi chữ (nhận {{biến}}) hoặc ghi ảnh PNG từ file.', use: 'Copy / paste: ghép với Phím tắt Cmd/Ctrl+C, Cmd/Ctrl+V; chép ảnh vừa chụp để dán vào chat.' },
   http: { desc: 'Gọi API (GET / POST / PUT / PATCH / DELETE) kèm tham số, header, thân JSON / form; đọc kết quả JSON vào biến.', use: 'Lấy dữ liệu từ server, gửi đơn / tin nhắn qua API, báo kết quả chạy về Telegram / webhook.' },
   file: { desc: 'Ghi chữ vào file, thêm dòng vào bảng .csv / .xlsx, tạo thư mục, xoá file vào Thùng rác hoặc dọn Thùng rác.', use: 'Lưu nhật ký / kết quả từng vòng vào Excel, dọn ảnh chụp cũ trong thư mục.' },
+  power: { desc: 'Khoá màn, tắt màn hình, ngủ, đăng xuất, tắt hoặc khởi động lại máy – hành động mất phiên cần bạn đồng ý và đếm ngược để huỷ.', use: 'Tắt máy khi chạy xong việc dài qua đêm; khoá màn sau khi làm xong.' },
+  display: { desc: 'Đổi chế độ sáng / tối, độ sáng màn hình, loa / micro mặc định, phát âm báo; hoặc đọc trạng thái hiện tại.', use: 'Chuyển sang tai nghe trước cuộc gọi, phát tiếng báo khi xong, tối màn hình khi chạy ban đêm.' },
   notify: { desc: 'Hiện thông báo của hệ điều hành (Notification Center / toast Windows) với tiêu đề và nội dung.', use: 'Báo cho người ngồi máy khi kịch bản xong hoặc cần chú ý, kể cả khi app đang thu nhỏ.' },
   zip: { desc: 'Nén file / thư mục ra .zip hoặc giải nén .zip vào thư mục.', use: 'Gói kết quả trước khi gửi / tải lên; mở gói vừa tải về để lấy file bên trong.' },
   inputSource: { desc: 'Đọc hoặc đổi bộ gõ của máy (ABC ↔ Telex, en-US ↔ vi-VN).', use: 'Đặt ABC trước khi gõ để dấu không bị méo; rẽ nhánh theo bộ gõ đang dùng.' },
