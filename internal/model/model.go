@@ -154,6 +154,8 @@ type Step struct {
 	ShellLang string `json:"shellLang,omitempty"` // ShellLangs: "" = shell của máy | powershell | applescript | jxa
 	Script    string `json:"script,omitempty"`    // nội dung lệnh – KHÔNG nhận {{biến}} (chống chèn lệnh); đưa biến vào lệnh qua ShellEnv
 	ShellEnv  []KV   `json:"shellEnv,omitempty"`  // biến môi trường cho lệnh: tên → giá trị (nhận {{biến}})
+	// Shortcuts của hệ điều hành (bước 43 S2, engine/osshortcut.go) – input chữ lấy từ Text; TimeoutMs: hết giờ
+	ShortcutName string `json:"shortcutName,omitempty"` // tên Shortcut trong ứng dụng Phím tắt; nhận {{biến}}
 	// Node điều khiển (bước 20 F3, nodes.go)
 	Cond      *Cond  `json:"cond,omitempty"`      // if
 	Cases     []Case `json:"cases,omitempty"`     // switch / switchScreen – mỗi case một cổng ra case:<key>

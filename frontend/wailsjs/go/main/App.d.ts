@@ -59,6 +59,8 @@ export function ListRuns(arg1:string,arg2:string):Promise<Array<model.RunSummary
 
 export function ListSchedules():Promise<Array<model.Schedule>>;
 
+export function ListShortcuts():Promise<Array<string>>;
+
 export function ListWindows():Promise<Array<model.WindowInfo>>;
 
 export function LoadDraft():Promise<store.Draft>;

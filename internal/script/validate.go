@@ -131,6 +131,10 @@ func ValidateScript(sc model.Script, screen model.Rect) error {
 			if err := checkPageText(i, s); err != nil {
 				return err
 			}
+		case model.StepOSShortcut:
+			if strings.TrimSpace(s.ShortcutName) == "" {
+				return stepErr(i, s, "shortcutName", "chưa nhập tên Shortcut")
+			}
 		case model.StepShell:
 			if err := validateShell(i, s); err != nil {
 				return err

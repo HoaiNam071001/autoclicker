@@ -1,0 +1,26 @@
+{
+ "meta": {
+  "name": "Shortcuts hệ điều hành – chạy Shortcut có sẵn",
+  "description": "Chạy Shortcut tên “Ghosthand thử” trong ứng dụng Phím tắt với input “xin chào ghosthand” và lấy chữ nó trả về. Đúng: lời kết ghi “XIN CHÀO GHOSTHAND” (nếu Shortcut đổi sang chữ hoa).",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Chỉ macOS. Mở ứng dụng Phím tắt, tạo Shortcut tên “Ghosthand thử”: nhận Đầu vào của Shortcut → Thay đổi chữ hoa/thường (CHỮ HOA) → Dừng và xuất kết quả. Chưa có Shortcut thì node báo not_found."
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "osShortcut",
+    "shortcutName": "Ghosthand thử",
+    "text": "xin chào ghosthand",
+    "timeoutMs": 30000
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Shortcut trả về: {{n1.output.text}}"
+   }
+  ]
+ }
+}

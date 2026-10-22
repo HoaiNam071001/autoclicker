@@ -1271,6 +1271,7 @@ export namespace model {
 	    shellLang?: string;
 	    script?: string;
 	    shellEnv?: KV[];
+	    shortcutName?: string;
 	    cond?: Cond;
 	    cases?: Case[];
 	    value?: string;
@@ -1428,6 +1429,7 @@ export namespace model {
 	        this.shellLang = source["shellLang"];
 	        this.script = source["script"];
 	        this.shellEnv = this.convertValues(source["shellEnv"], KV);
+	        this.shortcutName = source["shortcutName"];
 	        this.cond = this.convertValues(source["cond"], Cond);
 	        this.cases = this.convertValues(source["cases"], Case);
 	        this.value = source["value"];

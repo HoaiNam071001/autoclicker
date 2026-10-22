@@ -1,5 +1,5 @@
 // Hoạt hoạ nhóm dữ liệu: clipboard, HTTP, tệp, âm lượng, tính toán, xử lý chữ, đặt biến (bước 47).
-import { Arr, Chip, Move, Scenes, Show, Stage, T, Tween, Typed, Win } from './parts';
+import { Arr, Chip, Move, Scenes, Show, Stage, T, Tick, Tween, Typed, Win } from './parts';
 
 const box = (x: number, y: number, w: number, h: number, label?: string) => (
   <g><rect x={x} y={y} width={w} height={h} rx="6" className="fill-surface stroke-line-strong" />
@@ -34,6 +34,15 @@ export const data: Scenes = {
         {[0, 1, 2].map((j) => <rect key={j} x={34 + j * 60} y={36 + i * 18} width={i === 0 ? 40 : 30 + ((i + j) % 3) * 8} height="4" rx="2" className="fill-line-strong" />)}</g>)}
       <Show from={0.4}><rect x={28} y={102} width="184" height="16" className="fill-accent-soft stroke-accent" /><T x={34} y={113} s={8}>ĐH-4821 · 1.250.000 · xong</T></Show>
       <Show from={0.4}><T x={206} y={113} anchor="end" cls="fill-accent-text">+ dòng mới</T></Show>
+    </Stage>
+  ),
+  osShortcut: () => (
+    <Stage>
+      {box(14, 40, 62, 54, 'Phím tắt')}
+      <path d="M52 48l-10 20h8l-4 18 14-24h-8z" className="fill-accent" />
+      <Arr x1={80} y1={67} x2={160} y2={67} />
+      {packet([[0.1, 96, 67], [0.5, 144, 67]], 'chữ')}
+      <Show from={0.55}><rect x={164} y={50} width="62" height="34" rx="6" className="fill-surface stroke-ok" /><T x={195} y={71} anchor="middle" s={8} cls="fill-ink">KẾT QUẢ</T><Tick x={226} y={50} from={0.55} /></Show>
     </Stage>
   ),
   shell: () => (

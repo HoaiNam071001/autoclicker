@@ -9,6 +9,7 @@ import { fmtHTTP } from './http';
 import { fmtElementAction } from './elementAction';
 import { fmtWaitUIEvent } from './uiEvent';
 import { fmtFile, fmtWaitDownload } from './file';
+import { fmtOSShortcut } from './osShortcut';
 import { fmtShell } from './shell';
 import { fmtSystem } from './system';
 import { fmtWindow } from './window';
@@ -42,6 +43,7 @@ export const fmtPos = (s: Step, refOf: (id: string) => string = () => '?') =>
     : s.type === 'file' ? fmtFile(s)
     : s.type === 'system' ? fmtSystem(s)
     : s.type === 'shell' ? fmtShell(s)
+    : s.type === 'osShortcut' ? fmtOSShortcut(s)
     : s.type === 'window' ? fmtWindow(s)
     : s.type === 'app' ? fmtApp(s)
     : s.type === 'browserTab' ? fmtBrowserTab(s, refOf)

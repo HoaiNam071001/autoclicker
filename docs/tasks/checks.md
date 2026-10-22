@@ -3,8 +3,9 @@
 Những việc **đã xong code** nhưng cần người dùng thử trong app thật (`wails dev`). Mới nhất ở trên.
 Thử xong: tick `[x]` ở đây, ghi kết quả vào [log.md](log.md); lỗi thì báo để sửa (thêm mục con trong file của bước).
 
-## 43 – Node chuyên sâu (S1 Chạy lệnh, E3 Đọc tài liệu, E2 Chờ sự kiện giao diện, E1 Thao tác phần tử, B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS, B4 Đọc chữ trang, B5 Đọc bảng, B6 Chờ tải xong, B7 Lưu PDF) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
+## 43 – Node chuyên sâu (S2 Shortcuts, S1 Chạy lệnh, E3 Đọc tài liệu, E2 Chờ sự kiện giao diện, E1 Thao tác phần tử, B1 Tab trình duyệt, B2 Đi tới URL, B3 Chuẩn hoá – macOS, B4 Đọc chữ trang, B5 Đọc bảng, B6 Chờ tải xong, B7 Lưu PDF) · [phase3/43-node-chuyen-sau.md](phase3/43-node-chuyen-sau.md)
 
+- [ ] (S2) Mẫu thử *Shortcuts hệ điều hành* (macOS): tạo Shortcut “Ghosthand thử” (Đầu vào → CHỮ HOA → Dừng và xuất) rồi chạy: lời kết “XIN CHÀO GHOSTHAND”; inspector có ô *Chọn từ danh sách…* liệt kê Shortcut; đổi tên sai → fail not_found; lần đầu macOS có thể hỏi quyền
 - [ ] (S1) Mẫu thử *Chạy lệnh – shell với biến môi trường* (macOS): bấm Chạy → hộp xác nhận hiện nguyên văn lệnh; Cho phép → lời kết ghi “Xin chao Ghosthand” + số file trong Downloads; chạy lại không hỏi; sửa một ký tự trong lệnh → hỏi lại. Thử lệnh `sleep 60` với chờ 3000 ms → fail timeout, `ps` không còn tiến trình `sleep`; bấm Dừng giữa chừng cũng giết hết; lệnh `exit 3` → cổng Thất bại, `exitCode` = 3; thử AppleScript `display notification "xin chào"` / JXA
 - [ ] (E3) Mẫu thử *Đọc tài liệu* (Chrome / Safari, cấp Accessibility): lời kết ghi 3 dòng, có “Biên bản họp”, “1.250.000 đ”, “hẹn thứ Sáu”. Bôi đen 1 dòng trong ô rồi chạy với *Chỉ phần đang chọn* → chỉ dòng đó; thử thêm với TextEdit đang mở một văn bản.
 - [ ] (E2) Mẫu thử *Chờ sự kiện giao diện* (Chrome / Safari, cấp Accessibility): bấm BẮT ĐẦU, ~2 s sau hộp thoại “Hoàn tất” hiện và kịch bản kết thúc thành công (không chụp màn hình); thử đổi `uiEvent` sang *Cửa sổ mới mở* rồi mở một cửa sổ app khác → bắt được; không có gì xảy ra → Thất bại sau hết giờ.

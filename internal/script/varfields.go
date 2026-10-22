@@ -80,6 +80,9 @@ func VarFields(s *model.Step) []VarField {
 		if s.Type == model.StepReadTable {
 			add("filePath", &s.FilePath, false)
 		}
+	case model.StepOSShortcut:
+		add("shortcutName", &s.ShortcutName, false)
+		add("text", &s.Text, false)
 	case model.StepShell:
 		// Script KHÔNG nhận biến (chống chèn lệnh) – biến đi qua ShellEnv
 		add("filePath", &s.FilePath, false)

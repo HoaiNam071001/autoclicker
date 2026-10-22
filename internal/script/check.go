@@ -168,6 +168,10 @@ func checkStep(s *model.Step) error {
 		if err := checkTab(*s); err != nil {
 			return err
 		}
+	case model.StepOSShortcut:
+		if s.TimeoutMs < 0 {
+			return fmt.Errorf("thời gian chờ không được âm")
+		}
 	case model.StepShell:
 		if err := checkShell(*s); err != nil {
 			return err

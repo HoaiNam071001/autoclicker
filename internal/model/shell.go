@@ -15,3 +15,6 @@ var ShellLangs = []string{ShellDefault, ShellPowerShell, ShellAppleScript, Shell
 
 // ShellTimeoutMs – hết giờ mặc định của node Chạy lệnh.
 const ShellTimeoutMs = 30000
+
+// OSShortcutTimeoutMs – hết giờ mặc định của node Shortcuts của hệ điều hành.
+const OSShortcutTimeoutMs = 60000

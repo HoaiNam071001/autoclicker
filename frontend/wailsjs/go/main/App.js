@@ -102,6 +102,10 @@ export function ListSchedules() {
   return window['go']['main']['App']['ListSchedules']();
 }
 
+export function ListShortcuts() {
+  return window['go']['main']['App']['ListShortcuts']();
+}
+
 export function ListWindows() {
   return window['go']['main']['App']['ListWindows']();
 }

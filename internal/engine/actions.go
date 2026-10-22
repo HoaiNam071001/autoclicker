@@ -84,6 +84,8 @@ func (e *Engine) runStep(ctx context.Context, s model.Step, wait int) (map[strin
 		return e.elementAction(ctx, s)
 	case model.StepWaitDownload:
 		return e.waitDownload(ctx, s)
+	case model.StepOSShortcut:
+		return e.osShortcut(ctx, s)
 	case model.StepShell:
 		return e.shellStep(ctx, s)
 	case model.StepReadTable:
