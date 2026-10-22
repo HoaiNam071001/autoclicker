@@ -127,3 +127,14 @@ func TestValidateFlowCoordVarsForEachItem(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSecretRefs(t *testing.T) {
+	sc := model.Script{Steps: []model.Step{
+		{ID: "s1", Ref: "n1", Type: model.StepText, Text: "{{secret.zalo}} và {{secret.email_pw}}"},
+		{ID: "s2", Ref: "n2", Type: model.StepText, Text: "{{secret.zalo}} {{n1.output.x}}"},
+	}}
+	got := SecretRefs(sc)
+	if len(got) != 2 || got[0] != "email_pw" || got[1] != "zalo" {
+		t.Errorf("SecretRefs = %v", got)
+	}
+}

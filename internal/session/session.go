@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"strings"
 	"sync"
 	"time"
 
@@ -97,14 +98,15 @@ func (s Status) Done() bool {
 }
 
 type run struct {
-	status Status // đọc / ghi dưới Manager.mu
-	sc     model.Script
-	opt    Options
-	values map[string]any
-	cancel context.CancelFunc
-	eng    *engine.Engine
-	done   chan struct{}
-	err    error // lỗi của lần chạy (nil khi xong / bị dừng) – đọc sau khi done đóng
+	status  Status // đọc / ghi dưới Manager.mu
+	sc      model.Script
+	opt     Options
+	values  map[string]any
+	secrets map[string]string // giá trị bí mật kịch bản dùng (chỉ trong bộ nhớ, engine che ở mọi kết quả)
+	cancel  context.CancelFunc
+	eng     *engine.Engine
+	done    chan struct{}
+	err     error // lỗi của lần chạy (nil khi xong / bị dừng) – đọc sau khi done đóng
 
 	// vết chạy cho AI (Trace) – ghi dưới Manager.mu
 	results []model.StepResult
@@ -143,6 +145,31 @@ func Validate(sc model.Script, values map[string]any) error {
 	return script.ValidateScript(out, device.MainScreen())
 }
 
+// Validate – như Validate + báo thiếu bí mật {{secret.<tên>}} (kho bí mật của máy này).
+func (m *Manager) Validate(sc model.Script, values map[string]any) error {
+	if err := Validate(sc, values); err != nil {
+		return err
+	}
+	_, err := m.secretsFor(sc)
+	return err
+}
+
+// secretsFor lấy giá trị các bí mật kịch bản dùng; thiếu → lỗi nêu đủ tên (không bao giờ nêu giá trị).
+func (m *Manager) secretsFor(sc model.Script) (map[string]string, error) {
+	names := script.SecretRefs(sc)
+	if len(names) == 0 {
+		return nil, nil
+	}
+	vals, missing, err := m.deps.Secrets.Resolve(context.Background(), names)
+	if err != nil {
+		return nil, &model.ScriptError{Field: "secret", Msg: err.Error()}
+	}
+	if len(missing) > 0 {
+		return nil, &model.ScriptError{Field: "secret", Msg: fmt.Sprintf("thiếu bí mật: %s – thêm ở Cài đặt → Bí mật", strings.Join(missing, ", "))}
+	}
+	return vals, nil
+}
+
 // Start kiểm tra kịch bản (input, lỗi soạn, thao tác nguy hiểm) rồi chạy nền; trả runId ngay.
 // Lỗi kiểm tra trả về ở đây, lỗi lúc chạy xem qua Wait / Status.
 func (m *Manager) Start(sc model.Script, values map[string]any, opt Options) (string, error) {
@@ -164,6 +191,10 @@ func (m *Manager) Start(sc model.Script, values map[string]any, opt Options) (st
 	if err != nil {
 		return "", err
 	}
+	secretVals, err := m.secretsFor(sc)
+	if err != nil {
+		return "", err
+	}
 	m.mu.Lock()
 	if m.cur != nil {
 		m.mu.Unlock()
@@ -172,7 +203,7 @@ func (m *Manager) Start(sc model.Script, values map[string]any, opt Options) (st
 	now := m.deps.Now()
 	id := m.newID(now)
 	ctx, cancel := context.WithCancel(context.Background())
-	r := &run{sc: sc, opt: opt, values: values, cancel: cancel, done: make(chan struct{}), seed: seed,
+	r := &run{sc: sc, opt: opt, values: values, cancel: cancel, done: make(chan struct{}), seed: seed, secrets: secretVals,
 		status: Status{RunID: id, Script: sc.Name, Path: opt.Path, Source: opt.Source, Preset: opt.Preset, State: StateCountdown, StartedAt: now}}
 	m.cur = r
 	m.remember(r)

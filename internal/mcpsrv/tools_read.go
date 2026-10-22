@@ -40,6 +40,9 @@ func (s *Server) addReadTools() {
 	addTool(s, KindRead, &mcp.Tool{Name: "get_step_types", Description: "Hướng dẫn viết kịch bản: cấu trúc flow, biến {{…}}, trường chung, " +
 		"từng loại node app hỗ trợ (mô tả, trường, ví dụ JSON, output, cổng ra) và mẹo viết kịch bản bền. Đọc trước khi tạo / sửa. " +
 		"Đầy đủ rất dài: compact=true để xem danh sách gọn mọi node trước, rồi type=<tên> lấy chi tiết loại cần dùng."}, s.stepTypes)
+	addTool(s, KindRead, &mcp.Tool{Name: "list_secrets", Description: "Tên các bí mật người dùng đã lưu trong Cài đặt → Bí mật (mật khẩu, token…). " +
+		"CHỈ có tên, không bao giờ có giá trị. Dùng trong ô chữ của node bằng {{secret.<tên>}}; app điền giá trị thật lúc chạy và che trong kết quả. " +
+		"Cần bí mật chưa có thì bảo người dùng thêm ở Cài đặt → Bí mật, đừng xin giá trị."}, s.listSecrets)
 	addTool(s, KindRead, &mcp.Tool{Name: "get_screen_info", Description: "Các màn hình: khung theo toạ độ chuột (x, y, w, h), tỷ lệ DPI / Retina, màn chính. " +
 		"Toạ độ trong kịch bản dùng cùng hệ này."}, s.screenInfo)
 }
@@ -113,6 +116,10 @@ func (s *Server) stepTypes(_ context.Context, _ *mcp.CallToolRequest, in typesIn
 func (s *Server) screenInfo(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
 	return ok(map[string]any{"displays": s.back.Displays(),
 		"note": "Toạ độ theo hệ của chuột (robotgo): Windows là pixel thật, macOS là điểm logic (Retina scale 2 = 1 điểm 2 pixel)."})
+}
+
+func (s *Server) listSecrets(_ context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, any, error) {
+	return ok(map[string]any{"secrets": s.back.SecretNames()})
 }
 
 func samePath(a, b string) bool {

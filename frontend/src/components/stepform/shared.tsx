@@ -6,7 +6,7 @@ import { KeyChip } from '../inputs/PinButton';
 import { FieldMenu, FieldMenuItem, MENU_ICON } from '../FieldMenu';
 import { defaultOf } from '../../flow/defaults';
 import VarTextInput from '../inputs/VarTextInput';
-import { pickPointFor, setNumVarExpr, setNumVarOn, updateStep, useScript } from '../../store';
+import { pickPointFor, setNumVarExpr, setNumVarOn, updateStep, useScript, useSecretNames } from '../../store';
 import { addInput, compatibleInputs, pinField, pinnedInput, pinToInput, setPinnedValue, unpinField } from '../../scriptInputs';
 import { MouseButton, numVarOf, NumVarField, ScrollDirection, Step, StepPoint } from '../../types';
 import Segmented from '../Segmented';
@@ -24,7 +24,8 @@ export const fmtSec = (ms?: number) => `${((ms ?? 0) / 1000).toLocaleString('vi-
 // Biến kết quả các node khác ({{n2.output.x}}) cho ô chữ của node id
 export function useNodeVars(id: string) {
   const { steps, start, edges } = useScript();
-  return useMemo(() => nodeVarOptions({ steps, start, edges }, id), [steps, start, edges, id]);
+  const secrets = useSecretNames();
+  return useMemo(() => [...nodeVarOptions({ steps, start, edges }, id), ...secrets.map((n) => ({ key: `secret.${n}`, label: `Bí mật ${n} (giá trị bị che)` }))], [steps, start, edges, id, secrets]);
 }
 
 // Sửa một điểm của node (giữ các trường khác của điểm)

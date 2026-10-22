@@ -55,7 +55,7 @@ export default function VarTextInput({ value, onChange, inputs, nodeVars = [], o
   const used = varsIn(value);
   const unknown = used.filter((k) => !inputs.some((i) => i.key === k));
   // Biến node trỏ mã node không có (vars / last luôn hợp lệ) – Go kiểm tra đủ lúc chạy (validateFlow)
-  const refs = new Set(['vars', 'last', ...nodeVars.map((v) => v.key.split('.')[0])]);
+  const refs = new Set(['vars', 'last', 'secret', ...nodeVars.map((v) => v.key.split('.')[0])]);
   const badNode = (v: string) => !refs.has(v.split('.')[0]);
   const badNodes = splitVars(value).flatMap((s) => (s.nodeVar && badNode(s.nodeVar) ? [s.nodeVar.split('.')[0]] : []));
 

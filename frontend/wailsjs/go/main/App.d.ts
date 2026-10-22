@@ -35,6 +35,8 @@ export function DangerCheck(arg1:model.Script,arg2:Record<string, any>,arg3:stri
 
 export function DeleteRun(arg1:string,arg2:string,arg3:string):Promise<void>;
 
+export function DeleteSecret(arg1:string):Promise<void>;
+
 export function Displays():Promise<Array<main.DisplayInfo>>;
 
 export function FindElement(arg1:model.Script,arg2:string):Promise<engine.WebFindResult>;
@@ -58,6 +60,8 @@ export function ListApps():Promise<Array<model.AppInfo>>;
 export function ListRuns(arg1:string,arg2:string):Promise<Array<model.RunSummary>>;
 
 export function ListSchedules():Promise<Array<model.Schedule>>;
+
+export function ListSecrets():Promise<Array<string>>;
 
 export function ListShortcuts():Promise<Array<string>>;
 
@@ -144,6 +148,8 @@ export function SetMCPSettings(arg1:store.MCPSettings):Promise<void>;
 export function SetOverlayDisplay(arg1:number):Promise<void>;
 
 export function SetSchedule(arg1:model.Schedule):Promise<void>;
+
+export function SetSecret(arg1:string,arg2:string):Promise<void>;
 
 export function SetStorageSettings(arg1:store.StorageSettings):Promise<void>;
 

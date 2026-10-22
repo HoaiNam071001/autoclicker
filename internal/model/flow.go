@@ -106,7 +106,7 @@ var refPattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]{0,31}$`)
 
 // ValidRef: mã node dùng được trong biến {{ref.output.x}} – chữ cái đầu, chữ / số / _, không trùng tên dành riêng.
 func ValidRef(r string) bool {
-	return refPattern.MatchString(r) && r != "vars" && r != "last"
+	return refPattern.MatchString(r) && r != "vars" && r != "last" && r != "secret"
 }
 
 // EdgeOut trả node đích của cổng (from, port), "" nếu cổng chưa nối.

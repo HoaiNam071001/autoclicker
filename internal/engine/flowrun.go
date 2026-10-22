@@ -76,7 +76,7 @@ func (e *Engine) Run(ctx context.Context) error {
 
 // runLoop chạy một vòng flow. Kết quả / biến đặt lại mỗi vòng (Đếm đếm lại từ 0, Lặp qua danh sách nạp lại).
 func (e *Engine) runLoop(ctx context.Context, loop int) error {
-	e.rv = runVars{byRef: map[string]*model.StepResult{}, vars: map[string]any{}}
+	e.rv = runVars{byRef: map[string]*model.StepResult{}, vars: map[string]any{}, secrets: e.rv.secrets}
 	e.results = map[string]*model.StepResult{}
 	e.counts = map[string]int{}
 	e.lists = map[string]*listCursor{}
@@ -100,9 +100,10 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 			e.shoot(&res)
 		}
 		wait = e.shootAfter(ctx, &res, wait)
-		e.results[s.ID], e.rv.byRef[s.Ref], e.rv.last = &res, &res, &res
+		shown := e.mask.result(res) // bản rời engine đã che bí mật; rv giữ bản thật cho node sau
+		e.results[s.ID], e.rv.byRef[s.Ref], e.rv.last = &shown, &res, &res
 		if e.onNode != nil {
-			e.onNode(res)
+			e.onNode(shown)
 		}
 		if res.Status == model.StatusCancelled {
 			return ctx.Err()
@@ -114,7 +115,7 @@ func (e *Engine) runLoop(ctx context.Context, loop int) error {
 		e.setProg(func(p *Progress) { trackFlow(p, s, res) })
 		if res.Status == model.StatusFail && next == "" {
 			e.failed = s.ID
-			return fmt.Errorf("vòng %d, %s: %s", loop, s.Ref, res.Error.Message)
+			return fmt.Errorf("vòng %d, %s: %s", loop, s.Ref, shown.Error.Message)
 		}
 		if s.ID == e.stopAt {
 			e.reached = true

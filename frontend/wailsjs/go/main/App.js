@@ -54,6 +54,10 @@ export function DeleteRun(arg1, arg2, arg3) {
   return window['go']['main']['App']['DeleteRun'](arg1, arg2, arg3);
 }
 
+export function DeleteSecret(arg1) {
+  return window['go']['main']['App']['DeleteSecret'](arg1);
+}
+
 export function Displays() {
   return window['go']['main']['App']['Displays']();
 }
@@ -100,6 +104,10 @@ export function ListRuns(arg1, arg2) {
 
 export function ListSchedules() {
   return window['go']['main']['App']['ListSchedules']();
+}
+
+export function ListSecrets() {
+  return window['go']['main']['App']['ListSecrets']();
 }
 
 export function ListShortcuts() {
@@ -272,6 +280,10 @@ export function SetOverlayDisplay(arg1) {
 
 export function SetSchedule(arg1) {
   return window['go']['main']['App']['SetSchedule'](arg1);
+}
+
+export function SetSecret(arg1, arg2) {
+  return window['go']['main']['App']['SetSecret'](arg1, arg2);
 }
 
 export function SetStorageSettings(arg1) {

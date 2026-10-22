@@ -44,7 +44,7 @@ const flowDoc = `Kịch bản là flow: steps = danh sách node (thứ tự tron
 	`{{n2.error.code}} / {{n2.error.message}}, {{n2.output.<khoá>}} = kết quả lần chạy gần nhất của node có ref n2 trong vòng này ` +
 	`(khoá theo outputs của loại node, cộng startedAt / durationMs mọi node đều có; window / windowApp của click / double / drag / type / key = ` +
 	`cửa sổ đang ở trước sau thao tác – kiểm tra có gõ / bấm vào đúng app không; chưa có trên macOS); ` +
-	`{{last.…}} = node vừa chạy trước; {{vars.<tên>}} = biến node setVar đặt. Biến nhận được trong: text, target, findText, selectors, tab, ` +
+	`{{last.…}} = node vừa chạy trước; {{vars.<tên>}} = biến node setVar đặt; {{secret.<tên>}} = bí mật người dùng lưu (mật khẩu, token – xem tool list_secrets; giá trị không bao giờ lộ ra kịch bản / kết quả, hiện ••••). Biến nhận được trong: text, target, findText, selectors, tab, ` +
 	`elementApp, cond (findText, selectors, elementApp, left, right), cases (match, cond), value, message, filePath, sheet. ` +
 	`Điểm trên màn hình (points của click, double, hold, drag, scroll, waitPixel) nhận toạ độ từ biến: {"xVar":"{{n2.output.x}} + 20","yVar":"{{n2.output.y}}"} – ` +
 	`có xVar / yVar thì bỏ qua x, y và neo; mỗi ô là số hoặc biến cộng / trừ px, biến node phải là output của node đó (vd x, y, w, h của waitImage); ` +

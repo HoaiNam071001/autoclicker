@@ -80,6 +80,7 @@ type Engine struct {
 	audio       device.Audio                   // node Hệ thống – âm lượng (system.go) – test thay bằng bản giả
 	wins        device.Windows                 // node Cửa sổ (window.go) – test thay bằng bản giả
 	apps        device.Apps                    // node Ứng dụng (app.go) – test thay bằng bản giả
+	mask        *masker                        // che bí mật ở kết quả rời engine (mask.go)
 	toasts      toast.Backend                  // node Thông báo hệ thống (toast.go) – test thay bản giả
 	shortcuts   shortcuts.Backend              // node Shortcuts của hệ điều hành (osshortcut.go) – test thay bản giả
 	inputs      inputsource.Backend            // node Bộ gõ (inputsource.go) – test thay bản giả

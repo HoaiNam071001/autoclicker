@@ -27,7 +27,7 @@ func (a *App) emit(event string, data any) {
 
 // ValidateScript áp giá trị input rồi kiểm tra như lúc chạy (frontend gọi trước khi thu cửa sổ thành mini bar).
 func (a *App) ValidateScript(sc model.Script, values map[string]any) error {
-	return session.Validate(sc, values)
+	return a.sess.Validate(sc, values)
 }
 
 // RunScript chạy kịch bản (session.Start) rồi chờ tới khi xong / bị dừng (StopScript, F8, góc màn hình – kể cả lúc

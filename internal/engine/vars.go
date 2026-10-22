@@ -20,6 +20,8 @@ type runVars struct {
 	byRef map[string]*model.StepResult
 	last  *model.StepResult
 	vars  map[string]any
+	// secrets – giá trị {{secret.<tên>}} (Options.Secrets), không bao giờ vào results
+	secrets map[string]string
 }
 
 // resolveNodeVars trả bản sao node với biến node trong các ô chữ đã thay giá trị. Biến trỏ node chưa chạy / output
@@ -44,6 +46,13 @@ func resolveNodeVars(s model.Step, rv runVars) (model.Step, error) {
 }
 
 func (rv runVars) lookup(name, path string) (string, error) {
+	if name == "secret" {
+		v, ok := rv.secrets[path]
+		if !ok {
+			return "", fmt.Errorf("chưa có bí mật %q – thêm ở Cài đặt → Bí mật", path)
+		}
+		return v, nil
+	}
 	if name == "vars" {
 		v, ok := rv.vars[path]
 		if !ok {

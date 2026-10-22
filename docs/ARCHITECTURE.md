@@ -129,6 +129,7 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 | Node web (Chrome của app) | `BrowserStatus`, `OpenAppBrowser`, `FindElement`, `PickElement`, `CancelPick`, `CheckPage` |
 | Cửa sổ | `SetWindowMode`, `Displays`, `OverlayDisplayFor`, `SetOverlayDisplay` |
 | Shortcuts của macOS (43 S2) | `ListShortcuts` (`shortcutsapi.go`) – ô chọn Shortcut của node Shortcuts hệ điều hành |
+| Kho bí mật (43 S10) | `ListSecrets` (chỉ tên), `SetSecret`, `DeleteSecret` (`secretsapi.go`) – Cài đặt → Bí mật; không có method nào trả giá trị |
 | Cửa sổ / app khác (bước 26) | `ListWindows`, `ListApps` (inspector node Cửa sổ / Ứng dụng chọn từ danh sách, trạng thái đang chạy; cùng hàm cho tool MCP) |
 | Cấu hình | `GetSettings`, `SetTheme`, `SetAPISettings` (API cho chương trình khác) |
 | Lưu trữ (bước 41, `storagedirs.go`) | `StorageDefaults`, `SetStorageSettings`, `PickFolder` (hộp thoại chọn thư mục), `OpenFolder` (Finder / Explorer) |
@@ -215,6 +216,8 @@ Dừng / tạm dừng: `StopScript` (huỷ ctx), `PauseScript` / `ResumeScript` 
 `internal/launch` – `open.go`: mở URL / file / app (`OpenTarget`, `openCommand` theo hệ điều hành).
 
 `internal/inputsource` – `inputsource.go` (`Backend`, `Find`, `IsVietnamese`, `FindIME`), `input_darwin.go` (cgo HIToolbox, main queue), `input_windows.go` (layout của cửa sổ trên cùng), `input_other.go`.
+
+`internal/secrets` – `secrets.go` (`Backend`, `Store`: chỉ mục tên + `Resolve`), `keychain_darwin.go` (cgo Security), `keychain_windows.go` (Credential Manager), `keychain_other.go`; `store.Secrets()` là bản dùng chung; engine che giá trị ở `engine/mask.go`, session lấy bí mật kịch bản dùng ở `secretsFor`.
 
 `internal/toast` – `toast.go` (`Backend`, `System`: `osascript` macOS / PowerShell toast Windows, chữ qua argv / biến môi trường).
 

@@ -139,7 +139,7 @@ func unreachableNodes(sc model.Script) []string {
 // checkVarField – biến node trong ô f trỏ node có thật (refs: ref → chỉ số trong steps); ô số còn phải ra số.
 func checkVarField(f VarField, refs map[string]int, steps []model.Step) error {
 	for _, m := range NodeVarRe.FindAllStringSubmatch(*f.Ptr, -1) {
-		if name := m[1]; name != "vars" && name != "last" {
+		if name := m[1]; name != "vars" && name != "last" && name != "secret" {
 			j, ok := refs[name]
 			if !ok {
 				return fmt.Errorf("biến %s trỏ tới node %q không có trong kịch bản", m[0], name)
@@ -201,4 +201,23 @@ func withoutVars(t string) string {
 		}
 		return "0"
 	})
+}
+
+// SecretRefs – tên các bí mật {{secret.<tên>}} kịch bản dùng (kho bí mật, bước 43 S10), sắp theo chữ cái, không trùng.
+func SecretRefs(sc model.Script) []string {
+	seen := map[string]bool{}
+	var out []string
+	for i := range sc.Steps {
+		s := CloneStep(sc.Steps[i])
+		for _, f := range VarFields(&s) {
+			for _, m := range NodeVarRe.FindAllStringSubmatch(*f.Ptr, -1) {
+				if m[1] == "secret" && !seen[m[2]] {
+					seen[m[2]] = true
+					out = append(out, m[2])
+				}
+			}
+		}
+	}
+	slices.Sort(out)
+	return out
 }

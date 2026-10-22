@@ -1,0 +1,17 @@
+{
+ "meta": {
+  "name": "Bí mật – dùng mật khẩu mà không lộ",
+  "description": "Gán bí mật “mat_khau_thu” vào biến rồi báo kết quả. Đúng: kịch bản chạy được (giá trị thật được dùng bên trong), nhưng lời kết, nhật ký node và lịch sử chạy chỉ hiện ••••, không hiện giá trị. Chưa có bí mật thì bấm Chạy báo ngay “thiếu bí mật: mat_khau_thu”.",
+  "app": "Hệ thống",
+  "level": 1,
+  "page": "index.html",
+  "real": false,
+  "prep": "Cài đặt → Bí mật: thêm tên mat_khau_thu, giá trị bất kỳ từ 4 ký tự (vd Ghost-1234)."
+ },
+ "script": {
+  "steps": [
+   { "type": "setVar", "varName": "pw", "value": "{{secret.mat_khau_thu}}" },
+   { "type": "end", "endStatus": "success", "message": "Đã dùng bí mật, nhật ký chỉ thấy: {{n1.output.value}} · độ dài biến được giữ kín" }
+  ]
+ }
+}

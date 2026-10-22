@@ -113,6 +113,8 @@ func (b mcpBackend) OpenInApp(path string) error {
 	return nil
 }
 
+func (b mcpBackend) SecretNames() []string { return store.Secrets().Names() }
+
 func (b mcpBackend) Displays() []mcpsrv.Display {
 	main := device.MainScreen()
 	out := []mcpsrv.Display{}

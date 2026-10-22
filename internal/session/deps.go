@@ -7,6 +7,7 @@ import (
 
 	"ghosthand/internal/device"
 	"ghosthand/internal/model"
+	"ghosthand/internal/secrets"
 	"ghosthand/internal/store"
 	"ghosthand/internal/web"
 )
@@ -27,6 +28,8 @@ type Deps struct {
 	SaveRun func(rec model.RunRecord, path string, shots map[string]image.Image) error
 	// ShotsDir – thư mục ảnh trong Cài đặt (node Chụp màn hình để trống saveDir), đọc lúc bắt đầu mỗi phiên.
 	ShotsDir func() string
+	// Secrets – kho bí mật (bước 43 S10); nil = Keychain / Credential Manager thật.
+	Secrets *secrets.Store
 }
 
 func (d Deps) withDefaults() Deps {
@@ -64,6 +67,9 @@ func (d Deps) withDefaults() Deps {
 		d.Touch = func(ctx context.Context, in *device.TrackingInput, paused func() bool, onTouch func()) {
 			device.WatchTouch(ctx, device.Location, in, paused, onTouch)
 		}
+	}
+	if d.Secrets == nil {
+		d.Secrets = store.Secrets()
 	}
 	if d.ShotsDir == nil {
 		d.ShotsDir = store.ShotsDir

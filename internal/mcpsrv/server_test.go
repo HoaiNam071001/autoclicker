@@ -65,6 +65,7 @@ func (f *fakeBackend) Recent() []string             { return f.recent }
 func (f *fakeBackend) Editor() Editor               { return f.editor }
 func (f *fakeBackend) ScriptsDir() (string, error)  { return f.dir, nil }
 func (f *fakeBackend) OpenInApp(path string) error  { f.opened = append(f.opened, path); return nil }
+func (f *fakeBackend) SecretNames() []string        { return []string{"mat_khau_email"} }
 func (f *fakeBackend) Displays() []Display {
 	return []Display{{Rect: model.Rect{W: 1920, H: 1080}, Scale: 1, Main: true}}
 }
