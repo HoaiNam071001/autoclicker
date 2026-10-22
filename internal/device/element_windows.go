@@ -85,6 +85,14 @@ func scrollTo(app string, index int) error {
 	return nil
 }
 
+// actAt – thao tác phần tử qua UIA (Invoke / Value / Toggle / ExpandCollapse / SelectionItem): làm ở bước 43 E1w.
+func actAt(app string, index int, act, value string) error {
+	if act == model.ElActScroll {
+		return scrollTo(app, index)
+	}
+	return errors.New("thao tác phần tử không cần chuột chưa có trên Windows (bước 43 E1w)")
+}
+
 func appErr(err error, name string) error {
 	if name != "" {
 		return fmt.Errorf("%w (%s)", err, name)

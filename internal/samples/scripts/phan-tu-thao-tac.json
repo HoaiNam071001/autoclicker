@@ -1,0 +1,44 @@
+{
+ "meta": {
+  "name": "Phần tử – thao tác không cần chuột",
+  "description": "Điền ô Họ tên, tick Nhớ tôi rồi bấm GỬI hoàn toàn qua Accessibility – chuột không nhúc nhích. Đúng: trang hiện “Nguyễn Văn An · NHỚ”. Cần quyền Accessibility, cửa sổ trình duyệt đang hiện (che một phần vẫn chạy). Chỉ macOS (Windows chờ bước 43 E1w).",
+  "level": 1,
+  "app": "Phần tử",
+  "page": "form-controls.html",
+  "real": false
+ },
+ "script": {
+  "steps": [
+   {
+    "type": "open",
+    "target": "{{sandbox}}/form-controls.html",
+    "delayAfter": 3000
+   },
+   {
+    "type": "elementAction",
+    "selectors": ["role=textbox[name=\"Họ tên\"]"],
+    "elementAct": "setValue",
+    "text": "Nguyễn Văn An",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "elementAction",
+    "selectors": ["role=checkbox[name=\"Nhớ tôi\"]"],
+    "elementAct": "check",
+    "timeoutMs": 10000
+   },
+   {
+    "type": "elementAction",
+    "selectors": ["role=button[name=\"GỬI\"]"],
+    "elementAct": "press",
+    "timeoutMs": 10000,
+    "delayAfter": 500
+   },
+   {
+    "type": "end",
+    "endStatus": "success",
+    "message": "Đã điền, tick và bấm GỬI không dùng chuột – xem trang hiện “Nguyễn Văn An · NHỚ”"
+   }
+  ]
+ }
+}

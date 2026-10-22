@@ -16,12 +16,18 @@ type ElementReader interface {
 	Elements(app string) ([]element.Node, error)
 	// ScrollTo cuộn phần tử thứ index của lần Elements vừa đọc vào khung nhìn (phần tử bị kẹp ở mép – Node.Shown).
 	ScrollTo(app string, index int) error
+	// Act làm thao tác act (model.ElAct*) với phần tử thứ index của lần Elements vừa đọc, không dùng chuột (bước 43 E1).
+	Act(app string, index int, act, value string) error
 }
 
 type SystemElements struct{}
 
 func (SystemElements) Elements(app string) ([]element.Node, error) { return readElements(app) }
 func (SystemElements) ScrollTo(app string, index int) error        { return scrollTo(app, index) }
+
+func (SystemElements) Act(app string, index int, act, value string) error {
+	return actAt(app, index, act, value)
+}
 
 var (
 	// ErrNoAccessibility – app / terminal chưa có quyền Accessibility (StepError code permission).

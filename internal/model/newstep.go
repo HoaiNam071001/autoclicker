@@ -83,6 +83,8 @@ func NewStep(stepType string) (Step, error) {
 		s.Selectors, s.TimeoutMs, s.IntervalMs = []string{"text="}, 10000, 200
 	case StepElementRead:
 		s.Selectors, s.TimeoutMs, s.IntervalMs = []string{"text="}, 10000, 250
+	case StepElementAction:
+		s.ElementAct, s.Selectors, s.TimeoutMs, s.IntervalMs = ElActPress, []string{"text="}, 10000, 250
 	case StepWaitDownload:
 		s.TimeoutMs, s.IntervalMs = 60000, 500
 	case StepPageText, StepReadTable:

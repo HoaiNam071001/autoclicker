@@ -1,5 +1,5 @@
 // Hoạt hoạ nhóm ứng dụng / cửa sổ / trình duyệt thường (bước 47).
-import { Arr, Browser, Chip, Cur, Lines, Move, Ripple, Scenes, Show, Spinner, Stage, T, Tick, Tween, Typed, Win } from './parts';
+import { Arr, Browser, Btn, Chip, Cur, Lines, Move, Ripple, Scenes, Show, Spinner, Stage, T, Tick, Tween, Typed, Win } from './parts';
 
 const tab = (x: number, w: number, label: string, on = false) => (
   <g><path d={`M${x} 40v-6a4 4 0 0 1 4-4h${w - 8}a4 4 0 0 1 4 4v6z`} className={on ? 'fill-accent-soft stroke-accent' : 'fill-field stroke-line-strong'} /><T x={x + w / 2} y={38} anchor="middle" s={7.5}>{label}</T></g>
@@ -65,6 +65,15 @@ export const app: Scenes = {
       <rect x={0} y={0} width="240" height="135" rx="8" className="fill-surface stroke-line-strong"><Tween attr="width" pts={[[0, 240], [0.45, 240], [0.8, 190]]} /><Tween attr="height" pts={[[0, 135], [0.45, 135], [0.8, 105]]} /></rect>
       <Show to={0.45}><T x={120} y={70} anchor="middle" cls="fill-muted" s={9}>toàn màn hình</T></Show>
       <Show from={0.8}><Chip x={70} y={50} w={52} label="zoom 100%" cls="fill-surface stroke-ok" /></Show>
+    </Stage>
+  ),
+  elementAction: () => (
+    <Stage><Win w={130} />
+      <rect x={30} y={34} width="84" height="18" rx="3" className="fill-field stroke-line-strong" />
+      <rect x={30} y={62} width="12" height="12" rx="2" className="fill-field stroke-line-strong" />
+      <Show from={0.4}><path d="M32 68l3 3 5-6" className="stroke-ok" fill="none" strokeWidth="2" /></Show>
+      <Btn x={30} y={86} w={60} h={20} label="Gửi" hot />
+      <Show from={0.7}><Chip x={150} y={60} w={72} label="không chuột" /></Show>
     </Stage>
   ),
   readTable: () => (

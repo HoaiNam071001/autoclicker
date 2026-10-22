@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="sandbox.css">
+<style>
+  main { padding: 24px 40px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+  label { font-size: 22px; font-weight: 700; }
+  input[type=text] { padding: 12px; font-size: 22px; border: 2px solid var(--line); border-radius: 10px; width: 360px; }
+  input[type=checkbox] { width: 28px; height: 28px; vertical-align: middle; margin-right: 10px; }
+  #result { font-size: 30px; font-weight: 800; }
+</style></head>
+<body>
+<main>
+  <label for="name">Họ tên</label><input id="name" type="text">
+  <label><input id="remember" type="checkbox">Nhớ tôi</label>
+  <button class="btn" id="send">GỬI</button>
+  <div id="result"></div>
+  <div class="stats"></div>
+  <div class="log"></div>
+</main>
+<script src="sandbox.js"></script>
+<script>
+  // Điều khiển form (bước 43 E1): ô nhập + checkbox + nút – node Thao tác phần tử đặt giá trị / tick / bấm qua accessibility,
+  // không dùng chuột. GỬI hiện kết quả: "<họ tên> · NHỚ" hoặc "· KHÔNG NHỚ".
+  sb.header('Form điều khiển');
+  const setSent = sb.stat('Lần gửi', 0);
+  let sent = 0;
+  document.getElementById('send').addEventListener('click', () => {
+    sent++; setSent(sent);
+    const who = document.getElementById('name').value || '(trống)';
+    document.getElementById('result').textContent = `${who} · ${document.getElementById('remember').checked ? 'NHỚ' : 'KHÔNG NHỚ'}`;
+  });
+</script>
+</body></html>

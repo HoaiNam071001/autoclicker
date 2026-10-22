@@ -123,6 +123,7 @@ export const STEP_ICON = {
   webClick: 'M3 5h18v14H3zM3 9h18M9 11.5l8 4.2-3.4.9-1.6 3.1z', // cửa sổ trình duyệt + con trỏ
   webType: 'M3 5h18v14H3zM3 9h18M6 12h12v4H6zM9 13v2', // cửa sổ trình duyệt + ô nhập có con trỏ chữ
   webRead: 'M3 5h18v14H3zM3 9h18M7 12.5h10M7 15.5h6', // cửa sổ trình duyệt + dòng chữ
+  elementAction: 'M5 4l6 15 2.2-6.2L19.5 11zM14 14l5 5', // con trỏ bấm thẳng vào phần tử
   waitDownload: 'M12 4v10M8 10.5l4 4 4-4M4 19h16M7 19v-2M17 19v-2', // mũi tên tải xuống xuống khay
   readTable: 'M4 5h16v14H4zM4 10h16M4 15h16M10 5v14', // lưới bảng
   pageText: 'M4 4h16M4 8h16M4 12h10M4 16h16M4 20h8', // các dòng chữ của trang

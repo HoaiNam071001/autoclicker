@@ -202,6 +202,7 @@ function ownOutputs(s: Step): OutputField[] {
     case 'webClick': return [{ key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' }, ...WEB_FOUND];
     case 'webType': return [{ key: 'text', desc: 'chữ đã gõ (sau khi thay biến)' }, { key: 'clickX', desc: 'X đã click' }, { key: 'clickY', desc: 'Y đã click' },
       ...WEB_FOUND.filter((f) => f.key !== 'text')];
+    case 'elementAction': return [{ key: 'action', desc: 'thao tác đã làm' }, { key: 'role', desc: 'vai trò phần tử (button, checkbox…)' }, { key: 'text', desc: 'chữ / tên phần tử sau thao tác' }, { key: 'value', desc: 'giá trị sau thao tác (ô nhập, checkbox 0 / 1)' }];
     case 'waitDownload': return [{ key: 'path', desc: 'đường dẫn đầy đủ của file tải về' }, { key: 'name', desc: 'tên file' }, { key: 'size', desc: 'cỡ file (byte)' }];
     case 'readTable': return [{ key: 'rows', desc: 'mảng các dòng, mỗi dòng mảng ô (gồm dòng tên cột)' }, { key: 'items', desc: 'mỗi dòng dữ liệu một đối tượng {tên cột không dấu: giá trị} – nối vào Lặp qua danh sách' }, { key: 'columns', desc: 'tên các cột' }, { key: 'count', desc: 'số dòng dữ liệu' }, { key: 'path', desc: 'file đã ghi (khi có Ghi ra file)' }];
     case 'pageText': return [{ key: 'text', desc: 'toàn bộ chữ, mỗi khối một dòng' }, { key: 'lines', desc: 'mảng các dòng (nối vào Lặp qua danh sách)' }, { key: 'count', desc: 'số dòng' }];

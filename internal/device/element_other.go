@@ -13,4 +13,6 @@ func readElements(string) ([]element.Node, error) { return nil, errNoElements }
 
 func scrollTo(string, int) error { return errNoElements }
 
+func actAt(string, int, string, string) error { return errNoElements }
+
 var errNoElements = errors.New("tìm phần tử màn hình hiện chỉ có trên macOS")

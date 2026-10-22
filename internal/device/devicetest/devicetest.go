@@ -163,6 +163,8 @@ type FakeElements struct {
 	Err      error
 	Apps     []string // app đã hỏi theo thứ tự
 	Scrolled []int
+	Acts     []string // "index:act:value" theo thứ tự gọi Act
+	ActErr   error
 	n        int
 }
 
@@ -177,6 +179,11 @@ func (f *FakeElements) Elements(app string) ([]element.Node, error) {
 	fr := f.Frames[min(f.n, len(f.Frames)-1)]
 	f.n++
 	return fr, nil
+}
+
+func (f *FakeElements) Act(app string, index int, act, value string) error {
+	f.Acts = append(f.Acts, fmt.Sprintf("%d:%s:%s", index, act, value))
+	return f.ActErr
 }
 
 func (f *FakeElements) ScrollTo(app string, index int) error {

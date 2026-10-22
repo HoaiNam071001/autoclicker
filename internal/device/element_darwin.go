@@ -19,10 +19,13 @@ typedef struct {
 	CFAbsoluteTime deadline;
 	CFArrayRef attrs;
 	CFMutableSetRef seen; // phần tử đã duyệt – Chrome trả cùng cây qua nhiều cửa sổ (thanh công cụ toàn màn hình)
-	int target;           // ≥ 0: duyệt tới nút thứ target thì cuộn nó vào khung nhìn rồi dừng (ax_scroll_to)
+	int target;           // ≥ 0: duyệt tới nút thứ target thì làm act với nó rồi dừng (ax_do)
+	int act;
+	const char *val;      // act = AX_ACT_SET: chữ cần đặt
 	int acted;
 } ax_walk;
 
+enum { AX_ACT_SCROLL, AX_ACT_PRESS, AX_ACT_SET, AX_ACT_EXPAND, AX_ACT_COLLAPSE, AX_ACT_SELECT };
 enum { AX_ROLE, AX_SUBROLE, AX_TITLE, AX_DESC, AX_VALUE, AX_PLACEHOLDER, AX_POS, AX_SIZE, AX_CHILDREN, AX_NATTR };
 
 // Chuỗi C (strdup) từ giá trị AX: chuỗi, số (checkbox 0 / 1, thanh trượt); kiểu khác / lỗi → NULL.
@@ -34,6 +37,23 @@ static char *ax_str(CFTypeRef v) {
 	}
 	if (CFGetTypeID(v) == CFNumberGetTypeID()) return strdup([(__bridge NSNumber *)v stringValue].UTF8String);
 	return NULL;
+}
+
+// Thao tác trực tiếp lên phần tử qua AX, không cần chuột. 1 = app nhận lệnh (chưa chắc đã đổi – nơi gọi đọc lại để kiểm).
+static int ax_do(AXUIElementRef el, int act, const char *val) {
+	switch (act) {
+	case AX_ACT_PRESS: return AXUIElementPerformAction(el, kAXPressAction) == kAXErrorSuccess;
+	case AX_ACT_SET: {
+		CFStringRef s = CFStringCreateWithCString(NULL, val ? val : "", kCFStringEncodingUTF8);
+		AXError e = AXUIElementSetAttributeValue(el, kAXValueAttribute, s);
+		CFRelease(s);
+		return e == kAXErrorSuccess;
+	}
+	case AX_ACT_EXPAND: return AXUIElementSetAttributeValue(el, CFSTR("AXExpanded"), kCFBooleanTrue) == kAXErrorSuccess;
+	case AX_ACT_COLLAPSE: return AXUIElementSetAttributeValue(el, CFSTR("AXExpanded"), kCFBooleanFalse) == kAXErrorSuccess;
+	case AX_ACT_SELECT: return AXUIElementSetAttributeValue(el, kAXSelectedAttribute, kCFBooleanTrue) == kAXErrorSuccess;
+	}
+	return AXUIElementPerformAction(el, CFSTR("AXScrollToVisible")) == kAXErrorSuccess;
 }
 
 static void ax_walk_el(AXUIElementRef el, int depth, ax_walk *c) {
@@ -51,7 +71,7 @@ static void ax_walk_el(AXUIElementRef el, int depth, ax_walk *c) {
 		c->nodes = nn; c->cap = cap;
 	}
 	if (c->n == c->target) {
-		c->acted = AXUIElementPerformAction(el, CFSTR("AXScrollToVisible")) == kAXErrorSuccess;
+		c->acted = ax_do(el, c->act, c->val);
 		c->max = 0; // dừng duyệt
 		CFRelease(vals);
 		return;
@@ -126,8 +146,8 @@ static void ax_enable(pid_t pid) {
 }
 
 // Đọc cây các cửa sổ không thu nhỏ của app pid. Trả 0 được, 3 không có cửa sổ đang hiện.
-// target ≥ 0: không đọc mà cuộn nút thứ target vào khung nhìn, *acted = 1 nếu được (thứ tự duyệt như lần đọc).
-static int ax_read(pid_t pid, int maxNodes, double seconds, int target, int *acted, ax_node **nodes, int *n) {
+// target ≥ 0: không đọc mà làm act (AX_ACT_*, val cho AX_ACT_SET) với nút thứ target, *acted = 1 nếu được (thứ tự duyệt như lần đọc).
+static int ax_read(pid_t pid, int maxNodes, double seconds, int target, int act, const char *val, int *acted, ax_node **nodes, int *n) {
 	*nodes = NULL; *n = 0; *acted = 0;
 	AXUIElementRef ax = AXUIElementCreateApplication(pid);
 	AXUIElementSetMessagingTimeout(ax, 1.0);
@@ -138,6 +158,8 @@ static int ax_read(pid_t pid, int maxNodes, double seconds, int target, int *act
 	ax_walk c = {0};
 	c.max = maxNodes;
 	c.target = target;
+	c.act = act;
+	c.val = val;
 	c.deadline = CFAbsoluteTimeGetCurrent() + seconds;
 	c.attrs = CFArrayCreate(NULL, (const void **)names, AX_NATTR, &kCFTypeArrayCallBacks);
 	c.seen = CFSetCreateMutable(NULL, 0, &kCFTypeSetCallBacks);
@@ -207,7 +229,19 @@ func readElements(app string) ([]element.Node, error) {
 
 // scrollTo cuộn nút thứ index (thứ tự như readElements) vào khung nhìn – cây đổi giữa hai lần thì có thể cuộn nhầm,
 // nơi gọi phải đọc lại để đo.
-func scrollTo(app string, index int) error {
+func scrollTo(app string, index int) error { return actAt(app, index, model.ElActScroll, "") }
+
+var axActs = map[string]C.int{
+	model.ElActScroll: C.AX_ACT_SCROLL, model.ElActPress: C.AX_ACT_PRESS, model.ElActSetValue: C.AX_ACT_SET,
+	model.ElActExpand: C.AX_ACT_EXPAND, model.ElActCollapse: C.AX_ACT_COLLAPSE, model.ElActSelect: C.AX_ACT_SELECT,
+}
+
+// actAt làm thao tác act (model.ElAct*) với nút thứ index của lần đọc vừa rồi – cùng giới hạn như scrollTo.
+func actAt(app string, index int, act, value string) error {
+	code, ok := axActs[act]
+	if !ok {
+		return fmt.Errorf("thao tác %q chưa hỗ trợ", act)
+	}
 	pid, name, err := findApp(app)
 	if err != nil {
 		return err
@@ -216,13 +250,15 @@ func scrollTo(app string, index int) error {
 		ns       *C.ax_node
 		n, acted C.int
 	)
-	rc := C.ax_read(pid, maxElementNodes, maxElementSeconds, C.int(index), &acted, &ns, &n)
+	cval := C.CString(value)
+	defer C.free(unsafe.Pointer(cval))
+	rc := C.ax_read(pid, maxElementNodes, maxElementSeconds, C.int(index), code, cval, &acted, &ns, &n)
 	C.ax_free(ns, n)
 	if rc == 3 {
 		return fmt.Errorf("%w (%s)", ErrNoWindow, name)
 	}
 	if acted == 0 {
-		return errors.New("không cuộn được tới phần tử (trang vừa đổi hoặc phần tử không cuộn được)")
+		return errors.New("app không nhận thao tác này trên phần tử (trang vừa đổi, hoặc phần tử không hỗ trợ)")
 	}
 	return nil
 }
@@ -271,7 +307,7 @@ func readPid(pid C.pid_t, name string) ([]element.Node, error) {
 		ns       *C.ax_node
 		n, acted C.int
 	)
-	rc := C.ax_read(pid, maxElementNodes, maxElementSeconds, -1, &acted, &ns, &n)
+	rc := C.ax_read(pid, maxElementNodes, maxElementSeconds, -1, 0, nil, &acted, &ns, &n)
 	defer C.ax_free(ns, n)
 	if rc == 3 {
 		return nil, fmt.Errorf("%w (%s)", ErrNoWindow, name)

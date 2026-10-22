@@ -37,6 +37,7 @@ export const NODE_INFO: Record<InfoKey, NodeInfo> = {
   webWait: { desc: 'Chờ phần tử trong trang web (theo chữ, nhãn, CSS…) hiện ra hoặc biến mất.', use: 'Đợi trang tải xong, đợi kết quả tìm kiếm – nhanh và chắc hơn chờ ảnh.' },
   webClick: { desc: 'Tìm phần tử trong trang web theo chữ / nhãn rồi bấm vào bằng chuột.', use: 'Trang hay đổi bố cục / theme khiến ảnh mẫu không còn khớp.' },
   webType: { desc: 'Tìm ô nhập trong trang web, bấm vào rồi gõ chữ (xoá chữ cũ nếu muốn).', use: 'Điền form đăng ký, ô tìm kiếm, bình luận.' },
+  elementAction: { desc: 'Bấm, điền giá trị, tick hay chọn một phần tử thẳng qua Accessibility, không dùng chuột; cửa sổ bị che vẫn chạy.', use: 'Điền form, tick ô, bấm nút khi không muốn giành chuột; ô khó nhập thì dùng Gõ chữ.' },
   waitDownload: { desc: 'Chờ một file tải về xong trong thư mục Tải xuống (hết đuôi tạm, cỡ ngừng tăng) rồi đưa ra tên + đường dẫn.', use: 'Đặt sau nút Tải / Xuất file trên web, rồi mở hoặc đọc file đó.' },
   readTable: { desc: 'Đọc cả bảng (table / grid) trên trang Chrome thường hoặc app thành dòng + cột, không OCR; ghi ra .csv / .xlsx được.', use: 'Lấy bảng đơn hàng, bảng giá rồi lặp từng dòng hoặc lưu thành file Excel.' },
   pageText: { desc: 'Đọc mọi chữ đang hiện trong cửa sổ app / trang Chrome thường (hoặc một khung), không OCR.', use: 'Lấy cả bảng giá, danh sách trên trang đã đăng nhập rồi tách / lặp từng dòng (macOS).' },

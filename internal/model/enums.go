@@ -93,6 +93,20 @@ const (
 
 var FileOps = []string{FileWrite, FileRow, FileMkdir, FileTrash, FileEmptyTrash}
 
+// Thao tác của node Thao tác phần tử (Step.ElementAct, bước 43 E1) – qua cây accessibility, không dùng chuột.
+const (
+	ElActPress    = "press"    // bấm (AXPress / Invoke)
+	ElActSetValue = "setValue" // đặt giá trị = Text
+	ElActCheck    = "check"    // tick (đã tick thì thôi)
+	ElActUncheck  = "uncheck"  // bỏ tick
+	ElActExpand   = "expand"   // mở rộng
+	ElActCollapse = "collapse" // thu gọn
+	ElActSelect   = "select"   // chọn mục
+	ElActScroll   = "scroll"   // cuộn phần tử vào khung nhìn
+)
+
+var ElementActs = []string{ElActPress, ElActSetValue, ElActCheck, ElActUncheck, ElActExpand, ElActCollapse, ElActSelect, ElActScroll}
+
 // Thao tác của node Hệ thống (Step.SysOp).
 const (
 	SysVolume     = "volume"     // đặt âm lượng = Volume %

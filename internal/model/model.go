@@ -68,6 +68,7 @@ type Step struct {
 	ElementApp    string  `json:"elementApp,omitempty"` // FindBy element: tên app / bundle id ("" = app có cửa sổ trên cùng); nhận {{biến}}
 	FindText      string  `json:"findText,omitempty"`   // FindBy text: chữ cần tìm; nhận {{biến}}
 	TextExact     bool    `json:"textExact,omitempty"`  // FindBy text: cả dòng phải đúng chuỗi (mặc định: chứa chuỗi)
+	ElementAct    string  `json:"elementAct,omitempty"` // elementAction: ElementActs (trống = press); setValue lấy Text
 	TextAccent    bool    `json:"textAccent,omitempty"` // FindBy text: so đúng dấu (mặc định bỏ qua dấu – OCR hay đọc lệch dấu)
 	MinCount      int     `json:"minCount,omitempty"`   // findAll: cần thấy ít nhất chừng này chỗ (0 = 1) – chưa đủ thì chờ tiếp
 	MaxCount      int     `json:"maxCount,omitempty"`   // findAll: thấy nhiều hơn chừng này chỗ → chờ tiếp / cổng fail (0 = không giới hạn)

@@ -91,3 +91,11 @@ func checkTableFile(i int, s model.Step) error {
 	}
 	return nil
 }
+
+// checkElementAction – node Thao tác phần tử: tìm được phần tử, thao tác hợp lệ, đặt giá trị thì có giá trị.
+func checkElementAction(i int, s model.Step) error {
+	if s.ElementAct != "" && !slices.Contains(model.ElementActs, s.ElementAct) {
+		return stepErr(i, s, "elementAct", "thao tác không hợp lệ: %q (press | setValue | check | uncheck | expand | collapse | select | scroll)", s.ElementAct)
+	}
+	return checkElementFind(i, s)
+}

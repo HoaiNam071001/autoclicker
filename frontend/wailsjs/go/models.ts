@@ -1200,6 +1200,7 @@ export namespace model {
 	    elementApp?: string;
 	    findText?: string;
 	    textExact?: boolean;
+	    elementAct?: string;
 	    textAccent?: boolean;
 	    minCount?: number;
 	    maxCount?: number;
@@ -1351,6 +1352,7 @@ export namespace model {
 	        this.elementApp = source["elementApp"];
 	        this.findText = source["findText"];
 	        this.textExact = source["textExact"];
+	        this.elementAct = source["elementAct"];
 	        this.textAccent = source["textAccent"];
 	        this.minCount = source["minCount"];
 	        this.maxCount = source["maxCount"];
